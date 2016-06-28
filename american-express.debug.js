@@ -147,7 +147,7 @@ module.exports = AmericanExpress;
  * @description This module is for use with Amex Express Checkout. To accept American Express cards, use Hosted Fields.
  */
 
-var VERSION = "3.0.0-beta.9";
+var VERSION = "3.0.0-beta.10";
 var BraintreeError = _dereq_('../lib/error');
 var AmericanExpress = _dereq_('./american-express');
 var deferred = _dereq_('../lib/deferred');

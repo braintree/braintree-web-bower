@@ -1,4 +1,4 @@
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}(g.braintree || (g.braintree = {})).paypal = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}(g.braintree || (g.braintree = {})).threeDSecure = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 (function (root, factory) {
@@ -379,7 +379,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":12,"./create-authorization-data":14,"./json-clone":26}],7:[function(_dereq_,module,exports){
+},{"./constants":12,"./create-authorization-data":14,"./json-clone":18}],7:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('./constants');
@@ -692,7 +692,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":29}],15:[function(_dereq_,module,exports){
+},{"../lib/polyfill":20}],15:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (fn) {
@@ -788,263 +788,11 @@ module.exports = BraintreeError;
 },{"./enumerate":16}],18:[function(_dereq_,module,exports){
 'use strict';
 
-var popup = _dereq_('./popup');
-var Bus = _dereq_('../../bus');
-var events = _dereq_('../shared/events');
-var constants = _dereq_('../shared/constants');
-var uuid = _dereq_('../../uuid');
-var iFramer = _dereq_('iframer');
-var BraintreeError = _dereq_('../../error');
-
-var REQUIRED_CONFIG_KEYS = [
-  'name',
-  'dispatchFrameUrl',
-  'openFrameUrl'
-];
-
-function _validateFrameConfiguration(options) {
-  if (!options) {
-    throw new Error('Valid configuration is required');
-  }
-
-  REQUIRED_CONFIG_KEYS.forEach(function (key) {
-    if (!options.hasOwnProperty(key)) {
-      throw new Error('A valid frame ' + key + ' must be provided');
-    }
-  });
-
-  if (!(/^[\w_]+$/.test(options.name))) { // eslint-disable-line
-    throw new Error('A valid frame name must be provided');
-  }
-}
-
-function FrameService(options) {
-  _validateFrameConfiguration(options);
-
-  this._serviceId = uuid().replace(/-/g, '');
-
-  this._options = {
-    name: options.name + '_' + this._serviceId,
-    dispatchFrameUrl: options.dispatchFrameUrl,
-    openFrameUrl: options.openFrameUrl
-  };
-  this._state = options.state;
-
-  this._bus = new Bus({channel: this._serviceId});
-  this._setBusEvents();
-}
-
-FrameService.prototype.initialize = function (callback) {
-  var dispatchFrameReadyHandler = function () {
-    callback();
-    this._bus.off(events.DISPATCH_FRAME_READY, dispatchFrameReadyHandler);
-  }.bind(this);
-
-  this._bus.on(events.DISPATCH_FRAME_READY, dispatchFrameReadyHandler);
-  this._writeDispatchFrame();
-};
-
-FrameService.prototype._writeDispatchFrame = function () {
-  var frameName = constants.DISPATCH_FRAME_NAME + '_' + this._serviceId;
-  var frameSrc = this._options.dispatchFrameUrl;
-
-  this._dispatchFrame = iFramer({
-    name: frameName,
-    src: frameSrc,
-    height: 0,
-    width: 0
-  });
-
-  document.body.appendChild(this._dispatchFrame);
-};
-
-FrameService.prototype._setBusEvents = function () {
-  this._bus.on(events.DISPATCH_FRAME_REPORT, function (res) {
-    this.close();
-
-    if (this._onCompleteCallback) {
-      this._onCompleteCallback.call(null, res.err, res.payload);
-    }
-
-    this._onCompleteCallback = null;
-  }.bind(this));
-
-  this._bus.on(Bus.events.CONFIGURATION_REQUEST, function (reply) {
-    reply(this._state);
-  }.bind(this));
-};
-
-FrameService.prototype.open = function (callback) {
-  this._onCompleteCallback = callback;
-
-  this._frame = popup.open(this._options);
-  this._pollForPopupClose();
-};
-
-FrameService.prototype.redirect = function (url) {
-  if (this._frame && !this.isFrameClosed()) {
-    this._frame.location.href = url;
-  }
-};
-
-FrameService.prototype.close = function () {
-  if (!this.isFrameClosed()) {
-    this._frame.close();
-  }
-};
-
-FrameService.prototype.teardown = function () {
-  this.close();
-  this._dispatchFrame.parentNode.removeChild(this._dispatchFrame);
-  this._dispatchFrame = null;
-  this._cleanupFrame();
-};
-
-FrameService.prototype.isFrameClosed = function () {
-  return this._frame == null || this._frame.closed;
-};
-
-FrameService.prototype._cleanupFrame = function () {
-  this._frame = null;
-  clearInterval(this._popupInterval);
-  this._popupInterval = null;
-};
-
-FrameService.prototype._pollForPopupClose = function () {
-  this._popupInterval = setInterval(function () {
-    if (this.isFrameClosed()) {
-      this._cleanupFrame();
-      if (this._onCompleteCallback) {
-        this._onCompleteCallback(new BraintreeError({
-          type: BraintreeError.types.CUSTOMER,
-          message: constants.FRAME_CLOSED_ERROR_MESSAGE
-        }));
-      }
-    }
-  }.bind(this), constants.POPUP_POLL_INTERVAL);
-
-  return this._popupInterval;
-};
-
-module.exports = FrameService;
-
-},{"../../bus":11,"../../error":17,"../../uuid":30,"../shared/constants":24,"../shared/events":25,"./popup":21,"iframer":2}],19:[function(_dereq_,module,exports){
-'use strict';
-
-var FrameService = _dereq_('./frame-service');
-
-module.exports = {
-  create: function createFrameService(options, callback) {
-    var frameService = new FrameService(options);
-
-    frameService.initialize(function () {
-      callback(frameService);
-    });
-  }
-};
-
-},{"./frame-service":18}],20:[function(_dereq_,module,exports){
-'use strict';
-
-var constants = _dereq_('../../shared/constants');
-var position = _dereq_('./position');
-
-module.exports = function composePopupOptions() {
-  return [
-    constants.POPUP_BASE_OPTIONS,
-    'top=' + position.top(),
-    'left=' + position.left()
-  ].join(',');
-};
-
-},{"../../shared/constants":24,"./position":23}],21:[function(_dereq_,module,exports){
-'use strict';
-
-module.exports = {
-  open: _dereq_('./open')
-};
-
-},{"./open":22}],22:[function(_dereq_,module,exports){
-(function (global){
-'use strict';
-
-var composeOptions = _dereq_('./compose-options');
-
-module.exports = function openPopup(options) {
-  return global.open(
-    options.openFrameUrl,
-    options.name,
-    composeOptions()
-  );
-};
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./compose-options":20}],23:[function(_dereq_,module,exports){
-(function (global){
-'use strict';
-
-var constants = _dereq_('../../shared/constants');
-
-function top() {
-  var windowHeight = global.outerHeight || document.documentElement.clientHeight;
-  var windowTop = global.screenY == null ? global.screenTop : global.screenY;
-
-  return center(windowHeight, constants.POPUP_HEIGHT, windowTop);
-}
-
-function left() {
-  var windowWidth = global.outerWidth || document.documentElement.clientWidth;
-  var windowLeft = global.screenX == null ? global.screenLeft : global.screenX;
-
-  return center(windowWidth, constants.POPUP_WIDTH, windowLeft);
-}
-
-function center(windowMetric, popupMetric, offset) {
-  return (windowMetric - popupMetric) / 2 + offset;
-}
-
-module.exports = {
-  top: top,
-  left: left,
-  center: center
-};
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../shared/constants":24}],24:[function(_dereq_,module,exports){
-'use strict';
-
-// TODO: May be dependent on payment method in the future
-var POPUP_HEIGHT = 535;
-var POPUP_WIDTH = 450;
-
-module.exports = {
-  DISPATCH_FRAME_NAME: 'dispatch',
-  FRAME_CLOSED_ERROR_MESSAGE: 'Frame closed before tokenization could occur.',
-  POPUP_BASE_OPTIONS: 'resizable,scrollbars,height=' + POPUP_HEIGHT + ',width=' + POPUP_WIDTH,
-  POPUP_WIDTH: POPUP_WIDTH,
-  POPUP_HEIGHT: POPUP_HEIGHT,
-  POPUP_POLL_INTERVAL: 100,
-  POPUP_CLOSE_TIMEOUT: 100
-};
-
-},{}],25:[function(_dereq_,module,exports){
-'use strict';
-
-var enumerate = _dereq_('../../enumerate');
-
-module.exports = enumerate([
-  'DISPATCH_FRAME_READY',
-  'DISPATCH_FRAME_REPORT'
-], 'frameService:');
-
-},{"../../enumerate":16}],26:[function(_dereq_,module,exports){
-'use strict';
-
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],27:[function(_dereq_,module,exports){
+},{}],19:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -1053,23 +801,7 @@ module.exports = function (obj) {
   });
 };
 
-},{}],28:[function(_dereq_,module,exports){
-'use strict';
-
-function once(fn) {
-  var called = false;
-
-  return function () {
-    if (!called) {
-      called = true;
-      fn.apply(null, arguments);
-    }
-  };
-}
-
-module.exports = once;
-
-},{}],29:[function(_dereq_,module,exports){
+},{}],20:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1108,7 +840,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],30:[function(_dereq_,module,exports){
+},{}],21:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {
@@ -1122,315 +854,320 @@ function uuid() {
 
 module.exports = uuid;
 
-},{}],31:[function(_dereq_,module,exports){
+},{}],22:[function(_dereq_,module,exports){
 'use strict';
 
-var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/error');
-var once = _dereq_('../../lib/once');
-var VERSION = "3.0.0-beta.10";
-var constants = _dereq_('../shared/constants');
-var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
 var methods = _dereq_('../../lib/methods');
-var deferred = _dereq_('../../lib/deferred');
-var getCountry = _dereq_('../shared/get-country');
 var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
+var constants = _dereq_('../shared/constants.json');
+var Bus = _dereq_('../../lib/bus');
+var uuid = _dereq_('../../lib/uuid');
+var deferred = _dereq_('../../lib/deferred');
+var events = _dereq_('../shared/events');
+var version = "3.0.0-beta.10";
+var iFramer = _dereq_('iframer');
+
+var IFRAME_HEIGHT = 400;
+var IFRAME_WIDTH = 400;
 
 /**
- * @typedef {object} PayPal~tokenizePayload
- * @property {string} nonce The payment method nonce.
- * @property {object} details Additional PayPal account details.
- * @property {string} details.email User's email address.
- * @property {string} details.payerId User's payer ID, the unique identifier for each PayPal account.
- * @property {string} details.firstName User's given name.
- * @property {string} details.lastName User's surname.
- * @property {?string} details.countryCode User's 2 character country code.
- * @property {?string} details.phone User's phone number (e.g. 555-867-5309).
- * @property {?object} details.shippingAddress User's shipping address details, only available if shipping address is enabled.
- * @property {string} details.shippingAddress.recipientName Recipient of postage.
- * @property {string} details.shippingAddress.line1 Street number and name.
- * @property {string} details.shippingAddress.line2 Extended address.
- * @property {string} details.shippingAddress.city City or locality.
- * @property {string} details.shippingAddress.state State or region.
- * @property {string} details.shippingAddress.postalCode Postal code.
- * @property {string} details.shippingAddress.countryCode 2 character country code (e.g. US).
- */
-
-/**
- * @typedef {object} PayPal~tokenizeReturn
- * @property {Function} close A handle to close the PayPal checkout flow.
+ * @typedef {object} ThreeDSecure~verifyPayload
+ * @property {string} nonce The new payment method nonce produced by the 3D Secure lookup. The original nonce passed into {@link ThreeDSecure#verifyCard|verifyCard} was consumed. This new nonce should be used to transact on your server.
+ * @property {object} details Additional account details.
+ * @property {string} details.cardType Type of card, ex: Visa, MasterCard.
+ * @property {string} details.lastTwo Last two digits of card number.
+ * @property {string} description A human-readable description.
+ * @property {boolean} liabilityShiftPossible Indicates whether the card was eligible for 3D Secure.
+ * @property {boolean} liabilityShifted Indicates whether the liability for fraud has been shifted away from the merchant.
  */
 
 /**
  * @class
- * @param {object} options see {@link module:braintree-web/paypal.create|paypal.create}
- * @classdesc This class represents a PayPal component. Instances of this class have methods for launching auth dialogs and other programmatic interactions with the PayPal component.
+ * @param {object} options 3D Secure {@link module:braintree-web/three-d-secure.create create} options
+ * @description <strong>Do not use this constructor directly. Use {@link module:braintree-web/three-d-secure.create|braintree.threeDSecure.create} instead.</strong>
+ * @classdesc This class represents a ThreeDSecure component produced by {@link module:braintree-web/three-d-secure.create|braintree.threeDSecure.create}. Instances of this class have a method for launching a 3D Secure authentication flow.
  */
-function PayPal(options) {
+function ThreeDSecure(options) {
+  this._options = options;
+  this._assetsUrl = options.client.getConfiguration().gatewayConfiguration.assetsUrl;
   this._client = options.client;
-  this._assetsUrl = options.client.getConfiguration().gatewayConfiguration.paypal.assetsUrl + '/web/' + VERSION;
-  this._authorizationInProgress = false;
 }
 
-PayPal.prototype._initialize = function (callback) {
-  var client = this._client;
-  var failureTimeout = setTimeout(function () {
-    analytics.sendEvent(client, 'web.paypal.load.timed-out');
-  }, INTEGRATION_TIMEOUT_MS);
-
-  frameService.create({
-    name: constants.LANDING_FRAME_NAME,
-    dispatchFrameUrl: this._assetsUrl + '/html/dispatch-frame.html',
-    openFrameUrl: this._assetsUrl + '/html/paypal-landing-frame.html'
-  }, function (service) {
-    this._frameService = service;
-    clearTimeout(failureTimeout);
-    analytics.sendEvent(client, 'web.paypal.load.succeeded');
-    callback();
-  }.bind(this));
-};
+/**
+ * @callback ThreeDSecure~addFrameCallback
+ * @param {?BraintreeError} [err] `null` or `undefined` if there was no error.
+ * @param {HTMLIFrameElement} iframe An iframe element containing the bank's authentication page that you must put on your page.
+ * @description The callback used for options.addFrame in {@link ThreeDSecure#verifyCard|verifyCard}.
+ * @returns {void}
+ */
 
 /**
- * Launches the PayPal login flow and returns a nonce payload.
- * @public
- * @param {object} options All tokenization options for the PayPal component.
- * @param {string} options.flow Set to 'checkout' for one-time payment flow, or 'vault' for Vault flow.
- * @param {string} [options.intent=authorize]
- * Checkout flows only.
- * * `authorize` - Submits the transaction for authorization but not settlement.
- * * `sale` - Payment will be immediately submitted for settlement upon creating a transaction.
- * @param {boolean} [options.offerCredit=false] Offers the customer PayPal Credit if they qualify. Checkout flows only.
- * @param {string|number} [options.amount] The amount of the transaction. Required when using the Checkout flow.
- * @param {string} [options.currency] The currency code of the amount, such as 'USD'. Required when using the Checkout flow.
- * @param {string} [options.displayName] The merchant name displayed inside of the PayPal lightbox; defaults to the company name on your Braintree account
- * @param {string} [options.locale=en_us] Use this option to change the language, links, and terminology used in the PayPal flow to suit the country and language of your customer.
- * @param {boolean} [options.enableShippingAddress=false] Returns a shipping address object in {@link PayPal#tokenize}.
- * @param {object} [options.shippingAddressOverride] Allows you to pass a shipping address you have already collected into the PayPal payment flow.
- * @param {string} options.shippingAddressOverride.line1 Street address.
- * @param {string} [options.shippingAddressOverride.line2] Street address (extended).
- * @param {string} options.shippingAddressOverride.city City.
- * @param {string} options.shippingAddressOverride.state State.
- * @param {string} options.shippingAddressOverride.postalCode Postal code.
- * @param {string} options.shippingAddressOverride.countryCode Country.
- * @param {string} [options.shippingAddressOverride.phone] Phone number.
- * @param {string} [options.shippingAddressOverride.recipientName] Recipient's name.
- * @param {boolean} [options.shippingAddressEditable=true] Set to false to disable user editing of the shipping address.
- * @param {boolean} [options.billingAgreementsDescription] Use this option to set the description of the preapproved payment agreement visible to customers in their PayPal profile. Max 255 characters.
- * @param {callback} callback The second argument, <code>data</code>, is a {@link PayPal~tokenizePayload|tokenizePayload}.
- * @returns {PayPal~tokenizeReturn} A handle to close the PayPal checkout frame.
+ * @callback ThreeDSecure~removeFrameCallback
+ * @description The callback used for options.removeFrame in {@link ThreeDSecure#verifyCard|verifyCard}.
+ * @returns {void}
  */
-PayPal.prototype.tokenize = function (options, callback) {
-  var client = this._client;
+
+/**
+ * Launch the 3D Secure login flow, returning a nonce payload.
+ * @public
+ * @param {object} options Options for card verification.
+ * @param {string} options.nonce A nonce referencing the card to be verified. For example, this can be a nonce that was returned by Hosted Fields.
+ * @param {number} options.amount The amount of the transaction in the current merchant account's currency. For example, if you are running a transaction of $123.45 US dollars, `amount` would be 123.45.
+ * @param {errback} options.addFrame This {@link ThreeDSecure~addFrameCallback|addFrameCallback} will be called when the bank frame needs to be added to your page.
+ * @param {callback} options.removeFrame This {@link ThreeDSecure~removeFrameCallback|removeFrameCallback} will be called when the bank frame needs to be removed from your page.
+ * @param {errback} callback The second argument, <code>data</code>, is a {@link ThreeDSecure~verifyPayload|verifyPayload}
+ * @returns {void}
+ * @example
+ * <caption>Verifying an existing nonce with 3DS</caption>
+ * var my3DSContainer;
+ *
+ * threeDSecure.verifyCard({
+ *   nonce: existingNonce,
+ *   amount: 123.45,
+ *   addFrame: function (err, iframe) {
+ *     // Set up your UI and add the iframe.
+ *     my3DSContainer = document.createElement('div');
+ *     my3DSContainer.appendChild(iframe);
+ *     document.body.appendChild(my3DSContainer);
+ *   },
+ *   removeFrame: function () {
+ *     // Remove UI that you added in addFrame.
+ *     document.body.removeChild(my3DSContainer);
+ *   }
+ * }, function (err, payload) {
+ *   if (err) {
+ *     console.error(err);
+ *     return;
+ *   }
+ *
+ *   if (payload.liabilityShifted) {
+ *     // Liablity has shifted
+ *     submitNonceToServer(payload.nonce);
+ *   } else if (payload.liabilityShiftPossible) {
+ *     // Liablity may still be shifted
+ *     // Decide if you want to submit the nonce
+ *   } else {
+ *     // Liablity has not shifted and will not shift
+ *     // Decide if you want to submit the nonce
+ *   }
+ * });
+ */
+ThreeDSecure.prototype.verifyCard = function (options, callback) {
+  var url, merchantErrorMsg, addFrame, removeFrame;
 
   if (typeof callback !== 'function') {
     throw new BraintreeError({
       type: BraintreeError.types.MERCHANT,
-      message: 'tokenize must include a callback function.'
+      message: 'verifyCard must include a callback function.'
     });
   }
 
-  callback = once(deferred(callback));
+  options = options || {};
+  callback = deferred(callback);
 
-  if (this._authorizationInProgress) {
-    analytics.sendEvent(client, 'web.paypal.tokenization.error.already-opened');
+  if (this._verifyCardInProgress === true) {
+    merchantErrorMsg = 'Cannot call verifyCard while existing authentication is in progress.';
+  } else if (!options.nonce) {
+    merchantErrorMsg = 'verifyCard options must include a nonce.';
+  } else if (!options.amount) {
+    merchantErrorMsg = 'verifyCard options must include an amount.';
+  } else if (typeof options.addFrame !== 'function') {
+    merchantErrorMsg = 'verifyCard options must include an addFrame function.';
+  } else if (typeof options.removeFrame !== 'function') {
+    merchantErrorMsg = 'verifyCard options must include a removeFrame function.';
+  }
 
+  if (merchantErrorMsg) {
     callback(new BraintreeError({
       type: BraintreeError.types.MERCHANT,
-      message: 'Another tokenization request is active.'
-    }));
-  } else {
-    this._authorizationInProgress = true;
-
-    analytics.sendEvent(client, 'web.paypal.tokenization.opened');
-    this._navigateFrameToAuth(options, callback);
-    // This MUST happen after _navigateFrameToAuth for Metro browsers to work.
-    this._frameService.open(this._createFrameServiceCallback(options, callback));
-  }
-
-  return {
-    close: function () {
-      analytics.sendEvent(client, 'web.paypal.tokenization.closed.by-merchant');
-      this._frameService.close();
-    }.bind(this)
-  };
-};
-
-PayPal.prototype._createFrameServiceCallback = function (options, callback) {
-  var client = this._client;
-
-  return function (err, params) {
-    this._authorizationInProgress = false;
-
-    if (err) {
-      if (err.message === constants.FRAME_CLOSED_ERROR_MESSAGE) {
-        analytics.sendEvent(client, 'web.paypal.tokenization.closed.by-user');
-      }
-      callback(err);
-    } else {
-      this._tokenizePayPal(options, params, callback);
-    }
-  }.bind(this);
-};
-
-PayPal.prototype._tokenizePayPal = function (options, params, callback) {
-  var client = this._client;
-
-  client.request({
-    endpoint: 'payment_methods/paypal_accounts',
-    method: 'post',
-    data: this._formatTokenizeData(options, params)
-  }, function (err, response) {
-    if (err) {
-      analytics.sendEvent(client, 'web.paypal.tokenization.failed');
-      callback(err instanceof BraintreeError ? err : new BraintreeError({
-        type: BraintreeError.types.NETWORK,
-        message: 'Could not tokenize user\'s PayPal account.',
-        details: err
-      }));
-    } else {
-      analytics.sendEvent(client, 'web.paypal.tokenization.success');
-      callback(null, this._formatTokenizePayload(response));
-    }
-  }.bind(this));
-};
-
-PayPal.prototype._formatTokenizePayload = function (response) {
-  var payload;
-  var account = {};
-
-  if (response.paypalAccounts) {
-    account = response.paypalAccounts[0];
-  }
-
-  payload = {
-    nonce: account.nonce,
-    details: {}
-  };
-
-  if (account.details && account.details.payerInfo) {
-    payload.details = account.details.payerInfo;
-  }
-
-  return payload;
-};
-
-PayPal.prototype._formatTokenizeData = function (options, params) {
-  var gatewayConfiguration = this._client.getConfiguration().gatewayConfiguration;
-  var data = {
-    paypalAccount: {correlationId: this._frameService._serviceId}
-  };
-
-  if (params.ba_token) {
-    data.paypalAccount.billingAgreementToken = params.ba_token;
-  } else {
-    data.paypalAccount.paymentToken = params.paymentId;
-    data.paypalAccount.payerId = params.PayerID;
-    data.paypalAccount.unilateral = gatewayConfiguration.paypal.unvettedMerchant;
-
-    if (options.hasOwnProperty('intent')) {
-      data.paypalAccount.intent = options.intent;
-    }
-  }
-
-  return data;
-};
-
-PayPal.prototype._navigateFrameToAuth = function (options, callback) {
-  var client = this._client;
-  var endpoint = 'paypal_hermes/';
-
-  if (options.flow === 'checkout') {
-    endpoint += 'create_payment_resource';
-  } else if (options.flow === 'vault') {
-    endpoint += 'setup_billing_agreement';
-  } else {
-    callback(new BraintreeError({
-      type: BraintreeError.types.MERCHANT,
-      message: 'PayPal flow property is invalid or missing.'
+      message: merchantErrorMsg
     }));
     return;
   }
 
-  client.request({
-    endpoint: endpoint,
+  this._verifyCardInProgress = true;
+
+  addFrame = deferred(options.addFrame);
+  removeFrame = deferred(options.removeFrame);
+
+  url = 'payment_methods/' + options.nonce + '/three_d_secure/lookup';
+
+  this._client.request({
+    endpoint: url,
     method: 'post',
-    data: this._formatPaymentResourceData(options)
+    data: {amount: options.amount}
   }, function (err, response) {
-    var redirectUrl;
-
     if (err) {
-      callback(err instanceof BraintreeError ? err : new BraintreeError({
-        type: BraintreeError.types.NETWORK,
-        message: constants.AUTH_INIT_ERROR_MESSAGE,
-        details: err
-      }));
-      this._frameService.close();
-    } else {
-      if (options.flow === 'checkout') {
-        redirectUrl = response.paymentResource.redirectUrl;
-      } else {
-        redirectUrl = response.agreementSetup.approvalUrl;
-      }
-
-      this._frameService.redirect(redirectUrl);
+      callback(err);
+      return;
     }
+
+    this._lookupPaymentMethod = response.paymentMethod;
+    this._verifyCardCallback = function () {
+      this._verifyCardInProgress = false;
+
+      callback.apply(null, arguments);
+    }.bind(this);
+
+    this._handleLookupResponse({
+      lookupResponse: response,
+      addFrame: addFrame,
+      removeFrame: removeFrame
+    });
   }.bind(this));
 };
 
-PayPal.prototype._formatPaymentResourceData = function (options) {
-  var key;
-  var gatewayConfiguration = this._client.getConfiguration().gatewayConfiguration;
-  var serviceId = this._frameService._serviceId;
-  var paymentResource = {
-    returnUrl: gatewayConfiguration.paypal.assetsUrl + '/web/' + VERSION + '/html/paypal-redirect-frame.html?channel=' + serviceId,
-    cancelUrl: gatewayConfiguration.paypal.assetsUrl + '/web/' + VERSION + '/html/paypal-cancel-frame.html?channel=' + serviceId,
-    correlationId: serviceId,
-    experienceProfile: {
-      brandName: options.displayName || gatewayConfiguration.paypal.displayName,
-      localeCode: getCountry(options.locale),
-      noShipping: (!options.enableShippingAddress).toString(),
-      addressOverride: options.shippingAddressEditable === false
-    }
-  };
+/**
+ * Cancel the 3DS flow and return the verification payload if available.
+ * @public
+ * @param {errback} callback The second argument is a {@link ThreeDSecure~verifyPayload|verifyPayload}. If there is no verifyPayload (the initial lookup did not complete), an error will be returned.
+ * @returns {void}
+ * @example
+ * threeDSecure.cancelVerifyCard(function (err, verifyPayload) {
+ *   if (err) {
+ *     // Handle error
+ *     console.log(err.message); // No verification payload available
+ *     return;
+ *   }
+ *
+ *   verifyPayload.nonce; // The nonce returned from the 3ds lookup call
+ *   verifyPayload.liabilityShifted; // boolean
+ *   verifyPayload.liabilityShiftPossible; // boolean
+ * });
+ */
+ThreeDSecure.prototype.cancelVerifyCard = function (callback) {
+  var error;
 
-  if (options.flow === 'checkout') {
-    paymentResource.amount = parseFloat(options.amount).toFixed(2);
-    paymentResource.currencyIsoCode = options.currency;
-    paymentResource.offerPaypalCredit = options.offerCredit === true;
+  this._verifyCardInProgress = false;
 
-    if (options.hasOwnProperty('intent')) {
-      paymentResource.intent = options.intent;
+  if (typeof callback === 'function') {
+    if (!this._lookupPaymentMethod) {
+      error = new BraintreeError({
+        type: BraintreeError.types.MERCHANT,
+        message: 'No verification payload available.'
+      });
     }
 
-    for (key in options.shippingAddressOverride) {
-      if (options.shippingAddressOverride.hasOwnProperty(key)) {
-        paymentResource[key] = options.shippingAddressOverride[key];
-      }
-    }
+    callback(error, this._lookupPaymentMethod);
+  }
+};
+
+ThreeDSecure.prototype._handleLookupResponse = function (options) {
+  var lookupResponse = options.lookupResponse;
+
+  if (lookupResponse.lookup && lookupResponse.lookup.acsUrl && lookupResponse.lookup.acsUrl.length > 0) {
+    options.addFrame(null, this._createIframe({
+      response: lookupResponse.lookup,
+      removeFrame: options.removeFrame
+    }));
   } else {
-    paymentResource.shippingAddress = options.shippingAddressOverride;
+    this._verifyCardCallback(null, {
+      nonce: lookupResponse.paymentMethod.nonce,
+      verificationDetails: lookupResponse.threeDSecureInfo
+    });
+  }
+};
 
-    if (options.billingAgreementDescription) {
-      paymentResource.description = options.billingAgreementDescription;
-    }
+ThreeDSecure.prototype._createIframe = function (options) {
+  var url, authenticationCompleteBaseUrl;
+  var parentURL = window.location.href;
+  var response = options.response;
+
+  this._bus = new Bus({
+    channel: uuid(),
+    merchantUrl: location.href
+  });
+
+  authenticationCompleteBaseUrl = this._assetsUrl + '/web/' + version + '/html/three-d-secure-authentication-complete-frame.html?channel=' + encodeURIComponent(this._bus.channel) + '&';
+
+  if (parentURL.indexOf('#') > -1) {
+    parentURL = parentURL.split('#')[0];
   }
 
-  return paymentResource;
+  this._bus.on(Bus.events.CONFIGURATION_REQUEST, function (reply) {
+    reply({
+      acsUrl: response.acsUrl,
+      pareq: response.pareq,
+      termUrl: response.termUrl + '&three_d_secure_version=' + version + '&authentication_complete_base_url=' + encodeURIComponent(authenticationCompleteBaseUrl),
+      md: response.md,
+      parentUrl: parentURL
+    });
+  });
+
+  this._bus.on(events.AUTHENTICATION_COMPLETE, function (data) {
+    this._handleAuthResponse(data, options);
+  }.bind(this));
+
+  url = this._assetsUrl + '/web/' + version + '/html/three-d-secure-bank-frame.html';
+
+  this._bankIframe = iFramer({
+    src: url,
+    height: IFRAME_HEIGHT,
+    width: IFRAME_WIDTH,
+    name: constants.LANDING_FRAME_NAME + '_' + this._bus.channel
+  });
+
+  return this._bankIframe;
+};
+
+ThreeDSecure.prototype._handleAuthResponse = function (data, options) {
+  var authResponse = JSON.parse(data.auth_response);
+
+  this._bus.teardown();
+
+  options.removeFrame();
+
+  // This also has to be in a setTimeout so it executes after the `removeFrame`.
+  deferred(function () {
+    if (authResponse.success) {
+      this._verifyCardCallback(null, this._formatAuthResponse(authResponse.paymentMethod, authResponse.threeDSecureInfo));
+    } else if (authResponse.threeDSecureInfo && authResponse.threeDSecureInfo.liabilityShiftPossible) {
+      this._verifyCardCallback(null, this._formatAuthResponse(this._lookupPaymentMethod, authResponse.threeDSecureInfo));
+    } else {
+      this._verifyCardCallback(new BraintreeError({
+        type: BraintreeError.types.UNKNOWN,
+        message: authResponse.error.message
+      }));
+    }
+  }.bind(this))();
+};
+
+ThreeDSecure.prototype._formatAuthResponse = function (paymentMethod, threeDSecureInfo) {
+  return {
+    nonce: paymentMethod.nonce,
+    details: paymentMethod.details,
+    description: paymentMethod.description,
+    liabilityShifted: threeDSecureInfo.liabilityShifted,
+    liabilityShiftPossible: threeDSecureInfo.liabilityShiftPossible
+  };
 };
 
 /**
- * Cleanly tear down anything set up by {@link module:braintree-web/paypal.create|create}.
+ * Cleanly tear down anything set up by {@link module:braintree-web/three-d-secure.create|create}
  * @public
- * @param {callback} [callback] Called once teardown is complete. No data is returned if teardown completes successfully.
+ * @param {errback} [callback] Called once teardown is complete. No data is returned if teardown completes successfully.
  * @returns {void}
  */
-PayPal.prototype.teardown = function (callback) {
-  this._frameService.teardown();
+ThreeDSecure.prototype.teardown = function (callback) {
+  var iframeParent;
 
-  convertMethodsToError(this, methods(PayPal.prototype));
+  convertMethodsToError(this, methods(ThreeDSecure.prototype));
 
-  analytics.sendEvent(this._client, 'web.paypal.teardown-completed');
+  analytics.sendEvent(this._options.client, 'web.threedsecure.teardown-completed');
+
+  if (this._bus) {
+    this._bus.teardown();
+  }
+
+  if (this._bankIframe) {
+    iframeParent = this._bankIframe.parentNode;
+
+    if (iframeParent) {
+      iframeParent.removeChild(this._bankIframe);
+    }
+  }
 
   if (typeof callback === 'function') {
     callback = deferred(callback);
@@ -1438,26 +1175,38 @@ PayPal.prototype.teardown = function (callback) {
   }
 };
 
-module.exports = PayPal;
+module.exports = ThreeDSecure;
 
-},{"../../lib/analytics":7,"../../lib/constants":12,"../../lib/convert-methods-to-error":13,"../../lib/deferred":15,"../../lib/error":17,"../../lib/frame-service/external":19,"../../lib/methods":27,"../../lib/once":28,"../shared/constants":33,"../shared/get-country":34}],32:[function(_dereq_,module,exports){
+},{"../../lib/analytics":7,"../../lib/bus":11,"../../lib/convert-methods-to-error":13,"../../lib/deferred":15,"../../lib/error":17,"../../lib/methods":19,"../../lib/uuid":21,"../shared/constants.json":24,"../shared/events":25,"iframer":2}],23:[function(_dereq_,module,exports){
 'use strict';
-/** @module braintree-web/paypal */
+/** @module braintree-web/three-d-secure */
 
-var PayPal = _dereq_('./external/paypal');
+var ThreeDSecure = _dereq_('./external/three-d-secure');
 var browserDetection = _dereq_('../lib/browser-detection');
 var BraintreeError = _dereq_('../lib/error');
 var analytics = _dereq_('../lib/analytics');
 var deferred = _dereq_('../lib/deferred');
 var VERSION = "3.0.0-beta.10";
 
+/**
+ * @static
+ * @function create
+ * @param {object} options Creation options:
+ * @param {client} options.client A {@link Client} instance.
+ * @param {errback} callback The second argument, `data`, is the {@link ThreeDSecure} instance.
+ * @returns {void}
+ * @example
+ * braintree.threeDSecure.create({
+ *   client: client
+ * }, callback);
+ */
 function create(options, callback) {
-  var config, pp, clientVersion;
+  var config, threeDSecure, merchantErrorMessage;
 
-  if (!callback) {
+  if (typeof callback !== 'function') {
     throw new BraintreeError({
       type: BraintreeError.types.MERCHANT,
-      message: 'create must include a callback function.'
+      message: 'threeDSecure.create must include a callback function.'
     });
   }
 
@@ -1466,59 +1215,42 @@ function create(options, callback) {
   if (options.client == null) {
     callback(new BraintreeError({
       type: BraintreeError.types.MERCHANT,
-      message: 'options.client is required when instantiating PayPal.'
+      message: 'options.client is required when instantiating 3D Secure.'
     }));
     return;
   }
 
   config = options.client.getConfiguration();
-  clientVersion = config.analyticsMetadata.sdkVersion;
 
-  if (clientVersion !== VERSION) {
+  if (!config.gatewayConfiguration.threeDSecureEnabled) {
+    merchantErrorMessage = '3D Secure is not enabled for this merchant.';
+  } else if (config.analyticsMetadata.sdkVersion !== VERSION) {
+    merchantErrorMessage = 'Client and 3D Secure components must be from the same SDK version.';
+  } else if (!browserDetection.isHTTPS()) {
+    merchantErrorMessage = '3D Secure requires HTTPS.';
+  }
+
+  if (merchantErrorMessage) {
     callback(new BraintreeError({
       type: BraintreeError.types.MERCHANT,
-      message: 'Client (version ' + clientVersion + ') and PayPal (version ' + VERSION + ') components must be from the same SDK version.'
+      message: merchantErrorMessage
     }));
     return;
   }
 
-  if (config.gatewayConfiguration.paypalEnabled !== true) {
-    callback(new BraintreeError({
-      type: BraintreeError.types.MERCHANT,
-      message: 'PayPal is not enabled for this merchant.'
-    }));
+  analytics.sendEvent(options.client, 'web.threedsecure.initialized');
+
+  try {
+    threeDSecure = new ThreeDSecure(options);
+  } catch (err) {
+    callback(err);
     return;
   }
 
-  if (!_isBrowserSupported()) {
-    callback(new BraintreeError({
-      type: BraintreeError.types.CUSTOMER,
-      message: 'Browser is not supported.'
-    }));
-    return;
-  }
-
-  analytics.sendEvent(options.client, 'web.paypal.initialized');
-
-  pp = new PayPal(options);
-  pp._initialize(function () {
-    callback(null, pp);
-  });
-}
-
-function _isBrowserSupported() {
-  return !browserDetection.isOperaMini();
+  callback(null, threeDSecure);
 }
 
 module.exports = {
-  /**
-   * @static
-   * @function
-   * @param {object} options All creation options for the PayPal component.
-   * @param {Client} options.client A {@link Client} instance.
-   * @param {callback} callback The second argument, <code>data</code>, is the {@link PayPal} instance.
-   * @returns {void}
-   */
   create: create,
   /**
    * @description The current version of the SDK, i.e. `{@pkg version}`.
@@ -1527,70 +1259,19 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/analytics":7,"../lib/browser-detection":8,"../lib/deferred":15,"../lib/error":17,"./external/paypal":31}],33:[function(_dereq_,module,exports){
-'use strict';
-
-var POPUP_HEIGHT = 535;
-var POPUP_WIDTH = 450;
-
-module.exports = {
-  AUTH_INIT_ERROR_MESSAGE: 'Could not initialize PayPal flow.',
-  LANDING_FRAME_NAME: 'braintreepaypallanding',
-  POPUP_BASE_OPTIONS: 'resizable,scrollbars,height=' + POPUP_HEIGHT + ',width=' + POPUP_WIDTH,
-  POPUP_WIDTH: POPUP_WIDTH,
-  POPUP_HEIGHT: POPUP_HEIGHT,
-  POPUP_POLL_INTERVAL: 100
-};
-
-},{}],34:[function(_dereq_,module,exports){
-'use strict';
-
-var lookupTable = {
-  us: 'en_us',
-  gb: 'en_uk',
-  uk: 'en_uk',
-  de: 'de_de',
-  fr: 'fr_fr',
-  it: 'it_it',
-  es: 'es_es',
-  ca: 'en_ca',
-  au: 'en_au',
-  at: 'de_de',
-  be: 'en_us',
-  ch: 'de_de',
-  dk: 'da_dk',
-  nl: 'nl_nl',
-  no: 'no_no',
-  pl: 'pl_pl',
-  se: 'sv_se',
-  tr: 'tr_tr',
-  bg: 'en_us',
-  cy: 'en_us',
-  hr: 'en_us',
-  is: 'en_us',
-  kh: 'en_us',
-  mt: 'en_us',
-  my: 'en_us',
-  ru: 'ru_ru'
-};
-
-function getCountry(code) {
-  var country = code ? code.toLowerCase().replace(/-/g, '_') : 'us';
-
-  if (country.indexOf('_') !== -1) {
-    country = country.split('_')[1];
-  }
-
-  country = lookupTable[country] ? country : 'us';
-
-  if (country === 'uk') {
-    country = 'gb';
-  }
-
-  return country;
+},{"../lib/analytics":7,"../lib/browser-detection":8,"../lib/deferred":15,"../lib/error":17,"./external/three-d-secure":22}],24:[function(_dereq_,module,exports){
+module.exports={
+  "LANDING_FRAME_NAME": "braintreethreedsecurelanding"
 }
 
-module.exports = getCountry;
+},{}],25:[function(_dereq_,module,exports){
+'use strict';
 
-},{}]},{},[32])(32)
+var enumerate = _dereq_('../../lib/enumerate');
+
+module.exports = enumerate([
+  'AUTHENTICATION_COMPLETE'
+], 'threedsecure:');
+
+},{"../../lib/enumerate":16}]},{},[23])(23)
 });

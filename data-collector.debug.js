@@ -169,7 +169,7 @@ var fraudnet = _dereq_('./fraudnet');
 var BraintreeError = _dereq_('../lib/error');
 var methods = _dereq_('../lib/methods');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
-var VERSION = "3.0.0-beta.9";
+var VERSION = "3.0.0-beta.10";
 var deferred = _dereq_('../lib/deferred');
 
 /**

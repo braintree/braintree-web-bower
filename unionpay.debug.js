@@ -580,7 +580,7 @@ module.exports = BraintreeBus;
 },{"../error":16,"./check-origin":8,"./events":9,"framebus":1}],11:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.0.0-beta.9";
+var VERSION = "3.0.0-beta.10";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -824,7 +824,7 @@ module.exports = uuid;
 'use strict';
 /** @module braintree-web/unionpay */
 
-var VERSION = "3.0.0-beta.9";
+var VERSION = "3.0.0-beta.10";
 var UnionPay = _dereq_('./shared/unionpay');
 var BraintreeError = _dereq_('../lib/error');
 var analytics = _dereq_('../lib/analytics');
@@ -927,7 +927,7 @@ var uuid = _dereq_('../../lib/uuid');
 var methods = _dereq_('../../lib/methods');
 var deferred = _dereq_('../../lib/deferred');
 var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
-var VERSION = "3.0.0-beta.9";
+var VERSION = "3.0.0-beta.10";
 var constants = _dereq_('./constants');
 var events = constants.events;
 

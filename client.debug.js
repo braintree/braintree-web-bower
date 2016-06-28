@@ -213,7 +213,7 @@ module.exports = {
 var BraintreeError = _dereq_('../lib/error');
 var Client = _dereq_('./client');
 var getConfiguration = _dereq_('./get-configuration').getConfiguration;
-var packageVersion = "3.0.0-beta.9";
+var packageVersion = "3.0.0-beta.10";
 var deferred = _dereq_('../lib/deferred');
 
 /** @module braintree-web/client */
@@ -317,9 +317,13 @@ function request(options, cb) {
       status = req.status;
       resBody = parseBody(req.responseText);
 
-      if (status >= 400 || status === 0) {
-        callback(resBody || {errors: constants.errors.UNKNOWN_ERROR}, null, 500);
-      } else if (status > 0) {
+      if (status === 429) {
+        callback(constants.errors.RATE_LIMIT_ERROR, null, 429);
+      } else if (status >= 400) {
+        callback(resBody || constants.errors.UNKNOWN_ERROR, null, status);
+      } else if (status <= 0) {
+        callback(resBody || constants.errors.UNKNOWN_ERROR, null, 500);
+      } else {
         callback(null, resBody, status);
       }
     };
@@ -358,13 +362,16 @@ module.exports = {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"../../lib/once":20,"../../lib/querystring":22,"./constants":5,"./parse-body":10,"./prep-body":11}],5:[function(_dereq_,module,exports){
-module.exports={
-  "errors": {
-    "UNKNOWN_ERROR": "Unknown error",
-    "TIMEOUT_ERROR": "Request timed out waiting for a reply",
-    "INVALID_TIMEOUT": "Timeout must be a number"
+'use strict';
+
+module.exports = {
+  errors: {
+    UNKNOWN_ERROR: 'Unknown error.',
+    TIMEOUT_ERROR: 'Request timed out waiting for a reply.',
+    INVALID_TIMEOUT: 'Timeout must be a number.',
+    RATE_LIMIT_ERROR: 'You are being rate-limited; please try again in a few minutes.'
   }
-}
+};
 
 },{}],6:[function(_dereq_,module,exports){
 (function (global){
@@ -587,7 +594,7 @@ module.exports = addMetadata;
 },{"./constants":13,"./create-authorization-data":14,"./json-clone":19}],13:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.0.0-beta.9";
+var VERSION = "3.0.0-beta.10";
 var PLATFORM = 'web';
 
 module.exports = {
