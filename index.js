@@ -15,5 +15,5 @@ module.exports = {
     dataCollector: dataCollector,
     americanExpress: americanExpress,
     unionpay: unionpay,
-    VERSION: '3.0.0-beta.10'
+    VERSION: '3.0.0-beta.11'
 };

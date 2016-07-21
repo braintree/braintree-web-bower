@@ -1,4 +1,124 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}(g.braintree || (g.braintree = {})).hostedFields = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
+'use strict';
+
+var types = [
+  {
+    niceType: 'Visa',
+    type: 'visa',
+    pattern: '^4\\d*$',
+    gaps: [4, 8, 12],
+    lengths: [16],
+    code: {
+      name: 'CVV',
+      size: 3
+    }
+  },
+  {
+    niceType: 'MasterCard',
+    type: 'master-card',
+    pattern: '^(5|5[1-5]\\d*|2|22|222|222[1-9]\\d*|2[3-6]\\d*|27[0-1]\\d*|2720\\d*)$',
+    gaps: [4, 8, 12],
+    lengths: [16],
+    code: {
+      name: 'CVC',
+      size: 3
+    }
+  },
+  {
+    niceType: 'American Express',
+    type: 'american-express',
+    pattern: '^3([47]\\d*)?$',
+    isAmex: true,
+    gaps: [4, 10],
+    lengths: [15],
+    code: {
+      name: 'CID',
+      size: 4
+    }
+  },
+  {
+    niceType: 'Diners Club',
+    type: 'diners-club',
+    pattern: '^3((0([0-5]\\d*)?)|[689]\\d*)?$',
+    gaps: [4, 10],
+    lengths: [14],
+    code: {
+      name: 'CVV',
+      size: 3
+    }
+  },
+  {
+    niceType: 'Discover',
+    type: 'discover',
+    pattern: '^6(0|01|011\\d*|5\\d*|4|4[4-9]\\d*)?$',
+    gaps: [4, 8, 12],
+    lengths: [16, 19],
+    code: {
+      name: 'CID',
+      size: 3
+    }
+  },
+  {
+    niceType: 'JCB',
+    type: 'jcb',
+    pattern: '^((2|21|213|2131\\d*)|(1|18|180|1800\\d*)|(3|35\\d*))$',
+    gaps: [4, 8, 12],
+    lengths: [16],
+    code: {
+      name: 'CVV',
+      size: 3
+    }
+  },
+  {
+    niceType: 'UnionPay',
+    type: 'unionpay',
+    pattern: '^6(2\\d*)?$',
+    gaps: [4, 8, 12],
+    lengths: [16, 17, 18, 19],
+    code: {
+      name: 'CVN',
+      size: 3
+    }
+  },
+  {
+    niceType: 'Maestro',
+    type: 'maestro',
+    pattern: '^((5((0|[6-9])\\d*)?)|(6|6[37]\\d*))$',
+    gaps: [4, 8, 12],
+    lengths: [12, 13, 14, 15, 16, 17, 18, 19],
+    code: {
+      name: 'CVC',
+      size: 3
+    }
+  }
+];
+
+module.exports = function getCardTypes(cardNumber) {
+  var i, value;
+  var result = [];
+
+  if (!(typeof cardNumber === 'string' || cardNumber instanceof String)) {
+    return result;
+  }
+
+  if (cardNumber === '') { return clone(types); }
+
+  for (i = 0; i < types.length; i++) {
+    value = types[i];
+
+    if (RegExp(value.pattern).test(cardNumber)) {
+      result.push(clone(value));
+    }
+  }
+
+  return result;
+};
+
+function clone(x) {
+  return JSON.parse(JSON.stringify(x));
+}
+
+},{}],2:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 (function (root, factory) {
@@ -276,7 +396,7 @@
 });
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],2:[function(_dereq_,module,exports){
+},{}],3:[function(_dereq_,module,exports){
 'use strict';
 
 var setAttributes = _dereq_('./lib/set-attributes');
@@ -301,7 +421,7 @@ module.exports = function createFrame(options) {
   return iframe;
 };
 
-},{"./lib/assign":3,"./lib/default-attributes":4,"./lib/set-attributes":5}],3:[function(_dereq_,module,exports){
+},{"./lib/assign":4,"./lib/default-attributes":5,"./lib/set-attributes":6}],4:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function assign(target) {
@@ -318,7 +438,7 @@ module.exports = function assign(target) {
   return target;
 }
 
-},{}],4:[function(_dereq_,module,exports){
+},{}],5:[function(_dereq_,module,exports){
 module.exports={
   "src": "about:blank",
   "frameBorder": 0,
@@ -326,7 +446,7 @@ module.exports={
   "scrolling": "no"
 }
 
-},{}],5:[function(_dereq_,module,exports){
+},{}],6:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function setAttributes(element, attributes) {
@@ -345,7 +465,7 @@ module.exports = function setAttributes(element, attributes) {
   }
 };
 
-},{}],6:[function(_dereq_,module,exports){
+},{}],7:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('../shared/constants');
@@ -358,7 +478,7 @@ module.exports = function composeUrl(assetsUrl, componentId) {
     componentId;
 };
 
-},{"../shared/constants":10}],7:[function(_dereq_,module,exports){
+},{"../shared/constants":11}],8:[function(_dereq_,module,exports){
 'use strict';
 
 var Destructor = _dereq_('../../lib/destructor');
@@ -377,10 +497,11 @@ var EventEmitter = _dereq_('../../lib/event-emitter');
 var injectFrame = _dereq_('./inject-frame');
 var analytics = _dereq_('../../lib/analytics');
 var whitelistedFields = constants.whitelistedFields;
-var VERSION = "3.0.0-beta.10";
+var VERSION = "3.0.0-beta.11";
 var methods = _dereq_('../../lib/methods');
 var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
 var deferred = _dereq_('../../lib/deferred');
+var getCardTypes = _dereq_('credit-card-type');
 
 /**
  * @typedef {object} HostedFields~tokenizePayload
@@ -389,11 +510,36 @@ var deferred = _dereq_('../../lib/deferred');
  * @property {string} details.cardType Type of card, ex: Visa, MasterCard.
  * @property {string} details.lastTwo Last two digits of card number.
  * @property {string} description A human-readable description.
+ * @property {string} type The payment method type, always `CreditCard`.
  */
 
 /**
- * @typedef {object} HostedFields~hostedFieldsEventFieldData
- * @description Data about Hosted Fields fields, sent in {@link HostedFields~hostedFieldsEvent|hostedFieldEvent} objects.
+ * @typedef {object} HostedFields~stateObject
+ * @description The event payload sent from {@link HostedFields#on|on} or {@link HostedFields#getState|getState}.
+ * @property {HostedFields~hostedFieldsCard[]} cards
+ * This will return an array of potential {@link HostedFields~hostedFieldsCard|cards}. If the card type has been determined, the array will contain only one card.
+ * Internally, Hosted Fields uses <a href="https://github.com/braintree/credit-card-type">credit-card-type</a>,
+ * an open-source card detection library.
+ * @property {string} emittedBy
+ * The name of the field associated with an event. This will not be included if returned by {@link HostedFields#getState|getState}. It will be one of the following strings:<br>
+ * - `"number"`
+ * - `"cvv"`
+ * - `"expirationDate"`
+ * - `"expirationMonth"`
+ * - `"expirationYear"`
+ * - `"postalCode"`
+ * @property {object} fields
+ * @property {?HostedFields~hostedFieldsFieldData} fields.number {@link HostedFields~hostedFieldsFieldData|hostedFieldsFieldData} for the number field, if it is present.
+ * @property {?HostedFields~hostedFieldsFieldData} fields.cvv {@link HostedFields~hostedFieldsFieldData|hostedFieldsFieldData} for the CVV field, if it is present.
+ * @property {?HostedFields~hostedFieldsFieldData} fields.expirationDate {@link HostedFields~hostedFieldsFieldData|hostedFieldsFieldData} for the expiration date field, if it is present.
+ * @property {?HostedFields~hostedFieldsFieldData} fields.expirationMonth {@link HostedFields~hostedFieldsFieldData|hostedFieldsFieldData} for the expiration month field, if it is present.
+ * @property {?HostedFields~hostedFieldsFieldData} fields.expirationYear {@link HostedFields~hostedFieldsFieldData|hostedFieldsFieldData} for the expiration year field, if it is present.
+ * @property {?HostedFields~hostedFieldsFieldData} fields.postalCode {@link HostedFields~hostedFieldsFieldData|hostedFieldsFieldData} for the postal code field, if it is present.
+ */
+
+/**
+ * @typedef {object} HostedFields~hostedFieldsFieldData
+ * @description Data about Hosted Fields fields, sent in {@link HostedFields~stateObject|stateObjects}.
  * @property {HTMLElement} container Reference to the container DOM element on your page associated with the current event.
  * @property {boolean} isFocused Whether or not the input is currently focused.
  * @property {boolean} isEmpty Whether or not the user has entered a value in the input.
@@ -408,8 +554,8 @@ var deferred = _dereq_('../../lib/deferred');
  */
 
 /**
- * @typedef {object} HostedFields~hostedFieldsEventCard
- * @description Information about the card type, sent in {@link HostedFields~hostedFieldsEvent|hostedFieldEvent} objects.
+ * @typedef {object} HostedFields~hostedFieldsCard
+ * @description Information about the card type, sent in {@link HostedFields~stateObject|stateObjects}.
  * @property {string} type The code-friendly representation of the card type. It will be one of the following strings:
  * - `american-express`
  * - `diners-club`
@@ -437,35 +583,11 @@ var deferred = _dereq_('../../lib/deferred');
  */
 
 /**
- * @typedef {object} HostedFields~hostedFieldsEvent
- * @description The event payload sent from {@link HostedFields#on|on}.
- * @property {string} emittedBy
- * The name of the field associated with this event. It will be one of the following strings:<br>
- * - `"number"`
- * - `"cvv"`
- * - `"expirationDate"`
- * - `"expirationMonth"`
- * - `"expirationYear"`
- * - `"postalCode"`
- * @property {object} fields
- * @property {?HostedFields~hostedFieldsEventFieldData} fields.number {@link HostedFields~hostedFieldsEventFieldData|hostedFieldsEventFieldData} for the number field, if it is present.
- * @property {?HostedFields~hostedFieldsEventFieldData} fields.cvv {@link HostedFields~hostedFieldsEventFieldData|hostedFieldsEventFieldData} for the CVV field, if it is present.
- * @property {?HostedFields~hostedFieldsEventFieldData} fields.expirationDate {@link HostedFields~hostedFieldsEventFieldData|hostedFieldsEventFieldData} for the expiration date field, if it is present.
- * @property {?HostedFields~hostedFieldsEventFieldData} fields.expirationMonth {@link HostedFields~hostedFieldsEventFieldData|hostedFieldsEventFieldData} for the expiration month field, if it is present.
- * @property {?HostedFields~hostedFieldsEventFieldData} fields.expirationYear {@link HostedFields~hostedFieldsEventFieldData|hostedFieldsEventFieldData} for the expiration year field, if it is present.
- * @property {?HostedFields~hostedFieldsEventFieldData} fields.postalCode {@link HostedFields~hostedFieldsEventFieldData|hostedFieldsEventFieldData} for the postal code field, if it is present.
- * @property {HostedFields~hostedFieldsEventCard[]} cards
- * This will return an array of potential {@link HostedFields~hostedFieldsEventFieldCard|cards}. If the card type has been determined, the array will contain only one card.
- * Internally, Hosted Fields uses <a href="https://github.com/braintree/credit-card-type">credit-card-type</a>,
- * an open-source card detection library.
- */
-
-/**
  * @name HostedFields#on
  * @function
  * @param {string} event The name of the event to which you are subscribing.
  * @param {function} handler A callback to handle the event.
- * @description Subscribes a handler function to a named {@link HostedFields~hostedFieldsEvent|hostedFieldsEvent}. `event` should be {@link HostedFields#event:blur|blur}, {@link HostedFields#event:focus|focus}, {@link HostedFields#event:empty|empty}, {@link HostedFields#event:notEmpty|notEmpty}, {@link HostedFields#event:cardTypeChange|cardTypeChange}, or {@link HostedFields#event:validityChange|validityChange}.
+ * @description Subscribes a handler function to a named event. `event` should be {@link HostedFields#event:blur|blur}, {@link HostedFields#event:focus|focus}, {@link HostedFields#event:empty|empty}, {@link HostedFields#event:notEmpty|notEmpty}, {@link HostedFields#event:cardTypeChange|cardTypeChange}, or {@link HostedFields#event:validityChange|validityChange}. Events will emit a {@link HostedFields~stateObject|stateObject}.
  * @example
  * <caption>Listening to a Hosted Field event, in this case 'focus'</caption>
  * hostedFields.create({ ... }, function (createErr, hostedFieldsInstance) {
@@ -477,9 +599,9 @@ var deferred = _dereq_('../../lib/deferred');
  */
 
 /**
- * This {@link HostedFields~hostedFieldsEvent|hostedFieldsEvent} is emitted when the user requests submission of an input field, such as by pressing the Enter or Return key on their keyboard, or mobile equivalent.
+ * This event is emitted when the user requests submission of an input field, such as by pressing the Enter or Return key on their keyboard, or mobile equivalent.
  * @event HostedFields#inputSubmitRequest
- * @type {HostedFields~hostedFieldsEvent}
+ * @type {HostedFields~stateObject}
  * @example
  * <caption>Clicking a submit button upon hitting Enter (or equivalent) within a Hosted Field</caption>
  * var hostedFields = require('braintree-web/hosted-fields');
@@ -494,9 +616,9 @@ var deferred = _dereq_('../../lib/deferred');
  */
 
 /**
- * This {@link HostedFields~hostedFieldsEvent|hostedFieldsEvent} is emitted when a field transitions from having data to being empty.
+ * This event is emitted when a field transitions from having data to being empty.
  * @event HostedFields#empty
- * @type {HostedFields~hostedFieldsEvent}
+ * @type {HostedFields~stateObject}
  * @example
  * <caption>Listening to an empty event</caption>
  * hostedFields.create({ ... }, function (createErr, hostedFieldsInstance) {
@@ -507,9 +629,9 @@ var deferred = _dereq_('../../lib/deferred');
  */
 
 /**
- * This {@link HostedFields~hostedFieldsEvent|hostedFieldsEvent} is emitted when a field transitions from being empty to having data.
+ * This event is emitted when a field transitions from being empty to having data.
  * @event HostedFields#notEmpty
- * @type {HostedFields~hostedFieldsEvent}
+ * @type {HostedFields~stateObject}
  * @example
  * <caption>Listening to an notEmpty event</caption>
  * hostedFields.create({ ... }, function (createErr, hostedFieldsInstance) {
@@ -520,9 +642,9 @@ var deferred = _dereq_('../../lib/deferred');
  */
 
 /**
- * This {@link HostedFields~hostedFieldsEvent|hostedFieldsEvent} is emitted when a field loses focus.
+ * This event is emitted when a field loses focus.
  * @event HostedFields#blur
- * @type {HostedFields~hostedFieldsEvent}
+ * @type {HostedFields~stateObject}
  * @example
  * <caption>Listening to a blur event</caption>
  * hostedFields.create({ ... }, function (createErr, hostedFieldsInstance) {
@@ -533,9 +655,9 @@ var deferred = _dereq_('../../lib/deferred');
  */
 
 /**
- * This {@link HostedFields~hostedFieldsEvent|hostedFieldsEvent} is emitted when a field gains focus.
+ * This event is emitted when a field gains focus.
  * @event HostedFields#focus
- * @type {HostedFields~hostedFieldsEvent}
+ * @type {HostedFields~stateObject}
  * @example
  * <caption>Listening to a focus event</caption>
  * hostedFields.create({ ... }, function (createErr, hostedFieldsInstance) {
@@ -546,9 +668,9 @@ var deferred = _dereq_('../../lib/deferred');
  */
 
 /**
- * This {@link HostedFields~hostedFieldsEvent|hostedFieldsEvent} is emitted when activity within the number field has changed such that the possible card type has changed.
+ * This event is emitted when activity within the number field has changed such that the possible card type has changed.
  * @event HostedFields#cardTypeChange
- * @type {HostedFields~hostedFieldsEvent}
+ * @type {HostedFields~stateObject}
  * @example
  * <caption>Listening to a cardTypeChange event</caption>
  * hostedFields.create({ ... }, function (createErr, hostedFieldsInstance) {
@@ -563,9 +685,9 @@ var deferred = _dereq_('../../lib/deferred');
  */
 
 /**
- * This {@link HostedFields~hostedFieldsEvent|hostedFieldsEvent} is emitted when the validity of a field has changed. Validity is represented in the {@link HostedFields~hostedFieldsEvent|hostedFieldsEvent} as two booleans: `isValid` and `isPotentiallyValid`.
+ * This event is emitted when the validity of a field has changed. Validity is represented in the {@link HostedFields~stateObject|stateObject} as two booleans: `isValid` and `isPotentiallyValid`.
  * @event HostedFields#validityChange
- * @type {HostedFields~hostedFieldsEvent}
+ * @type {HostedFields~stateObject}
  * @example
  * <caption>Listening to a validityChange event</caption>
  * hostedFields.create({ ... }, function (createErr, hostedFieldsInstance) {
@@ -605,6 +727,11 @@ function inputEventHandler(fields) {
       classlist.toggle(container, constants.externalClasses.INVALID, !field.isPotentiallyValid);
     }
 
+    this._state = { // eslint-disable-line no-invalid-this
+      cards: merchantPayload.cards,
+      fields: merchantPayload.fields
+    };
+
     this._emit(eventData.type, merchantPayload); // eslint-disable-line no-invalid-this
   };
 }
@@ -625,7 +752,7 @@ function HostedFields(options) {
   if (!options.client) {
     throw new BraintreeError({
       type: BraintreeError.types.MERCHANT,
-      message: 'You must specify a client when initializing Hosted Fields.'
+      message: 'options.client is required when instantiating Hosted Fields.'
     });
   }
 
@@ -640,7 +767,7 @@ function HostedFields(options) {
   if (!options.fields) {
     throw new BraintreeError({
       type: BraintreeError.types.MERCHANT,
-      message: 'You must specify fields when initializing Hosted Fields.'
+      message: 'options.fields is required when instantiating Hosted Fields.'
     });
   }
 
@@ -649,6 +776,10 @@ function HostedFields(options) {
   this._injectedNodes = [];
   this._destructor = new Destructor();
   this._fields = fields;
+  this._state = {
+    fields: {},
+    cards: getCardTypes('')
+  };
 
   this._bus = new Bus({
     channel: componentId,
@@ -710,6 +841,14 @@ function HostedFields(options) {
       containerElement: container
     };
     fieldCount++;
+
+    this._state.fields[key] = {
+      isEmpty: true,
+      isValid: false,
+      isPotentiallyValid: true,
+      isFocused: false,
+      container: container
+    };
 
     setTimeout(function () {
       frame.src = composeUrl(self._client.getConfiguration().gatewayConfiguration.assetsUrl, componentId);
@@ -935,9 +1074,24 @@ HostedFields.prototype.clear = function (field, callback) {
   }
 };
 
+/**
+ * Returns an {@link HostedFields~stateObject|object} that includes the state of all fields and possible card types.
+ * @public
+ * @returns {object} {@link HostedFields~stateObject|stateObject}
+ * @example <caption>Check if all fields are valid</caption>
+ * var state = hostedFields.getState();
+ *
+ * var formValid = Object.keys(state.fields).every(function (key) {
+ *   return state.fields[key].isValid;
+ * });
+ */
+HostedFields.prototype.getState = function () {
+  return this._state;
+};
+
 module.exports = HostedFields;
 
-},{"../../lib/analytics":13,"../../lib/bus":17,"../../lib/classlist":18,"../../lib/constants":19,"../../lib/convert-methods-to-error":20,"../../lib/deferred":22,"../../lib/destructor":23,"../../lib/error":25,"../../lib/event-emitter":26,"../../lib/is-ios":27,"../../lib/methods":29,"../../lib/uuid":32,"../shared/constants":10,"../shared/find-parent-tags":11,"./compose-url":6,"./inject-frame":8,"iframer":2}],8:[function(_dereq_,module,exports){
+},{"../../lib/analytics":14,"../../lib/bus":18,"../../lib/classlist":19,"../../lib/constants":20,"../../lib/convert-methods-to-error":21,"../../lib/deferred":23,"../../lib/destructor":24,"../../lib/error":26,"../../lib/event-emitter":27,"../../lib/is-ios":28,"../../lib/methods":30,"../../lib/uuid":33,"../shared/constants":11,"../shared/find-parent-tags":12,"./compose-url":7,"./inject-frame":9,"credit-card-type":1,"iframer":3}],9:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function injectFrame(frame, container) {
@@ -954,15 +1108,14 @@ module.exports = function injectFrame(frame, container) {
   return [frame, clearboth];
 };
 
-},{}],9:[function(_dereq_,module,exports){
+},{}],10:[function(_dereq_,module,exports){
 'use strict';
+/** @module braintree-web/hosted-fields */
 
 var HostedFields = _dereq_('./external/hosted-fields');
-var packageVersion = "3.0.0-beta.10";
 var deferred = _dereq_('../lib/deferred');
 var BraintreeError = _dereq_('../lib/error');
-
-/** @module braintree-web/hosted-fields */
+var VERSION = "3.0.0-beta.11";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -992,79 +1145,81 @@ var BraintreeError = _dereq_('../lib/error');
  * @typedef {object} styleOptions
  */
 
-module.exports = {
-  /**
-   * @static
-   * @function create
-   * @param {object} options Creation options:
-   * @param {client} options.client A {@link Client} instance.
-   * @param {fieldOptions} options.fields A {@link module:braintree-web/hosted-fields~fieldOptions set of options for each field}.
-   * @param {styleOptions} options.styles {@link module:braintree-web/hosted-fields~styleOptions Styles} applied to each field.
-   * @param {callback} callback The second argument, `data`, is the {@link HostedFields} instance.
-   * @returns {void}
-   * @example
-   * braintree.hostedFields.create({
-   *   client: clientInstance,
-   *   styles: {
-   *     'input': {
-   *       'font-size': '16pt',
-   *       'color': '#3A3A3A'
-   *     },
-   *     '.number': {
-   *       'font-family': 'monospace'
-   *     },
-   *     '.valid': {
-   *       'color': 'green'
-   *     }
-   *   },
-   *   fields: {
-   *     number: {
-   *       selector: '#card-number'
-   *     },
-   *     cvv: {
-   *       selector: '#cvv'
-   *     },
-   *     expirationDate: {
-   *       selector: '#expiration-date'
-   *     }
-   *   }
-   * }, callback);
-   */
-  create: function (options, callback) {
-    var integration;
+/**
+ * @static
+ * @function create
+ * @param {object} options Creation options:
+ * @param {Client} options.client A {@link Client} instance.
+ * @param {fieldOptions} options.fields A {@link module:braintree-web/hosted-fields~fieldOptions set of options for each field}.
+ * @param {styleOptions} options.styles {@link module:braintree-web/hosted-fields~styleOptions Styles} applied to each field.
+ * @param {callback} callback The second argument, `data`, is the {@link HostedFields} instance.
+ * @returns {void}
+ * @example
+ * braintree.hostedFields.create({
+ *   client: clientInstance,
+ *   styles: {
+ *     'input': {
+ *       'font-size': '16pt',
+ *       'color': '#3A3A3A'
+ *     },
+ *     '.number': {
+ *       'font-family': 'monospace'
+ *     },
+ *     '.valid': {
+ *       'color': 'green'
+ *     }
+ *   },
+ *   fields: {
+ *     number: {
+ *       selector: '#card-number'
+ *     },
+ *     cvv: {
+ *       selector: '#cvv'
+ *     },
+ *     expirationDate: {
+ *       selector: '#expiration-date'
+ *     }
+ *   }
+ * }, callback);
+ */
+function create(options, callback) {
+  var integration;
 
-    if (typeof callback !== 'function') {
-      throw new BraintreeError({
-        type: BraintreeError.types.MERCHANT,
-        message: 'create must include a callback function.'
-      });
-    }
-
-    try {
-      integration = new HostedFields(options);
-    } catch (err) {
-      callback = deferred(callback);
-      callback(err);
-      return;
-    }
-
-    integration.on('ready', function () {
-      callback(null, integration);
+  if (typeof callback !== 'function') {
+    throw new BraintreeError({
+      type: BraintreeError.types.MERCHANT,
+      message: 'create must include a callback function.'
     });
-  },
+  }
+
+  try {
+    integration = new HostedFields(options);
+  } catch (err) {
+    callback = deferred(callback);
+    callback(err);
+    return;
+  }
+
+  integration.on('ready', function () {
+    callback(null, integration);
+  });
+}
+
+module.exports = {
+  create: create,
   /**
    * @description The current version of the SDK, i.e. `{@pkg version}`.
    * @type {string}
    */
-  VERSION: packageVersion
+  VERSION: VERSION
 };
 
-},{"../lib/deferred":22,"../lib/error":25,"./external/hosted-fields":7}],10:[function(_dereq_,module,exports){
+},{"../lib/deferred":23,"../lib/error":26,"./external/hosted-fields":8}],11:[function(_dereq_,module,exports){
 'use strict';
 /* eslint-disable no-reserved-keys */
 
 var enumerate = _dereq_('../../lib/enumerate');
-var VERSION = "3.0.0-beta.10";
+var VERSION = "3.0.0-beta.11";
 
 var constants = {
   VERSION: VERSION,
@@ -1163,7 +1318,7 @@ constants.events = enumerate([
 
 module.exports = constants;
 
-},{"../../lib/enumerate":24}],11:[function(_dereq_,module,exports){
+},{"../../lib/enumerate":25}],12:[function(_dereq_,module,exports){
 'use strict';
 
 function findParentTags(element, tag) {
@@ -1183,7 +1338,7 @@ function findParentTags(element, tag) {
 
 module.exports = findParentTags;
 
-},{}],12:[function(_dereq_,module,exports){
+},{}],13:[function(_dereq_,module,exports){
 'use strict';
 
 var createAuthorizationData = _dereq_('./create-authorization-data');
@@ -1217,7 +1372,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":19,"./create-authorization-data":21,"./json-clone":28}],13:[function(_dereq_,module,exports){
+},{"./constants":20,"./create-authorization-data":22,"./json-clone":29}],14:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('./constants');
@@ -1248,7 +1403,7 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":12,"./constants":19}],14:[function(_dereq_,module,exports){
+},{"./add-metadata":13,"./constants":20}],15:[function(_dereq_,module,exports){
 'use strict';
 
 var once = _dereq_('./once');
@@ -1292,7 +1447,7 @@ module.exports = function (functions, cb) {
   }
 };
 
-},{"./once":30}],15:[function(_dereq_,module,exports){
+},{"./once":31}],16:[function(_dereq_,module,exports){
 'use strict';
 
 var BT_ORIGIN_REGEX = /^https:\/\/([a-zA-Z0-9-]+\.)*(braintreepayments|braintreegateway|paypal)\.com(:\d{1,5})?$/;
@@ -1320,7 +1475,7 @@ module.exports = {
   checkOrigin: checkOrigin
 };
 
-},{}],16:[function(_dereq_,module,exports){
+},{}],17:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../enumerate');
@@ -1329,7 +1484,7 @@ module.exports = enumerate([
   'CONFIGURATION_REQUEST'
 ], 'bus:');
 
-},{"../enumerate":24}],17:[function(_dereq_,module,exports){
+},{"../enumerate":25}],18:[function(_dereq_,module,exports){
 'use strict';
 
 var bus = _dereq_('framebus');
@@ -1459,7 +1614,7 @@ BraintreeBus.events = events;
 
 module.exports = BraintreeBus;
 
-},{"../error":25,"./check-origin":15,"./events":16,"framebus":1}],18:[function(_dereq_,module,exports){
+},{"../error":26,"./check-origin":16,"./events":17,"framebus":2}],19:[function(_dereq_,module,exports){
 'use strict';
 
 function _classesOf(element) {
@@ -1498,10 +1653,10 @@ module.exports = {
   toggle: toggle
 };
 
-},{}],19:[function(_dereq_,module,exports){
+},{}],20:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.0.0-beta.10";
+var VERSION = "3.0.0-beta.11";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -1514,7 +1669,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],20:[function(_dereq_,module,exports){
+},{}],21:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./error');
@@ -1530,7 +1685,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"./error":25}],21:[function(_dereq_,module,exports){
+},{"./error":26}],22:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/polyfill').atob;
@@ -1579,7 +1734,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":31}],22:[function(_dereq_,module,exports){
+},{"../lib/polyfill":32}],23:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (fn) {
@@ -1593,7 +1748,7 @@ module.exports = function (fn) {
   };
 };
 
-},{}],23:[function(_dereq_,module,exports){
+},{}],24:[function(_dereq_,module,exports){
 'use strict';
 
 var batchExecuteFunctions = _dereq_('./batch-execute-functions');
@@ -1630,7 +1785,7 @@ Destructor.prototype.teardown = function (callback) {
 
 module.exports = Destructor;
 
-},{"./batch-execute-functions":14}],24:[function(_dereq_,module,exports){
+},{"./batch-execute-functions":15}],25:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -1644,7 +1799,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],25:[function(_dereq_,module,exports){
+},{}],26:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -1664,6 +1819,8 @@ function BraintreeError(options) {
   if (!options.message) {
     throw new Error('Error message required.');
   }
+
+  this.name = 'BraintreeError';
 
   /**
    * @type {string}
@@ -1709,7 +1866,7 @@ BraintreeError.types = enumerate([
 
 module.exports = BraintreeError;
 
-},{"./enumerate":24}],26:[function(_dereq_,module,exports){
+},{"./enumerate":25}],27:[function(_dereq_,module,exports){
 'use strict';
 
 function EventEmitter() {
@@ -1739,7 +1896,7 @@ EventEmitter.prototype._emit = function (event) {
 
 module.exports = EventEmitter;
 
-},{}],27:[function(_dereq_,module,exports){
+},{}],28:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function isIos(userAgent) {
@@ -1747,14 +1904,14 @@ module.exports = function isIos(userAgent) {
   return /(iPad|iPhone|iPod)/i.test(userAgent);
 };
 
-},{}],28:[function(_dereq_,module,exports){
+},{}],29:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],29:[function(_dereq_,module,exports){
+},{}],30:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -1763,7 +1920,7 @@ module.exports = function (obj) {
   });
 };
 
-},{}],30:[function(_dereq_,module,exports){
+},{}],31:[function(_dereq_,module,exports){
 'use strict';
 
 function once(fn) {
@@ -1779,7 +1936,7 @@ function once(fn) {
 
 module.exports = once;
 
-},{}],31:[function(_dereq_,module,exports){
+},{}],32:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1818,7 +1975,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],32:[function(_dereq_,module,exports){
+},{}],33:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {
@@ -1832,5 +1989,5 @@ function uuid() {
 
 module.exports = uuid;
 
-},{}]},{},[9])(9)
+},{}]},{},[10])(10)
 });

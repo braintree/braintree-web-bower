@@ -213,7 +213,7 @@ module.exports = {
 var BraintreeError = _dereq_('../lib/error');
 var Client = _dereq_('./client');
 var getConfiguration = _dereq_('./get-configuration').getConfiguration;
-var packageVersion = "3.0.0-beta.10";
+var packageVersion = "3.0.0-beta.11";
 var deferred = _dereq_('../lib/deferred');
 
 /** @module braintree-web/client */
@@ -594,7 +594,7 @@ module.exports = addMetadata;
 },{"./constants":13,"./create-authorization-data":14,"./json-clone":19}],13:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.0.0-beta.10";
+var VERSION = "3.0.0-beta.11";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -704,6 +704,8 @@ function BraintreeError(options) {
   if (!options.message) {
     throw new Error('Error message required.');
   }
+
+  this.name = 'BraintreeError';
 
   /**
    * @type {string}

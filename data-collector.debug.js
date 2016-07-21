@@ -169,8 +169,8 @@ var fraudnet = _dereq_('./fraudnet');
 var BraintreeError = _dereq_('../lib/error');
 var methods = _dereq_('../lib/methods');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
-var VERSION = "3.0.0-beta.10";
 var deferred = _dereq_('../lib/deferred');
+var VERSION = "3.0.0-beta.11";
 
 /**
  * @class
@@ -199,14 +199,14 @@ var deferred = _dereq_('../lib/deferred');
  */
 
 /**
- * @function
- * @param {object} options Object containing all {@link DataCollector} options:
- * @param {client} options.client A {@link Client} instance.
+ * @static
+ * @function create
+ * @param {object} options Creation options:
+ * @param {Client} options.client A {@link Client} instance.
  * @param {boolean} [options.kount] If true, Kount fraud data collection is enabled.
  * @param {boolean} [options.paypal] If true, PayPal fraud data collection is enabled.
- * @param {callback} callback The second argument, <code>data</code>, is the {@link DataCollector} instance.
+ * @param {callback} callback The second argument, `data`, is the {@link DataCollector} instance.
  * @returns {void}
- * @static
  */
 function create(options, callback) {
   var data, kountInstance, fraudnetInstance, result, config, clientVersion;
@@ -489,6 +489,8 @@ function BraintreeError(options) {
   if (!options.message) {
     throw new Error('Error message required.');
   }
+
+  this.name = 'BraintreeError';
 
   /**
    * @type {string}

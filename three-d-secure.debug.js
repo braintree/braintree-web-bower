@@ -614,7 +614,7 @@ module.exports = BraintreeBus;
 },{"../error":17,"./check-origin":9,"./events":10,"framebus":1}],12:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.0.0-beta.10";
+var VERSION = "3.0.0-beta.11";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -741,6 +741,8 @@ function BraintreeError(options) {
     throw new Error('Error message required.');
   }
 
+  this.name = 'BraintreeError';
+
   /**
    * @type {string}
    * @description A short description of the error.
@@ -866,7 +868,7 @@ var Bus = _dereq_('../../lib/bus');
 var uuid = _dereq_('../../lib/uuid');
 var deferred = _dereq_('../../lib/deferred');
 var events = _dereq_('../shared/events');
-var version = "3.0.0-beta.10";
+var version = "3.0.0-beta.11";
 var iFramer = _dereq_('iframer');
 
 var IFRAME_HEIGHT = 400;
@@ -1186,14 +1188,14 @@ var browserDetection = _dereq_('../lib/browser-detection');
 var BraintreeError = _dereq_('../lib/error');
 var analytics = _dereq_('../lib/analytics');
 var deferred = _dereq_('../lib/deferred');
-var VERSION = "3.0.0-beta.10";
+var VERSION = "3.0.0-beta.11";
 
 /**
  * @static
  * @function create
  * @param {object} options Creation options:
- * @param {client} options.client A {@link Client} instance.
- * @param {errback} callback The second argument, `data`, is the {@link ThreeDSecure} instance.
+ * @param {Client} options.client A {@link Client} instance.
+ * @param {callback} callback The second argument, `data`, is the {@link ThreeDSecure} instance.
  * @returns {void}
  * @example
  * braintree.threeDSecure.create({
@@ -1201,7 +1203,7 @@ var VERSION = "3.0.0-beta.10";
  * }, callback);
  */
 function create(options, callback) {
-  var config, threeDSecure, merchantErrorMessage;
+  var config, threeDSecure, merchantErrorMessage, clientVersion;
 
   if (typeof callback !== 'function') {
     throw new BraintreeError({
@@ -1221,11 +1223,12 @@ function create(options, callback) {
   }
 
   config = options.client.getConfiguration();
+  clientVersion = config.analyticsMetadata.sdkVersion;
 
   if (!config.gatewayConfiguration.threeDSecureEnabled) {
     merchantErrorMessage = '3D Secure is not enabled for this merchant.';
   } else if (config.analyticsMetadata.sdkVersion !== VERSION) {
-    merchantErrorMessage = 'Client and 3D Secure components must be from the same SDK version.';
+    merchantErrorMessage = 'Client (version ' + clientVersion + ') and 3D Secure (version ' + VERSION + ') components must be from the same SDK version.';
   } else if (!browserDetection.isHTTPS()) {
     merchantErrorMessage = '3D Secure requires HTTPS.';
   }

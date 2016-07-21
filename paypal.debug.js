@@ -614,7 +614,7 @@ module.exports = BraintreeBus;
 },{"../error":17,"./check-origin":9,"./events":10,"framebus":1}],12:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.0.0-beta.10";
+var VERSION = "3.0.0-beta.11";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -740,6 +740,8 @@ function BraintreeError(options) {
   if (!options.message) {
     throw new Error('Error message required.');
   }
+
+  this.name = 'BraintreeError';
 
   /**
    * @type {string}
@@ -928,7 +930,7 @@ FrameService.prototype._pollForPopupClose = function () {
 
 module.exports = FrameService;
 
-},{"../../bus":11,"../../error":17,"../../uuid":30,"../shared/constants":24,"../shared/events":25,"./popup":21,"iframer":2}],19:[function(_dereq_,module,exports){
+},{"../../bus":11,"../../error":17,"../../uuid":31,"../shared/constants":24,"../shared/events":25,"./popup":21,"iframer":2}],19:[function(_dereq_,module,exports){
 'use strict';
 
 var FrameService = _dereq_('./frame-service');
@@ -1109,6 +1111,97 @@ module.exports = {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],30:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+
+function _notEmpty(obj) {
+  var key;
+
+  for (key in obj) {
+    if (obj.hasOwnProperty(key)) { return true; }
+  }
+
+  return false;
+}
+
+function _isArray(value) {
+  return value && typeof value === 'object' && typeof value.length === 'number' &&
+    Object.prototype.toString.call(value) === '[object Array]' || false;
+}
+
+function parse(url) {
+  var query, params;
+
+  url = url || global.location.href;
+
+  if (!/\?/.test(url)) {
+    return {};
+  }
+
+  query = url.replace(/#.*$/, '').replace(/^.*\?/, '').split('&');
+
+  params = query.reduce(function (toReturn, keyValue) {
+    var parts = keyValue.split('=');
+    var key = decodeURIComponent(parts[0]);
+    var value = decodeURIComponent(parts[1]);
+
+    toReturn[key] = value;
+    return toReturn;
+  }, {});
+
+  return params;
+}
+
+function stringify(params, namespace) {
+  var k, v, p;
+  var query = [];
+
+  for (p in params) {
+    if (!params.hasOwnProperty(p)) {
+      continue;
+    }
+
+    v = params[p];
+
+    if (namespace) {
+      if (_isArray(params)) {
+        k = namespace + '[]';
+      } else {
+        k = namespace + '[' + p + ']';
+      }
+    } else {
+      k = p;
+    }
+    if (typeof v === 'object') {
+      query.push(stringify(v, k));
+    } else {
+      query.push(encodeURIComponent(k) + '=' + encodeURIComponent(v));
+    }
+  }
+
+  return query.join('&');
+}
+
+function queryify(url, params) {
+  url = url || '';
+
+  if (params != null && typeof params === 'object' && _notEmpty(params)) {
+    url += url.indexOf('?') === -1 ? '?' : '';
+    url += url.indexOf('=') !== -1 ? '&' : '';
+    url += stringify(params);
+  }
+
+  return url;
+}
+
+module.exports = {
+  parse: parse,
+  stringify: stringify,
+  queryify: queryify
+};
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],31:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {
@@ -1122,13 +1215,13 @@ function uuid() {
 
 module.exports = uuid;
 
-},{}],31:[function(_dereq_,module,exports){
+},{}],32:[function(_dereq_,module,exports){
 'use strict';
 
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/error');
 var once = _dereq_('../../lib/once');
-var VERSION = "3.0.0-beta.10";
+var VERSION = "3.0.0-beta.11";
 var constants = _dereq_('../shared/constants');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
@@ -1136,10 +1229,12 @@ var methods = _dereq_('../../lib/methods');
 var deferred = _dereq_('../../lib/deferred');
 var getCountry = _dereq_('../shared/get-country');
 var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
+var querystring = _dereq_('../../lib/querystring');
 
 /**
  * @typedef {object} PayPal~tokenizePayload
  * @property {string} nonce The payment method nonce.
+ * @property {string} type The payment method type, always `PayPalAccount`.
  * @property {object} details Additional PayPal account details.
  * @property {string} details.email User's email address.
  * @property {string} details.payerId User's payer ID, the unique identifier for each PayPal account.
@@ -1201,6 +1296,12 @@ PayPal.prototype._initialize = function (callback) {
  * * `authorize` - Submits the transaction for authorization but not settlement.
  * * `sale` - Payment will be immediately submitted for settlement upon creating a transaction.
  * @param {boolean} [options.offerCredit=false] Offers the customer PayPal Credit if they qualify. Checkout flows only.
+ * @param {string} [options.useraction]
+ * Changes the call-to-action in the PayPal flow. By default the final button will show the localized
+ * word for "Continue" and implies that the final amount billed is not yet known.
+ *
+ * Setting this option to `commit` changes the button text to "Pay Now" and page text will convey to
+ * the user that billing will take place immediately.
  * @param {string|number} [options.amount] The amount of the transaction. Required when using the Checkout flow.
  * @param {string} [options.currency] The currency code of the amount, such as 'USD'. Required when using the Checkout flow.
  * @param {string} [options.displayName] The merchant name displayed inside of the PayPal lightbox; defaults to the company name on your Braintree account
@@ -1216,7 +1317,7 @@ PayPal.prototype._initialize = function (callback) {
  * @param {string} [options.shippingAddressOverride.phone] Phone number.
  * @param {string} [options.shippingAddressOverride.recipientName] Recipient's name.
  * @param {boolean} [options.shippingAddressEditable=true] Set to false to disable user editing of the shipping address.
- * @param {boolean} [options.billingAgreementsDescription] Use this option to set the description of the preapproved payment agreement visible to customers in their PayPal profile. Max 255 characters.
+ * @param {string} [options.billingAgreementDescription] Use this option to set the description of the preapproved payment agreement visible to customers in their PayPal profile during Vault flows. Max 255 characters.
  * @param {callback} callback The second argument, <code>data</code>, is a {@link PayPal~tokenizePayload|tokenizePayload}.
  * @returns {PayPal~tokenizeReturn} A handle to close the PayPal checkout frame.
  */
@@ -1305,7 +1406,8 @@ PayPal.prototype._formatTokenizePayload = function (response) {
 
   payload = {
     nonce: account.nonce,
-    details: {}
+    details: {},
+    type: account.type
   };
 
   if (account.details && account.details.payerInfo) {
@@ -1371,6 +1473,10 @@ PayPal.prototype._navigateFrameToAuth = function (options, callback) {
         redirectUrl = response.paymentResource.redirectUrl;
       } else {
         redirectUrl = response.agreementSetup.approvalUrl;
+      }
+
+      if (options.useraction === 'commit') {
+        redirectUrl = querystring.queryify(redirectUrl, {useraction: 'commit'});
       }
 
       this._frameService.redirect(redirectUrl);
@@ -1440,7 +1546,7 @@ PayPal.prototype.teardown = function (callback) {
 
 module.exports = PayPal;
 
-},{"../../lib/analytics":7,"../../lib/constants":12,"../../lib/convert-methods-to-error":13,"../../lib/deferred":15,"../../lib/error":17,"../../lib/frame-service/external":19,"../../lib/methods":27,"../../lib/once":28,"../shared/constants":33,"../shared/get-country":34}],32:[function(_dereq_,module,exports){
+},{"../../lib/analytics":7,"../../lib/constants":12,"../../lib/convert-methods-to-error":13,"../../lib/deferred":15,"../../lib/error":17,"../../lib/frame-service/external":19,"../../lib/methods":27,"../../lib/once":28,"../../lib/querystring":30,"../shared/constants":34,"../shared/get-country":35}],33:[function(_dereq_,module,exports){
 'use strict';
 /** @module braintree-web/paypal */
 
@@ -1449,8 +1555,16 @@ var browserDetection = _dereq_('../lib/browser-detection');
 var BraintreeError = _dereq_('../lib/error');
 var analytics = _dereq_('../lib/analytics');
 var deferred = _dereq_('../lib/deferred');
-var VERSION = "3.0.0-beta.10";
+var VERSION = "3.0.0-beta.11";
 
+/**
+ * @static
+ * @function create
+ * @param {object} options Creation options:
+ * @param {Client} options.client A {@link Client} instance.
+ * @param {callback} callback The second argument, `data`, is the {@link PayPal} instance.
+ * @returns {void}
+ */
 function create(options, callback) {
   var config, pp, clientVersion;
 
@@ -1511,14 +1625,6 @@ function _isBrowserSupported() {
 }
 
 module.exports = {
-  /**
-   * @static
-   * @function
-   * @param {object} options All creation options for the PayPal component.
-   * @param {Client} options.client A {@link Client} instance.
-   * @param {callback} callback The second argument, <code>data</code>, is the {@link PayPal} instance.
-   * @returns {void}
-   */
   create: create,
   /**
    * @description The current version of the SDK, i.e. `{@pkg version}`.
@@ -1527,7 +1633,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/analytics":7,"../lib/browser-detection":8,"../lib/deferred":15,"../lib/error":17,"./external/paypal":31}],33:[function(_dereq_,module,exports){
+},{"../lib/analytics":7,"../lib/browser-detection":8,"../lib/deferred":15,"../lib/error":17,"./external/paypal":32}],34:[function(_dereq_,module,exports){
 'use strict';
 
 var POPUP_HEIGHT = 535;
@@ -1542,7 +1648,7 @@ module.exports = {
   POPUP_POLL_INTERVAL: 100
 };
 
-},{}],34:[function(_dereq_,module,exports){
+},{}],35:[function(_dereq_,module,exports){
 'use strict';
 
 var lookupTable = {
@@ -1592,5 +1698,5 @@ function getCountry(code) {
 
 module.exports = getCountry;
 
-},{}]},{},[32])(32)
+},{}]},{},[33])(33)
 });
