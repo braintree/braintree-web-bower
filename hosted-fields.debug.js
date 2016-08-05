@@ -468,6 +468,30 @@ module.exports = function setAttributes(element, attributes) {
 },{}],7:[function(_dereq_,module,exports){
 'use strict';
 
+var BraintreeError = _dereq_('./lib/error');
+
+module.exports = {
+  CALLBACK_REQUIRED: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'CALLBACK_REQUIRED'
+  },
+  INSTANTIATION_OPTION_REQUIRED: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'INSTANTIATION_OPTION_REQUIRED'
+  },
+  INCOMPATIBLE_VERSIONS: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'INCOMPATIBLE_VERSIONS'
+  },
+  METHOD_CALLED_AFTER_TEARDOWN: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'METHOD_CALLED_AFTER_TEARDOWN'
+  }
+};
+
+},{"./lib/error":28}],8:[function(_dereq_,module,exports){
+'use strict';
+
 var constants = _dereq_('../shared/constants');
 
 module.exports = function composeUrl(assetsUrl, componentId) {
@@ -478,7 +502,7 @@ module.exports = function composeUrl(assetsUrl, componentId) {
     componentId;
 };
 
-},{"../shared/constants":11}],8:[function(_dereq_,module,exports){
+},{"../shared/constants":12}],9:[function(_dereq_,module,exports){
 'use strict';
 
 var Destructor = _dereq_('../../lib/destructor');
@@ -488,6 +512,7 @@ var Bus = _dereq_('../../lib/bus');
 var BraintreeError = _dereq_('../../lib/error');
 var composeUrl = _dereq_('./compose-url');
 var constants = _dereq_('../shared/constants');
+var errors = _dereq_('../shared/errors');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var uuid = _dereq_('../../lib/uuid');
 var findParentTags = _dereq_('../shared/find-parent-tags');
@@ -497,10 +522,11 @@ var EventEmitter = _dereq_('../../lib/event-emitter');
 var injectFrame = _dereq_('./inject-frame');
 var analytics = _dereq_('../../lib/analytics');
 var whitelistedFields = constants.whitelistedFields;
-var VERSION = "3.0.0-beta.11";
+var VERSION = "3.0.0-beta.12";
 var methods = _dereq_('../../lib/methods');
 var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
 var deferred = _dereq_('../../lib/deferred');
+var sharedErrors = _dereq_('../../errors');
 var getCardTypes = _dereq_('credit-card-type');
 
 /**
@@ -705,7 +731,7 @@ var getCardTypes = _dereq_('credit-card-type');
  * });
  */
 
-function inputEventHandler(fields) {
+function createInputEventHandler(fields) {
   return function (eventData) {
     var field;
     var merchantPayload = eventData.merchantPayload;
@@ -720,12 +746,7 @@ function inputEventHandler(fields) {
 
     classlist.toggle(container, constants.externalClasses.FOCUSED, field.isFocused);
     classlist.toggle(container, constants.externalClasses.VALID, field.isValid);
-
-    if (field.isStrictlyValidating) {
-      classlist.toggle(container, constants.externalClasses.INVALID, !field.isValid);
-    } else {
-      classlist.toggle(container, constants.externalClasses.INVALID, !field.isPotentiallyValid);
-    }
+    classlist.toggle(container, constants.externalClasses.INVALID, !field.isPotentiallyValid);
 
     this._state = { // eslint-disable-line no-invalid-this
       cards: merchantPayload.cards,
@@ -751,7 +772,8 @@ function HostedFields(options) {
 
   if (!options.client) {
     throw new BraintreeError({
-      type: BraintreeError.types.MERCHANT,
+      type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
+      code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
       message: 'options.client is required when instantiating Hosted Fields.'
     });
   }
@@ -759,14 +781,16 @@ function HostedFields(options) {
   clientVersion = options.client.getConfiguration().analyticsMetadata.sdkVersion;
   if (clientVersion !== VERSION) {
     throw new BraintreeError({
-      type: BraintreeError.types.MERCHANT,
+      type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
+      code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
       message: 'Client (version ' + clientVersion + ') and Hosted Fields (version ' + VERSION + ') components must be from the same SDK version.'
     });
   }
 
   if (!options.fields) {
     throw new BraintreeError({
-      type: BraintreeError.types.MERCHANT,
+      type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
+      code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
       message: 'options.fields is required when instantiating Hosted Fields.'
     });
   }
@@ -799,7 +823,8 @@ function HostedFields(options) {
 
     if (!constants.whitelistedFields.hasOwnProperty(key)) {
       throw new BraintreeError({
-        type: BraintreeError.types.MERCHANT,
+        type: errors.INVALID_FIELD_KEY.type,
+        code: errors.INVALID_FIELD_KEY.code,
         message: '"' + key + '" is not a valid field.'
       });
     }
@@ -810,8 +835,9 @@ function HostedFields(options) {
 
     if (!container) {
       throw new BraintreeError({
-        type: BraintreeError.types.MERCHANT,
-        message: 'Selector does not reference a valid DOM node.',
+        type: errors.INVALID_FIELD_SELECTOR.type,
+        code: errors.INVALID_FIELD_SELECTOR.code,
+        message: errors.INVALID_FIELD_SELECTOR.message,
         details: {
           fieldSelector: field.selector,
           fieldKey: key
@@ -819,8 +845,9 @@ function HostedFields(options) {
       });
     } else if (container.querySelector('iframe[name^="braintree-"]')) {
       throw new BraintreeError({
-        type: BraintreeError.types.MERCHANT,
-        message: 'Element already contains a Braintree iframe.',
+        type: errors.FIELD_DUPLICATE_IFRAME.type,
+        code: errors.FIELD_DUPLICATE_IFRAME.code,
+        message: errors.FIELD_DUPLICATE_IFRAME.message,
         details: {
           fieldSelector: field.selector,
           fieldKey: key
@@ -870,7 +897,7 @@ function HostedFields(options) {
 
   this._bus.on(
     events.INPUT_EVENT,
-    inputEventHandler(fields).bind(this)
+    createInputEventHandler(fields).bind(this)
   );
 
   this._destructor.registerFunctionForTeardown(function () {
@@ -958,9 +985,21 @@ HostedFields.prototype.teardown = function (callback) {
 /**
  * Tokenizes fields and returns a nonce payload.
  * @public
+ * @param {object} [options] All tokenization options for the Hosted Fields component.
+ * @param {boolean} [options.vault=false] When true, will vault the tokenized card. Cards will only be vaulted when using a client created with a client token that includes a customer ID.
  * @param {callback} callback The second argument, <code>data</code>, is a {@link HostedFields~tokenizePayload|tokenizePayload}
- * @example
+ * @example <caption>Tokenize a card</caption>
  * hostedFieldsInstance.tokenize(function (tokenizeErr, payload) {
+ *   if (tokenizeErr) {
+ *     console.error(tokenizeErr);
+ *   } else {
+ *     console.log('Got nonce:', payload.nonce);
+ *   }
+ * });
+ * @example <caption>Tokenize and vault a card</caption>
+ * hostedFieldsInstance.tokenize({
+ *   vault: true
+ * }, function (tokenizeErr, payload) {
  *   if (tokenizeErr) {
  *     console.error(tokenizeErr);
  *   } else {
@@ -969,17 +1008,107 @@ HostedFields.prototype.teardown = function (callback) {
  * });
  * @returns {void}
  */
-HostedFields.prototype.tokenize = function (callback) {
+HostedFields.prototype.tokenize = function (options, callback) {
+  if (!callback) {
+    callback = options;
+    options = {};
+  }
+
   if (typeof callback !== 'function') {
     throw new BraintreeError({
-      type: BraintreeError.types.MERCHANT,
+      type: sharedErrors.CALLBACK_REQUIRED.type,
+      code: sharedErrors.CALLBACK_REQUIRED.code,
       message: 'tokenize must include a callback function.'
     });
   }
 
-  this._bus.emit(events.TOKENIZATION_REQUEST, function (response) {
+  this._bus.emit(events.TOKENIZATION_REQUEST, options, function (response) {
     callback.apply(null, response);
   });
+};
+
+/**
+ * Add a class to a {@link module:braintree-web/hosted-fields~field field}. Useful for updating field styles when events occur elsewhere in your checkout.
+ * @public
+ * @param {string} field The field you wish to add a class to. Must be a valid {@link module:braintree-web/hosted-fields~fieldOptions fieldOption}.
+ * @param {string} classname The class to be added.
+ * @param {callback} [callback] Callback executed on completion, containing an error if one occurred. No data is returned if the class is added successfully.
+ *
+ * @example
+ * hostedFieldsInstance.addClass('number', 'custom-class', function (addClassErr) {
+ *   if (addClassErr) {
+ *     console.error(addClassErr);
+ *   }
+ * });
+ * @returns {void}
+ */
+HostedFields.prototype.addClass = function (field, classname, callback) {
+  var err;
+
+  if (!whitelistedFields.hasOwnProperty(field)) {
+    err = new BraintreeError({
+      type: errors.INVALID_FIELD.type,
+      code: errors.INVALID_FIELD.code,
+      message: '"' + field + '" is not a valid field. You must use a valid field option when adding a class.'
+    });
+  } else if (!this._fields.hasOwnProperty(field)) {
+    err = new BraintreeError({
+      type: errors.FIELD_NOT_PRESENT.type,
+      code: errors.FIELD_NOT_PRESENT.code,
+      message: 'Cannot add class to "' + field + '" field because it is not part of the current Hosted Fields options.'
+    });
+  } else {
+    this._bus.emit(events.ADD_CLASS, field, classname);
+  }
+
+  if (typeof callback === 'function') {
+    callback = deferred(callback);
+    callback(err);
+  }
+};
+
+/**
+ * Removes a class to a {@link module:braintree-web/hosted-fields~field field}. Useful for updating field styles when events occur elsewhere in your checkout.
+ * @public
+ * @param {string} field The field you wish to remove a class from. Must be a valid {@link module:braintree-web/hosted-fields~fieldOptions fieldOption}.
+ * @param {string} classname The class to be removed.
+ * @param {callback} [callback] Callback executed on completion, containing an error if one occurred. No data is returned if the class is removed successfully.
+ *
+ * @example
+ * hostedFieldsInstance.addClass('number', 'custom-class', function (addClassErr) {
+ *   if (addClassErr) {
+ *     console.error(addClassErr);
+ *     return;
+ *   }
+ *
+ *   // some time later...
+ *   hostedFieldsInstance.removeClass('number', 'custom-class');
+ * });
+ * @returns {void}
+ */
+HostedFields.prototype.removeClass = function (field, classname, callback) {
+  var err;
+
+  if (!whitelistedFields.hasOwnProperty(field)) {
+    err = new BraintreeError({
+      type: errors.INVALID_FIELD.type,
+      code: errors.INVALID_FIELD.code,
+      message: '"' + field + '" is not a valid field. You must use a valid field option when removing a class.'
+    });
+  } else if (!this._fields.hasOwnProperty(field)) {
+    err = new BraintreeError({
+      type: errors.FIELD_NOT_PRESENT.type,
+      code: errors.FIELD_NOT_PRESENT.code,
+      message: 'Cannot remove class from "' + field + '" field because it is not part of the current Hosted Fields options.'
+    });
+  } else {
+    this._bus.emit(events.REMOVE_CLASS, field, classname);
+  }
+
+  if (typeof callback === 'function') {
+    callback = deferred(callback);
+    callback(err);
+  }
 };
 
 /**
@@ -1015,12 +1144,14 @@ HostedFields.prototype.setPlaceholder = function (field, placeholder, callback) 
 
   if (!whitelistedFields.hasOwnProperty(field)) {
     err = new BraintreeError({
-      type: BraintreeError.types.MERCHANT,
+      type: errors.INVALID_FIELD.type,
+      code: errors.INVALID_FIELD.code,
       message: '"' + field + '" is not a valid field. You must use a valid field option when setting a placeholder.'
     });
   } else if (!this._fields.hasOwnProperty(field)) {
     err = new BraintreeError({
-      type: BraintreeError.types.MERCHANT,
+      type: errors.FIELD_NOT_PRESENT.type,
+      code: errors.FIELD_NOT_PRESENT.code,
       message: 'Cannot set placeholder for "' + field + '" field because it is not part of the current Hosted Fields options.'
     });
   } else {
@@ -1056,12 +1187,14 @@ HostedFields.prototype.clear = function (field, callback) {
 
   if (!whitelistedFields.hasOwnProperty(field)) {
     err = new BraintreeError({
-      type: BraintreeError.types.MERCHANT,
+      type: errors.INVALID_FIELD.type,
+      code: errors.INVALID_FIELD.code,
       message: '"' + field + '" is not a valid field. You must use a valid field option when clearing a field.'
     });
   } else if (!this._fields.hasOwnProperty(field)) {
     err = new BraintreeError({
-      type: BraintreeError.types.MERCHANT,
+      type: errors.FIELD_NOT_PRESENT.type,
+      code: errors.FIELD_NOT_PRESENT.code,
       message: 'Cannot clear "' + field + '" field because it is not part of the current Hosted Fields options.'
     });
   } else {
@@ -1091,7 +1224,7 @@ HostedFields.prototype.getState = function () {
 
 module.exports = HostedFields;
 
-},{"../../lib/analytics":14,"../../lib/bus":18,"../../lib/classlist":19,"../../lib/constants":20,"../../lib/convert-methods-to-error":21,"../../lib/deferred":23,"../../lib/destructor":24,"../../lib/error":26,"../../lib/event-emitter":27,"../../lib/is-ios":28,"../../lib/methods":30,"../../lib/uuid":33,"../shared/constants":11,"../shared/find-parent-tags":12,"./compose-url":7,"./inject-frame":9,"credit-card-type":1,"iframer":3}],9:[function(_dereq_,module,exports){
+},{"../../errors":7,"../../lib/analytics":16,"../../lib/bus":20,"../../lib/classlist":21,"../../lib/constants":22,"../../lib/convert-methods-to-error":23,"../../lib/deferred":25,"../../lib/destructor":26,"../../lib/error":28,"../../lib/event-emitter":29,"../../lib/is-ios":30,"../../lib/methods":32,"../../lib/uuid":35,"../shared/constants":12,"../shared/errors":13,"../shared/find-parent-tags":14,"./compose-url":8,"./inject-frame":10,"credit-card-type":1,"iframer":3}],10:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function injectFrame(frame, container) {
@@ -1108,21 +1241,22 @@ module.exports = function injectFrame(frame, container) {
   return [frame, clearboth];
 };
 
-},{}],10:[function(_dereq_,module,exports){
+},{}],11:[function(_dereq_,module,exports){
 'use strict';
 /** @module braintree-web/hosted-fields */
 
 var HostedFields = _dereq_('./external/hosted-fields');
 var deferred = _dereq_('../lib/deferred');
 var BraintreeError = _dereq_('../lib/error');
-var VERSION = "3.0.0-beta.11";
+var sharedErrors = _dereq_('../errors');
+var VERSION = "3.0.0-beta.12";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
  * @typedef {object} field
  * @property {string} selector A CSS selector to find the container where the hosted field will be inserted.
  * @property {string} [placeholder] Will be used as the `placeholder` attribute of the input. If `placeholder` is not natively supported by the browser, it will be polyfilled.
- * @property {boolean} [formatInput=true] - Enable or disable automatic formatting on this field.
+ * @property {boolean} [formatInput=true] - Enable or disable automatic formatting on this field. Note: Input formatting does not work in Android Firefox, so input formatting is automatically disabled in that browser.
  */
 
 /**
@@ -1187,7 +1321,8 @@ function create(options, callback) {
 
   if (typeof callback !== 'function') {
     throw new BraintreeError({
-      type: BraintreeError.types.MERCHANT,
+      type: sharedErrors.CALLBACK_REQUIRED.type,
+      code: sharedErrors.CALLBACK_REQUIRED.code,
       message: 'create must include a callback function.'
     });
   }
@@ -1214,12 +1349,12 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/deferred":23,"../lib/error":26,"./external/hosted-fields":8}],11:[function(_dereq_,module,exports){
+},{"../errors":7,"../lib/deferred":25,"../lib/error":28,"./external/hosted-fields":9}],12:[function(_dereq_,module,exports){
 'use strict';
 /* eslint-disable no-reserved-keys */
 
 var enumerate = _dereq_('../../lib/enumerate');
-var VERSION = "3.0.0-beta.11";
+var VERSION = "3.0.0-beta.12";
 
 var constants = {
   VERSION: VERSION,
@@ -1312,13 +1447,65 @@ constants.events = enumerate([
   'TOKENIZATION_REQUEST',
   'INPUT_EVENT',
   'TRIGGER_INPUT_FOCUS',
+  'ADD_CLASS',
+  'REMOVE_CLASS',
   'SET_PLACEHOLDER',
   'CLEAR_FIELD'
 ], 'hosted-fields:');
 
 module.exports = constants;
 
-},{"../../lib/enumerate":25}],12:[function(_dereq_,module,exports){
+},{"../../lib/enumerate":27}],13:[function(_dereq_,module,exports){
+'use strict';
+
+var BraintreeError = _dereq_('../../lib/error');
+
+module.exports = {
+  INVALID_FIELD_KEY: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'INVALID_FIELD_KEY'
+  },
+  INVALID_FIELD_SELECTOR: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'INVALID_FIELD_SELECTOR',
+    message: 'Selector does not reference a valid DOM node.'
+  },
+  FIELD_DUPLICATE_IFRAME: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'FIELD_DUPLICATE_IFRAME',
+    message: 'Element already contains a Braintree iframe.'
+  },
+  INVALID_FIELD: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'INVALID_FIELD'
+  },
+  FIELD_NOT_PRESENT: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'FIELD_NOT_PRESENT'
+  },
+  TOKENIZATION_NETWORK_ERROR: {
+    type: BraintreeError.types.NETWORK,
+    code: 'TOKENIZATION_NETWORK_ERROR',
+    message: 'A tokenization network error occurred.'
+  },
+  FAILED_HOSTED_FIELDS_TOKENIZATION: {
+    type: BraintreeError.types.CUSTOMER,
+    code: 'FAILED_HOSTED_FIELDS_TOKENIZATION',
+    message: 'The supplied card data failed tokenization.'
+  },
+  FIELDS_EMPTY: {
+    type: BraintreeError.types.CUSTOMER,
+    code: 'FIELDS_EMPTY',
+    message: 'All fields are empty. Cannot tokenize empty card fields.'
+  },
+  FIELDS_INVALID: {
+    type: BraintreeError.types.CUSTOMER,
+    code: 'FIELDS_INVALID',
+    message: 'Some payment input fields are invalid. Cannot tokenize invalid card fields.'
+  }
+};
+
+},{"../../lib/error":28}],14:[function(_dereq_,module,exports){
 'use strict';
 
 function findParentTags(element, tag) {
@@ -1338,7 +1525,7 @@ function findParentTags(element, tag) {
 
 module.exports = findParentTags;
 
-},{}],13:[function(_dereq_,module,exports){
+},{}],15:[function(_dereq_,module,exports){
 'use strict';
 
 var createAuthorizationData = _dereq_('./create-authorization-data');
@@ -1372,7 +1559,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":20,"./create-authorization-data":22,"./json-clone":29}],14:[function(_dereq_,module,exports){
+},{"./constants":22,"./create-authorization-data":24,"./json-clone":31}],16:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('./constants');
@@ -1403,7 +1590,7 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":13,"./constants":20}],15:[function(_dereq_,module,exports){
+},{"./add-metadata":15,"./constants":22}],17:[function(_dereq_,module,exports){
 'use strict';
 
 var once = _dereq_('./once');
@@ -1447,7 +1634,7 @@ module.exports = function (functions, cb) {
   }
 };
 
-},{"./once":31}],16:[function(_dereq_,module,exports){
+},{"./once":33}],18:[function(_dereq_,module,exports){
 'use strict';
 
 var BT_ORIGIN_REGEX = /^https:\/\/([a-zA-Z0-9-]+\.)*(braintreepayments|braintreegateway|paypal)\.com(:\d{1,5})?$/;
@@ -1475,7 +1662,7 @@ module.exports = {
   checkOrigin: checkOrigin
 };
 
-},{}],17:[function(_dereq_,module,exports){
+},{}],19:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../enumerate');
@@ -1484,7 +1671,7 @@ module.exports = enumerate([
   'CONFIGURATION_REQUEST'
 ], 'bus:');
 
-},{"../enumerate":25}],18:[function(_dereq_,module,exports){
+},{"../enumerate":27}],20:[function(_dereq_,module,exports){
 'use strict';
 
 var bus = _dereq_('framebus');
@@ -1499,6 +1686,7 @@ function BraintreeBus(options) {
   if (!this.channel) {
     throw new BraintreeError({
       type: BraintreeError.types.INTERNAL,
+      code: 'MISSING_CHANNEL_ID',
       message: 'Channel ID must be specified.'
     });
   }
@@ -1614,7 +1802,7 @@ BraintreeBus.events = events;
 
 module.exports = BraintreeBus;
 
-},{"../error":26,"./check-origin":16,"./events":17,"framebus":2}],19:[function(_dereq_,module,exports){
+},{"../error":28,"./check-origin":18,"./events":19,"framebus":2}],21:[function(_dereq_,module,exports){
 'use strict';
 
 function _classesOf(element) {
@@ -1639,11 +1827,11 @@ function remove(element) {
   element.className = className;
 }
 
-function toggle(element, clazz, adding) {
+function toggle(element, classname, adding) {
   if (adding) {
-    add(element, clazz);
+    add(element, classname);
   } else {
-    remove(element, clazz);
+    remove(element, classname);
   }
 }
 
@@ -1653,10 +1841,10 @@ module.exports = {
   toggle: toggle
 };
 
-},{}],20:[function(_dereq_,module,exports){
+},{}],22:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.0.0-beta.11";
+var VERSION = "3.0.0-beta.12";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -1669,23 +1857,25 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],21:[function(_dereq_,module,exports){
+},{}],23:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./error');
+var sharedErrors = _dereq_('../errors');
 
 module.exports = function (instance, methodNames) {
   methodNames.forEach(function (methodName) {
     instance[methodName] = function () {
       throw new BraintreeError({
-        type: BraintreeError.types.MERCHANT,
+        type: sharedErrors.METHOD_CALLED_AFTER_TEARDOWN.type,
+        code: sharedErrors.METHOD_CALLED_AFTER_TEARDOWN.code,
         message: methodName + ' cannot be called after teardown.'
       });
     };
   });
 };
 
-},{"./error":26}],22:[function(_dereq_,module,exports){
+},{"../errors":7,"./error":28}],24:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/polyfill').atob;
@@ -1734,7 +1924,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":32}],23:[function(_dereq_,module,exports){
+},{"../lib/polyfill":34}],25:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (fn) {
@@ -1748,7 +1938,7 @@ module.exports = function (fn) {
   };
 };
 
-},{}],24:[function(_dereq_,module,exports){
+},{}],26:[function(_dereq_,module,exports){
 'use strict';
 
 var batchExecuteFunctions = _dereq_('./batch-execute-functions');
@@ -1785,7 +1975,7 @@ Destructor.prototype.teardown = function (callback) {
 
 module.exports = Destructor;
 
-},{"./batch-execute-functions":15}],25:[function(_dereq_,module,exports){
+},{"./batch-execute-functions":17}],27:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -1799,7 +1989,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],26:[function(_dereq_,module,exports){
+},{}],28:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -1816,11 +2006,21 @@ function BraintreeError(options) {
     throw new Error(options.type + ' is not a valid type.');
   }
 
+  if (!options.code) {
+    throw new Error('Error code required.');
+  }
+
   if (!options.message) {
     throw new Error('Error message required.');
   }
 
   this.name = 'BraintreeError';
+
+  /**
+   * @type {string}
+   * @description A code that corresponds to specific errors.
+   */
+  this.code = options.code;
 
   /**
    * @type {string}
@@ -1866,7 +2066,7 @@ BraintreeError.types = enumerate([
 
 module.exports = BraintreeError;
 
-},{"./enumerate":25}],27:[function(_dereq_,module,exports){
+},{"./enumerate":27}],29:[function(_dereq_,module,exports){
 'use strict';
 
 function EventEmitter() {
@@ -1896,7 +2096,7 @@ EventEmitter.prototype._emit = function (event) {
 
 module.exports = EventEmitter;
 
-},{}],28:[function(_dereq_,module,exports){
+},{}],30:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function isIos(userAgent) {
@@ -1904,14 +2104,14 @@ module.exports = function isIos(userAgent) {
   return /(iPad|iPhone|iPod)/i.test(userAgent);
 };
 
-},{}],29:[function(_dereq_,module,exports){
+},{}],31:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],30:[function(_dereq_,module,exports){
+},{}],32:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -1920,7 +2120,7 @@ module.exports = function (obj) {
   });
 };
 
-},{}],31:[function(_dereq_,module,exports){
+},{}],33:[function(_dereq_,module,exports){
 'use strict';
 
 function once(fn) {
@@ -1936,7 +2136,7 @@ function once(fn) {
 
 module.exports = once;
 
-},{}],32:[function(_dereq_,module,exports){
+},{}],34:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1975,7 +2175,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],33:[function(_dereq_,module,exports){
+},{}],35:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {
@@ -1989,5 +2189,5 @@ function uuid() {
 
 module.exports = uuid;
 
-},{}]},{},[10])(10)
+},{}]},{},[11])(11)
 });

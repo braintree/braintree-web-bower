@@ -348,6 +348,30 @@ module.exports = function setAttributes(element, attributes) {
 },{}],6:[function(_dereq_,module,exports){
 'use strict';
 
+var BraintreeError = _dereq_('./lib/error');
+
+module.exports = {
+  CALLBACK_REQUIRED: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'CALLBACK_REQUIRED'
+  },
+  INSTANTIATION_OPTION_REQUIRED: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'INSTANTIATION_OPTION_REQUIRED'
+  },
+  INCOMPATIBLE_VERSIONS: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'INCOMPATIBLE_VERSIONS'
+  },
+  METHOD_CALLED_AFTER_TEARDOWN: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'METHOD_CALLED_AFTER_TEARDOWN'
+  }
+};
+
+},{"./lib/error":18}],7:[function(_dereq_,module,exports){
+'use strict';
+
 var createAuthorizationData = _dereq_('./create-authorization-data');
 var jsonClone = _dereq_('./json-clone');
 var constants = _dereq_('./constants');
@@ -379,7 +403,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":12,"./create-authorization-data":14,"./json-clone":18}],7:[function(_dereq_,module,exports){
+},{"./constants":13,"./create-authorization-data":15,"./json-clone":19}],8:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('./constants');
@@ -410,13 +434,18 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":6,"./constants":12}],8:[function(_dereq_,module,exports){
+},{"./add-metadata":7,"./constants":13}],9:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
 function isOperaMini(ua) {
   ua = ua || global.navigator.userAgent;
   return ua.indexOf('Opera Mini') > -1;
+}
+
+function isAndroidFirefox(ua) {
+  ua = ua || global.navigator.userAgent;
+  return ua.indexOf('Android') > -1 && ua.indexOf('Firefox') > -1;
 }
 
 function getIEVersion(ua) {
@@ -439,12 +468,13 @@ function isHTTPS(protocol) {
 
 module.exports = {
   isOperaMini: isOperaMini,
+  isAndroidFirefox: isAndroidFirefox,
   getIEVersion: getIEVersion,
   isHTTPS: isHTTPS
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],9:[function(_dereq_,module,exports){
+},{}],10:[function(_dereq_,module,exports){
 'use strict';
 
 var BT_ORIGIN_REGEX = /^https:\/\/([a-zA-Z0-9-]+\.)*(braintreepayments|braintreegateway|paypal)\.com(:\d{1,5})?$/;
@@ -472,7 +502,7 @@ module.exports = {
   checkOrigin: checkOrigin
 };
 
-},{}],10:[function(_dereq_,module,exports){
+},{}],11:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../enumerate');
@@ -481,7 +511,7 @@ module.exports = enumerate([
   'CONFIGURATION_REQUEST'
 ], 'bus:');
 
-},{"../enumerate":16}],11:[function(_dereq_,module,exports){
+},{"../enumerate":17}],12:[function(_dereq_,module,exports){
 'use strict';
 
 var bus = _dereq_('framebus');
@@ -496,6 +526,7 @@ function BraintreeBus(options) {
   if (!this.channel) {
     throw new BraintreeError({
       type: BraintreeError.types.INTERNAL,
+      code: 'MISSING_CHANNEL_ID',
       message: 'Channel ID must be specified.'
     });
   }
@@ -611,10 +642,10 @@ BraintreeBus.events = events;
 
 module.exports = BraintreeBus;
 
-},{"../error":17,"./check-origin":9,"./events":10,"framebus":1}],12:[function(_dereq_,module,exports){
+},{"../error":18,"./check-origin":10,"./events":11,"framebus":1}],13:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.0.0-beta.11";
+var VERSION = "3.0.0-beta.12";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -627,23 +658,25 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],13:[function(_dereq_,module,exports){
+},{}],14:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./error');
+var sharedErrors = _dereq_('../errors');
 
 module.exports = function (instance, methodNames) {
   methodNames.forEach(function (methodName) {
     instance[methodName] = function () {
       throw new BraintreeError({
-        type: BraintreeError.types.MERCHANT,
+        type: sharedErrors.METHOD_CALLED_AFTER_TEARDOWN.type,
+        code: sharedErrors.METHOD_CALLED_AFTER_TEARDOWN.code,
         message: methodName + ' cannot be called after teardown.'
       });
     };
   });
 };
 
-},{"./error":17}],14:[function(_dereq_,module,exports){
+},{"../errors":6,"./error":18}],15:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/polyfill').atob;
@@ -692,7 +725,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":20}],15:[function(_dereq_,module,exports){
+},{"../lib/polyfill":21}],16:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (fn) {
@@ -706,7 +739,7 @@ module.exports = function (fn) {
   };
 };
 
-},{}],16:[function(_dereq_,module,exports){
+},{}],17:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -720,7 +753,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],17:[function(_dereq_,module,exports){
+},{}],18:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -737,11 +770,21 @@ function BraintreeError(options) {
     throw new Error(options.type + ' is not a valid type.');
   }
 
+  if (!options.code) {
+    throw new Error('Error code required.');
+  }
+
   if (!options.message) {
     throw new Error('Error message required.');
   }
 
   this.name = 'BraintreeError';
+
+  /**
+   * @type {string}
+   * @description A code that corresponds to specific errors.
+   */
+  this.code = options.code;
 
   /**
    * @type {string}
@@ -787,14 +830,14 @@ BraintreeError.types = enumerate([
 
 module.exports = BraintreeError;
 
-},{"./enumerate":16}],18:[function(_dereq_,module,exports){
+},{"./enumerate":17}],19:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],19:[function(_dereq_,module,exports){
+},{}],20:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -803,7 +846,7 @@ module.exports = function (obj) {
   });
 };
 
-},{}],20:[function(_dereq_,module,exports){
+},{}],21:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -842,7 +885,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],21:[function(_dereq_,module,exports){
+},{}],22:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {
@@ -856,7 +899,7 @@ function uuid() {
 
 module.exports = uuid;
 
-},{}],22:[function(_dereq_,module,exports){
+},{}],23:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../lib/error');
@@ -867,9 +910,11 @@ var constants = _dereq_('../shared/constants.json');
 var Bus = _dereq_('../../lib/bus');
 var uuid = _dereq_('../../lib/uuid');
 var deferred = _dereq_('../../lib/deferred');
+var errors = _dereq_('../shared/errors');
 var events = _dereq_('../shared/events');
-var version = "3.0.0-beta.11";
+var version = "3.0.0-beta.12";
 var iFramer = _dereq_('iframer');
+var sharedErrors = _dereq_('../../errors');
 
 var IFRAME_HEIGHT = 400;
 var IFRAME_WIDTH = 400;
@@ -957,11 +1002,12 @@ function ThreeDSecure(options) {
  * });
  */
 ThreeDSecure.prototype.verifyCard = function (options, callback) {
-  var url, merchantErrorMsg, addFrame, removeFrame;
+  var url, addFrame, removeFrame, error, errorOption;
 
   if (typeof callback !== 'function') {
     throw new BraintreeError({
-      type: BraintreeError.types.MERCHANT,
+      type: sharedErrors.CALLBACK_REQUIRED.type,
+      code: sharedErrors.CALLBACK_REQUIRED.code,
       message: 'verifyCard must include a callback function.'
     });
   }
@@ -970,22 +1016,27 @@ ThreeDSecure.prototype.verifyCard = function (options, callback) {
   callback = deferred(callback);
 
   if (this._verifyCardInProgress === true) {
-    merchantErrorMsg = 'Cannot call verifyCard while existing authentication is in progress.';
+    error = errors.AUTHENTICATION_IN_PROGRESS;
   } else if (!options.nonce) {
-    merchantErrorMsg = 'verifyCard options must include a nonce.';
+    errorOption = 'a nonce';
   } else if (!options.amount) {
-    merchantErrorMsg = 'verifyCard options must include an amount.';
+    errorOption = 'an amount';
   } else if (typeof options.addFrame !== 'function') {
-    merchantErrorMsg = 'verifyCard options must include an addFrame function.';
+    errorOption = 'an addFrame function';
   } else if (typeof options.removeFrame !== 'function') {
-    merchantErrorMsg = 'verifyCard options must include a removeFrame function.';
+    errorOption = 'a removeFrame function';
   }
 
-  if (merchantErrorMsg) {
-    callback(new BraintreeError({
-      type: BraintreeError.types.MERCHANT,
-      message: merchantErrorMsg
-    }));
+  if (errorOption) {
+    error = {
+      type: errors.MISSING_VERIFY_CARD_OPTION.type,
+      code: errors.MISSING_VERIFY_CARD_OPTION.code,
+      message: 'verifyCard options must include ' + errorOption + '.'
+    };
+  }
+
+  if (error) {
+    callback(new BraintreeError(error));
     return;
   }
 
@@ -1046,10 +1097,7 @@ ThreeDSecure.prototype.cancelVerifyCard = function (callback) {
 
   if (typeof callback === 'function') {
     if (!this._lookupPaymentMethod) {
-      error = new BraintreeError({
-        type: BraintreeError.types.MERCHANT,
-        message: 'No verification payload available.'
-      });
+      error = new BraintreeError(errors.NO_VERIFICATION_PAYLOAD);
     }
 
     callback(error, this._lookupPaymentMethod);
@@ -1130,6 +1178,7 @@ ThreeDSecure.prototype._handleAuthResponse = function (data, options) {
     } else {
       this._verifyCardCallback(new BraintreeError({
         type: BraintreeError.types.UNKNOWN,
+        code: 'UNKNOWN_AUTH_RESPONSE',
         message: authResponse.error.message
       }));
     }
@@ -1179,7 +1228,7 @@ ThreeDSecure.prototype.teardown = function (callback) {
 
 module.exports = ThreeDSecure;
 
-},{"../../lib/analytics":7,"../../lib/bus":11,"../../lib/convert-methods-to-error":13,"../../lib/deferred":15,"../../lib/error":17,"../../lib/methods":19,"../../lib/uuid":21,"../shared/constants.json":24,"../shared/events":25,"iframer":2}],23:[function(_dereq_,module,exports){
+},{"../../errors":6,"../../lib/analytics":8,"../../lib/bus":12,"../../lib/convert-methods-to-error":14,"../../lib/deferred":16,"../../lib/error":18,"../../lib/methods":20,"../../lib/uuid":22,"../shared/constants.json":25,"../shared/errors":26,"../shared/events":27,"iframer":2}],24:[function(_dereq_,module,exports){
 'use strict';
 /** @module braintree-web/three-d-secure */
 
@@ -1188,7 +1237,9 @@ var browserDetection = _dereq_('../lib/browser-detection');
 var BraintreeError = _dereq_('../lib/error');
 var analytics = _dereq_('../lib/analytics');
 var deferred = _dereq_('../lib/deferred');
-var VERSION = "3.0.0-beta.11";
+var errors = _dereq_('./shared/errors');
+var sharedErrors = _dereq_('../errors');
+var VERSION = "3.0.0-beta.12";
 
 /**
  * @static
@@ -1203,12 +1254,13 @@ var VERSION = "3.0.0-beta.11";
  * }, callback);
  */
 function create(options, callback) {
-  var config, threeDSecure, merchantErrorMessage, clientVersion;
+  var config, threeDSecure, error, clientVersion;
 
   if (typeof callback !== 'function') {
     throw new BraintreeError({
-      type: BraintreeError.types.MERCHANT,
-      message: 'threeDSecure.create must include a callback function.'
+      type: sharedErrors.CALLBACK_REQUIRED.type,
+      code: sharedErrors.CALLBACK_REQUIRED.code,
+      message: 'create must include a callback function.'
     });
   }
 
@@ -1216,7 +1268,8 @@ function create(options, callback) {
 
   if (options.client == null) {
     callback(new BraintreeError({
-      type: BraintreeError.types.MERCHANT,
+      type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
+      code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
       message: 'options.client is required when instantiating 3D Secure.'
     }));
     return;
@@ -1226,18 +1279,19 @@ function create(options, callback) {
   clientVersion = config.analyticsMetadata.sdkVersion;
 
   if (!config.gatewayConfiguration.threeDSecureEnabled) {
-    merchantErrorMessage = '3D Secure is not enabled for this merchant.';
+    error = errors.THREEDS_NOT_ENABLED;
   } else if (config.analyticsMetadata.sdkVersion !== VERSION) {
-    merchantErrorMessage = 'Client (version ' + clientVersion + ') and 3D Secure (version ' + VERSION + ') components must be from the same SDK version.';
+    error = {
+      type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
+      code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
+      message: 'Client (version ' + clientVersion + ') and 3D Secure (version ' + VERSION + ') components must be from the same SDK version.'
+    };
   } else if (!browserDetection.isHTTPS()) {
-    merchantErrorMessage = '3D Secure requires HTTPS.';
+    error = errors.THREEDS_HTTPS_REQUIRED;
   }
 
-  if (merchantErrorMessage) {
-    callback(new BraintreeError({
-      type: BraintreeError.types.MERCHANT,
-      message: merchantErrorMessage
-    }));
+  if (error) {
+    callback(new BraintreeError(error));
     return;
   }
 
@@ -1262,12 +1316,49 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/analytics":7,"../lib/browser-detection":8,"../lib/deferred":15,"../lib/error":17,"./external/three-d-secure":22}],24:[function(_dereq_,module,exports){
+},{"../errors":6,"../lib/analytics":8,"../lib/browser-detection":9,"../lib/deferred":16,"../lib/error":18,"./external/three-d-secure":23,"./shared/errors":26}],25:[function(_dereq_,module,exports){
 module.exports={
   "LANDING_FRAME_NAME": "braintreethreedsecurelanding"
 }
 
-},{}],25:[function(_dereq_,module,exports){
+},{}],26:[function(_dereq_,module,exports){
+'use strict';
+
+var BraintreeError = _dereq_('../../lib/error');
+
+module.exports = {
+  AUTHENTICATION_IN_PROGRESS: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'AUTHENTICATION_IN_PROGRESS',
+    message: 'Cannot call verifyCard while existing authentication is in progress.'
+  },
+  MISSING_VERIFY_CARD_OPTION: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'MISSING_VERIFY_CARD_OPTION'
+  },
+  NO_VERIFICATION_PAYLOAD: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'NO_VERIFICATION_PAYLOAD',
+    message: 'No verification payload available.'
+  },
+  THREEDS_NOT_ENABLED: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'THREEDS_NOT_ENABLED',
+    message: '3D Secure is not enabled for this merchant.'
+  },
+  THREEDS_HTTPS_REQUIRED: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'THREEDS_HTTPS_REQUIRED',
+    message: '3D Secure requires HTTPS.'
+  },
+  TERM_URL_REQUIRES_BRAINTREE_DOMAIN: {
+    type: BraintreeError.types.INTERNAL,
+    code: 'TERM_URL_REQUIRES_BRAINTREE_DOMAIN',
+    message: 'Term Url must be on a Braintree domain.'
+  }
+};
+
+},{"../../lib/error":18}],27:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../../lib/enumerate');
@@ -1276,5 +1367,5 @@ module.exports = enumerate([
   'AUTHENTICATION_COMPLETE'
 ], 'threedsecure:');
 
-},{"../../lib/enumerate":16}]},{},[23])(23)
+},{"../../lib/enumerate":17}]},{},[24])(24)
 });

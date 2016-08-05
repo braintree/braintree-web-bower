@@ -3,6 +3,8 @@
 
 var BraintreeError = _dereq_('../lib/error');
 var deferred = _dereq_('../lib/deferred');
+var errors = _dereq_('./errors');
+var sharedErrors = _dereq_('../errors');
 
 /**
  * @class
@@ -39,7 +41,8 @@ function AmericanExpress(options) {
 AmericanExpress.prototype.getRewardsBalance = function (options, callback) {
   if (typeof callback !== 'function') {
     throw new BraintreeError({
-      type: BraintreeError.types.MERCHANT,
+      type: sharedErrors.CALLBACK_REQUIRED.type,
+      code: sharedErrors.CALLBACK_REQUIRED.code,
       message: 'getRewardsBalance must include a callback function.'
     });
   }
@@ -48,7 +51,8 @@ AmericanExpress.prototype.getRewardsBalance = function (options, callback) {
 
   if (!options.nonce) {
     callback(new BraintreeError({
-      type: BraintreeError.types.MERCHANT,
+      type: errors.NONCE_REQUIRED.type,
+      code: errors.NONCE_REQUIRED.code,
       message: 'getRewardsBalance must be called with a nonce.'
     }));
     return;
@@ -64,8 +68,9 @@ AmericanExpress.prototype.getRewardsBalance = function (options, callback) {
   }, function (err, response) {
     if (err) {
       callback(new BraintreeError({
-        type: BraintreeError.types.NETWORK,
-        message: 'A network error occured when getting the American Express rewards balance.',
+        type: errors.AMEX_NETWORK_ERROR.type,
+        code: errors.AMEX_NETWORK_ERROR.code,
+        message: 'A network error occurred when getting the American Express rewards balance.',
         details: {
           originalError: err
         }
@@ -101,7 +106,8 @@ AmericanExpress.prototype.getRewardsBalance = function (options, callback) {
 AmericanExpress.prototype.getExpressCheckoutProfile = function (options, callback) {
   if (typeof callback !== 'function') {
     throw new BraintreeError({
-      type: BraintreeError.types.MERCHANT,
+      type: sharedErrors.CALLBACK_REQUIRED.type,
+      code: sharedErrors.CALLBACK_REQUIRED.code,
       message: 'getExpressCheckoutProfile must include a callback function.'
     });
   }
@@ -110,7 +116,8 @@ AmericanExpress.prototype.getExpressCheckoutProfile = function (options, callbac
 
   if (!options.nonce) {
     callback(new BraintreeError({
-      type: BraintreeError.types.MERCHANT,
+      type: errors.NONCE_REQUIRED.type,
+      code: errors.NONCE_REQUIRED.code,
       message: 'getExpressCheckoutProfile must be called with a nonce.'
     }));
     return;
@@ -126,8 +133,9 @@ AmericanExpress.prototype.getExpressCheckoutProfile = function (options, callbac
   }, function (err, response) {
     if (err) {
       callback(new BraintreeError({
-        type: BraintreeError.types.NETWORK,
-        message: 'A network error occured when getting the American Express Checkout nonce profile.',
+        type: errors.AMEX_NETWORK_ERROR.type,
+        code: errors.AMEX_NETWORK_ERROR.code,
+        message: 'A network error occurred when getting the American Express Checkout nonce profile.',
         details: {
           originalError: err
         }
@@ -140,7 +148,23 @@ AmericanExpress.prototype.getExpressCheckoutProfile = function (options, callbac
 
 module.exports = AmericanExpress;
 
-},{"../lib/deferred":3,"../lib/error":5}],2:[function(_dereq_,module,exports){
+},{"../errors":4,"../lib/deferred":5,"../lib/error":7,"./errors":2}],2:[function(_dereq_,module,exports){
+'use strict';
+
+var BraintreeError = _dereq_('../lib/error');
+
+module.exports = {
+  NONCE_REQUIRED: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'NONCE_REQUIRED'
+  },
+  AMEX_NETWORK_ERROR: {
+    type: BraintreeError.types.NETWORK,
+    code: 'AMEX_NETWORK_ERROR'
+  }
+};
+
+},{"../lib/error":7}],3:[function(_dereq_,module,exports){
 'use strict';
 /**
  * @module braintree-web/american-express
@@ -150,7 +174,8 @@ module.exports = AmericanExpress;
 var BraintreeError = _dereq_('../lib/error');
 var AmericanExpress = _dereq_('./american-express');
 var deferred = _dereq_('../lib/deferred');
-var VERSION = "3.0.0-beta.11";
+var sharedErrors = _dereq_('../errors');
+var VERSION = "3.0.0-beta.12";
 
 /**
  * @static
@@ -165,7 +190,8 @@ function create(options, callback) {
 
   if (typeof callback !== 'function') {
     throw new BraintreeError({
-      type: BraintreeError.types.MERCHANT,
+      type: sharedErrors.CALLBACK_REQUIRED.type,
+      code: sharedErrors.CALLBACK_REQUIRED.code,
       message: 'create must include a callback function.'
     });
   }
@@ -174,7 +200,8 @@ function create(options, callback) {
 
   if (options.client == null) {
     callback(new BraintreeError({
-      type: BraintreeError.types.MERCHANT,
+      type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
+      code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
       message: 'options.client is required when instantiating American Express.'
     }));
     return;
@@ -183,7 +210,8 @@ function create(options, callback) {
   clientVersion = options.client.getConfiguration().analyticsMetadata.sdkVersion;
   if (clientVersion !== VERSION) {
     callback(new BraintreeError({
-      type: BraintreeError.types.MERCHANT,
+      type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
+      code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
       message: 'Client (version ' + clientVersion + ') and American Express (version ' + VERSION + ') components must be from the same SDK version.'
     }));
     return;
@@ -201,7 +229,31 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/deferred":3,"../lib/error":5,"./american-express":1}],3:[function(_dereq_,module,exports){
+},{"../errors":4,"../lib/deferred":5,"../lib/error":7,"./american-express":1}],4:[function(_dereq_,module,exports){
+'use strict';
+
+var BraintreeError = _dereq_('./lib/error');
+
+module.exports = {
+  CALLBACK_REQUIRED: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'CALLBACK_REQUIRED'
+  },
+  INSTANTIATION_OPTION_REQUIRED: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'INSTANTIATION_OPTION_REQUIRED'
+  },
+  INCOMPATIBLE_VERSIONS: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'INCOMPATIBLE_VERSIONS'
+  },
+  METHOD_CALLED_AFTER_TEARDOWN: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'METHOD_CALLED_AFTER_TEARDOWN'
+  }
+};
+
+},{"./lib/error":7}],5:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (fn) {
@@ -215,7 +267,7 @@ module.exports = function (fn) {
   };
 };
 
-},{}],4:[function(_dereq_,module,exports){
+},{}],6:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -229,7 +281,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],5:[function(_dereq_,module,exports){
+},{}],7:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -246,11 +298,21 @@ function BraintreeError(options) {
     throw new Error(options.type + ' is not a valid type.');
   }
 
+  if (!options.code) {
+    throw new Error('Error code required.');
+  }
+
   if (!options.message) {
     throw new Error('Error message required.');
   }
 
   this.name = 'BraintreeError';
+
+  /**
+   * @type {string}
+   * @description A code that corresponds to specific errors.
+   */
+  this.code = options.code;
 
   /**
    * @type {string}
@@ -296,5 +358,5 @@ BraintreeError.types = enumerate([
 
 module.exports = BraintreeError;
 
-},{"./enumerate":4}]},{},[2])(2)
+},{"./enumerate":6}]},{},[3])(3)
 });

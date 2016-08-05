@@ -9,7 +9,7 @@
  * braintree.client.create(...);
  * @example
  * <caption>In the browser</caption>
- * <script href="https://js.braintreegateway.com/web/{@pkg version}/js/client.min.js"></script>
+ * <script src="https://js.braintreegateway.com/web/{@pkg version}/js/client.min.js"></script>
  * <script>
  *   window.braintree.client.create(...);
  * </script>
@@ -18,7 +18,7 @@
  * // main.js
  * require.config({
  *   paths: {
- *     braintreeClient: 'https://js.braintreegateway.com/web/{@pkg version}/js/client.min.js'
+ *     braintreeClient: 'https://js.braintreegateway.com/web/{@pkg version}/js/client.min'
  *   }
  * });
  *
@@ -42,6 +42,7 @@ var hostedFields = require('./hosted-fields.debug');
 var dataCollector = require('./data-collector.debug');
 var americanExpress = require('./american-express.debug');
 var unionpay = require('./unionpay.debug');
+var applePay = require('./apple-pay.debug');
 var threeDSecure = require('./three-d-secure.debug');
 
 module.exports = {
@@ -59,9 +60,11 @@ module.exports = {
   americanExpress: americanExpress,
   /** @type {module:braintree-web/unionpay} */
   unionpay: unionpay,
+  /** @type {module:braintree-web/apple-pay} */
+  applePay: applePay,
   /**
    * @description The current version of the SDK, i.e. `{@pkg version}`.
    * @type {string}
    */
-  VERSION: '3.0.0-beta.11'
+  VERSION: '3.0.0-beta.12'
 };

@@ -6,6 +6,7 @@ var isWhitelistedDomain = _dereq_('../lib/is-whitelisted-domain');
 var BraintreeError = _dereq_('../lib/error');
 var addMetadata = _dereq_('../lib/add-metadata');
 var deferred = _dereq_('../lib/deferred');
+var errors = _dereq_('./errors');
 
 /**
  * This object is returned by {@link Client#getConfiguration|getConfiguration}. This information is used extensively by other Braintree modules to properly configure themselves.
@@ -34,10 +35,7 @@ function Client(configuration) {
   gatewayConfiguration = configuration.gatewayConfiguration;
 
   if (!gatewayConfiguration) {
-    throw new BraintreeError({
-      type: BraintreeError.types.INTERNAL,
-      message: 'Missing gatewayConfiguration.'
-    });
+    throw new BraintreeError(errors.MISSING_GATEWAY_CONFIGURATION);
   }
 
   [
@@ -47,8 +45,9 @@ function Client(configuration) {
   ].forEach(function (property) {
     if (property in gatewayConfiguration && !isWhitelistedDomain(gatewayConfiguration[property])) {
       throw new BraintreeError({
-        type: BraintreeError.types.MERCHANT,
-        message: 'Invalid ' + property + '.'
+        type: errors.GATEWAY_CONFIGURATION_INVALID_DOMAIN.type,
+        code: errors.GATEWAY_CONFIGURATION_INVALID_DOMAIN.code,
+        message: property + ' property is on an invalid domain.'
       });
     }
   });
@@ -113,19 +112,20 @@ function Client(configuration) {
  * @returns {void}
  */
 Client.prototype.request = function (options, callback) {
-  var errorMsg;
+  var optionName;
 
   if (!options.method) {
-    errorMsg = 'options.method is required.';
+    optionName = 'options.method';
   } else if (!options.endpoint) {
-    errorMsg = 'options.endpoint is required.';
+    optionName = 'options.endpoint';
   }
 
-  if (errorMsg) {
+  if (optionName) {
     callback = deferred(callback);
     callback(new BraintreeError({
-      type: BraintreeError.types.MERCHANT,
-      message: errorMsg
+      type: errors.OPTION_REQUIRED.type,
+      code: errors.OPTION_REQUIRED.code,
+      message: optionName + ' is required when making a request.'
     }));
     return;
   }
@@ -140,7 +140,38 @@ Client.prototype.request = function (options, callback) {
 
 module.exports = Client;
 
-},{"../lib/add-metadata":12,"../lib/deferred":15,"../lib/error":17,"../lib/is-whitelisted-domain":18,"./request":7}],2:[function(_dereq_,module,exports){
+},{"../lib/add-metadata":14,"../lib/deferred":17,"../lib/error":19,"../lib/is-whitelisted-domain":20,"./errors":2,"./request":8}],2:[function(_dereq_,module,exports){
+'use strict';
+
+var BraintreeError = _dereq_('../lib/error');
+
+module.exports = {
+  GATEWAY_CONFIGURATION_INVALID_DOMAIN: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'GATEWAY_CONFIGURATION_INVALID_DOMAIN'
+  },
+  OPTION_REQUIRED: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'OPTION_REQUIRED'
+  },
+  MISSING_GATEWAY_CONFIGURATION: {
+    type: BraintreeError.types.INTERNAL,
+    code: 'MISSING_GATEWAY_CONFIGURATION',
+    message: 'Missing gatewayConfiguration.'
+  },
+  INVALID_AUTHORIZATION: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'INVALID_AUTHORIZATION',
+    message: 'Authorization is invalid. Make sure your client token or tokenization key is valid.'
+  },
+  GATEWAY_NETWORK: {
+    type: BraintreeError.types.NETWORK,
+    code: 'GATEWAY_NETWORK',
+    message: 'Cannot contact the gateway at this time.'
+  }
+};
+
+},{"../lib/error":19}],3:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -149,6 +180,7 @@ var request = _dereq_('./request');
 var uuid = _dereq_('../lib/uuid');
 var constants = _dereq_('../lib/constants');
 var createAuthorizationData = _dereq_('../lib/create-authorization-data');
+var errors = _dereq_('./errors');
 
 function getConfiguration(options, callback) {
   var configuration, authData, attrs, configUrl;
@@ -166,10 +198,7 @@ function getConfiguration(options, callback) {
   try {
     authData = createAuthorizationData(options.authorization);
   } catch (err) {
-    callback(new BraintreeError({
-      type: BraintreeError.types.MERCHANT,
-      message: 'Authorization is invalid. Make sure your client token or tokenization key is valid.'
-    }));
+    callback(new BraintreeError(errors.INVALID_AUTHORIZATION));
     return;
   }
   attrs = authData.attrs;
@@ -185,8 +214,9 @@ function getConfiguration(options, callback) {
   }, function (err, response) {
     if (err) {
       callback(new BraintreeError({
-        type: BraintreeError.types.NETWORK,
-        message: 'Cannot contact the gateway at this time.',
+        type: errors.GATEWAY_NETWORK.type,
+        code: errors.GATEWAY_NETWORK.code,
+        message: errors.GATEWAY_NETWORK.message,
         details: err
       }));
       return;
@@ -207,14 +237,15 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../lib/constants":13,"../lib/create-authorization-data":14,"../lib/error":17,"../lib/uuid":23,"./request":7}],3:[function(_dereq_,module,exports){
+},{"../lib/constants":15,"../lib/create-authorization-data":16,"../lib/error":19,"../lib/uuid":25,"./errors":2,"./request":8}],4:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/error');
 var Client = _dereq_('./client');
 var getConfiguration = _dereq_('./get-configuration').getConfiguration;
-var packageVersion = "3.0.0-beta.11";
+var packageVersion = "3.0.0-beta.12";
 var deferred = _dereq_('../lib/deferred');
+var sharedErrors = _dereq_('../errors');
 
 /** @module braintree-web/client */
 
@@ -238,7 +269,8 @@ var deferred = _dereq_('../lib/deferred');
 function create(options, callback) {
   if (typeof callback !== 'function') {
     throw new BraintreeError({
-      type: BraintreeError.types.MERCHANT,
+      type: sharedErrors.CALLBACK_REQUIRED.type,
+      code: sharedErrors.CALLBACK_REQUIRED.code,
       message: 'create must include a callback function.'
     });
   }
@@ -247,8 +279,9 @@ function create(options, callback) {
 
   if (!options.authorization) {
     callback(new BraintreeError({
-      type: BraintreeError.types.MERCHANT,
-      message: 'options.authorization is required.'
+      type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
+      code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
+      message: 'options.authorization is required when instantiating a client.'
     }));
     return;
   }
@@ -281,7 +314,7 @@ module.exports = {
   VERSION: packageVersion
 };
 
-},{"../lib/deferred":15,"../lib/error":17,"./client":1,"./get-configuration":2}],4:[function(_dereq_,module,exports){
+},{"../errors":13,"../lib/deferred":17,"../lib/error":19,"./client":1,"./get-configuration":3}],5:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -361,7 +394,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../lib/once":20,"../../lib/querystring":22,"./constants":5,"./parse-body":10,"./prep-body":11}],5:[function(_dereq_,module,exports){
+},{"../../lib/once":22,"../../lib/querystring":24,"./constants":6,"./parse-body":11,"./prep-body":12}],6:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -373,7 +406,7 @@ module.exports = {
   }
 };
 
-},{}],6:[function(_dereq_,module,exports){
+},{}],7:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -382,7 +415,7 @@ module.exports = function getUserAgent() {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],7:[function(_dereq_,module,exports){
+},{}],8:[function(_dereq_,module,exports){
 'use strict';
 
 var ajaxIsAvaliable;
@@ -405,7 +438,7 @@ module.exports = function () {
   request.apply(null, arguments);
 };
 
-},{"./ajax-driver":4,"./get-user-agent":6,"./is-http":8,"./jsonp-driver":9}],8:[function(_dereq_,module,exports){
+},{"./ajax-driver":5,"./get-user-agent":7,"./is-http":9,"./jsonp-driver":10}],9:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -414,7 +447,7 @@ module.exports = function () {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],9:[function(_dereq_,module,exports){
+},{}],10:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -531,7 +564,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../lib/querystring":22,"../../lib/uuid":23,"./constants":5}],10:[function(_dereq_,module,exports){
+},{"../../lib/querystring":24,"../../lib/uuid":25,"./constants":6}],11:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (body) {
@@ -542,7 +575,7 @@ module.exports = function (body) {
   return body;
 };
 
-},{}],11:[function(_dereq_,module,exports){
+},{}],12:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (method, body) {
@@ -557,7 +590,31 @@ module.exports = function (method, body) {
   return body;
 };
 
-},{}],12:[function(_dereq_,module,exports){
+},{}],13:[function(_dereq_,module,exports){
+'use strict';
+
+var BraintreeError = _dereq_('./lib/error');
+
+module.exports = {
+  CALLBACK_REQUIRED: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'CALLBACK_REQUIRED'
+  },
+  INSTANTIATION_OPTION_REQUIRED: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'INSTANTIATION_OPTION_REQUIRED'
+  },
+  INCOMPATIBLE_VERSIONS: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'INCOMPATIBLE_VERSIONS'
+  },
+  METHOD_CALLED_AFTER_TEARDOWN: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'METHOD_CALLED_AFTER_TEARDOWN'
+  }
+};
+
+},{"./lib/error":19}],14:[function(_dereq_,module,exports){
 'use strict';
 
 var createAuthorizationData = _dereq_('./create-authorization-data');
@@ -591,10 +648,10 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":13,"./create-authorization-data":14,"./json-clone":19}],13:[function(_dereq_,module,exports){
+},{"./constants":15,"./create-authorization-data":16,"./json-clone":21}],15:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.0.0-beta.11";
+var VERSION = "3.0.0-beta.12";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -607,7 +664,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],14:[function(_dereq_,module,exports){
+},{}],16:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/polyfill').atob;
@@ -656,7 +713,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":21}],15:[function(_dereq_,module,exports){
+},{"../lib/polyfill":23}],17:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (fn) {
@@ -670,7 +727,7 @@ module.exports = function (fn) {
   };
 };
 
-},{}],16:[function(_dereq_,module,exports){
+},{}],18:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -684,7 +741,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],17:[function(_dereq_,module,exports){
+},{}],19:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -701,11 +758,21 @@ function BraintreeError(options) {
     throw new Error(options.type + ' is not a valid type.');
   }
 
+  if (!options.code) {
+    throw new Error('Error code required.');
+  }
+
   if (!options.message) {
     throw new Error('Error message required.');
   }
 
   this.name = 'BraintreeError';
+
+  /**
+   * @type {string}
+   * @description A code that corresponds to specific errors.
+   */
+  this.code = options.code;
 
   /**
    * @type {string}
@@ -751,7 +818,7 @@ BraintreeError.types = enumerate([
 
 module.exports = BraintreeError;
 
-},{"./enumerate":16}],18:[function(_dereq_,module,exports){
+},{"./enumerate":18}],20:[function(_dereq_,module,exports){
 'use strict';
 
 var parser;
@@ -781,14 +848,14 @@ function isWhitelistedDomain(url) {
 
 module.exports = isWhitelistedDomain;
 
-},{}],19:[function(_dereq_,module,exports){
+},{}],21:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],20:[function(_dereq_,module,exports){
+},{}],22:[function(_dereq_,module,exports){
 'use strict';
 
 function once(fn) {
@@ -804,7 +871,7 @@ function once(fn) {
 
 module.exports = once;
 
-},{}],21:[function(_dereq_,module,exports){
+},{}],23:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -843,7 +910,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],22:[function(_dereq_,module,exports){
+},{}],24:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -934,7 +1001,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],23:[function(_dereq_,module,exports){
+},{}],25:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {
@@ -948,5 +1015,5 @@ function uuid() {
 
 module.exports = uuid;
 
-},{}]},{},[3])(3)
+},{}]},{},[4])(4)
 });

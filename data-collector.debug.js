@@ -59,6 +59,33 @@ sjcl.misc.cachedPbkdf2=function(a,b){var c=sjcl.misc.ca,d;b=b||{};d=b.iter||1E3;
 },{"crypto":1}],3:[function(_dereq_,module,exports){
 'use strict';
 
+var BraintreeError = _dereq_('../lib/error');
+
+module.exports = {
+  KOUNT_NOT_ENABLED: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'KOUNT_NOT_ENABLED',
+    message: 'Kount is not enabled for this merchant.'
+  },
+  KOUNT_ERROR: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'KOUNT_ERROR'
+  },
+  PAYPAL_NOT_ENABLED: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'PAYPAL_NOT_ENABLED',
+    message: 'PayPal is not enabled for this merchant.'
+  },
+  REQUIRES_CREATE_OPTIONS: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'REQUIRES_CREATE_OPTIONS',
+    message: 'Data Collector must be created with Kount and/or PayPal.'
+  }
+};
+
+},{"../lib/error":11}],4:[function(_dereq_,module,exports){
+'use strict';
+
 function setup() {
   return new Fraudnet();
 }
@@ -159,7 +186,7 @@ module.exports = {
   setup: setup
 };
 
-},{}],4:[function(_dereq_,module,exports){
+},{}],5:[function(_dereq_,module,exports){
 'use strict';
 /* eslint-disable camelcase */
 /** @module braintree-web/data-collector */
@@ -170,7 +197,9 @@ var BraintreeError = _dereq_('../lib/error');
 var methods = _dereq_('../lib/methods');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
 var deferred = _dereq_('../lib/deferred');
-var VERSION = "3.0.0-beta.11";
+var VERSION = "3.0.0-beta.12";
+var sharedErrors = _dereq_('../errors');
+var errors = _dereq_('./errors');
 
 /**
  * @class
@@ -214,7 +243,8 @@ function create(options, callback) {
 
   if (typeof callback !== 'function') {
     throw new BraintreeError({
-      type: BraintreeError.types.MERCHANT,
+      type: sharedErrors.CALLBACK_REQUIRED.type,
+      code: sharedErrors.CALLBACK_REQUIRED.code,
       message: 'create must include a callback function.'
     });
   }
@@ -238,7 +268,8 @@ function create(options, callback) {
 
   if (options.client == null) {
     callback(new BraintreeError({
-      type: BraintreeError.types.MERCHANT,
+      type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
+      code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
       message: 'options.client is required when instantiating Data Collector.'
     }));
     return;
@@ -249,7 +280,8 @@ function create(options, callback) {
 
   if (clientVersion !== VERSION) {
     callback(new BraintreeError({
-      type: BraintreeError.types.MERCHANT,
+      type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
+      code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
       message: 'Client (version ' + clientVersion + ') and Data Collector (version ' + VERSION + ') components must be from the same SDK version.'
     }));
     return;
@@ -257,10 +289,7 @@ function create(options, callback) {
 
   if (options.kount === true) {
     if (!config.gatewayConfiguration.kount) {
-      callback(new BraintreeError({
-        type: BraintreeError.types.MERCHANT,
-        message: 'Kount is not enabled for this merchant.'
-      }));
+      callback(new BraintreeError(errors.KOUNT_NOT_ENABLED));
       return;
     }
 
@@ -271,8 +300,9 @@ function create(options, callback) {
       });
     } catch (err) {
       callback(new BraintreeError({
-        message: err.message,
-        type: BraintreeError.types.MERCHANT
+        type: errors.KOUNT_ERROR.type,
+        code: errors.KOUNT_ERROR.code,
+        message: err.message
       }));
       return;
     }
@@ -285,10 +315,7 @@ function create(options, callback) {
 
   if (options.paypal === true) {
     if (config.gatewayConfiguration.paypalEnabled !== true) {
-      callback(new BraintreeError({
-        type: BraintreeError.types.MERCHANT,
-        message: 'PayPal is not enabled for this merchant.'
-      }));
+      callback(new BraintreeError(errors.PAYPAL_NOT_ENABLED));
       return;
     }
 
@@ -298,10 +325,7 @@ function create(options, callback) {
   }
 
   if (instances.length === 0) {
-    callback(new BraintreeError({
-      type: BraintreeError.types.MERCHANT,
-      message: 'Data Collector must be created with Kount and/or PayPal.'
-    }));
+    callback(new BraintreeError(errors.REQUIRES_CREATE_OPTIONS));
     return;
   }
 
@@ -322,7 +346,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/convert-methods-to-error":6,"../lib/deferred":7,"../lib/error":9,"../lib/methods":10,"./fraudnet":3,"./kount":5}],5:[function(_dereq_,module,exports){
+},{"../errors":7,"../lib/convert-methods-to-error":8,"../lib/deferred":9,"../lib/error":11,"../lib/methods":12,"./errors":3,"./fraudnet":4,"./kount":6}],6:[function(_dereq_,module,exports){
 'use strict';
 /* eslint-disable camelcase */
 
@@ -425,23 +449,49 @@ module.exports = {
   environmentUrls: environmentUrls
 };
 
-},{"sjcl":2}],6:[function(_dereq_,module,exports){
+},{"sjcl":2}],7:[function(_dereq_,module,exports){
+'use strict';
+
+var BraintreeError = _dereq_('./lib/error');
+
+module.exports = {
+  CALLBACK_REQUIRED: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'CALLBACK_REQUIRED'
+  },
+  INSTANTIATION_OPTION_REQUIRED: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'INSTANTIATION_OPTION_REQUIRED'
+  },
+  INCOMPATIBLE_VERSIONS: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'INCOMPATIBLE_VERSIONS'
+  },
+  METHOD_CALLED_AFTER_TEARDOWN: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'METHOD_CALLED_AFTER_TEARDOWN'
+  }
+};
+
+},{"./lib/error":11}],8:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./error');
+var sharedErrors = _dereq_('../errors');
 
 module.exports = function (instance, methodNames) {
   methodNames.forEach(function (methodName) {
     instance[methodName] = function () {
       throw new BraintreeError({
-        type: BraintreeError.types.MERCHANT,
+        type: sharedErrors.METHOD_CALLED_AFTER_TEARDOWN.type,
+        code: sharedErrors.METHOD_CALLED_AFTER_TEARDOWN.code,
         message: methodName + ' cannot be called after teardown.'
       });
     };
   });
 };
 
-},{"./error":9}],7:[function(_dereq_,module,exports){
+},{"../errors":7,"./error":11}],9:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (fn) {
@@ -455,7 +505,7 @@ module.exports = function (fn) {
   };
 };
 
-},{}],8:[function(_dereq_,module,exports){
+},{}],10:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -469,7 +519,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],9:[function(_dereq_,module,exports){
+},{}],11:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -486,11 +536,21 @@ function BraintreeError(options) {
     throw new Error(options.type + ' is not a valid type.');
   }
 
+  if (!options.code) {
+    throw new Error('Error code required.');
+  }
+
   if (!options.message) {
     throw new Error('Error message required.');
   }
 
   this.name = 'BraintreeError';
+
+  /**
+   * @type {string}
+   * @description A code that corresponds to specific errors.
+   */
+  this.code = options.code;
 
   /**
    * @type {string}
@@ -536,7 +596,7 @@ BraintreeError.types = enumerate([
 
 module.exports = BraintreeError;
 
-},{"./enumerate":8}],10:[function(_dereq_,module,exports){
+},{"./enumerate":10}],12:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -545,5 +605,5 @@ module.exports = function (obj) {
   });
 };
 
-},{}]},{},[4])(4)
+},{}]},{},[5])(5)
 });

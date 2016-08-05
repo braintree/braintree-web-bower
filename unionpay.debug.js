@@ -348,6 +348,30 @@ module.exports = function setAttributes(element, attributes) {
 },{}],6:[function(_dereq_,module,exports){
 'use strict';
 
+var BraintreeError = _dereq_('./lib/error');
+
+module.exports = {
+  CALLBACK_REQUIRED: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'CALLBACK_REQUIRED'
+  },
+  INSTANTIATION_OPTION_REQUIRED: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'INSTANTIATION_OPTION_REQUIRED'
+  },
+  INCOMPATIBLE_VERSIONS: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'INCOMPATIBLE_VERSIONS'
+  },
+  METHOD_CALLED_AFTER_TEARDOWN: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'METHOD_CALLED_AFTER_TEARDOWN'
+  }
+};
+
+},{"./lib/error":18}],7:[function(_dereq_,module,exports){
+'use strict';
+
 var createAuthorizationData = _dereq_('./create-authorization-data');
 var jsonClone = _dereq_('./json-clone');
 var constants = _dereq_('./constants');
@@ -379,7 +403,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":11,"./create-authorization-data":13,"./json-clone":17}],7:[function(_dereq_,module,exports){
+},{"./constants":13,"./create-authorization-data":15,"./json-clone":19}],8:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('./constants');
@@ -410,7 +434,32 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":6,"./constants":11}],8:[function(_dereq_,module,exports){
+},{"./add-metadata":7,"./constants":13}],9:[function(_dereq_,module,exports){
+'use strict';
+
+var assignNormalized = typeof Object.assign === 'function' ? Object.assign : assignPolyfill;
+
+function assignPolyfill(destination) {
+  var i, source, key;
+
+  for (i = 1; i < arguments.length; i++) {
+    source = arguments[i];
+    for (key in source) {
+      if (source.hasOwnProperty(key)) {
+        destination[key] = source[key];
+      }
+    }
+  }
+
+  return destination;
+}
+
+module.exports = {
+  assign: assignNormalized,
+  _assign: assignPolyfill
+};
+
+},{}],10:[function(_dereq_,module,exports){
 'use strict';
 
 var BT_ORIGIN_REGEX = /^https:\/\/([a-zA-Z0-9-]+\.)*(braintreepayments|braintreegateway|paypal)\.com(:\d{1,5})?$/;
@@ -438,7 +487,7 @@ module.exports = {
   checkOrigin: checkOrigin
 };
 
-},{}],9:[function(_dereq_,module,exports){
+},{}],11:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../enumerate');
@@ -447,7 +496,7 @@ module.exports = enumerate([
   'CONFIGURATION_REQUEST'
 ], 'bus:');
 
-},{"../enumerate":15}],10:[function(_dereq_,module,exports){
+},{"../enumerate":17}],12:[function(_dereq_,module,exports){
 'use strict';
 
 var bus = _dereq_('framebus');
@@ -462,6 +511,7 @@ function BraintreeBus(options) {
   if (!this.channel) {
     throw new BraintreeError({
       type: BraintreeError.types.INTERNAL,
+      code: 'MISSING_CHANNEL_ID',
       message: 'Channel ID must be specified.'
     });
   }
@@ -577,10 +627,10 @@ BraintreeBus.events = events;
 
 module.exports = BraintreeBus;
 
-},{"../error":16,"./check-origin":8,"./events":9,"framebus":1}],11:[function(_dereq_,module,exports){
+},{"../error":18,"./check-origin":10,"./events":11,"framebus":1}],13:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.0.0-beta.11";
+var VERSION = "3.0.0-beta.12";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -593,23 +643,25 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],12:[function(_dereq_,module,exports){
+},{}],14:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./error');
+var sharedErrors = _dereq_('../errors');
 
 module.exports = function (instance, methodNames) {
   methodNames.forEach(function (methodName) {
     instance[methodName] = function () {
       throw new BraintreeError({
-        type: BraintreeError.types.MERCHANT,
+        type: sharedErrors.METHOD_CALLED_AFTER_TEARDOWN.type,
+        code: sharedErrors.METHOD_CALLED_AFTER_TEARDOWN.code,
         message: methodName + ' cannot be called after teardown.'
       });
     };
   });
 };
 
-},{"./error":16}],13:[function(_dereq_,module,exports){
+},{"../errors":6,"./error":18}],15:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/polyfill').atob;
@@ -658,7 +710,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":19}],14:[function(_dereq_,module,exports){
+},{"../lib/polyfill":21}],16:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (fn) {
@@ -672,7 +724,7 @@ module.exports = function (fn) {
   };
 };
 
-},{}],15:[function(_dereq_,module,exports){
+},{}],17:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -686,7 +738,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],16:[function(_dereq_,module,exports){
+},{}],18:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -703,11 +755,21 @@ function BraintreeError(options) {
     throw new Error(options.type + ' is not a valid type.');
   }
 
+  if (!options.code) {
+    throw new Error('Error code required.');
+  }
+
   if (!options.message) {
     throw new Error('Error message required.');
   }
 
   this.name = 'BraintreeError';
+
+  /**
+   * @type {string}
+   * @description A code that corresponds to specific errors.
+   */
+  this.code = options.code;
 
   /**
    * @type {string}
@@ -753,14 +815,14 @@ BraintreeError.types = enumerate([
 
 module.exports = BraintreeError;
 
-},{"./enumerate":15}],17:[function(_dereq_,module,exports){
+},{"./enumerate":17}],19:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],18:[function(_dereq_,module,exports){
+},{}],20:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -769,7 +831,7 @@ module.exports = function (obj) {
   });
 };
 
-},{}],19:[function(_dereq_,module,exports){
+},{}],21:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -808,7 +870,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],20:[function(_dereq_,module,exports){
+},{}],22:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {
@@ -822,15 +884,20 @@ function uuid() {
 
 module.exports = uuid;
 
-},{}],21:[function(_dereq_,module,exports){
+},{}],23:[function(_dereq_,module,exports){
 'use strict';
-/** @module braintree-web/unionpay */
+/**
+ * @module braintree-web/unionpay
+ * @description This module allows you to accept UnionPay payments. *It is currently in beta and is subject to change.*
+ */
 
 var UnionPay = _dereq_('./shared/unionpay');
 var BraintreeError = _dereq_('../lib/error');
 var analytics = _dereq_('../lib/analytics');
 var deferred = _dereq_('../lib/deferred');
-var VERSION = "3.0.0-beta.11";
+var errors = _dereq_('./shared/errors');
+var sharedErrors = _dereq_('../errors');
+var VERSION = "3.0.0-beta.12";
 
 /**
 * @static
@@ -853,8 +920,9 @@ function create(options, callback) {
 
   if (typeof callback !== 'function') {
     throw new BraintreeError({
-      type: BraintreeError.types.MERCHANT,
-      message: 'UnionPay creation requires a callback.'
+      type: sharedErrors.CALLBACK_REQUIRED.type,
+      code: sharedErrors.CALLBACK_REQUIRED.code,
+      message: 'create must include a callback function.'
     });
   }
 
@@ -862,7 +930,8 @@ function create(options, callback) {
 
   if (options.client == null) {
     callback(new BraintreeError({
-      type: BraintreeError.types.MERCHANT,
+      type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
+      code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
       message: 'options.client is required when instantiating UnionPay.'
     }));
     return;
@@ -873,17 +942,15 @@ function create(options, callback) {
 
   if (clientVersion !== VERSION) {
     callback(new BraintreeError({
-      type: BraintreeError.types.MERCHANT,
+      type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
+      code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
       message: 'Client (version ' + clientVersion + ') and UnionPay (version ' + VERSION + ') components must be from the same SDK version.'
     }));
     return;
   }
 
   if (!config.gatewayConfiguration.unionPay || config.gatewayConfiguration.unionPay.enabled !== true) {
-    callback(new BraintreeError({
-      type: BraintreeError.types.MERCHANT,
-      message: 'UnionPay is not enabled for this merchant.'
-    }));
+    callback(new BraintreeError(errors.UNIONPAY_NOT_ENABLED));
     return;
   }
 
@@ -901,7 +968,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/analytics":7,"../lib/deferred":14,"../lib/error":16,"./shared/unionpay":23}],22:[function(_dereq_,module,exports){
+},{"../errors":6,"../lib/analytics":8,"../lib/deferred":16,"../lib/error":18,"./shared/errors":25,"./shared/unionpay":26}],24:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../../lib/enumerate');
@@ -912,27 +979,93 @@ module.exports = {
     'HOSTED_FIELDS_ENROLL',
     'HOSTED_FIELDS_TOKENIZE'
   ], 'union-pay:'),
-  HOSTED_FIELDS_FRAME_NAME: 'braintreeunionpayhostedfields',
-  INVALID_HOSTED_FIELDS_ERROR_MESSAGE: 'Found an invalid Hosted Fields instance. Please use a valid Hosted Fields instance.',
-  CARD_OR_HOSTED_FIELDS_REQUIRED_ERROR_MESSAGE: 'A card or a Hosted Fields instance is required. Please supply a card or a Hosted Fields instance.',
-  CARD_AND_HOSTED_FIELDS_ERROR_MESSAGE: 'Please supply either a card or a Hosted Fields instance, not both.',
-  NO_HOSTED_FIELDS_ERROR_MESSAGE: 'Could not find the Hosted Fields instance.'
+  HOSTED_FIELDS_FRAME_NAME: 'braintreeunionpayhostedfields'
 };
 
-},{"../../lib/enumerate":15}],23:[function(_dereq_,module,exports){
+},{"../../lib/enumerate":17}],25:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../lib/error');
-var Bus = _dereq_('../../lib/bus');
+
+module.exports = {
+  UNIONPAY_NOT_ENABLED: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'UNIONPAY_NOT_ENABLED',
+    message: 'UnionPay is not enabled for this merchant.'
+  },
+  HOSTED_FIELDS_INSTANCE_INVALID: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'HOSTED_FIELDS_INSTANCE_INVALID',
+    message: 'Found an invalid Hosted Fields instance. Please use a valid Hosted Fields instance.'
+  },
+  HOSTED_FIELDS_INSTANCE_REQUIRED: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'HOSTED_FIELDS_INSTANCE_REQUIRED',
+    message: 'Could not find the Hosted Fields instance.'
+  },
+  CARD_OR_HOSTED_FIELDS_INSTANCE_REQUIRED: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'CARD_OR_HOSTED_FIELDS_INSTANCE_REQUIRED',
+    message: 'A card or a Hosted Fields instance is required. Please supply a card or a Hosted Fields instance.'
+  },
+  CARD_AND_HOSTED_FIELDS_INSTANCES: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'CARD_AND_HOSTED_FIELDS_INSTANCES',
+    message: 'Please supply either a card or a Hosted Fields instance, not both.'
+  },
+  EXPIRATION_DATE_INCOMPLETE: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'EXPIRATION_DATE_INCOMPLETE',
+    message: 'You must supply expiration month and year or neither.'
+  },
+  ENROLLMENT_CUSTOMER_INPUT_INVALID: {
+    type: BraintreeError.types.CUSTOMER,
+    code: 'ENROLLMENT_CUSTOMER_INPUT_INVALID',
+    message: 'Enrollment failed due to user input error.'
+  },
+  ENROLLMENT_NETWORK_ERROR: {
+    type: BraintreeError.types.NETWORK,
+    code: 'ENROLLMENT_NETWORK_ERROR',
+    message: 'Could not enroll UnionPay card.'
+  },
+  FETCH_CAPABILITIES_NETWORK_ERROR: {
+    type: BraintreeError.types.NETWORK,
+    code: 'FETCH_CAPABILITIES_NETWORK_ERROR',
+    message: 'Could not fetch card capabilities.'
+  },
+  UNIONPAY_TOKENIZATION_NETWORK_ERROR: {
+    type: BraintreeError.types.NETWORK,
+    code: 'UNIONPAY_TOKENIZATION_NETWORK_ERROR',
+    message: 'A tokenization network error occurred.'
+  },
+  MISSING_MOBILE_PHONE_DATA: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'MISSING_MOBILE_PHONE_DATA',
+    message: 'A `mobile` with `countryCode` and `number` is required.'
+  },
+  UNIONPAY_FAILED_TOKENIZATION: {
+    type: BraintreeError.types.CUSTOMER,
+    code: 'UNIONPAY_FAILED_TOKENIZATION',
+    message: 'The supplied card data failed tokenization.'
+  }
+};
+
+},{"../../lib/error":18}],26:[function(_dereq_,module,exports){
+'use strict';
+
 var analytics = _dereq_('../../lib/analytics');
-var iFramer = _dereq_('iframer');
-var uuid = _dereq_('../../lib/uuid');
-var methods = _dereq_('../../lib/methods');
-var deferred = _dereq_('../../lib/deferred');
-var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
-var VERSION = "3.0.0-beta.11";
+var assign = _dereq_('../../lib/assign').assign;
+var BraintreeError = _dereq_('../../lib/error');
+var Bus = _dereq_('../../lib/bus');
 var constants = _dereq_('./constants');
+var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
+var deferred = _dereq_('../../lib/deferred');
+var errors = _dereq_('./errors');
 var events = constants.events;
+var iFramer = _dereq_('iframer');
+var methods = _dereq_('../../lib/methods');
+var VERSION = "3.0.0-beta.12";
+var uuid = _dereq_('../../lib/uuid');
 
 /**
  * @class
@@ -1032,10 +1165,7 @@ UnionPay.prototype.fetchCapabilities = function (options, callback) {
   callback = deferred(callback);
 
   if (cardNumber && hostedFields) {
-    callback(new BraintreeError({
-      type: BraintreeError.types.MERCHANT,
-      message: constants.CARD_AND_HOSTED_FIELDS_ERROR_MESSAGE
-    }));
+    callback(new BraintreeError(errors.CARD_AND_HOSTED_FIELDS_INSTANCES));
     return;
   } else if (cardNumber) {
     client.request({
@@ -1050,8 +1180,9 @@ UnionPay.prototype.fetchCapabilities = function (options, callback) {
     }, function (err, response) {
       if (err) {
         callback(new BraintreeError({
-          type: BraintreeError.types.NETWORK,
-          message: 'Fetch capabilities network error.',
+          type: errors.FETCH_CAPABILITIES_NETWORK_ERROR.type,
+          code: errors.FETCH_CAPABILITIES_NETWORK_ERROR.code,
+          message: errors.FETCH_CAPABILITIES_NETWORK_ERROR.message,
           details: {
             originalError: err
           }
@@ -1065,10 +1196,7 @@ UnionPay.prototype.fetchCapabilities = function (options, callback) {
     });
   } else if (hostedFields) {
     if (!hostedFields._bus) {
-      callback(new BraintreeError({
-        type: BraintreeError.types.MERCHANT,
-        message: constants.INVALID_HOSTED_FIELDS_ERROR_MESSAGE
-      }));
+      callback(new BraintreeError(errors.HOSTED_FIELDS_INSTANCE_INVALID));
       return;
     }
     this._initializeHostedFields(function () {
@@ -1082,10 +1210,7 @@ UnionPay.prototype.fetchCapabilities = function (options, callback) {
       });
     }.bind(this));
   } else {
-    callback(new BraintreeError({
-      type: BraintreeError.types.MERCHANT,
-      message: constants.CARD_OR_HOSTED_FIELDS_REQUIRED_ERROR_MESSAGE
-    }));
+    callback(new BraintreeError(errors.CARD_OR_HOSTED_FIELDS_INSTANCE_REQUIRED));
     return;
   }
 };
@@ -1169,25 +1294,16 @@ UnionPay.prototype.enroll = function (options, callback) {
   callback = deferred(callback);
 
   if (!mobile) {
-    callback(new BraintreeError({
-      type: BraintreeError.types.MERCHANT,
-      message: 'A `mobile` with `countryCode` and `number` is required.'
-    }));
+    callback(new BraintreeError(errors.MISSING_MOBILE_PHONE_DATA));
     return;
   }
 
   if (hostedFields) {
     if (!hostedFields._bus) {
-      callback(new BraintreeError({
-        type: BraintreeError.types.MERCHANT,
-        message: constants.INVALID_HOSTED_FIELDS_ERROR_MESSAGE
-      }));
+      callback(new BraintreeError(errors.HOSTED_FIELDS_INSTANCE_INVALID));
       return;
     } else if (card) {
-      callback(new BraintreeError({
-        type: BraintreeError.types.MERCHANT,
-        message: constants.CARD_AND_HOSTED_FIELDS_ERROR_MESSAGE
-      }));
+      callback(new BraintreeError(errors.CARD_AND_HOSTED_FIELDS_INSTANCES));
       return;
     }
 
@@ -1218,10 +1334,7 @@ UnionPay.prototype.enroll = function (options, callback) {
         data.unionPayEnrollment.expirationYear = card.expirationYear;
         data.unionPayEnrollment.expirationMonth = card.expirationMonth;
       } else {
-        callback(new BraintreeError({
-          type: BraintreeError.types.MERCHANT,
-          message: 'You must supply expiration month and year or neither.'
-        }));
+        callback(new BraintreeError(errors.EXPIRATION_DATE_INCOMPLETE));
         return;
       }
     }
@@ -1231,25 +1344,20 @@ UnionPay.prototype.enroll = function (options, callback) {
       endpoint: 'union_pay_enrollments',
       data: data
     }, function (err, response, status) {
-      var message, type;
+      var error;
 
       if (err) {
         if (status < 500) {
-          type = BraintreeError.types.CUSTOMER;
-          message = 'Enrollment invalid due to customer input error.';
+          error = errors.ENROLLMENT_CUSTOMER_INPUT_INVALID;
         } else {
-          type = BraintreeError.types.NETWORK;
-          message = 'An enrollment network error occurred.';
+          error = errors.ENROLLMENT_NETWORK_ERROR;
         }
+        error = assign({}, error, {
+          details: {originalError: err}
+        });
 
         analytics.sendEvent(client, 'web.unionpay.enrollment-failed');
-        callback(new BraintreeError({
-          type: type,
-          message: message,
-          details: {
-            originalError: err
-          }
-        }));
+        callback(new BraintreeError(error));
         return;
       }
 
@@ -1260,10 +1368,7 @@ UnionPay.prototype.enroll = function (options, callback) {
       });
     });
   } else {
-    callback(new BraintreeError({
-      type: BraintreeError.types.MERCHANT,
-      message: constants.CARD_OR_HOSTED_FIELDS_REQUIRED_ERROR_MESSAGE
-    }));
+    callback(new BraintreeError(errors.CARD_OR_HOSTED_FIELDS_INSTANCE_REQUIRED));
     return;
   }
 };
@@ -1326,7 +1431,7 @@ UnionPay.prototype.enroll = function (options, callback) {
  * @returns {void}
  */
 UnionPay.prototype.tokenize = function (options, callback) {
-  var data, tokenizedCard;
+  var data, tokenizedCard, error;
   var client = this._options.client;
   var card = options.card;
   var hostedFields = options.hostedFields;
@@ -1334,10 +1439,7 @@ UnionPay.prototype.tokenize = function (options, callback) {
   callback = deferred(callback);
 
   if (card && hostedFields) {
-    callback(new BraintreeError({
-      type: BraintreeError.types.MERCHANT,
-      message: constants.CARD_AND_HOSTED_FIELDS_ERROR_MESSAGE
-    }));
+    callback(new BraintreeError(errors.CARD_AND_HOSTED_FIELDS_INSTANCES));
     return;
   } else if (card) {
     data = {
@@ -1376,40 +1478,27 @@ UnionPay.prototype.tokenize = function (options, callback) {
         analytics.sendEvent(client, 'web.unionpay.nonce-failed');
 
         if (status < 500) {
-          callback(new BraintreeError({
-            type: BraintreeError.types.CUSTOMER,
-            message: 'The supplied card data failed tokenization.',
-            details: {
-              originalError: err
-            }
-          }));
+          error = errors.UNIONPAY_FAILED_TOKENIZATION;
         } else {
-          callback(new BraintreeError({
-            type: BraintreeError.types.NETWORK,
-            message: 'A tokenization network error occurred.',
-            details: {
-              originalError: err
-            }
-          }));
+          error = errors.UNIONPAY_TOKENIZATION_NETWORK_ERROR;
         }
-
+        error = assign({}, error, {
+          details: {originalError: err}
+        });
+        callback(new BraintreeError(error));
         return;
       }
 
       tokenizedCard = response.creditCards[0];
       delete tokenizedCard.consumed;
       delete tokenizedCard.threeDSecureInfo;
-      delete tokenizedCard.type;
 
       analytics.sendEvent(client, 'web.unionpay.nonce-received');
       callback(null, tokenizedCard);
     });
   } else if (hostedFields) {
     if (!hostedFields._bus) {
-      callback(new BraintreeError({
-        type: BraintreeError.types.MERCHANT,
-        message: constants.INVALID_HOSTED_FIELDS_ERROR_MESSAGE
-      }));
+      callback(new BraintreeError(errors.HOSTED_FIELDS_INSTANCE_INVALID));
       return;
     }
 
@@ -1424,10 +1513,7 @@ UnionPay.prototype.tokenize = function (options, callback) {
       });
     }.bind(this));
   } else {
-    callback(new BraintreeError({
-      type: BraintreeError.types.MERCHANT,
-      message: constants.CARD_OR_HOSTED_FIELDS_REQUIRED_ERROR_MESSAGE
-    }));
+    callback(new BraintreeError(errors.CARD_OR_HOSTED_FIELDS_INSTANCE_REQUIRED));
     return;
   }
 };
@@ -1490,5 +1576,5 @@ UnionPay.prototype._initializeHostedFields = function (callback) {
 
 module.exports = UnionPay;
 
-},{"../../lib/analytics":7,"../../lib/bus":10,"../../lib/convert-methods-to-error":12,"../../lib/deferred":14,"../../lib/error":16,"../../lib/methods":18,"../../lib/uuid":20,"./constants":22,"iframer":2}]},{},[21])(21)
+},{"../../lib/analytics":8,"../../lib/assign":9,"../../lib/bus":12,"../../lib/convert-methods-to-error":14,"../../lib/deferred":16,"../../lib/error":18,"../../lib/methods":20,"../../lib/uuid":22,"./constants":24,"./errors":25,"iframer":2}]},{},[23])(23)
 });

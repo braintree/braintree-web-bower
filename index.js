@@ -5,6 +5,7 @@ var hostedFields = require('./hosted-fields');
 var dataCollector = require('./data-collector');
 var americanExpress = require('./american-express');
 var unionpay = require('./unionpay');
+var applePay = require('./apple-pay');
 var threeDSecure = require('./three-d-secure');
 
 module.exports = {
@@ -15,5 +16,6 @@ module.exports = {
     dataCollector: dataCollector,
     americanExpress: americanExpress,
     unionpay: unionpay,
-    VERSION: '3.0.0-beta.11'
+    applePay: applePay,
+    VERSION: '3.0.0-beta.12'
 };
