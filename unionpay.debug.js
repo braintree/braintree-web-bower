@@ -403,7 +403,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":13,"./create-authorization-data":15,"./json-clone":19}],8:[function(_dereq_,module,exports){
+},{"./constants":13,"./create-authorization-data":15,"./json-clone":20}],8:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('./constants');
@@ -462,7 +462,7 @@ module.exports = {
 },{}],10:[function(_dereq_,module,exports){
 'use strict';
 
-var BT_ORIGIN_REGEX = /^https:\/\/([a-zA-Z0-9-]+\.)*(braintreepayments|braintreegateway|paypal)\.com(:\d{1,5})?$/;
+var isWhitelistedDomain = _dereq_('../is-whitelisted-domain');
 
 function checkOrigin(postMessageOrigin, merchantUrl) {
   var merchantOrigin, merchantHost;
@@ -480,14 +480,18 @@ function checkOrigin(postMessageOrigin, merchantUrl) {
 
   merchantOrigin = a.protocol + '//' + merchantHost;
 
-  return merchantOrigin === postMessageOrigin || BT_ORIGIN_REGEX.test(postMessageOrigin);
+  if (merchantOrigin === postMessageOrigin) { return true; }
+
+  a.href = postMessageOrigin;
+
+  return isWhitelistedDomain(postMessageOrigin) && a.hostname !== 'localhost';
 }
 
 module.exports = {
   checkOrigin: checkOrigin
 };
 
-},{}],11:[function(_dereq_,module,exports){
+},{"../is-whitelisted-domain":19}],11:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../enumerate');
@@ -630,7 +634,7 @@ module.exports = BraintreeBus;
 },{"../error":18,"./check-origin":10,"./events":11,"framebus":1}],13:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.0.0-beta.12";
+var VERSION = "3.0.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -710,7 +714,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":21}],16:[function(_dereq_,module,exports){
+},{"../lib/polyfill":22}],16:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (fn) {
@@ -818,11 +822,46 @@ module.exports = BraintreeError;
 },{"./enumerate":17}],19:[function(_dereq_,module,exports){
 'use strict';
 
+var parser;
+var legalHosts = {
+  'paypal.com': 1,
+  'braintreepayments.com': 1,
+  'braintreegateway.com': 1,
+  localhost: 1
+};
+
+/* eslint-enable no-undef,block-scoped-var */
+
+function stripSubdomains(domain) {
+  return domain.split('.').slice(-2).join('.');
+}
+
+function isWhitelistedDomain(url) {
+  var mainDomain;
+
+  url = url.toLowerCase();
+
+  if (!/^https:/.test(url)) {
+    return false;
+  }
+
+  parser = parser || document.createElement('a');
+  parser.href = url;
+  mainDomain = stripSubdomains(parser.hostname);
+
+  return legalHosts.hasOwnProperty(mainDomain);
+}
+
+module.exports = isWhitelistedDomain;
+
+},{}],20:[function(_dereq_,module,exports){
+'use strict';
+
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],20:[function(_dereq_,module,exports){
+},{}],21:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -831,7 +870,7 @@ module.exports = function (obj) {
   });
 };
 
-},{}],21:[function(_dereq_,module,exports){
+},{}],22:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -870,7 +909,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],22:[function(_dereq_,module,exports){
+},{}],23:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {
@@ -884,7 +923,7 @@ function uuid() {
 
 module.exports = uuid;
 
-},{}],23:[function(_dereq_,module,exports){
+},{}],24:[function(_dereq_,module,exports){
 'use strict';
 /**
  * @module braintree-web/unionpay
@@ -897,7 +936,7 @@ var analytics = _dereq_('../lib/analytics');
 var deferred = _dereq_('../lib/deferred');
 var errors = _dereq_('./shared/errors');
 var sharedErrors = _dereq_('../errors');
-var VERSION = "3.0.0-beta.12";
+var VERSION = "3.0.0";
 
 /**
 * @static
@@ -968,7 +1007,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../errors":6,"../lib/analytics":8,"../lib/deferred":16,"../lib/error":18,"./shared/errors":25,"./shared/unionpay":26}],24:[function(_dereq_,module,exports){
+},{"../errors":6,"../lib/analytics":8,"../lib/deferred":16,"../lib/error":18,"./shared/errors":26,"./shared/unionpay":27}],25:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../../lib/enumerate');
@@ -982,7 +1021,7 @@ module.exports = {
   HOSTED_FIELDS_FRAME_NAME: 'braintreeunionpayhostedfields'
 };
 
-},{"../../lib/enumerate":17}],25:[function(_dereq_,module,exports){
+},{"../../lib/enumerate":17}],26:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../lib/error');
@@ -993,44 +1032,44 @@ module.exports = {
     code: 'UNIONPAY_NOT_ENABLED',
     message: 'UnionPay is not enabled for this merchant.'
   },
-  HOSTED_FIELDS_INSTANCE_INVALID: {
+  UNIONPAY_HOSTED_FIELDS_INSTANCE_INVALID: {
     type: BraintreeError.types.MERCHANT,
-    code: 'HOSTED_FIELDS_INSTANCE_INVALID',
+    code: 'UNIONPAY_HOSTED_FIELDS_INSTANCE_INVALID',
     message: 'Found an invalid Hosted Fields instance. Please use a valid Hosted Fields instance.'
   },
-  HOSTED_FIELDS_INSTANCE_REQUIRED: {
+  UNIONPAY_HOSTED_FIELDS_INSTANCE_REQUIRED: {
     type: BraintreeError.types.MERCHANT,
-    code: 'HOSTED_FIELDS_INSTANCE_REQUIRED',
+    code: 'UNIONPAY_HOSTED_FIELDS_INSTANCE_REQUIRED',
     message: 'Could not find the Hosted Fields instance.'
   },
-  CARD_OR_HOSTED_FIELDS_INSTANCE_REQUIRED: {
+  UNIONPAY_CARD_OR_HOSTED_FIELDS_INSTANCE_REQUIRED: {
     type: BraintreeError.types.MERCHANT,
-    code: 'CARD_OR_HOSTED_FIELDS_INSTANCE_REQUIRED',
+    code: 'UNIONPAY_CARD_OR_HOSTED_FIELDS_INSTANCE_REQUIRED',
     message: 'A card or a Hosted Fields instance is required. Please supply a card or a Hosted Fields instance.'
   },
-  CARD_AND_HOSTED_FIELDS_INSTANCES: {
+  UNIONPAY_CARD_AND_HOSTED_FIELDS_INSTANCES: {
     type: BraintreeError.types.MERCHANT,
-    code: 'CARD_AND_HOSTED_FIELDS_INSTANCES',
+    code: 'UNIONPAY_CARD_AND_HOSTED_FIELDS_INSTANCES',
     message: 'Please supply either a card or a Hosted Fields instance, not both.'
   },
-  EXPIRATION_DATE_INCOMPLETE: {
+  UNIONPAY_EXPIRATION_DATE_INCOMPLETE: {
     type: BraintreeError.types.MERCHANT,
-    code: 'EXPIRATION_DATE_INCOMPLETE',
+    code: 'UNIONPAY_EXPIRATION_DATE_INCOMPLETE',
     message: 'You must supply expiration month and year or neither.'
   },
-  ENROLLMENT_CUSTOMER_INPUT_INVALID: {
+  UNIONPAY_ENROLLMENT_CUSTOMER_INPUT_INVALID: {
     type: BraintreeError.types.CUSTOMER,
-    code: 'ENROLLMENT_CUSTOMER_INPUT_INVALID',
+    code: 'UNIONPAY_ENROLLMENT_CUSTOMER_INPUT_INVALID',
     message: 'Enrollment failed due to user input error.'
   },
-  ENROLLMENT_NETWORK_ERROR: {
+  UNIONPAY_ENROLLMENT_NETWORK_ERROR: {
     type: BraintreeError.types.NETWORK,
-    code: 'ENROLLMENT_NETWORK_ERROR',
+    code: 'UNIONPAY_ENROLLMENT_NETWORK_ERROR',
     message: 'Could not enroll UnionPay card.'
   },
-  FETCH_CAPABILITIES_NETWORK_ERROR: {
+  UNIONPAY_FETCH_CAPABILITIES_NETWORK_ERROR: {
     type: BraintreeError.types.NETWORK,
-    code: 'FETCH_CAPABILITIES_NETWORK_ERROR',
+    code: 'UNIONPAY_FETCH_CAPABILITIES_NETWORK_ERROR',
     message: 'Could not fetch card capabilities.'
   },
   UNIONPAY_TOKENIZATION_NETWORK_ERROR: {
@@ -1038,9 +1077,9 @@ module.exports = {
     code: 'UNIONPAY_TOKENIZATION_NETWORK_ERROR',
     message: 'A tokenization network error occurred.'
   },
-  MISSING_MOBILE_PHONE_DATA: {
+  UNIONPAY_MISSING_MOBILE_PHONE_DATA: {
     type: BraintreeError.types.MERCHANT,
-    code: 'MISSING_MOBILE_PHONE_DATA',
+    code: 'UNIONPAY_MISSING_MOBILE_PHONE_DATA',
     message: 'A `mobile` with `countryCode` and `number` is required.'
   },
   UNIONPAY_FAILED_TOKENIZATION: {
@@ -1050,7 +1089,7 @@ module.exports = {
   }
 };
 
-},{"../../lib/error":18}],26:[function(_dereq_,module,exports){
+},{"../../lib/error":18}],27:[function(_dereq_,module,exports){
 'use strict';
 
 var analytics = _dereq_('../../lib/analytics');
@@ -1064,7 +1103,7 @@ var errors = _dereq_('./errors');
 var events = constants.events;
 var iFramer = _dereq_('iframer');
 var methods = _dereq_('../../lib/methods');
-var VERSION = "3.0.0-beta.12";
+var VERSION = "3.0.0";
 var uuid = _dereq_('../../lib/uuid');
 
 /**
@@ -1165,7 +1204,7 @@ UnionPay.prototype.fetchCapabilities = function (options, callback) {
   callback = deferred(callback);
 
   if (cardNumber && hostedFields) {
-    callback(new BraintreeError(errors.CARD_AND_HOSTED_FIELDS_INSTANCES));
+    callback(new BraintreeError(errors.UNIONPAY_CARD_AND_HOSTED_FIELDS_INSTANCES));
     return;
   } else if (cardNumber) {
     client.request({
@@ -1180,9 +1219,9 @@ UnionPay.prototype.fetchCapabilities = function (options, callback) {
     }, function (err, response) {
       if (err) {
         callback(new BraintreeError({
-          type: errors.FETCH_CAPABILITIES_NETWORK_ERROR.type,
-          code: errors.FETCH_CAPABILITIES_NETWORK_ERROR.code,
-          message: errors.FETCH_CAPABILITIES_NETWORK_ERROR.message,
+          type: errors.UNIONPAY_FETCH_CAPABILITIES_NETWORK_ERROR.type,
+          code: errors.UNIONPAY_FETCH_CAPABILITIES_NETWORK_ERROR.code,
+          message: errors.UNIONPAY_FETCH_CAPABILITIES_NETWORK_ERROR.message,
           details: {
             originalError: err
           }
@@ -1196,7 +1235,7 @@ UnionPay.prototype.fetchCapabilities = function (options, callback) {
     });
   } else if (hostedFields) {
     if (!hostedFields._bus) {
-      callback(new BraintreeError(errors.HOSTED_FIELDS_INSTANCE_INVALID));
+      callback(new BraintreeError(errors.UNIONPAY_HOSTED_FIELDS_INSTANCE_INVALID));
       return;
     }
     this._initializeHostedFields(function () {
@@ -1210,7 +1249,7 @@ UnionPay.prototype.fetchCapabilities = function (options, callback) {
       });
     }.bind(this));
   } else {
-    callback(new BraintreeError(errors.CARD_OR_HOSTED_FIELDS_INSTANCE_REQUIRED));
+    callback(new BraintreeError(errors.UNIONPAY_CARD_OR_HOSTED_FIELDS_INSTANCE_REQUIRED));
     return;
   }
 };
@@ -1294,16 +1333,16 @@ UnionPay.prototype.enroll = function (options, callback) {
   callback = deferred(callback);
 
   if (!mobile) {
-    callback(new BraintreeError(errors.MISSING_MOBILE_PHONE_DATA));
+    callback(new BraintreeError(errors.UNIONPAY_MISSING_MOBILE_PHONE_DATA));
     return;
   }
 
   if (hostedFields) {
     if (!hostedFields._bus) {
-      callback(new BraintreeError(errors.HOSTED_FIELDS_INSTANCE_INVALID));
+      callback(new BraintreeError(errors.UNIONPAY_HOSTED_FIELDS_INSTANCE_INVALID));
       return;
     } else if (card) {
-      callback(new BraintreeError(errors.CARD_AND_HOSTED_FIELDS_INSTANCES));
+      callback(new BraintreeError(errors.UNIONPAY_CARD_AND_HOSTED_FIELDS_INSTANCES));
       return;
     }
 
@@ -1334,7 +1373,7 @@ UnionPay.prototype.enroll = function (options, callback) {
         data.unionPayEnrollment.expirationYear = card.expirationYear;
         data.unionPayEnrollment.expirationMonth = card.expirationMonth;
       } else {
-        callback(new BraintreeError(errors.EXPIRATION_DATE_INCOMPLETE));
+        callback(new BraintreeError(errors.UNIONPAY_EXPIRATION_DATE_INCOMPLETE));
         return;
       }
     }
@@ -1348,9 +1387,9 @@ UnionPay.prototype.enroll = function (options, callback) {
 
       if (err) {
         if (status < 500) {
-          error = errors.ENROLLMENT_CUSTOMER_INPUT_INVALID;
+          error = errors.UNIONPAY_ENROLLMENT_CUSTOMER_INPUT_INVALID;
         } else {
-          error = errors.ENROLLMENT_NETWORK_ERROR;
+          error = errors.UNIONPAY_ENROLLMENT_NETWORK_ERROR;
         }
         error = assign({}, error, {
           details: {originalError: err}
@@ -1368,7 +1407,7 @@ UnionPay.prototype.enroll = function (options, callback) {
       });
     });
   } else {
-    callback(new BraintreeError(errors.CARD_OR_HOSTED_FIELDS_INSTANCE_REQUIRED));
+    callback(new BraintreeError(errors.UNIONPAY_CARD_OR_HOSTED_FIELDS_INSTANCE_REQUIRED));
     return;
   }
 };
@@ -1395,6 +1434,7 @@ UnionPay.prototype.enroll = function (options, callback) {
  * @param {string} [options.card.cvv] The card's security number.
  * @param {HostedFields} [options.hostedFields] The Hosted Fields instance used to collect card data. Required if you are not using the `card` option.
  * @param {string} options.enrollmentId The enrollment ID from {@link UnionPay#enroll}.
+ * @param {boolean} [options.vault=false] When true, will vault the tokenized card. Cards will only be vaulted when using a client created with a client token that includes a customer ID.
  * @param {string} [options.smsCode] The SMS code received from the user if {@link UnionPay#enroll} payload have `smsCodeRequired`. if `smsCodeRequired` is false, smsCode should not be passed.
  * @param {callback} callback The second argument, <code>data</code>, is a {@link UnionPay~tokenizePayload|tokenizePayload}.
  * @example <caption>With raw card data</caption>
@@ -1439,7 +1479,7 @@ UnionPay.prototype.tokenize = function (options, callback) {
   callback = deferred(callback);
 
   if (card && hostedFields) {
-    callback(new BraintreeError(errors.CARD_AND_HOSTED_FIELDS_INSTANCES));
+    callback(new BraintreeError(errors.UNIONPAY_CARD_AND_HOSTED_FIELDS_INSTANCES));
     return;
   } else if (card) {
     data = {
@@ -1468,6 +1508,8 @@ UnionPay.prototype.tokenize = function (options, callback) {
     if (options.card.cvv) {
       data.creditCard.cvv = options.card.cvv;
     }
+
+    data.creditCard.options.validate = options.vault === true;
 
     client.request({
       method: 'post',
@@ -1498,7 +1540,7 @@ UnionPay.prototype.tokenize = function (options, callback) {
     });
   } else if (hostedFields) {
     if (!hostedFields._bus) {
-      callback(new BraintreeError(errors.HOSTED_FIELDS_INSTANCE_INVALID));
+      callback(new BraintreeError(errors.UNIONPAY_HOSTED_FIELDS_INSTANCE_INVALID));
       return;
     }
 
@@ -1513,7 +1555,7 @@ UnionPay.prototype.tokenize = function (options, callback) {
       });
     }.bind(this));
   } else {
-    callback(new BraintreeError(errors.CARD_OR_HOSTED_FIELDS_INSTANCE_REQUIRED));
+    callback(new BraintreeError(errors.UNIONPAY_CARD_OR_HOSTED_FIELDS_INSTANCE_REQUIRED));
     return;
   }
 };
@@ -1576,5 +1618,5 @@ UnionPay.prototype._initializeHostedFields = function (callback) {
 
 module.exports = UnionPay;
 
-},{"../../lib/analytics":8,"../../lib/assign":9,"../../lib/bus":12,"../../lib/convert-methods-to-error":14,"../../lib/deferred":16,"../../lib/error":18,"../../lib/methods":20,"../../lib/uuid":22,"./constants":24,"./errors":25,"iframer":2}]},{},[23])(23)
+},{"../../lib/analytics":8,"../../lib/assign":9,"../../lib/bus":12,"../../lib/convert-methods-to-error":14,"../../lib/deferred":16,"../../lib/error":18,"../../lib/methods":21,"../../lib/uuid":23,"./constants":25,"./errors":26,"iframer":2}]},{},[24])(24)
 });

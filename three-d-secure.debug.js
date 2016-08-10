@@ -403,7 +403,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":13,"./create-authorization-data":15,"./json-clone":19}],8:[function(_dereq_,module,exports){
+},{"./constants":13,"./create-authorization-data":15,"./json-clone":20}],8:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('./constants');
@@ -445,7 +445,7 @@ function isOperaMini(ua) {
 
 function isAndroidFirefox(ua) {
   ua = ua || global.navigator.userAgent;
-  return ua.indexOf('Android') > -1 && ua.indexOf('Firefox') > -1;
+  return isAndroid(ua) && ua.indexOf('Firefox') > -1;
 }
 
 function getIEVersion(ua) {
@@ -462,22 +462,65 @@ function getIEVersion(ua) {
 
 function isHTTPS(protocol) {
   protocol = protocol || global.location.protocol;
-
   return protocol === 'https:';
+}
+
+function isIos(ua) {
+  ua = ua || global.navigator.userAgent;
+  return /iPhone|iPod|iPad/.test(ua);
+}
+
+function isAndroid(ua) {
+  ua = ua || global.navigator.userAgent;
+  return /Android/.test(ua);
+}
+
+function supportsPopups(ua) {
+  ua = ua || global.navigator.userAgent;
+  return !(isIosWebview(ua) || isAndroidWebview(ua) || isOperaMini(ua));
+}
+
+// The Google Search iOS app is technically a webview and doesn't support popups.
+function isGoogleSearchApp(ua) {
+  return /\bGSA\b/.test(ua);
+}
+
+function isIosWebview(ua) {
+  ua = ua || global.navigator.userAgent;
+  if (isIos(ua)) {
+    if (isGoogleSearchApp(ua)) {
+      return true;
+    }
+    return /.+AppleWebKit(?!.*Safari)/.test(ua);
+  }
+  return false;
+}
+
+function isAndroidWebview(ua) {
+  var androidWebviewRegExp = /Version\/[\d\.]+/;
+
+  ua = ua || global.navigator.userAgent;
+  if (isAndroid(ua)) {
+    return androidWebviewRegExp.test(ua) && !isOperaMini(ua);
+  }
+  return false;
 }
 
 module.exports = {
   isOperaMini: isOperaMini,
   isAndroidFirefox: isAndroidFirefox,
   getIEVersion: getIEVersion,
-  isHTTPS: isHTTPS
+  isHTTPS: isHTTPS,
+  isIos: isIos,
+  isAndroid: isAndroid,
+  supportsPopups: supportsPopups
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],10:[function(_dereq_,module,exports){
 'use strict';
 
-var BT_ORIGIN_REGEX = /^https:\/\/([a-zA-Z0-9-]+\.)*(braintreepayments|braintreegateway|paypal)\.com(:\d{1,5})?$/;
+var isWhitelistedDomain = _dereq_('../is-whitelisted-domain');
 
 function checkOrigin(postMessageOrigin, merchantUrl) {
   var merchantOrigin, merchantHost;
@@ -495,14 +538,18 @@ function checkOrigin(postMessageOrigin, merchantUrl) {
 
   merchantOrigin = a.protocol + '//' + merchantHost;
 
-  return merchantOrigin === postMessageOrigin || BT_ORIGIN_REGEX.test(postMessageOrigin);
+  if (merchantOrigin === postMessageOrigin) { return true; }
+
+  a.href = postMessageOrigin;
+
+  return isWhitelistedDomain(postMessageOrigin) && a.hostname !== 'localhost';
 }
 
 module.exports = {
   checkOrigin: checkOrigin
 };
 
-},{}],11:[function(_dereq_,module,exports){
+},{"../is-whitelisted-domain":19}],11:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../enumerate');
@@ -645,7 +692,7 @@ module.exports = BraintreeBus;
 },{"../error":18,"./check-origin":10,"./events":11,"framebus":1}],13:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.0.0-beta.12";
+var VERSION = "3.0.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -725,7 +772,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":21}],16:[function(_dereq_,module,exports){
+},{"../lib/polyfill":22}],16:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (fn) {
@@ -833,11 +880,46 @@ module.exports = BraintreeError;
 },{"./enumerate":17}],19:[function(_dereq_,module,exports){
 'use strict';
 
+var parser;
+var legalHosts = {
+  'paypal.com': 1,
+  'braintreepayments.com': 1,
+  'braintreegateway.com': 1,
+  localhost: 1
+};
+
+/* eslint-enable no-undef,block-scoped-var */
+
+function stripSubdomains(domain) {
+  return domain.split('.').slice(-2).join('.');
+}
+
+function isWhitelistedDomain(url) {
+  var mainDomain;
+
+  url = url.toLowerCase();
+
+  if (!/^https:/.test(url)) {
+    return false;
+  }
+
+  parser = parser || document.createElement('a');
+  parser.href = url;
+  mainDomain = stripSubdomains(parser.hostname);
+
+  return legalHosts.hasOwnProperty(mainDomain);
+}
+
+module.exports = isWhitelistedDomain;
+
+},{}],20:[function(_dereq_,module,exports){
+'use strict';
+
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],20:[function(_dereq_,module,exports){
+},{}],21:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -846,7 +928,7 @@ module.exports = function (obj) {
   });
 };
 
-},{}],21:[function(_dereq_,module,exports){
+},{}],22:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -885,7 +967,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],22:[function(_dereq_,module,exports){
+},{}],23:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {
@@ -899,7 +981,7 @@ function uuid() {
 
 module.exports = uuid;
 
-},{}],23:[function(_dereq_,module,exports){
+},{}],24:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../lib/error');
@@ -912,7 +994,7 @@ var uuid = _dereq_('../../lib/uuid');
 var deferred = _dereq_('../../lib/deferred');
 var errors = _dereq_('../shared/errors');
 var events = _dereq_('../shared/events');
-var version = "3.0.0-beta.12";
+var version = "3.0.0";
 var iFramer = _dereq_('iframer');
 var sharedErrors = _dereq_('../../errors');
 
@@ -1016,7 +1098,7 @@ ThreeDSecure.prototype.verifyCard = function (options, callback) {
   callback = deferred(callback);
 
   if (this._verifyCardInProgress === true) {
-    error = errors.AUTHENTICATION_IN_PROGRESS;
+    error = errors.THREEDS_AUTHENTICATION_IN_PROGRESS;
   } else if (!options.nonce) {
     errorOption = 'a nonce';
   } else if (!options.amount) {
@@ -1029,8 +1111,8 @@ ThreeDSecure.prototype.verifyCard = function (options, callback) {
 
   if (errorOption) {
     error = {
-      type: errors.MISSING_VERIFY_CARD_OPTION.type,
-      code: errors.MISSING_VERIFY_CARD_OPTION.code,
+      type: errors.THREEDS_MISSING_VERIFY_CARD_OPTION.type,
+      code: errors.THREEDS_MISSING_VERIFY_CARD_OPTION.code,
       message: 'verifyCard options must include ' + errorOption + '.'
     };
   }
@@ -1097,7 +1179,7 @@ ThreeDSecure.prototype.cancelVerifyCard = function (callback) {
 
   if (typeof callback === 'function') {
     if (!this._lookupPaymentMethod) {
-      error = new BraintreeError(errors.NO_VERIFICATION_PAYLOAD);
+      error = new BraintreeError(errors.THREEDS_NO_VERIFICATION_PAYLOAD);
     }
 
     callback(error, this._lookupPaymentMethod);
@@ -1228,7 +1310,7 @@ ThreeDSecure.prototype.teardown = function (callback) {
 
 module.exports = ThreeDSecure;
 
-},{"../../errors":6,"../../lib/analytics":8,"../../lib/bus":12,"../../lib/convert-methods-to-error":14,"../../lib/deferred":16,"../../lib/error":18,"../../lib/methods":20,"../../lib/uuid":22,"../shared/constants.json":25,"../shared/errors":26,"../shared/events":27,"iframer":2}],24:[function(_dereq_,module,exports){
+},{"../../errors":6,"../../lib/analytics":8,"../../lib/bus":12,"../../lib/convert-methods-to-error":14,"../../lib/deferred":16,"../../lib/error":18,"../../lib/methods":21,"../../lib/uuid":23,"../shared/constants.json":26,"../shared/errors":27,"../shared/events":28,"iframer":2}],25:[function(_dereq_,module,exports){
 'use strict';
 /** @module braintree-web/three-d-secure */
 
@@ -1239,7 +1321,7 @@ var analytics = _dereq_('../lib/analytics');
 var deferred = _dereq_('../lib/deferred');
 var errors = _dereq_('./shared/errors');
 var sharedErrors = _dereq_('../errors');
-var VERSION = "3.0.0-beta.12";
+var VERSION = "3.0.0";
 
 /**
  * @static
@@ -1316,29 +1398,29 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../errors":6,"../lib/analytics":8,"../lib/browser-detection":9,"../lib/deferred":16,"../lib/error":18,"./external/three-d-secure":23,"./shared/errors":26}],25:[function(_dereq_,module,exports){
+},{"../errors":6,"../lib/analytics":8,"../lib/browser-detection":9,"../lib/deferred":16,"../lib/error":18,"./external/three-d-secure":24,"./shared/errors":27}],26:[function(_dereq_,module,exports){
 module.exports={
   "LANDING_FRAME_NAME": "braintreethreedsecurelanding"
 }
 
-},{}],26:[function(_dereq_,module,exports){
+},{}],27:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../lib/error');
 
 module.exports = {
-  AUTHENTICATION_IN_PROGRESS: {
+  THREEDS_AUTHENTICATION_IN_PROGRESS: {
     type: BraintreeError.types.MERCHANT,
-    code: 'AUTHENTICATION_IN_PROGRESS',
+    code: 'THREEDS_AUTHENTICATION_IN_PROGRESS',
     message: 'Cannot call verifyCard while existing authentication is in progress.'
   },
-  MISSING_VERIFY_CARD_OPTION: {
+  THREEDS_MISSING_VERIFY_CARD_OPTION: {
     type: BraintreeError.types.MERCHANT,
-    code: 'MISSING_VERIFY_CARD_OPTION'
+    code: 'THREEDS_MISSING_VERIFY_CARD_OPTION'
   },
-  NO_VERIFICATION_PAYLOAD: {
+  THREEDS_NO_VERIFICATION_PAYLOAD: {
     type: BraintreeError.types.MERCHANT,
-    code: 'NO_VERIFICATION_PAYLOAD',
+    code: 'THREEDS_NO_VERIFICATION_PAYLOAD',
     message: 'No verification payload available.'
   },
   THREEDS_NOT_ENABLED: {
@@ -1351,14 +1433,14 @@ module.exports = {
     code: 'THREEDS_HTTPS_REQUIRED',
     message: '3D Secure requires HTTPS.'
   },
-  TERM_URL_REQUIRES_BRAINTREE_DOMAIN: {
+  THREEDS_TERM_URL_REQUIRES_BRAINTREE_DOMAIN: {
     type: BraintreeError.types.INTERNAL,
-    code: 'TERM_URL_REQUIRES_BRAINTREE_DOMAIN',
+    code: 'THREEDS_TERM_URL_REQUIRES_BRAINTREE_DOMAIN',
     message: 'Term Url must be on a Braintree domain.'
   }
 };
 
-},{"../../lib/error":18}],27:[function(_dereq_,module,exports){
+},{"../../lib/error":18}],28:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../../lib/enumerate');
@@ -1367,5 +1449,5 @@ module.exports = enumerate([
   'AUTHENTICATION_COMPLETE'
 ], 'threedsecure:');
 
-},{"../../lib/enumerate":17}]},{},[24])(24)
+},{"../../lib/enumerate":17}]},{},[25])(25)
 });

@@ -35,7 +35,7 @@ function Client(configuration) {
   gatewayConfiguration = configuration.gatewayConfiguration;
 
   if (!gatewayConfiguration) {
-    throw new BraintreeError(errors.MISSING_GATEWAY_CONFIGURATION);
+    throw new BraintreeError(errors.CLIENT_MISSING_GATEWAY_CONFIGURATION);
   }
 
   [
@@ -45,8 +45,8 @@ function Client(configuration) {
   ].forEach(function (property) {
     if (property in gatewayConfiguration && !isWhitelistedDomain(gatewayConfiguration[property])) {
       throw new BraintreeError({
-        type: errors.GATEWAY_CONFIGURATION_INVALID_DOMAIN.type,
-        code: errors.GATEWAY_CONFIGURATION_INVALID_DOMAIN.code,
+        type: errors.CLIENT_GATEWAY_CONFIGURATION_INVALID_DOMAIN.type,
+        code: errors.CLIENT_GATEWAY_CONFIGURATION_INVALID_DOMAIN.code,
         message: property + ' property is on an invalid domain.'
       });
     }
@@ -123,8 +123,8 @@ Client.prototype.request = function (options, callback) {
   if (optionName) {
     callback = deferred(callback);
     callback(new BraintreeError({
-      type: errors.OPTION_REQUIRED.type,
-      code: errors.OPTION_REQUIRED.code,
+      type: errors.CLIENT_OPTION_REQUIRED.type,
+      code: errors.CLIENT_OPTION_REQUIRED.code,
       message: optionName + ' is required when making a request.'
     }));
     return;
@@ -135,43 +135,75 @@ Client.prototype.request = function (options, callback) {
     method: options.method,
     data: addMetadata(this._configuration, options.data),
     timeout: options.timeout
-  }, callback);
+  }, function (err, data, status) {
+    if (status === -1) {
+      callback(new BraintreeError(errors.CLIENT_REQUEST_TIMEOUT), null, status);
+    } else if (status === 429) {
+      callback(new BraintreeError(errors.CLIENT_RATE_LIMITED), null, status);
+    } else if (status >= 500) {
+      callback(new BraintreeError(errors.CLIENT_GATEWAY_NETWORK), null, status);
+    } else if (status < 200 || status >= 400) {
+      callback(new BraintreeError({
+        type: errors.CLIENT_REQUEST_ERROR.type,
+        code: errors.CLIENT_REQUEST_ERROR.code,
+        message: errors.CLIENT_REQUEST_ERROR.message,
+        details: {originalError: err}
+      }), null, status);
+    } else {
+      callback(null, data, status);
+    }
+  });
 };
 
 module.exports = Client;
 
-},{"../lib/add-metadata":14,"../lib/deferred":17,"../lib/error":19,"../lib/is-whitelisted-domain":20,"./errors":2,"./request":8}],2:[function(_dereq_,module,exports){
+},{"../lib/add-metadata":13,"../lib/deferred":16,"../lib/error":18,"../lib/is-whitelisted-domain":19,"./errors":2,"./request":7}],2:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/error');
 
 module.exports = {
-  GATEWAY_CONFIGURATION_INVALID_DOMAIN: {
+  CLIENT_GATEWAY_CONFIGURATION_INVALID_DOMAIN: {
     type: BraintreeError.types.MERCHANT,
-    code: 'GATEWAY_CONFIGURATION_INVALID_DOMAIN'
+    code: 'CLIENT_GATEWAY_CONFIGURATION_INVALID_DOMAIN'
   },
-  OPTION_REQUIRED: {
+  CLIENT_OPTION_REQUIRED: {
     type: BraintreeError.types.MERCHANT,
-    code: 'OPTION_REQUIRED'
+    code: 'CLIENT_OPTION_REQUIRED'
   },
-  MISSING_GATEWAY_CONFIGURATION: {
+  CLIENT_MISSING_GATEWAY_CONFIGURATION: {
     type: BraintreeError.types.INTERNAL,
-    code: 'MISSING_GATEWAY_CONFIGURATION',
+    code: 'CLIENT_MISSING_GATEWAY_CONFIGURATION',
     message: 'Missing gatewayConfiguration.'
   },
-  INVALID_AUTHORIZATION: {
+  CLIENT_INVALID_AUTHORIZATION: {
     type: BraintreeError.types.MERCHANT,
-    code: 'INVALID_AUTHORIZATION',
+    code: 'CLIENT_INVALID_AUTHORIZATION',
     message: 'Authorization is invalid. Make sure your client token or tokenization key is valid.'
   },
-  GATEWAY_NETWORK: {
+  CLIENT_GATEWAY_NETWORK: {
     type: BraintreeError.types.NETWORK,
-    code: 'GATEWAY_NETWORK',
+    code: 'CLIENT_GATEWAY_NETWORK',
     message: 'Cannot contact the gateway at this time.'
+  },
+  CLIENT_REQUEST_TIMEOUT: {
+    type: BraintreeError.types.NETWORK,
+    code: 'CLIENT_REQUEST_TIMEOUT',
+    message: 'Request timed out waiting for a reply.'
+  },
+  CLIENT_REQUEST_ERROR: {
+    type: BraintreeError.types.NETWORK,
+    code: 'CLIENT_REQUEST_ERROR',
+    message: 'There was a problem with your request.'
+  },
+  CLIENT_RATE_LIMITED: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'CLIENT_RATE_LIMITED',
+    message: 'You are being rate-limited; please try again in a few minutes.'
   }
 };
 
-},{"../lib/error":19}],3:[function(_dereq_,module,exports){
+},{"../lib/error":18}],3:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -198,7 +230,7 @@ function getConfiguration(options, callback) {
   try {
     authData = createAuthorizationData(options.authorization);
   } catch (err) {
-    callback(new BraintreeError(errors.INVALID_AUTHORIZATION));
+    callback(new BraintreeError(errors.CLIENT_INVALID_AUTHORIZATION));
     return;
   }
   attrs = authData.attrs;
@@ -214,10 +246,12 @@ function getConfiguration(options, callback) {
   }, function (err, response) {
     if (err) {
       callback(new BraintreeError({
-        type: errors.GATEWAY_NETWORK.type,
-        code: errors.GATEWAY_NETWORK.code,
-        message: errors.GATEWAY_NETWORK.message,
-        details: err
+        type: errors.CLIENT_GATEWAY_NETWORK.type,
+        code: errors.CLIENT_GATEWAY_NETWORK.code,
+        message: errors.CLIENT_GATEWAY_NETWORK.message,
+        details: {
+          originalError: err
+        }
       }));
       return;
     }
@@ -237,13 +271,13 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../lib/constants":15,"../lib/create-authorization-data":16,"../lib/error":19,"../lib/uuid":25,"./errors":2,"./request":8}],4:[function(_dereq_,module,exports){
+},{"../lib/constants":14,"../lib/create-authorization-data":15,"../lib/error":18,"../lib/uuid":24,"./errors":2,"./request":7}],4:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/error');
 var Client = _dereq_('./client');
 var getConfiguration = _dereq_('./get-configuration').getConfiguration;
-var packageVersion = "3.0.0-beta.12";
+var packageVersion = "3.0.0";
 var deferred = _dereq_('../lib/deferred');
 var sharedErrors = _dereq_('../errors');
 
@@ -314,15 +348,13 @@ module.exports = {
   VERSION: packageVersion
 };
 
-},{"../errors":13,"../lib/deferred":17,"../lib/error":19,"./client":1,"./get-configuration":3}],5:[function(_dereq_,module,exports){
+},{"../errors":12,"../lib/deferred":16,"../lib/error":18,"./client":1,"./get-configuration":3}],5:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
 var querystring = _dereq_('../../lib/querystring');
-var once = _dereq_('../../lib/once');
 var prepBody = _dereq_('./prep-body');
 var parseBody = _dereq_('./parse-body');
-var constants = _dereq_('./constants');
 var isXHRAvailable = global.XMLHttpRequest && 'withCredentials' in new global.XMLHttpRequest();
 
 function getRequestObject() {
@@ -331,12 +363,12 @@ function getRequestObject() {
 
 function request(options, cb) {
   var status, resBody;
-  var method = (options.method || 'GET').toUpperCase();
+  var method = options.method;
   var url = options.url;
-  var body = options.data || {};
-  var timeout = options.timeout == null ? 60000 : options.timeout;
+  var body = options.data;
+  var timeout = options.timeout;
   var req = getRequestObject();
-  var callback = once(cb || Function.prototype);
+  var callback = cb;
 
   if (method === 'GET') {
     url = querystring.queryify(url, body);
@@ -350,12 +382,8 @@ function request(options, cb) {
       status = req.status;
       resBody = parseBody(req.responseText);
 
-      if (status === 429) {
-        callback(constants.errors.RATE_LIMIT_ERROR, null, 429);
-      } else if (status >= 400) {
-        callback(resBody || constants.errors.UNKNOWN_ERROR, null, status);
-      } else if (status <= 0) {
-        callback(resBody || constants.errors.UNKNOWN_ERROR, null, 500);
+      if (status >= 400 || status < 200) {
+        callback(resBody || 'error', null, status || 500);
       } else {
         callback(null, resBody, status);
       }
@@ -366,14 +394,14 @@ function request(options, cb) {
     };
 
     req.onerror = function () {
-      callback(constants.errors.UNKNOWN_ERROR, null, req.status);
+      callback('error', null, req.status);
     };
 
     // This must remain for IE9 to work
     req.onprogress = function () {};
 
     req.ontimeout = function () {
-      callback(constants.errors.TIMEOUT_ERROR, null, 500);
+      callback('timeout', null, -1);
     };
   }
 
@@ -394,19 +422,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../lib/once":22,"../../lib/querystring":24,"./constants":6,"./parse-body":11,"./prep-body":12}],6:[function(_dereq_,module,exports){
-'use strict';
-
-module.exports = {
-  errors: {
-    UNKNOWN_ERROR: 'Unknown error.',
-    TIMEOUT_ERROR: 'Request timed out waiting for a reply.',
-    INVALID_TIMEOUT: 'Timeout must be a number.',
-    RATE_LIMIT_ERROR: 'You are being rate-limited; please try again in a few minutes.'
-  }
-};
-
-},{}],7:[function(_dereq_,module,exports){
+},{"../../lib/querystring":23,"./parse-body":10,"./prep-body":11}],6:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -415,10 +431,11 @@ module.exports = function getUserAgent() {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],8:[function(_dereq_,module,exports){
+},{}],7:[function(_dereq_,module,exports){
 'use strict';
 
 var ajaxIsAvaliable;
+var once = _dereq_('../../lib/once');
 var JSONPDriver = _dereq_('./jsonp-driver');
 var AJAXDriver = _dereq_('./ajax-driver');
 var getUserAgent = _dereq_('./get-user-agent');
@@ -432,13 +449,20 @@ function isAjaxAvailable() {
   return ajaxIsAvaliable;
 }
 
-module.exports = function () {
-  var request = isAjaxAvailable() ? AJAXDriver.request : JSONPDriver.request;
+module.exports = function (options, cb) {
+  cb = once(cb || Function.prototype);
+  options.method = (options.method || 'GET').toUpperCase();
+  options.timeout = options.timeout == null ? 60000 : options.timeout;
+  options.data = options.data || {};
 
-  request.apply(null, arguments);
+  if (isAjaxAvailable()) {
+    AJAXDriver.request(options, cb);
+  } else {
+    JSONPDriver.request(options, cb);
+  }
 };
 
-},{"./ajax-driver":5,"./get-user-agent":7,"./is-http":9,"./jsonp-driver":10}],9:[function(_dereq_,module,exports){
+},{"../../lib/once":21,"./ajax-driver":5,"./get-user-agent":6,"./is-http":8,"./jsonp-driver":9}],8:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -447,17 +471,14 @@ module.exports = function () {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],10:[function(_dereq_,module,exports){
+},{}],9:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
 var head;
-var constants = _dereq_('./constants');
 var uuid = _dereq_('../../lib/uuid');
 var querystring = _dereq_('../../lib/querystring');
 var timeouts = {};
-
-function _noop() {}
 
 function _removeScript(script) {
   if (script && script.parentNode) {
@@ -472,7 +493,7 @@ function _createScriptTag(url, callbackName) {
   script.src = url;
   script.async = true;
   script.onerror = function () {
-    global[callbackName]({message: constants.errors.UNKNOWN_ERROR, status: 500});
+    global[callbackName]({message: 'error', status: 500});
   };
 
   script.onload = script.onreadystatechange = function () {
@@ -500,8 +521,8 @@ function _setupTimeout(timeout, callbackName) {
     timeouts[callbackName] = null;
 
     global[callbackName]({
-      error: constants.errors.TIMEOUT_ERROR,
-      status: 500
+      error: 'timeout',
+      status: -1
     });
 
     global[callbackName] = function () {
@@ -511,8 +532,6 @@ function _setupTimeout(timeout, callbackName) {
 }
 
 function _setupGlobalCallback(script, callback, callbackName) {
-  callback = callback || _noop;
-
   global[callbackName] = function (response) {
     var status = response.status || 500;
     var err = null;
@@ -520,7 +539,7 @@ function _setupGlobalCallback(script, callback, callbackName) {
 
     delete response.status;
 
-    if (status >= 400) {
+    if (status >= 400 || status < 200) {
       err = response;
     } else {
       data = response;
@@ -539,8 +558,8 @@ function request(options, callback) {
   var callbackName = 'callback_json_' + uuid().replace(/-/g, '');
   var url = options.url;
   var attrs = options.data;
-  var method = (options.method || 'GET').toUpperCase();
-  var timeout = options.timeout == null ? 60000 : options.timeout;
+  var method = options.method;
+  var timeout = options.timeout;
 
   url = querystring.queryify(url, attrs);
   url = querystring.queryify(url, {
@@ -564,7 +583,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../lib/querystring":24,"../../lib/uuid":25,"./constants":6}],11:[function(_dereq_,module,exports){
+},{"../../lib/querystring":23,"../../lib/uuid":24}],10:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (body) {
@@ -575,7 +594,7 @@ module.exports = function (body) {
   return body;
 };
 
-},{}],12:[function(_dereq_,module,exports){
+},{}],11:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (method, body) {
@@ -590,7 +609,7 @@ module.exports = function (method, body) {
   return body;
 };
 
-},{}],13:[function(_dereq_,module,exports){
+},{}],12:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./lib/error');
@@ -614,7 +633,7 @@ module.exports = {
   }
 };
 
-},{"./lib/error":19}],14:[function(_dereq_,module,exports){
+},{"./lib/error":18}],13:[function(_dereq_,module,exports){
 'use strict';
 
 var createAuthorizationData = _dereq_('./create-authorization-data');
@@ -648,10 +667,10 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":15,"./create-authorization-data":16,"./json-clone":21}],15:[function(_dereq_,module,exports){
+},{"./constants":14,"./create-authorization-data":15,"./json-clone":20}],14:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.0.0-beta.12";
+var VERSION = "3.0.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -664,7 +683,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],16:[function(_dereq_,module,exports){
+},{}],15:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/polyfill').atob;
@@ -713,7 +732,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":23}],17:[function(_dereq_,module,exports){
+},{"../lib/polyfill":22}],16:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (fn) {
@@ -727,7 +746,7 @@ module.exports = function (fn) {
   };
 };
 
-},{}],18:[function(_dereq_,module,exports){
+},{}],17:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -741,7 +760,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],19:[function(_dereq_,module,exports){
+},{}],18:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -818,7 +837,7 @@ BraintreeError.types = enumerate([
 
 module.exports = BraintreeError;
 
-},{"./enumerate":18}],20:[function(_dereq_,module,exports){
+},{"./enumerate":17}],19:[function(_dereq_,module,exports){
 'use strict';
 
 var parser;
@@ -829,8 +848,14 @@ var legalHosts = {
   localhost: 1
 };
 
+/* eslint-enable no-undef,block-scoped-var */
+
+function stripSubdomains(domain) {
+  return domain.split('.').slice(-2).join('.');
+}
+
 function isWhitelistedDomain(url) {
-  var pieces, topLevelDomain;
+  var mainDomain;
 
   url = url.toLowerCase();
 
@@ -840,22 +865,21 @@ function isWhitelistedDomain(url) {
 
   parser = parser || document.createElement('a');
   parser.href = url;
-  pieces = parser.hostname.split('.');
-  topLevelDomain = pieces.slice(-2).join('.');
+  mainDomain = stripSubdomains(parser.hostname);
 
-  return legalHosts.hasOwnProperty(topLevelDomain);
+  return legalHosts.hasOwnProperty(mainDomain);
 }
 
 module.exports = isWhitelistedDomain;
 
-},{}],21:[function(_dereq_,module,exports){
+},{}],20:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],22:[function(_dereq_,module,exports){
+},{}],21:[function(_dereq_,module,exports){
 'use strict';
 
 function once(fn) {
@@ -871,7 +895,7 @@ function once(fn) {
 
 module.exports = once;
 
-},{}],23:[function(_dereq_,module,exports){
+},{}],22:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -910,7 +934,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],24:[function(_dereq_,module,exports){
+},{}],23:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1001,7 +1025,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],25:[function(_dereq_,module,exports){
+},{}],24:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {

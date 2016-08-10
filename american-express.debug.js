@@ -51,8 +51,8 @@ AmericanExpress.prototype.getRewardsBalance = function (options, callback) {
 
   if (!options.nonce) {
     callback(new BraintreeError({
-      type: errors.NONCE_REQUIRED.type,
-      code: errors.NONCE_REQUIRED.code,
+      type: errors.AMEX_NONCE_REQUIRED.type,
+      code: errors.AMEX_NONCE_REQUIRED.code,
       message: 'getRewardsBalance must be called with a nonce.'
     }));
     return;
@@ -116,8 +116,8 @@ AmericanExpress.prototype.getExpressCheckoutProfile = function (options, callbac
 
   if (!options.nonce) {
     callback(new BraintreeError({
-      type: errors.NONCE_REQUIRED.type,
-      code: errors.NONCE_REQUIRED.code,
+      type: errors.AMEX_NONCE_REQUIRED.type,
+      code: errors.AMEX_NONCE_REQUIRED.code,
       message: 'getExpressCheckoutProfile must be called with a nonce.'
     }));
     return;
@@ -154,9 +154,9 @@ module.exports = AmericanExpress;
 var BraintreeError = _dereq_('../lib/error');
 
 module.exports = {
-  NONCE_REQUIRED: {
+  AMEX_NONCE_REQUIRED: {
     type: BraintreeError.types.MERCHANT,
-    code: 'NONCE_REQUIRED'
+    code: 'AMEX_NONCE_REQUIRED'
   },
   AMEX_NETWORK_ERROR: {
     type: BraintreeError.types.NETWORK,
@@ -175,7 +175,7 @@ var BraintreeError = _dereq_('../lib/error');
 var AmericanExpress = _dereq_('./american-express');
 var deferred = _dereq_('../lib/deferred');
 var sharedErrors = _dereq_('../errors');
-var VERSION = "3.0.0-beta.12";
+var VERSION = "3.0.0";
 
 /**
  * @static

@@ -522,7 +522,7 @@ var EventEmitter = _dereq_('../../lib/event-emitter');
 var injectFrame = _dereq_('./inject-frame');
 var analytics = _dereq_('../../lib/analytics');
 var whitelistedFields = constants.whitelistedFields;
-var VERSION = "3.0.0-beta.12";
+var VERSION = "3.0.0";
 var methods = _dereq_('../../lib/methods');
 var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
 var deferred = _dereq_('../../lib/deferred');
@@ -823,8 +823,8 @@ function HostedFields(options) {
 
     if (!constants.whitelistedFields.hasOwnProperty(key)) {
       throw new BraintreeError({
-        type: errors.INVALID_FIELD_KEY.type,
-        code: errors.INVALID_FIELD_KEY.code,
+        type: errors.HOSTED_FIELDS_INVALID_FIELD_KEY.type,
+        code: errors.HOSTED_FIELDS_INVALID_FIELD_KEY.code,
         message: '"' + key + '" is not a valid field.'
       });
     }
@@ -835,9 +835,9 @@ function HostedFields(options) {
 
     if (!container) {
       throw new BraintreeError({
-        type: errors.INVALID_FIELD_SELECTOR.type,
-        code: errors.INVALID_FIELD_SELECTOR.code,
-        message: errors.INVALID_FIELD_SELECTOR.message,
+        type: errors.HOSTED_FIELDS_INVALID_FIELD_SELECTOR.type,
+        code: errors.HOSTED_FIELDS_INVALID_FIELD_SELECTOR.code,
+        message: errors.HOSTED_FIELDS_INVALID_FIELD_SELECTOR.message,
         details: {
           fieldSelector: field.selector,
           fieldKey: key
@@ -845,9 +845,9 @@ function HostedFields(options) {
       });
     } else if (container.querySelector('iframe[name^="braintree-"]')) {
       throw new BraintreeError({
-        type: errors.FIELD_DUPLICATE_IFRAME.type,
-        code: errors.FIELD_DUPLICATE_IFRAME.code,
-        message: errors.FIELD_DUPLICATE_IFRAME.message,
+        type: errors.HOSTED_FIELDS_FIELD_DUPLICATE_IFRAME.type,
+        code: errors.HOSTED_FIELDS_FIELD_DUPLICATE_IFRAME.code,
+        message: errors.HOSTED_FIELDS_FIELD_DUPLICATE_IFRAME.message,
         details: {
           fieldSelector: field.selector,
           fieldKey: key
@@ -991,7 +991,22 @@ HostedFields.prototype.teardown = function (callback) {
  * @example <caption>Tokenize a card</caption>
  * hostedFieldsInstance.tokenize(function (tokenizeErr, payload) {
  *   if (tokenizeErr) {
- *     console.error(tokenizeErr);
+ *     switch (tokenizeErr.code) {
+ *       case 'HOSTED_FIELDS_FIELDS_EMPTY':
+ *         console.error('All fields are empty! Please fill out the form.');
+ *         break;
+ *       case 'HOSTED_FIELDS_FIELDS_INVALID':
+ *         console.error('Some fields are invalid:', tokenizeErr.details.invalidFieldKeys);
+ *         break;
+ *       case 'HOSTED_FIELDS_FAILED_TOKENIZATION':
+ *         console.error('Tokenization failed server side. Is the card valid?');
+ *         break;
+ *       case 'HOSTED_FIELDS_TOKENIZATION_NETWORK_ERROR':
+ *         console.error('Network error occurred when tokenizing.');
+ *         break;
+ *       default:
+ *         console.error('Something bad happened!', tokenizeErr);
+ *     }
  *   } else {
  *     console.log('Got nonce:', payload.nonce);
  *   }
@@ -1047,14 +1062,14 @@ HostedFields.prototype.addClass = function (field, classname, callback) {
 
   if (!whitelistedFields.hasOwnProperty(field)) {
     err = new BraintreeError({
-      type: errors.INVALID_FIELD.type,
-      code: errors.INVALID_FIELD.code,
+      type: errors.HOSTED_FIELDS_FIELD_INVALID.type,
+      code: errors.HOSTED_FIELDS_FIELD_INVALID.code,
       message: '"' + field + '" is not a valid field. You must use a valid field option when adding a class.'
     });
   } else if (!this._fields.hasOwnProperty(field)) {
     err = new BraintreeError({
-      type: errors.FIELD_NOT_PRESENT.type,
-      code: errors.FIELD_NOT_PRESENT.code,
+      type: errors.HOSTED_FIELDS_FIELD_NOT_PRESENT.type,
+      code: errors.HOSTED_FIELDS_FIELD_NOT_PRESENT.code,
       message: 'Cannot add class to "' + field + '" field because it is not part of the current Hosted Fields options.'
     });
   } else {
@@ -1091,14 +1106,14 @@ HostedFields.prototype.removeClass = function (field, classname, callback) {
 
   if (!whitelistedFields.hasOwnProperty(field)) {
     err = new BraintreeError({
-      type: errors.INVALID_FIELD.type,
-      code: errors.INVALID_FIELD.code,
+      type: errors.HOSTED_FIELDS_FIELD_INVALID.type,
+      code: errors.HOSTED_FIELDS_FIELD_INVALID.code,
       message: '"' + field + '" is not a valid field. You must use a valid field option when removing a class.'
     });
   } else if (!this._fields.hasOwnProperty(field)) {
     err = new BraintreeError({
-      type: errors.FIELD_NOT_PRESENT.type,
-      code: errors.FIELD_NOT_PRESENT.code,
+      type: errors.HOSTED_FIELDS_FIELD_NOT_PRESENT.type,
+      code: errors.HOSTED_FIELDS_FIELD_NOT_PRESENT.code,
       message: 'Cannot remove class from "' + field + '" field because it is not part of the current Hosted Fields options.'
     });
   } else {
@@ -1144,14 +1159,14 @@ HostedFields.prototype.setPlaceholder = function (field, placeholder, callback) 
 
   if (!whitelistedFields.hasOwnProperty(field)) {
     err = new BraintreeError({
-      type: errors.INVALID_FIELD.type,
-      code: errors.INVALID_FIELD.code,
+      type: errors.HOSTED_FIELDS_FIELD_INVALID.type,
+      code: errors.HOSTED_FIELDS_FIELD_INVALID.code,
       message: '"' + field + '" is not a valid field. You must use a valid field option when setting a placeholder.'
     });
   } else if (!this._fields.hasOwnProperty(field)) {
     err = new BraintreeError({
-      type: errors.FIELD_NOT_PRESENT.type,
-      code: errors.FIELD_NOT_PRESENT.code,
+      type: errors.HOSTED_FIELDS_FIELD_NOT_PRESENT.type,
+      code: errors.HOSTED_FIELDS_FIELD_NOT_PRESENT.code,
       message: 'Cannot set placeholder for "' + field + '" field because it is not part of the current Hosted Fields options.'
     });
   } else {
@@ -1187,14 +1202,14 @@ HostedFields.prototype.clear = function (field, callback) {
 
   if (!whitelistedFields.hasOwnProperty(field)) {
     err = new BraintreeError({
-      type: errors.INVALID_FIELD.type,
-      code: errors.INVALID_FIELD.code,
+      type: errors.HOSTED_FIELDS_FIELD_INVALID.type,
+      code: errors.HOSTED_FIELDS_FIELD_INVALID.code,
       message: '"' + field + '" is not a valid field. You must use a valid field option when clearing a field.'
     });
   } else if (!this._fields.hasOwnProperty(field)) {
     err = new BraintreeError({
-      type: errors.FIELD_NOT_PRESENT.type,
-      code: errors.FIELD_NOT_PRESENT.code,
+      type: errors.HOSTED_FIELDS_FIELD_NOT_PRESENT.type,
+      code: errors.HOSTED_FIELDS_FIELD_NOT_PRESENT.code,
       message: 'Cannot clear "' + field + '" field because it is not part of the current Hosted Fields options.'
     });
   } else {
@@ -1224,7 +1239,7 @@ HostedFields.prototype.getState = function () {
 
 module.exports = HostedFields;
 
-},{"../../errors":7,"../../lib/analytics":16,"../../lib/bus":20,"../../lib/classlist":21,"../../lib/constants":22,"../../lib/convert-methods-to-error":23,"../../lib/deferred":25,"../../lib/destructor":26,"../../lib/error":28,"../../lib/event-emitter":29,"../../lib/is-ios":30,"../../lib/methods":32,"../../lib/uuid":35,"../shared/constants":12,"../shared/errors":13,"../shared/find-parent-tags":14,"./compose-url":8,"./inject-frame":10,"credit-card-type":1,"iframer":3}],10:[function(_dereq_,module,exports){
+},{"../../errors":7,"../../lib/analytics":16,"../../lib/bus":20,"../../lib/classlist":21,"../../lib/constants":22,"../../lib/convert-methods-to-error":23,"../../lib/deferred":25,"../../lib/destructor":26,"../../lib/error":28,"../../lib/event-emitter":29,"../../lib/is-ios":30,"../../lib/methods":33,"../../lib/uuid":36,"../shared/constants":12,"../shared/errors":13,"../shared/find-parent-tags":14,"./compose-url":8,"./inject-frame":10,"credit-card-type":1,"iframer":3}],10:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function injectFrame(frame, container) {
@@ -1249,14 +1264,14 @@ var HostedFields = _dereq_('./external/hosted-fields');
 var deferred = _dereq_('../lib/deferred');
 var BraintreeError = _dereq_('../lib/error');
 var sharedErrors = _dereq_('../errors');
-var VERSION = "3.0.0-beta.12";
+var VERSION = "3.0.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
  * @typedef {object} field
  * @property {string} selector A CSS selector to find the container where the hosted field will be inserted.
  * @property {string} [placeholder] Will be used as the `placeholder` attribute of the input. If `placeholder` is not natively supported by the browser, it will be polyfilled.
- * @property {boolean} [formatInput=true] - Enable or disable automatic formatting on this field. Note: Input formatting does not work in Android Firefox, so input formatting is automatically disabled in that browser.
+ * @property {boolean} [formatInput=true] - Enable or disable automatic formatting on this field. Note: Input formatting does not work properly on Android and iOS, so input formatting is automatically disabled on those browsers.
  */
 
 /**
@@ -1354,7 +1369,7 @@ module.exports = {
 /* eslint-disable no-reserved-keys */
 
 var enumerate = _dereq_('../../lib/enumerate');
-var VERSION = "3.0.0-beta.12";
+var VERSION = "3.0.0";
 
 var constants = {
   VERSION: VERSION,
@@ -1461,46 +1476,46 @@ module.exports = constants;
 var BraintreeError = _dereq_('../../lib/error');
 
 module.exports = {
-  INVALID_FIELD_KEY: {
+  HOSTED_FIELDS_INVALID_FIELD_KEY: {
     type: BraintreeError.types.MERCHANT,
-    code: 'INVALID_FIELD_KEY'
+    code: 'HOSTED_FIELDS_INVALID_FIELD_KEY'
   },
-  INVALID_FIELD_SELECTOR: {
+  HOSTED_FIELDS_INVALID_FIELD_SELECTOR: {
     type: BraintreeError.types.MERCHANT,
-    code: 'INVALID_FIELD_SELECTOR',
+    code: 'HOSTED_FIELDS_INVALID_FIELD_SELECTOR',
     message: 'Selector does not reference a valid DOM node.'
   },
-  FIELD_DUPLICATE_IFRAME: {
+  HOSTED_FIELDS_FIELD_DUPLICATE_IFRAME: {
     type: BraintreeError.types.MERCHANT,
-    code: 'FIELD_DUPLICATE_IFRAME',
+    code: 'HOSTED_FIELDS_FIELD_DUPLICATE_IFRAME',
     message: 'Element already contains a Braintree iframe.'
   },
-  INVALID_FIELD: {
+  HOSTED_FIELDS_FIELD_INVALID: {
     type: BraintreeError.types.MERCHANT,
-    code: 'INVALID_FIELD'
+    code: 'HOSTED_FIELDS_FIELD_INVALID'
   },
-  FIELD_NOT_PRESENT: {
+  HOSTED_FIELDS_FIELD_NOT_PRESENT: {
     type: BraintreeError.types.MERCHANT,
-    code: 'FIELD_NOT_PRESENT'
+    code: 'HOSTED_FIELDS_FIELD_NOT_PRESENT'
   },
-  TOKENIZATION_NETWORK_ERROR: {
+  HOSTED_FIELDS_TOKENIZATION_NETWORK_ERROR: {
     type: BraintreeError.types.NETWORK,
-    code: 'TOKENIZATION_NETWORK_ERROR',
+    code: 'HOSTED_FIELDS_TOKENIZATION_NETWORK_ERROR',
     message: 'A tokenization network error occurred.'
   },
-  FAILED_HOSTED_FIELDS_TOKENIZATION: {
+  HOSTED_FIELDS_FAILED_TOKENIZATION: {
     type: BraintreeError.types.CUSTOMER,
-    code: 'FAILED_HOSTED_FIELDS_TOKENIZATION',
+    code: 'HOSTED_FIELDS_FAILED_TOKENIZATION',
     message: 'The supplied card data failed tokenization.'
   },
-  FIELDS_EMPTY: {
+  HOSTED_FIELDS_FIELDS_EMPTY: {
     type: BraintreeError.types.CUSTOMER,
-    code: 'FIELDS_EMPTY',
+    code: 'HOSTED_FIELDS_FIELDS_EMPTY',
     message: 'All fields are empty. Cannot tokenize empty card fields.'
   },
-  FIELDS_INVALID: {
+  HOSTED_FIELDS_FIELDS_INVALID: {
     type: BraintreeError.types.CUSTOMER,
-    code: 'FIELDS_INVALID',
+    code: 'HOSTED_FIELDS_FIELDS_INVALID',
     message: 'Some payment input fields are invalid. Cannot tokenize invalid card fields.'
   }
 };
@@ -1559,7 +1574,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":22,"./create-authorization-data":24,"./json-clone":31}],16:[function(_dereq_,module,exports){
+},{"./constants":22,"./create-authorization-data":24,"./json-clone":32}],16:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('./constants');
@@ -1634,10 +1649,10 @@ module.exports = function (functions, cb) {
   }
 };
 
-},{"./once":33}],18:[function(_dereq_,module,exports){
+},{"./once":34}],18:[function(_dereq_,module,exports){
 'use strict';
 
-var BT_ORIGIN_REGEX = /^https:\/\/([a-zA-Z0-9-]+\.)*(braintreepayments|braintreegateway|paypal)\.com(:\d{1,5})?$/;
+var isWhitelistedDomain = _dereq_('../is-whitelisted-domain');
 
 function checkOrigin(postMessageOrigin, merchantUrl) {
   var merchantOrigin, merchantHost;
@@ -1655,14 +1670,18 @@ function checkOrigin(postMessageOrigin, merchantUrl) {
 
   merchantOrigin = a.protocol + '//' + merchantHost;
 
-  return merchantOrigin === postMessageOrigin || BT_ORIGIN_REGEX.test(postMessageOrigin);
+  if (merchantOrigin === postMessageOrigin) { return true; }
+
+  a.href = postMessageOrigin;
+
+  return isWhitelistedDomain(postMessageOrigin) && a.hostname !== 'localhost';
 }
 
 module.exports = {
   checkOrigin: checkOrigin
 };
 
-},{}],19:[function(_dereq_,module,exports){
+},{"../is-whitelisted-domain":31}],19:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../enumerate');
@@ -1844,7 +1863,7 @@ module.exports = {
 },{}],22:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.0.0-beta.12";
+var VERSION = "3.0.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -1924,7 +1943,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":34}],25:[function(_dereq_,module,exports){
+},{"../lib/polyfill":35}],25:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (fn) {
@@ -2107,11 +2126,46 @@ module.exports = function isIos(userAgent) {
 },{}],31:[function(_dereq_,module,exports){
 'use strict';
 
+var parser;
+var legalHosts = {
+  'paypal.com': 1,
+  'braintreepayments.com': 1,
+  'braintreegateway.com': 1,
+  localhost: 1
+};
+
+/* eslint-enable no-undef,block-scoped-var */
+
+function stripSubdomains(domain) {
+  return domain.split('.').slice(-2).join('.');
+}
+
+function isWhitelistedDomain(url) {
+  var mainDomain;
+
+  url = url.toLowerCase();
+
+  if (!/^https:/.test(url)) {
+    return false;
+  }
+
+  parser = parser || document.createElement('a');
+  parser.href = url;
+  mainDomain = stripSubdomains(parser.hostname);
+
+  return legalHosts.hasOwnProperty(mainDomain);
+}
+
+module.exports = isWhitelistedDomain;
+
+},{}],32:[function(_dereq_,module,exports){
+'use strict';
+
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],32:[function(_dereq_,module,exports){
+},{}],33:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -2120,7 +2174,7 @@ module.exports = function (obj) {
   });
 };
 
-},{}],33:[function(_dereq_,module,exports){
+},{}],34:[function(_dereq_,module,exports){
 'use strict';
 
 function once(fn) {
@@ -2136,7 +2190,7 @@ function once(fn) {
 
 module.exports = once;
 
-},{}],34:[function(_dereq_,module,exports){
+},{}],35:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -2175,7 +2229,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],35:[function(_dereq_,module,exports){
+},{}],36:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {

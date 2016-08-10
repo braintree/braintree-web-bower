@@ -403,7 +403,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":13,"./create-authorization-data":15,"./json-clone":28}],8:[function(_dereq_,module,exports){
+},{"./constants":13,"./create-authorization-data":15,"./json-clone":29}],8:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('./constants');
@@ -445,7 +445,7 @@ function isOperaMini(ua) {
 
 function isAndroidFirefox(ua) {
   ua = ua || global.navigator.userAgent;
-  return ua.indexOf('Android') > -1 && ua.indexOf('Firefox') > -1;
+  return isAndroid(ua) && ua.indexOf('Firefox') > -1;
 }
 
 function getIEVersion(ua) {
@@ -462,22 +462,65 @@ function getIEVersion(ua) {
 
 function isHTTPS(protocol) {
   protocol = protocol || global.location.protocol;
-
   return protocol === 'https:';
+}
+
+function isIos(ua) {
+  ua = ua || global.navigator.userAgent;
+  return /iPhone|iPod|iPad/.test(ua);
+}
+
+function isAndroid(ua) {
+  ua = ua || global.navigator.userAgent;
+  return /Android/.test(ua);
+}
+
+function supportsPopups(ua) {
+  ua = ua || global.navigator.userAgent;
+  return !(isIosWebview(ua) || isAndroidWebview(ua) || isOperaMini(ua));
+}
+
+// The Google Search iOS app is technically a webview and doesn't support popups.
+function isGoogleSearchApp(ua) {
+  return /\bGSA\b/.test(ua);
+}
+
+function isIosWebview(ua) {
+  ua = ua || global.navigator.userAgent;
+  if (isIos(ua)) {
+    if (isGoogleSearchApp(ua)) {
+      return true;
+    }
+    return /.+AppleWebKit(?!.*Safari)/.test(ua);
+  }
+  return false;
+}
+
+function isAndroidWebview(ua) {
+  var androidWebviewRegExp = /Version\/[\d\.]+/;
+
+  ua = ua || global.navigator.userAgent;
+  if (isAndroid(ua)) {
+    return androidWebviewRegExp.test(ua) && !isOperaMini(ua);
+  }
+  return false;
 }
 
 module.exports = {
   isOperaMini: isOperaMini,
   isAndroidFirefox: isAndroidFirefox,
   getIEVersion: getIEVersion,
-  isHTTPS: isHTTPS
+  isHTTPS: isHTTPS,
+  isIos: isIos,
+  isAndroid: isAndroid,
+  supportsPopups: supportsPopups
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],10:[function(_dereq_,module,exports){
 'use strict';
 
-var BT_ORIGIN_REGEX = /^https:\/\/([a-zA-Z0-9-]+\.)*(braintreepayments|braintreegateway|paypal)\.com(:\d{1,5})?$/;
+var isWhitelistedDomain = _dereq_('../is-whitelisted-domain');
 
 function checkOrigin(postMessageOrigin, merchantUrl) {
   var merchantOrigin, merchantHost;
@@ -495,14 +538,18 @@ function checkOrigin(postMessageOrigin, merchantUrl) {
 
   merchantOrigin = a.protocol + '//' + merchantHost;
 
-  return merchantOrigin === postMessageOrigin || BT_ORIGIN_REGEX.test(postMessageOrigin);
+  if (merchantOrigin === postMessageOrigin) { return true; }
+
+  a.href = postMessageOrigin;
+
+  return isWhitelistedDomain(postMessageOrigin) && a.hostname !== 'localhost';
 }
 
 module.exports = {
   checkOrigin: checkOrigin
 };
 
-},{}],11:[function(_dereq_,module,exports){
+},{"../is-whitelisted-domain":28}],11:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../enumerate');
@@ -645,7 +692,7 @@ module.exports = BraintreeBus;
 },{"../error":18,"./check-origin":10,"./events":11,"framebus":1}],13:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.0.0-beta.12";
+var VERSION = "3.0.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -725,7 +772,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":31}],16:[function(_dereq_,module,exports){
+},{"../lib/polyfill":32}],16:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (fn) {
@@ -961,7 +1008,7 @@ FrameService.prototype._pollForPopupClose = function () {
     if (this.isFrameClosed()) {
       this._cleanupFrame();
       if (this._onCompleteCallback) {
-        this._onCompleteCallback(new BraintreeError(errors.FRAME_CLOSED));
+        this._onCompleteCallback(new BraintreeError(errors.FRAME_SERVICE_FRAME_CLOSED));
       }
     }
   }.bind(this), constants.POPUP_POLL_INTERVAL);
@@ -971,7 +1018,7 @@ FrameService.prototype._pollForPopupClose = function () {
 
 module.exports = FrameService;
 
-},{"../../bus":12,"../../error":18,"../../uuid":33,"../shared/constants":25,"../shared/errors":26,"../shared/events":27,"./popup":22,"iframer":2}],20:[function(_dereq_,module,exports){
+},{"../../bus":12,"../../error":18,"../../uuid":34,"../shared/constants":25,"../shared/errors":26,"../shared/events":27,"./popup":22,"iframer":2}],20:[function(_dereq_,module,exports){
 'use strict';
 
 var FrameService = _dereq_('./frame-service');
@@ -1056,7 +1103,6 @@ module.exports = {
 },{"../../shared/constants":25}],25:[function(_dereq_,module,exports){
 'use strict';
 
-// TODO: May be dependent on payment method in the future
 var POPUP_HEIGHT = 535;
 var POPUP_WIDTH = 450;
 
@@ -1075,9 +1121,9 @@ module.exports = {
 var BraintreeError = _dereq_('../../error');
 
 module.exports = {
-  FRAME_CLOSED: {
-    type: BraintreeError.types.CUSTOMER,
-    code: 'FRAME_CLOSED',
+  FRAME_SERVICE_FRAME_CLOSED: {
+    type: BraintreeError.types.INTERNAL,
+    code: 'FRAME_SERVICE_FRAME_CLOSED',
     message: 'Frame closed before tokenization could occur.'
   }
 };
@@ -1095,11 +1141,46 @@ module.exports = enumerate([
 },{"../../enumerate":17}],28:[function(_dereq_,module,exports){
 'use strict';
 
+var parser;
+var legalHosts = {
+  'paypal.com': 1,
+  'braintreepayments.com': 1,
+  'braintreegateway.com': 1,
+  localhost: 1
+};
+
+/* eslint-enable no-undef,block-scoped-var */
+
+function stripSubdomains(domain) {
+  return domain.split('.').slice(-2).join('.');
+}
+
+function isWhitelistedDomain(url) {
+  var mainDomain;
+
+  url = url.toLowerCase();
+
+  if (!/^https:/.test(url)) {
+    return false;
+  }
+
+  parser = parser || document.createElement('a');
+  parser.href = url;
+  mainDomain = stripSubdomains(parser.hostname);
+
+  return legalHosts.hasOwnProperty(mainDomain);
+}
+
+module.exports = isWhitelistedDomain;
+
+},{}],29:[function(_dereq_,module,exports){
+'use strict';
+
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],29:[function(_dereq_,module,exports){
+},{}],30:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -1108,7 +1189,7 @@ module.exports = function (obj) {
   });
 };
 
-},{}],30:[function(_dereq_,module,exports){
+},{}],31:[function(_dereq_,module,exports){
 'use strict';
 
 function once(fn) {
@@ -1124,7 +1205,7 @@ function once(fn) {
 
 module.exports = once;
 
-},{}],31:[function(_dereq_,module,exports){
+},{}],32:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1163,7 +1244,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],32:[function(_dereq_,module,exports){
+},{}],33:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1254,7 +1335,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],33:[function(_dereq_,module,exports){
+},{}],34:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {
@@ -1268,21 +1349,19 @@ function uuid() {
 
 module.exports = uuid;
 
-},{}],34:[function(_dereq_,module,exports){
+},{}],35:[function(_dereq_,module,exports){
 'use strict';
 
 var frameService = _dereq_('../../lib/frame-service/external');
-var frameServiceErrors = _dereq_('../../lib/frame-service/shared/errors');
 var BraintreeError = _dereq_('../../lib/error');
 var once = _dereq_('../../lib/once');
-var VERSION = "3.0.0-beta.12";
+var VERSION = "3.0.0";
 var constants = _dereq_('../shared/constants');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
 var methods = _dereq_('../../lib/methods');
 var deferred = _dereq_('../../lib/deferred');
 var errors = _dereq_('../shared/errors');
-var getCountry = _dereq_('../shared/get-country');
 var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
 var querystring = _dereq_('../../lib/querystring');
 var sharedErrors = _dereq_('../../errors');
@@ -1352,10 +1431,10 @@ PayPal.prototype._initialize = function (callback) {
 };
 
 /**
- * Launches the PayPal login flow and returns a nonce payload.
+ * Launches the PayPal login flow and returns a nonce payload. Only one PayPal login flow should be active at a time. One way to achieve this is to disable your PayPal button while the flow is open.
  * @public
  * @param {object} options All tokenization options for the PayPal component.
- * @param {string} options.flow Set to 'checkout' for one-time payment flow, or 'vault' for Vault flow.
+ * @param {string} options.flow Set to 'checkout' for one-time payment flow, or 'vault' for Vault flow. If 'vault' is used with a client token generated with a customer id, the PayPal account will be added to that customer as a saved payment method.
  * @param {string} [options.intent=authorize]
  * Checkout flows only.
  * * `authorize` - Submits the transaction for authorization but not settlement.
@@ -1370,7 +1449,7 @@ PayPal.prototype._initialize = function (callback) {
  * @param {string|number} [options.amount] The amount of the transaction. Required when using the Checkout flow.
  * @param {string} [options.currency] The currency code of the amount, such as 'USD'. Required when using the Checkout flow.
  * @param {string} [options.displayName] The merchant name displayed inside of the PayPal lightbox; defaults to the company name on your Braintree account
- * @param {string} [options.locale=en_us] Use this option to change the language, links, and terminology used in the PayPal flow to suit the country and language of your customer.
+ * @param {string} [options.locale=en_US] Use this option to change the language, links, and terminology used in the PayPal flow to suit the country and language of your customer.
  * @param {boolean} [options.enableShippingAddress=false] Returns a shipping address object in {@link PayPal#tokenize}.
  * @param {object} [options.shippingAddressOverride] Allows you to pass a shipping address you have already collected into the PayPal payment flow.
  * @param {string} options.shippingAddressOverride.line1 Street address.
@@ -1386,17 +1465,36 @@ PayPal.prototype._initialize = function (callback) {
  * @param {callback} callback The second argument, <code>data</code>, is a {@link PayPal~tokenizePayload|tokenizePayload}.
  * @example
  * button.addEventListener('click', function () {
+ *   // Disable the button so that we don't attempt to open multiple popups.
+ *   button.setAttribute('disabled', 'disabled');
+ *
  *   // Because PayPal tokenization opens a popup, this must be called
  *   // as a result of a user action, such as a button click.
  *   paypalInstance.tokenize({
  *     flow: 'vault' // Required
  *     // Any other tokenization options
  *   }, function (tokenizeErr, payload) {
+ *     button.removeAttribute('disabled');
+ *
  *     if (tokenizeErr) {
  *       // Handle tokenization errors or premature flow closure
- *       return;
+ *
+ *       switch (tokenizeErr.code) {
+ *         case 'PAYPAL_POPUP_CLOSED':
+ *           console.error('Customer closed PayPal popup.');
+ *           break;
+ *         case 'PAYPAL_ACCOUNT_TOKENIZATION_FAILED':
+ *           console.error('PayPal tokenization failed. See details:', tokenizeErr.details);
+ *           break;
+ *         case 'PAYPAL_FLOW_FAILED':
+ *           console.error('Unable to initialize PayPal flow. Are your options correct?', tokenizeErr.details);
+ *           break;
+ *         default:
+ *           console.error('Error!', tokenizeErr);
+ *       }
+ *     } else {
+ *       // Submit payload.nonce to your server
  *     }
- *     // Submit payload.nonce to your server
  *   });
  * });
  * @returns {PayPal~tokenizeReturn} A handle to close the PayPal checkout frame.
@@ -1417,7 +1515,7 @@ PayPal.prototype.tokenize = function (options, callback) {
   if (this._authorizationInProgress) {
     analytics.sendEvent(client, 'web.paypal.tokenization.error.already-opened');
 
-    callback(new BraintreeError(errors.TOKENIZATION_REQUEST_ACTIVE));
+    callback(new BraintreeError(errors.PAYPAL_TOKENIZATION_REQUEST_ACTIVE));
   } else {
     this._authorizationInProgress = true;
 
@@ -1442,11 +1540,11 @@ PayPal.prototype._createFrameServiceCallback = function (options, callback) {
     this._authorizationInProgress = false;
 
     if (err) {
-      if (err.code === frameServiceErrors.FRAME_CLOSED.code) {
+      if (err.code === 'FRAME_SERVICE_FRAME_CLOSED') {
         analytics.sendEvent(client, 'web.paypal.tokenization.closed.by-user');
       }
 
-      callback(new BraintreeError(err));
+      callback(new BraintreeError(errors.PAYPAL_POPUP_CLOSED));
     } else {
       this._tokenizePayPal(options, params, callback);
     }
@@ -1464,10 +1562,12 @@ PayPal.prototype._tokenizePayPal = function (options, params, callback) {
     if (err) {
       analytics.sendEvent(client, 'web.paypal.tokenization.failed');
       callback(err instanceof BraintreeError ? err : new BraintreeError({
-        type: errors.ACCOUNT_TOKENIZATION_FAILED.type,
-        code: errors.ACCOUNT_TOKENIZATION_FAILED.code,
-        message: errors.ACCOUNT_TOKENIZATION_FAILED.message,
-        details: err
+        type: errors.PAYPAL_ACCOUNT_TOKENIZATION_FAILED.type,
+        code: errors.PAYPAL_ACCOUNT_TOKENIZATION_FAILED.code,
+        message: errors.PAYPAL_ACCOUNT_TOKENIZATION_FAILED.message,
+        details: {
+          originalError: err
+        }
       }));
     } else {
       analytics.sendEvent(client, 'web.paypal.tokenization.success');
@@ -1500,7 +1600,12 @@ PayPal.prototype._formatTokenizePayload = function (response) {
 PayPal.prototype._formatTokenizeData = function (options, params) {
   var gatewayConfiguration = this._client.getConfiguration().gatewayConfiguration;
   var data = {
-    paypalAccount: {correlationId: this._frameService._serviceId}
+    paypalAccount: {
+      correlationId: this._frameService._serviceId,
+      options: {
+        validate: options.flow === 'vault'
+      }
+    }
   };
 
   if (params.ba_token) {
@@ -1535,16 +1640,29 @@ PayPal.prototype._navigateFrameToAuth = function (options, callback) {
     endpoint: endpoint,
     method: 'post',
     data: this._formatPaymentResourceData(options)
-  }, function (err, response) {
+  }, function (err, response, status) {
     var redirectUrl;
 
     if (err) {
-      callback(err instanceof BraintreeError ? err : new BraintreeError({
-        type: errors.PAYPAL_FLOW_FAILED.type,
-        code: errors.PAYPAL_FLOW_FAILED.code,
-        message: errors.PAYPAL_FLOW_FAILED.message,
-        details: err
-      }));
+      if (status === 422) {
+        callback(new BraintreeError({
+          type: errors.PAYPAL_INVALID_PAYMENT_OPTION.type,
+          code: errors.PAYPAL_INVALID_PAYMENT_OPTION.code,
+          message: errors.PAYPAL_INVALID_PAYMENT_OPTION.message,
+          details: {
+            originalError: err
+          }
+        }));
+      } else {
+        callback(err instanceof BraintreeError ? err : new BraintreeError({
+          type: errors.PAYPAL_FLOW_FAILED.type,
+          code: errors.PAYPAL_FLOW_FAILED.code,
+          message: errors.PAYPAL_FLOW_FAILED.message,
+          details: {
+            originalError: err
+          }
+        }));
+      }
       this._frameService.close();
     } else {
       if (options.flow === 'checkout') {
@@ -1572,14 +1690,14 @@ PayPal.prototype._formatPaymentResourceData = function (options) {
     correlationId: serviceId,
     experienceProfile: {
       brandName: options.displayName || gatewayConfiguration.paypal.displayName,
-      localeCode: getCountry(options.locale),
+      localeCode: options.locale,
       noShipping: (!options.enableShippingAddress).toString(),
       addressOverride: options.shippingAddressEditable === false
     }
   };
 
   if (options.flow === 'checkout') {
-    paymentResource.amount = parseFloat(options.amount).toFixed(2);
+    paymentResource.amount = options.amount;
     paymentResource.currencyIsoCode = options.currency;
     paymentResource.offerPaypalCredit = options.offerCredit === true;
 
@@ -1624,7 +1742,7 @@ PayPal.prototype.teardown = function (callback) {
 
 module.exports = PayPal;
 
-},{"../../errors":6,"../../lib/analytics":8,"../../lib/constants":13,"../../lib/convert-methods-to-error":14,"../../lib/deferred":16,"../../lib/error":18,"../../lib/frame-service/external":20,"../../lib/frame-service/shared/errors":26,"../../lib/methods":29,"../../lib/once":30,"../../lib/querystring":32,"../shared/constants":36,"../shared/errors":37,"../shared/get-country":38}],35:[function(_dereq_,module,exports){
+},{"../../errors":6,"../../lib/analytics":8,"../../lib/constants":13,"../../lib/convert-methods-to-error":14,"../../lib/deferred":16,"../../lib/error":18,"../../lib/frame-service/external":20,"../../lib/methods":30,"../../lib/once":31,"../../lib/querystring":33,"../shared/constants":37,"../shared/errors":38}],36:[function(_dereq_,module,exports){
 'use strict';
 /** @module braintree-web/paypal */
 
@@ -1635,7 +1753,7 @@ var deferred = _dereq_('../lib/deferred');
 var errors = _dereq_('./shared/errors');
 var PayPal = _dereq_('./external/paypal');
 var sharedErrors = _dereq_('../errors');
-var VERSION = "3.0.0-beta.12";
+var VERSION = "3.0.0";
 
 /**
  * @static
@@ -1648,7 +1766,11 @@ var VERSION = "3.0.0-beta.12";
  *   client: clientInstance
  * }, function (createErr, paypalInstance) {
  *   if (createErr) {
- *     // Handle any creation errors here
+ *     if (createErr.code === 'PAYPAL_BROWSER_NOT_SUPPORTED') {
+ *       console.error('This browser is not supported.');
+ *     } else {
+ *       console.error('Error!', createErr);
+ *     }
  *   }
  * }
  * @returns {void}
@@ -1692,8 +1814,8 @@ function create(options, callback) {
     return;
   }
 
-  if (!_isBrowserSupported()) {
-    callback(new BraintreeError(errors.BROWSER_NOT_SUPPORTED));
+  if (!browserDetection.supportsPopups()) {
+    callback(new BraintreeError(errors.PAYPAL_BROWSER_NOT_SUPPORTED));
     return;
   }
 
@@ -1705,10 +1827,6 @@ function create(options, callback) {
   });
 }
 
-function _isBrowserSupported() {
-  return !browserDetection.isOperaMini();
-}
-
 module.exports = {
   create: create,
   /**
@@ -1718,7 +1836,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../errors":6,"../lib/analytics":8,"../lib/browser-detection":9,"../lib/deferred":16,"../lib/error":18,"./external/paypal":34,"./shared/errors":37}],36:[function(_dereq_,module,exports){
+},{"../errors":6,"../lib/analytics":8,"../lib/browser-detection":9,"../lib/deferred":16,"../lib/error":18,"./external/paypal":35,"./shared/errors":38}],37:[function(_dereq_,module,exports){
 'use strict';
 
 var POPUP_HEIGHT = 535;
@@ -1733,7 +1851,7 @@ module.exports = {
   POPUP_POLL_INTERVAL: 100
 };
 
-},{}],37:[function(_dereq_,module,exports){
+},{}],38:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../lib/error');
@@ -1744,14 +1862,14 @@ module.exports = {
     code: 'PAYPAL_NOT_ENABLED',
     message: 'PayPal is not enabled for this merchant.'
   },
-  TOKENIZATION_REQUEST_ACTIVE: {
+  PAYPAL_TOKENIZATION_REQUEST_ACTIVE: {
     type: BraintreeError.types.MERCHANT,
-    code: 'TOKENIZATION_REQUEST_ACTIVE',
+    code: 'PAYPAL_TOKENIZATION_REQUEST_ACTIVE',
     message: 'Another tokenization request is active.'
   },
-  ACCOUNT_TOKENIZATION_FAILED: {
+  PAYPAL_ACCOUNT_TOKENIZATION_FAILED: {
     type: BraintreeError.types.NETWORK,
-    code: 'ACCOUNT_TOKENIZATION_FAILED',
+    code: 'PAYPAL_ACCOUNT_TOKENIZATION_FAILED',
     message: 'Could not tokenize user\'s PayPal account.'
   },
   PAYPAL_FLOW_FAILED: {
@@ -1764,62 +1882,22 @@ module.exports = {
     code: 'PAYPAL_FLOW_OPTION_REQUIRED',
     message: 'PayPal flow property is invalid or missing.'
   },
-  BROWSER_NOT_SUPPORTED: {
+  PAYPAL_BROWSER_NOT_SUPPORTED: {
     type: BraintreeError.types.CUSTOMER,
-    code: 'BROWSER_NOT_SUPPORTED',
+    code: 'PAYPAL_BROWSER_NOT_SUPPORTED',
     message: 'Browser is not supported.'
+  },
+  PAYPAL_POPUP_CLOSED: {
+    type: BraintreeError.types.CUSTOMER,
+    code: 'PAYPAL_POPUP_CLOSED',
+    message: 'Customer closed PayPal popup before authorizing.'
+  },
+  PAYPAL_INVALID_PAYMENT_OPTION: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'PAYPAL_INVALID_PAYMENT_OPTION',
+    message: 'PayPal payment options are invalid.'
   }
 };
 
-},{"../../lib/error":18}],38:[function(_dereq_,module,exports){
-'use strict';
-
-var lookupTable = {
-  us: 'en_us',
-  gb: 'en_uk',
-  uk: 'en_uk',
-  de: 'de_de',
-  fr: 'fr_fr',
-  it: 'it_it',
-  es: 'es_es',
-  ca: 'en_ca',
-  au: 'en_au',
-  at: 'de_de',
-  be: 'en_us',
-  ch: 'de_de',
-  dk: 'da_dk',
-  nl: 'nl_nl',
-  no: 'no_no',
-  pl: 'pl_pl',
-  se: 'sv_se',
-  tr: 'tr_tr',
-  bg: 'en_us',
-  cy: 'en_us',
-  hr: 'en_us',
-  is: 'en_us',
-  kh: 'en_us',
-  mt: 'en_us',
-  my: 'en_us',
-  ru: 'ru_ru'
-};
-
-function getCountry(code) {
-  var country = code ? code.toLowerCase().replace(/-/g, '_') : 'us';
-
-  if (country.indexOf('_') !== -1) {
-    country = country.split('_')[1];
-  }
-
-  country = lookupTable[country] ? country : 'us';
-
-  if (country === 'uk') {
-    country = 'gb';
-  }
-
-  return country;
-}
-
-module.exports = getCountry;
-
-},{}]},{},[35])(35)
+},{"../../lib/error":18}]},{},[36])(36)
 });

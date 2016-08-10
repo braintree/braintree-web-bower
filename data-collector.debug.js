@@ -62,23 +62,23 @@ sjcl.misc.cachedPbkdf2=function(a,b){var c=sjcl.misc.ca,d;b=b||{};d=b.iter||1E3;
 var BraintreeError = _dereq_('../lib/error');
 
 module.exports = {
-  KOUNT_NOT_ENABLED: {
+  DATA_COLLECTOR_KOUNT_NOT_ENABLED: {
     type: BraintreeError.types.MERCHANT,
-    code: 'KOUNT_NOT_ENABLED',
+    code: 'DATA_COLLECTOR_KOUNT_NOT_ENABLED',
     message: 'Kount is not enabled for this merchant.'
   },
-  KOUNT_ERROR: {
+  DATA_COLLECTOR_KOUNT_ERROR: {
     type: BraintreeError.types.MERCHANT,
-    code: 'KOUNT_ERROR'
+    code: 'DATA_COLLECTOR_KOUNT_ERROR'
   },
-  PAYPAL_NOT_ENABLED: {
+  DATA_COLLECTOR_PAYPAL_NOT_ENABLED: {
     type: BraintreeError.types.MERCHANT,
-    code: 'PAYPAL_NOT_ENABLED',
+    code: 'DATA_COLLECTOR_PAYPAL_NOT_ENABLED',
     message: 'PayPal is not enabled for this merchant.'
   },
-  REQUIRES_CREATE_OPTIONS: {
+  DATA_COLLECTOR_REQUIRES_CREATE_OPTIONS: {
     type: BraintreeError.types.MERCHANT,
-    code: 'REQUIRES_CREATE_OPTIONS',
+    code: 'DATA_COLLECTOR_REQUIRES_CREATE_OPTIONS',
     message: 'Data Collector must be created with Kount and/or PayPal.'
   }
 };
@@ -197,7 +197,7 @@ var BraintreeError = _dereq_('../lib/error');
 var methods = _dereq_('../lib/methods');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
 var deferred = _dereq_('../lib/deferred');
-var VERSION = "3.0.0-beta.12";
+var VERSION = "3.0.0";
 var sharedErrors = _dereq_('../errors');
 var errors = _dereq_('./errors');
 
@@ -289,7 +289,7 @@ function create(options, callback) {
 
   if (options.kount === true) {
     if (!config.gatewayConfiguration.kount) {
-      callback(new BraintreeError(errors.KOUNT_NOT_ENABLED));
+      callback(new BraintreeError(errors.DATA_COLLECTOR_KOUNT_NOT_ENABLED));
       return;
     }
 
@@ -300,8 +300,8 @@ function create(options, callback) {
       });
     } catch (err) {
       callback(new BraintreeError({
-        type: errors.KOUNT_ERROR.type,
-        code: errors.KOUNT_ERROR.code,
+        type: errors.DATA_COLLECTOR_KOUNT_ERROR.type,
+        code: errors.DATA_COLLECTOR_KOUNT_ERROR.code,
         message: err.message
       }));
       return;
@@ -315,7 +315,7 @@ function create(options, callback) {
 
   if (options.paypal === true) {
     if (config.gatewayConfiguration.paypalEnabled !== true) {
-      callback(new BraintreeError(errors.PAYPAL_NOT_ENABLED));
+      callback(new BraintreeError(errors.DATA_COLLECTOR_PAYPAL_NOT_ENABLED));
       return;
     }
 
@@ -325,7 +325,7 @@ function create(options, callback) {
   }
 
   if (instances.length === 0) {
-    callback(new BraintreeError(errors.REQUIRES_CREATE_OPTIONS));
+    callback(new BraintreeError(errors.DATA_COLLECTOR_REQUIRES_CREATE_OPTIONS));
     return;
   }
 
