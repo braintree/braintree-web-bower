@@ -10,7 +10,7 @@ var sharedErrors = _dereq_('../errors');
  * @class
  * @param {object} options Options
  * @description <strong>You cannot use this constructor directly. Use {@link module:braintree-web/american-express.create|braintree.american-express.create} instead.</strong>
- * @classdesc This class allows you use a nonce to interact with American Express Checkout.
+ * @classdesc This class allows you use a nonce to interact with American Express Checkout. To accept American Express cards, use Hosted Fields.
  */
 function AmericanExpress(options) {
   this._client = options.client;
@@ -175,7 +175,7 @@ var BraintreeError = _dereq_('../lib/error');
 var AmericanExpress = _dereq_('./american-express');
 var deferred = _dereq_('../lib/deferred');
 var sharedErrors = _dereq_('../errors');
-var VERSION = "3.0.0";
+var VERSION = "3.0.1";
 
 /**
  * @static

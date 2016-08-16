@@ -692,7 +692,7 @@ module.exports = BraintreeBus;
 },{"../error":18,"./check-origin":10,"./events":11,"framebus":1}],13:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.0.0";
+var VERSION = "3.0.1";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -1355,7 +1355,7 @@ module.exports = uuid;
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/error');
 var once = _dereq_('../../lib/once');
-var VERSION = "3.0.0";
+var VERSION = "3.0.1";
 var constants = _dereq_('../shared/constants');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
@@ -1598,12 +1598,14 @@ PayPal.prototype._formatTokenizePayload = function (response) {
 };
 
 PayPal.prototype._formatTokenizeData = function (options, params) {
-  var gatewayConfiguration = this._client.getConfiguration().gatewayConfiguration;
+  var clientConfiguration = this._client.getConfiguration();
+  var gatewayConfiguration = clientConfiguration.gatewayConfiguration;
+  var isTokenizationKey = clientConfiguration.authorizationType === 'TOKENIZATION_KEY';
   var data = {
     paypalAccount: {
       correlationId: this._frameService._serviceId,
       options: {
-        validate: options.flow === 'vault'
+        validate: options.flow === 'vault' && !isTokenizationKey
       }
     }
   };
@@ -1753,7 +1755,7 @@ var deferred = _dereq_('../lib/deferred');
 var errors = _dereq_('./shared/errors');
 var PayPal = _dereq_('./external/paypal');
 var sharedErrors = _dereq_('../errors');
-var VERSION = "3.0.0";
+var VERSION = "3.0.1";
 
 /**
  * @static

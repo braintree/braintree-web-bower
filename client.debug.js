@@ -258,6 +258,7 @@ function getConfiguration(options, callback) {
 
     configuration = {
       authorization: options.authorization,
+      authorizationType: attrs.tokenizationKey ? 'TOKENIZATION_KEY' : 'CLIENT_TOKEN',
       analyticsMetadata: analyticsMetadata,
       gatewayConfiguration: response
     };
@@ -277,7 +278,7 @@ module.exports = {
 var BraintreeError = _dereq_('../lib/error');
 var Client = _dereq_('./client');
 var getConfiguration = _dereq_('./get-configuration').getConfiguration;
-var packageVersion = "3.0.0";
+var packageVersion = "3.0.1";
 var deferred = _dereq_('../lib/deferred');
 var sharedErrors = _dereq_('../errors');
 
@@ -670,7 +671,7 @@ module.exports = addMetadata;
 },{"./constants":14,"./create-authorization-data":15,"./json-clone":20}],14:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.0.0";
+var VERSION = "3.0.1";
 var PLATFORM = 'web';
 
 module.exports = {

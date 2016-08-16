@@ -17,5 +17,5 @@ module.exports = {
     americanExpress: americanExpress,
     unionpay: unionpay,
     applePay: applePay,
-    VERSION: '3.0.0'
+    VERSION: '3.0.1'
 };

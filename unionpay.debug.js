@@ -634,7 +634,7 @@ module.exports = BraintreeBus;
 },{"../error":18,"./check-origin":10,"./events":11,"framebus":1}],13:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.0.0";
+var VERSION = "3.0.1";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -936,7 +936,7 @@ var analytics = _dereq_('../lib/analytics');
 var deferred = _dereq_('../lib/deferred');
 var errors = _dereq_('./shared/errors');
 var sharedErrors = _dereq_('../errors');
-var VERSION = "3.0.0";
+var VERSION = "3.0.1";
 
 /**
 * @static
@@ -1103,7 +1103,7 @@ var errors = _dereq_('./errors');
 var events = constants.events;
 var iFramer = _dereq_('iframer');
 var methods = _dereq_('../../lib/methods');
-var VERSION = "3.0.0";
+var VERSION = "3.0.1";
 var uuid = _dereq_('../../lib/uuid');
 
 /**
