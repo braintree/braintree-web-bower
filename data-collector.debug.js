@@ -197,7 +197,7 @@ var BraintreeError = _dereq_('../lib/error');
 var methods = _dereq_('../lib/methods');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
 var deferred = _dereq_('../lib/deferred');
-var VERSION = "3.0.1";
+var VERSION = "3.0.2";
 var sharedErrors = _dereq_('../errors');
 var errors = _dereq_('./errors');
 

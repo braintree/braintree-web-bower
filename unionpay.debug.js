@@ -369,7 +369,7 @@ module.exports = {
   }
 };
 
-},{"./lib/error":18}],7:[function(_dereq_,module,exports){
+},{"./lib/error":17}],7:[function(_dereq_,module,exports){
 'use strict';
 
 var createAuthorizationData = _dereq_('./create-authorization-data');
@@ -403,7 +403,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":13,"./create-authorization-data":15,"./json-clone":20}],8:[function(_dereq_,module,exports){
+},{"./constants":12,"./create-authorization-data":14,"./json-clone":19}],8:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('./constants');
@@ -434,32 +434,7 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":7,"./constants":13}],9:[function(_dereq_,module,exports){
-'use strict';
-
-var assignNormalized = typeof Object.assign === 'function' ? Object.assign : assignPolyfill;
-
-function assignPolyfill(destination) {
-  var i, source, key;
-
-  for (i = 1; i < arguments.length; i++) {
-    source = arguments[i];
-    for (key in source) {
-      if (source.hasOwnProperty(key)) {
-        destination[key] = source[key];
-      }
-    }
-  }
-
-  return destination;
-}
-
-module.exports = {
-  assign: assignNormalized,
-  _assign: assignPolyfill
-};
-
-},{}],10:[function(_dereq_,module,exports){
+},{"./add-metadata":7,"./constants":12}],9:[function(_dereq_,module,exports){
 'use strict';
 
 var isWhitelistedDomain = _dereq_('../is-whitelisted-domain');
@@ -484,14 +459,14 @@ function checkOrigin(postMessageOrigin, merchantUrl) {
 
   a.href = postMessageOrigin;
 
-  return isWhitelistedDomain(postMessageOrigin) && a.hostname !== 'localhost';
+  return isWhitelistedDomain(postMessageOrigin);
 }
 
 module.exports = {
   checkOrigin: checkOrigin
 };
 
-},{"../is-whitelisted-domain":19}],11:[function(_dereq_,module,exports){
+},{"../is-whitelisted-domain":18}],10:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../enumerate');
@@ -500,7 +475,7 @@ module.exports = enumerate([
   'CONFIGURATION_REQUEST'
 ], 'bus:');
 
-},{"../enumerate":17}],12:[function(_dereq_,module,exports){
+},{"../enumerate":16}],11:[function(_dereq_,module,exports){
 'use strict';
 
 var bus = _dereq_('framebus');
@@ -631,10 +606,10 @@ BraintreeBus.events = events;
 
 module.exports = BraintreeBus;
 
-},{"../error":18,"./check-origin":10,"./events":11,"framebus":1}],13:[function(_dereq_,module,exports){
+},{"../error":17,"./check-origin":9,"./events":10,"framebus":1}],12:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.0.1";
+var VERSION = "3.0.2";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -647,7 +622,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],14:[function(_dereq_,module,exports){
+},{}],13:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./error');
@@ -665,7 +640,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"../errors":6,"./error":18}],15:[function(_dereq_,module,exports){
+},{"../errors":6,"./error":17}],14:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/polyfill').atob;
@@ -714,7 +689,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":22}],16:[function(_dereq_,module,exports){
+},{"../lib/polyfill":21}],15:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (fn) {
@@ -728,7 +703,7 @@ module.exports = function (fn) {
   };
 };
 
-},{}],17:[function(_dereq_,module,exports){
+},{}],16:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -742,7 +717,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],18:[function(_dereq_,module,exports){
+},{}],17:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -819,15 +794,14 @@ BraintreeError.types = enumerate([
 
 module.exports = BraintreeError;
 
-},{"./enumerate":17}],19:[function(_dereq_,module,exports){
+},{"./enumerate":16}],18:[function(_dereq_,module,exports){
 'use strict';
 
 var parser;
 var legalHosts = {
   'paypal.com': 1,
   'braintreepayments.com': 1,
-  'braintreegateway.com': 1,
-  localhost: 1
+  'braintreegateway.com': 1
 };
 
 /* eslint-enable no-undef,block-scoped-var */
@@ -854,14 +828,14 @@ function isWhitelistedDomain(url) {
 
 module.exports = isWhitelistedDomain;
 
-},{}],20:[function(_dereq_,module,exports){
+},{}],19:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],21:[function(_dereq_,module,exports){
+},{}],20:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -870,7 +844,7 @@ module.exports = function (obj) {
   });
 };
 
-},{}],22:[function(_dereq_,module,exports){
+},{}],21:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -909,7 +883,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],23:[function(_dereq_,module,exports){
+},{}],22:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {
@@ -923,7 +897,7 @@ function uuid() {
 
 module.exports = uuid;
 
-},{}],24:[function(_dereq_,module,exports){
+},{}],23:[function(_dereq_,module,exports){
 'use strict';
 /**
  * @module braintree-web/unionpay
@@ -936,7 +910,7 @@ var analytics = _dereq_('../lib/analytics');
 var deferred = _dereq_('../lib/deferred');
 var errors = _dereq_('./shared/errors');
 var sharedErrors = _dereq_('../errors');
-var VERSION = "3.0.1";
+var VERSION = "3.0.2";
 
 /**
 * @static
@@ -1007,7 +981,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../errors":6,"../lib/analytics":8,"../lib/deferred":16,"../lib/error":18,"./shared/errors":26,"./shared/unionpay":27}],25:[function(_dereq_,module,exports){
+},{"../errors":6,"../lib/analytics":8,"../lib/deferred":15,"../lib/error":17,"./shared/errors":25,"./shared/unionpay":26}],24:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../../lib/enumerate');
@@ -1021,7 +995,7 @@ module.exports = {
   HOSTED_FIELDS_FRAME_NAME: 'braintreeunionpayhostedfields'
 };
 
-},{"../../lib/enumerate":17}],26:[function(_dereq_,module,exports){
+},{"../../lib/enumerate":16}],25:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../lib/error');
@@ -1089,11 +1063,10 @@ module.exports = {
   }
 };
 
-},{"../../lib/error":18}],27:[function(_dereq_,module,exports){
+},{"../../lib/error":17}],26:[function(_dereq_,module,exports){
 'use strict';
 
 var analytics = _dereq_('../../lib/analytics');
-var assign = _dereq_('../../lib/assign').assign;
 var BraintreeError = _dereq_('../../lib/error');
 var Bus = _dereq_('../../lib/bus');
 var constants = _dereq_('./constants');
@@ -1103,7 +1076,7 @@ var errors = _dereq_('./errors');
 var events = constants.events;
 var iFramer = _dereq_('iframer');
 var methods = _dereq_('../../lib/methods');
-var VERSION = "3.0.1";
+var VERSION = "3.0.2";
 var uuid = _dereq_('../../lib/uuid');
 
 /**
@@ -1216,16 +1189,21 @@ UnionPay.prototype.fetchCapabilities = function (options, callback) {
           number: cardNumber
         }
       }
-    }, function (err, response) {
+    }, function (err, response, status) {
       if (err) {
-        callback(new BraintreeError({
-          type: errors.UNIONPAY_FETCH_CAPABILITIES_NETWORK_ERROR.type,
-          code: errors.UNIONPAY_FETCH_CAPABILITIES_NETWORK_ERROR.code,
-          message: errors.UNIONPAY_FETCH_CAPABILITIES_NETWORK_ERROR.message,
-          details: {
-            originalError: err
-          }
-        }));
+        if (status === 403) {
+          callback(err);
+        } else {
+          callback(new BraintreeError({
+            type: errors.UNIONPAY_FETCH_CAPABILITIES_NETWORK_ERROR.type,
+            code: errors.UNIONPAY_FETCH_CAPABILITIES_NETWORK_ERROR.code,
+            message: errors.UNIONPAY_FETCH_CAPABILITIES_NETWORK_ERROR.message,
+            details: {
+              originalError: err
+            }
+          }));
+        }
+
         analytics.sendEvent(client, 'web.unionpay.capabilities-failed');
         return;
       }
@@ -1238,6 +1216,7 @@ UnionPay.prototype.fetchCapabilities = function (options, callback) {
       callback(new BraintreeError(errors.UNIONPAY_HOSTED_FIELDS_INSTANCE_INVALID));
       return;
     }
+
     this._initializeHostedFields(function () {
       this._bus.emit(events.HOSTED_FIELDS_FETCH_CAPABILITIES, {hostedFields: hostedFields}, function (response) {
         if (response.err) {
@@ -1386,17 +1365,18 @@ UnionPay.prototype.enroll = function (options, callback) {
       var error;
 
       if (err) {
-        if (status < 500) {
-          error = errors.UNIONPAY_ENROLLMENT_CUSTOMER_INPUT_INVALID;
+        if (status === 403) {
+          error = err;
+        } else if (status < 500) {
+          error = new BraintreeError(errors.UNIONPAY_ENROLLMENT_CUSTOMER_INPUT_INVALID);
+          error.details = {originalError: err};
         } else {
-          error = errors.UNIONPAY_ENROLLMENT_NETWORK_ERROR;
+          error = new BraintreeError(errors.UNIONPAY_ENROLLMENT_NETWORK_ERROR);
+          error.details = {originalError: err};
         }
-        error = assign({}, error, {
-          details: {originalError: err}
-        });
 
         analytics.sendEvent(client, 'web.unionpay.enrollment-failed');
-        callback(new BraintreeError(error));
+        callback(error);
         return;
       }
 
@@ -1434,7 +1414,6 @@ UnionPay.prototype.enroll = function (options, callback) {
  * @param {string} [options.card.cvv] The card's security number.
  * @param {HostedFields} [options.hostedFields] The Hosted Fields instance used to collect card data. Required if you are not using the `card` option.
  * @param {string} options.enrollmentId The enrollment ID from {@link UnionPay#enroll}.
- * @param {boolean} [options.vault=false] When true, will vault the tokenized card. Cards will only be vaulted when using a client created with a client token that includes a customer ID.
  * @param {string} [options.smsCode] The SMS code received from the user if {@link UnionPay#enroll} payload have `smsCodeRequired`. if `smsCodeRequired` is false, smsCode should not be passed.
  * @param {callback} callback The second argument, <code>data</code>, is a {@link UnionPay~tokenizePayload|tokenizePayload}.
  * @example <caption>With raw card data</caption>
@@ -1509,8 +1488,6 @@ UnionPay.prototype.tokenize = function (options, callback) {
       data.creditCard.cvv = options.card.cvv;
     }
 
-    data.creditCard.options.validate = options.vault === true;
-
     client.request({
       method: 'post',
       endpoint: 'payment_methods/credit_cards',
@@ -1519,15 +1496,17 @@ UnionPay.prototype.tokenize = function (options, callback) {
       if (err) {
         analytics.sendEvent(client, 'web.unionpay.nonce-failed');
 
-        if (status < 500) {
-          error = errors.UNIONPAY_FAILED_TOKENIZATION;
+        if (status === 403) {
+          error = err;
+        } else if (status < 500) {
+          error = new BraintreeError(errors.UNIONPAY_FAILED_TOKENIZATION);
+          error.details = {originalError: err};
         } else {
-          error = errors.UNIONPAY_TOKENIZATION_NETWORK_ERROR;
+          error = new BraintreeError(errors.UNIONPAY_TOKENIZATION_NETWORK_ERROR);
+          error.details = {originalError: err};
         }
-        error = assign({}, error, {
-          details: {originalError: err}
-        });
-        callback(new BraintreeError(error));
+
+        callback(error);
         return;
       }
 
@@ -1618,5 +1597,5 @@ UnionPay.prototype._initializeHostedFields = function (callback) {
 
 module.exports = UnionPay;
 
-},{"../../lib/analytics":8,"../../lib/assign":9,"../../lib/bus":12,"../../lib/convert-methods-to-error":14,"../../lib/deferred":16,"../../lib/error":18,"../../lib/methods":21,"../../lib/uuid":23,"./constants":25,"./errors":26,"iframer":2}]},{},[24])(24)
+},{"../../lib/analytics":8,"../../lib/bus":11,"../../lib/convert-methods-to-error":13,"../../lib/deferred":15,"../../lib/error":17,"../../lib/methods":20,"../../lib/uuid":22,"./constants":24,"./errors":25,"iframer":2}]},{},[23])(23)
 });

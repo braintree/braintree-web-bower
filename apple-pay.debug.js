@@ -5,6 +5,7 @@
 var BraintreeError = _dereq_('../lib/error');
 var analytics = _dereq_('../lib/analytics');
 var deferred = _dereq_('../lib/deferred');
+var assign = _dereq_('../lib/assign').assign;
 var sharedErrors = _dereq_('../errors');
 var errors = _dereq_('./errors');
 
@@ -28,6 +29,11 @@ var errors = _dereq_('./errors');
  */
 function ApplePay(options) {
   this._client = options.client;
+  Object.defineProperty(this, 'merchantIdentifier', {
+    value: this._client.getConfiguration().gatewayConfiguration.applePay.merchantIdentifier,
+    configurable: false,
+    writable: false
+  });
 }
 
 /**
@@ -45,7 +51,7 @@ function ApplePay(options) {
  *
  * applePay.create({client: clientInstance}, function (createErr, applePayInstance) {
  *   // ...
- *   var paymentRequest = applePay.decoratePaymentRequest({
+ *   var paymentRequest = applePay.createPaymentRequest({
  *    total: {
  *      label: 'My Company',
  *      amount: '19.99'
@@ -55,28 +61,18 @@ function ApplePay(options) {
  *   // { total: { }, countryCode: 'US', currencyCode: 'USD', merchantCapabilities: [ ], supportedNetworks: [ ] }
  *
  */
-ApplePay.prototype.decoratePaymentRequest = function (paymentRequest) {
+ApplePay.prototype.createPaymentRequest = function (paymentRequest) {
   var applePay = this._client.getConfiguration().gatewayConfiguration.applePay;
-
-  if (!paymentRequest.countryCode) {
-    paymentRequest.countryCode = applePay.countryCode;
-  }
-
-  if (!paymentRequest.currencyCode) {
-    paymentRequest.currencyCode = applePay.currencyCode;
-  }
-
-  if (!paymentRequest.merchantCapabilities) {
-    paymentRequest.merchantCapabilities = applePay.merchantCapabilities;
-  }
-
-  if (!paymentRequest.supportedNetworks) {
-    paymentRequest.supportedNetworks = applePay.supportedNetworks.map(function (network) {
+  var defaults = {
+    countryCode: applePay.countryCode,
+    currencyCode: applePay.currencyCode,
+    merchantCapabilities: applePay.merchantCapabilities || ['supports3DS'],
+    supportedNetworks: applePay.supportedNetworks.map(function (network) {
       return network === 'mastercard' ? 'masterCard' : network;
-    });
-  }
+    })
+  };
 
-  return paymentRequest;
+  return assign({}, defaults, paymentRequest);
 };
 
 /**
@@ -111,6 +107,7 @@ ApplePay.prototype.decoratePaymentRequest = function (paymentRequest) {
  *     }, function(err, validationData) {
  *       if (err) {
  *         console.error(err);
+ *         session.abort();
  *         return;
  *       }
  *       session.completeMerchantValidation(validationData);
@@ -139,7 +136,7 @@ ApplePay.prototype.performValidation = function (options, callback) {
   applePayWebSession = {
     validationUrl: options.validationURL,
     domainName: options.domainName || global.location.hostname,
-    merchantIdentifier: options.merchantIdentifier || this._client.getConfiguration().gatewayConfiguration.applePay.merchantIdentifier
+    merchantIdentifier: options.merchantIdentifier || this.merchantIdentifier
   };
 
   if (options.displayName != null) {
@@ -155,14 +152,25 @@ ApplePay.prototype.performValidation = function (options, callback) {
     }
   }, function (err, response) {
     if (err) {
-      callback(new BraintreeError({
-        type: errors.APPLE_PAY_MERCHANT_VALIDATION.type,
-        code: errors.APPLE_PAY_MERCHANT_VALIDATION.code,
-        message: errors.APPLE_PAY_MERCHANT_VALIDATION.message,
-        details: {
-          originalError: err
-        }
-      }));
+      if (err.code === 'CLIENT_REQUEST_ERROR') {
+        callback(new BraintreeError({
+          type: errors.APPLE_PAY_MERCHANT_VALIDATION_FAILED.type,
+          code: errors.APPLE_PAY_MERCHANT_VALIDATION_FAILED.code,
+          message: errors.APPLE_PAY_MERCHANT_VALIDATION_FAILED.message,
+          details: {
+            originalError: err.details.originalError
+          }
+        }));
+      } else {
+        callback(new BraintreeError({
+          type: errors.APPLE_PAY_MERCHANT_VALIDATION_NETWORK.type,
+          code: errors.APPLE_PAY_MERCHANT_VALIDATION_NETWORK.code,
+          message: errors.APPLE_PAY_MERCHANT_VALIDATION_NETWORK.message,
+          details: {
+            originalError: err
+          }
+        }));
+      }
       analytics.sendEvent(this._client, 'applepay.performValidation.failed');
     } else {
       callback(null, response);
@@ -245,7 +253,7 @@ ApplePay.prototype.tokenize = function (options, callback) {
 module.exports = ApplePay;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../errors":4,"../lib/analytics":6,"../lib/deferred":9,"../lib/error":11,"./errors":2}],2:[function(_dereq_,module,exports){
+},{"../errors":4,"../lib/analytics":6,"../lib/assign":7,"../lib/deferred":10,"../lib/error":12,"./errors":2}],2:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/error');
@@ -261,10 +269,15 @@ module.exports = {
     code: 'APPLE_PAY_VALIDATION_URL_REQUIRED',
     message: 'performValidation must be called with a validationURL.'
   },
-  APPLE_PAY_MERCHANT_VALIDATION: {
+  APPLE_PAY_MERCHANT_VALIDATION_NETWORK: {
     type: BraintreeError.types.NETWORK,
-    code: 'APPLE_PAY_MERCHANT_VALIDATION',
+    code: 'APPLE_PAY_MERCHANT_VALIDATION_NETWORK',
     message: 'A network error occurred when validating the Apple Pay merchant.'
+  },
+  APPLE_PAY_MERCHANT_VALIDATION_FAILED: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'APPLE_PAY_MERCHANT_VALIDATION_FAILED',
+    message: 'Make sure you have registered your domain name in the Braintree Control Panel.'
   },
   APPLE_PAY_PAYMENT_TOKEN_REQUIRED: {
     type: BraintreeError.types.MERCHANT,
@@ -278,7 +291,7 @@ module.exports = {
   }
 };
 
-},{"../lib/error":11}],3:[function(_dereq_,module,exports){
+},{"../lib/error":12}],3:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -292,7 +305,7 @@ var analytics = _dereq_('../lib/analytics');
 var deferred = _dereq_('../lib/deferred');
 var sharedErrors = _dereq_('../errors');
 var errors = _dereq_('./errors');
-var VERSION = "3.0.1";
+var VERSION = "3.0.2";
 
 /**
  * @static
@@ -353,7 +366,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../errors":4,"../lib/analytics":6,"../lib/deferred":9,"../lib/error":11,"./apple-pay":1,"./errors":2}],4:[function(_dereq_,module,exports){
+},{"../errors":4,"../lib/analytics":6,"../lib/deferred":10,"../lib/error":12,"./apple-pay":1,"./errors":2}],4:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./lib/error');
@@ -377,7 +390,7 @@ module.exports = {
   }
 };
 
-},{"./lib/error":11}],5:[function(_dereq_,module,exports){
+},{"./lib/error":12}],5:[function(_dereq_,module,exports){
 'use strict';
 
 var createAuthorizationData = _dereq_('./create-authorization-data');
@@ -411,7 +424,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":7,"./create-authorization-data":8,"./json-clone":12}],6:[function(_dereq_,module,exports){
+},{"./constants":8,"./create-authorization-data":9,"./json-clone":13}],6:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('./constants');
@@ -442,10 +455,35 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":5,"./constants":7}],7:[function(_dereq_,module,exports){
+},{"./add-metadata":5,"./constants":8}],7:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.0.1";
+var assignNormalized = typeof Object.assign === 'function' ? Object.assign : assignPolyfill;
+
+function assignPolyfill(destination) {
+  var i, source, key;
+
+  for (i = 1; i < arguments.length; i++) {
+    source = arguments[i];
+    for (key in source) {
+      if (source.hasOwnProperty(key)) {
+        destination[key] = source[key];
+      }
+    }
+  }
+
+  return destination;
+}
+
+module.exports = {
+  assign: assignNormalized,
+  _assign: assignPolyfill
+};
+
+},{}],8:[function(_dereq_,module,exports){
+'use strict';
+
+var VERSION = "3.0.2";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -458,7 +496,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],8:[function(_dereq_,module,exports){
+},{}],9:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/polyfill').atob;
@@ -507,7 +545,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":13}],9:[function(_dereq_,module,exports){
+},{"../lib/polyfill":14}],10:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (fn) {
@@ -521,7 +559,7 @@ module.exports = function (fn) {
   };
 };
 
-},{}],10:[function(_dereq_,module,exports){
+},{}],11:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -535,7 +573,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],11:[function(_dereq_,module,exports){
+},{}],12:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -612,14 +650,14 @@ BraintreeError.types = enumerate([
 
 module.exports = BraintreeError;
 
-},{"./enumerate":10}],12:[function(_dereq_,module,exports){
+},{"./enumerate":11}],13:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],13:[function(_dereq_,module,exports){
+},{}],14:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 

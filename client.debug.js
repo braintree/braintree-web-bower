@@ -138,6 +138,8 @@ Client.prototype.request = function (options, callback) {
   }, function (err, data, status) {
     if (status === -1) {
       callback(new BraintreeError(errors.CLIENT_REQUEST_TIMEOUT), null, status);
+    } else if (status === 403) {
+      callback(new BraintreeError(errors.CLIENT_AUTHORIZATION_INSUFFICIENT), null, status);
     } else if (status === 429) {
       callback(new BraintreeError(errors.CLIENT_RATE_LIMITED), null, status);
     } else if (status >= 500) {
@@ -200,6 +202,11 @@ module.exports = {
     type: BraintreeError.types.MERCHANT,
     code: 'CLIENT_RATE_LIMITED',
     message: 'You are being rate-limited; please try again in a few minutes.'
+  },
+  CLIENT_AUTHORIZATION_INSUFFICIENT: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'CLIENT_AUTHORIZATION_INSUFFICIENT',
+    message: 'The authorization used has insufficient privileges.'
   }
 };
 
@@ -278,7 +285,7 @@ module.exports = {
 var BraintreeError = _dereq_('../lib/error');
 var Client = _dereq_('./client');
 var getConfiguration = _dereq_('./get-configuration').getConfiguration;
-var packageVersion = "3.0.1";
+var packageVersion = "3.0.2";
 var deferred = _dereq_('../lib/deferred');
 var sharedErrors = _dereq_('../errors');
 
@@ -395,7 +402,9 @@ function request(options, cb) {
     };
 
     req.onerror = function () {
-      callback('error', null, req.status);
+      // XDomainRequest does not report a body or status for errors, so
+      // hardcode to 'error' and 500, respectively
+      callback('error', null, 500);
     };
 
     // This must remain for IE9 to work
@@ -671,7 +680,7 @@ module.exports = addMetadata;
 },{"./constants":14,"./create-authorization-data":15,"./json-clone":20}],14:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.0.1";
+var VERSION = "3.0.2";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -845,8 +854,7 @@ var parser;
 var legalHosts = {
   'paypal.com': 1,
   'braintreepayments.com': 1,
-  'braintreegateway.com': 1,
-  localhost: 1
+  'braintreegateway.com': 1
 };
 
 /* eslint-enable no-undef,block-scoped-var */

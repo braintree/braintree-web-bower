@@ -522,7 +522,7 @@ var EventEmitter = _dereq_('../../lib/event-emitter');
 var injectFrame = _dereq_('./inject-frame');
 var analytics = _dereq_('../../lib/analytics');
 var whitelistedFields = constants.whitelistedFields;
-var VERSION = "3.0.1";
+var VERSION = "3.0.2";
 var methods = _dereq_('../../lib/methods');
 var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
 var deferred = _dereq_('../../lib/deferred');
@@ -1264,7 +1264,7 @@ var HostedFields = _dereq_('./external/hosted-fields');
 var deferred = _dereq_('../lib/deferred');
 var BraintreeError = _dereq_('../lib/error');
 var sharedErrors = _dereq_('../errors');
-var VERSION = "3.0.1";
+var VERSION = "3.0.2";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -1369,7 +1369,7 @@ module.exports = {
 /* eslint-disable no-reserved-keys */
 
 var enumerate = _dereq_('../../lib/enumerate');
-var VERSION = "3.0.1";
+var VERSION = "3.0.2";
 
 var constants = {
   VERSION: VERSION,
@@ -1674,7 +1674,7 @@ function checkOrigin(postMessageOrigin, merchantUrl) {
 
   a.href = postMessageOrigin;
 
-  return isWhitelistedDomain(postMessageOrigin) && a.hostname !== 'localhost';
+  return isWhitelistedDomain(postMessageOrigin);
 }
 
 module.exports = {
@@ -1863,7 +1863,7 @@ module.exports = {
 },{}],22:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.0.1";
+var VERSION = "3.0.2";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -2130,8 +2130,7 @@ var parser;
 var legalHosts = {
   'paypal.com': 1,
   'braintreepayments.com': 1,
-  'braintreegateway.com': 1,
-  localhost: 1
+  'braintreegateway.com': 1
 };
 
 /* eslint-enable no-undef,block-scoped-var */
