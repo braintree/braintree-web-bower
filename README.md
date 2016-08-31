@@ -1,9 +1,15 @@
 braintree-web
-=================
+=============
 
 A suite of tools for integrating Braintree in the browser.
 
 This is the repo to submit issues if you have any problems or questions about any v.zero JS integration.
+
+> ### Note
+
+> This branch is for __v2__ of the Braintree JavaScript SDK.
+
+> Full source code for __v3__ of the Braintree JavaScript SDK is on the [master branch of braintree-web](https://github.com/braintree/braintree-web). Pull requests welcome.
 
 Install
 =======

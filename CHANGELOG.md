@@ -1,6 +1,16 @@
 CHANGELOG
 =========
 
+## 2.28.0
+
+* PayPal
+  * Adds support for Japan (`JP`) in Checkout with PayPal flow
+  * Add signup link to login screen for old flows
+  * Bugfix - Prevent some flows from hanging
+  * Bugfix - Currencies that do not contain decimal places (such as `JPY`) are now processed properly
+  * Bugfix - Allow PayPal Credit flows to be properly cancelled by the customer
+  * Bugfix - Forgot password link uses locale configuration
+
 ## 2.27.0
 
 * Bugfix - Fixes an issue that prevented PayPal flows from working within the iOS Google Search app
