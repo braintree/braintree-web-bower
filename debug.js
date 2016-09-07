@@ -66,5 +66,5 @@ module.exports = {
    * @description The current version of the SDK, i.e. `{@pkg version}`.
    * @type {string}
    */
-  VERSION: '3.0.2'
+  VERSION: '3.1.0'
 };

@@ -5,7 +5,6 @@
 var BraintreeError = _dereq_('../lib/error');
 var analytics = _dereq_('../lib/analytics');
 var deferred = _dereq_('../lib/deferred');
-var assign = _dereq_('../lib/assign').assign;
 var sharedErrors = _dereq_('../errors');
 var errors = _dereq_('./errors');
 
@@ -72,7 +71,7 @@ ApplePay.prototype.createPaymentRequest = function (paymentRequest) {
     })
   };
 
-  return assign({}, defaults, paymentRequest);
+  return Object.assign({}, defaults, paymentRequest);
 };
 
 /**
@@ -230,7 +229,10 @@ ApplePay.prototype.tokenize = function (options, callback) {
       _meta: {
         source: 'apple-pay'
       },
-      applePaymentToken: options.token
+      applePaymentToken: Object.assign({}, options.token, {
+        // The gateway requires this key to be base64-encoded.
+        paymentData: btoa(JSON.stringify(options.token.paymentData))
+      })
     }
   }, function (err, response) {
     if (err) {
@@ -253,7 +255,7 @@ ApplePay.prototype.tokenize = function (options, callback) {
 module.exports = ApplePay;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../errors":4,"../lib/analytics":6,"../lib/assign":7,"../lib/deferred":10,"../lib/error":12,"./errors":2}],2:[function(_dereq_,module,exports){
+},{"../errors":4,"../lib/analytics":6,"../lib/deferred":9,"../lib/error":11,"./errors":2}],2:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/error');
@@ -291,7 +293,7 @@ module.exports = {
   }
 };
 
-},{"../lib/error":12}],3:[function(_dereq_,module,exports){
+},{"../lib/error":11}],3:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -305,7 +307,7 @@ var analytics = _dereq_('../lib/analytics');
 var deferred = _dereq_('../lib/deferred');
 var sharedErrors = _dereq_('../errors');
 var errors = _dereq_('./errors');
-var VERSION = "3.0.2";
+var VERSION = "3.1.0";
 
 /**
  * @static
@@ -366,7 +368,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../errors":4,"../lib/analytics":6,"../lib/deferred":10,"../lib/error":12,"./apple-pay":1,"./errors":2}],4:[function(_dereq_,module,exports){
+},{"../errors":4,"../lib/analytics":6,"../lib/deferred":9,"../lib/error":11,"./apple-pay":1,"./errors":2}],4:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./lib/error');
@@ -390,7 +392,7 @@ module.exports = {
   }
 };
 
-},{"./lib/error":12}],5:[function(_dereq_,module,exports){
+},{"./lib/error":11}],5:[function(_dereq_,module,exports){
 'use strict';
 
 var createAuthorizationData = _dereq_('./create-authorization-data');
@@ -424,7 +426,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":8,"./create-authorization-data":9,"./json-clone":13}],6:[function(_dereq_,module,exports){
+},{"./constants":7,"./create-authorization-data":8,"./json-clone":12}],6:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('./constants');
@@ -455,35 +457,10 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":5,"./constants":8}],7:[function(_dereq_,module,exports){
+},{"./add-metadata":5,"./constants":7}],7:[function(_dereq_,module,exports){
 'use strict';
 
-var assignNormalized = typeof Object.assign === 'function' ? Object.assign : assignPolyfill;
-
-function assignPolyfill(destination) {
-  var i, source, key;
-
-  for (i = 1; i < arguments.length; i++) {
-    source = arguments[i];
-    for (key in source) {
-      if (source.hasOwnProperty(key)) {
-        destination[key] = source[key];
-      }
-    }
-  }
-
-  return destination;
-}
-
-module.exports = {
-  assign: assignNormalized,
-  _assign: assignPolyfill
-};
-
-},{}],8:[function(_dereq_,module,exports){
-'use strict';
-
-var VERSION = "3.0.2";
+var VERSION = "3.1.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -496,7 +473,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],9:[function(_dereq_,module,exports){
+},{}],8:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/polyfill').atob;
@@ -545,7 +522,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":14}],10:[function(_dereq_,module,exports){
+},{"../lib/polyfill":13}],9:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (fn) {
@@ -559,7 +536,7 @@ module.exports = function (fn) {
   };
 };
 
-},{}],11:[function(_dereq_,module,exports){
+},{}],10:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -573,7 +550,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],12:[function(_dereq_,module,exports){
+},{}],11:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -650,14 +627,14 @@ BraintreeError.types = enumerate([
 
 module.exports = BraintreeError;
 
-},{"./enumerate":11}],13:[function(_dereq_,module,exports){
+},{"./enumerate":10}],12:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],14:[function(_dereq_,module,exports){
+},{}],13:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 

@@ -692,7 +692,7 @@ module.exports = BraintreeBus;
 },{"../error":18,"./check-origin":10,"./events":11,"framebus":1}],13:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.0.2";
+var VERSION = "3.1.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -945,7 +945,11 @@ FrameService.prototype._writeDispatchFrame = function () {
     name: frameName,
     src: frameSrc,
     height: 0,
-    width: 0
+    width: 0,
+    style: {
+      position: 'absolute',
+      left: '-9999px'
+    }
   });
 
   document.body.appendChild(this._dispatchFrame);
@@ -983,6 +987,12 @@ FrameService.prototype.redirect = function (url) {
 FrameService.prototype.close = function () {
   if (!this.isFrameClosed()) {
     this._frame.close();
+  }
+};
+
+FrameService.prototype.focus = function () {
+  if (!this.isFrameClosed()) {
+    this._frame.focus();
   }
 };
 
@@ -1354,7 +1364,7 @@ module.exports = uuid;
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/error');
 var once = _dereq_('../../lib/once');
-var VERSION = "3.0.2";
+var VERSION = "3.1.0";
 var constants = _dereq_('../shared/constants');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
@@ -1398,6 +1408,7 @@ var sharedErrors = _dereq_('../../errors');
 /**
  * @typedef {object} PayPal~tokenizeReturn
  * @property {Function} close A handle to close the PayPal checkout flow.
+ * @property {Function} focus A handle to focus the PayPal checkout flow. Note that some browsers (notably Firefox and iOS Safari) do not support focusing popups.
  */
 
 /**
@@ -1440,6 +1451,8 @@ PayPal.prototype._initialize = function (callback) {
  * * `sale` - Payment will be immediately submitted for settlement upon creating a transaction.
  * @param {boolean} [options.offerCredit=false] Offers the customer PayPal Credit if they qualify. Checkout flows only.
  * @param {string} [options.useraction]
+ * This option only applies to the "checkout" flow and will have no effect on the "vault" flow.
+ *
  * Changes the call-to-action in the PayPal flow. By default the final button will show the localized
  * word for "Continue" and implies that the final amount billed is not yet known.
  *
@@ -1496,7 +1509,7 @@ PayPal.prototype._initialize = function (callback) {
  *     }
  *   });
  * });
- * @returns {PayPal~tokenizeReturn} A handle to close the PayPal checkout frame.
+ * @returns {PayPal~tokenizeReturn} A handle to manage the PayPal checkout frame.
  */
 PayPal.prototype.tokenize = function (options, callback) {
   var client = this._client;
@@ -1528,6 +1541,9 @@ PayPal.prototype.tokenize = function (options, callback) {
     close: function () {
       analytics.sendEvent(client, 'web.paypal.tokenization.closed.by-merchant');
       this._frameService.close();
+    }.bind(this),
+    focus: function () {
+      this._frameService.focus();
     }.bind(this)
   };
 };
@@ -1754,7 +1770,7 @@ var deferred = _dereq_('../lib/deferred');
 var errors = _dereq_('./shared/errors');
 var PayPal = _dereq_('./external/paypal');
 var sharedErrors = _dereq_('../errors');
-var VERSION = "3.0.2";
+var VERSION = "3.1.0";
 
 /**
  * @static
