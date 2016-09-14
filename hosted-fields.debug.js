@@ -522,7 +522,7 @@ var EventEmitter = _dereq_('../../lib/event-emitter');
 var injectFrame = _dereq_('./inject-frame');
 var analytics = _dereq_('../../lib/analytics');
 var whitelistedFields = constants.whitelistedFields;
-var VERSION = "3.1.0";
+var VERSION = "3.2.0";
 var methods = _dereq_('../../lib/methods');
 var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
 var deferred = _dereq_('../../lib/deferred');
@@ -1264,14 +1264,15 @@ var HostedFields = _dereq_('./external/hosted-fields');
 var deferred = _dereq_('../lib/deferred');
 var BraintreeError = _dereq_('../lib/error');
 var sharedErrors = _dereq_('../errors');
-var VERSION = "3.1.0";
+var VERSION = "3.2.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
  * @typedef {object} field
  * @property {string} selector A CSS selector to find the container where the hosted field will be inserted.
  * @property {string} [placeholder] Will be used as the `placeholder` attribute of the input. If `placeholder` is not natively supported by the browser, it will be polyfilled.
- * @property {boolean} [formatInput=true] - Enable or disable automatic formatting on this field. Note: Input formatting does not work properly on Android and iOS, so input formatting is automatically disabled on those browsers.
+ * @property {string} [type] Will be used as the `type` attribute of the input. To mask `cvv` input, for instance, `type: "password"` can be used.
+ * @property {boolean} [formatInput=true] Enable or disable automatic formatting on this field. Note: Input formatting does not work properly on Android and iOS, so input formatting is automatically disabled on those browsers.
  */
 
 /**
@@ -1323,10 +1324,12 @@ var VERSION = "3.1.0";
  *       selector: '#card-number'
  *     },
  *     cvv: {
- *       selector: '#cvv'
+ *       selector: '#cvv',
+ *       placeholder: '•••'
  *     },
  *     expirationDate: {
- *       selector: '#expiration-date'
+ *       selector: '#expiration-date',
+ *       type: 'month'
  *     }
  *   }
  * }, callback);
@@ -1369,7 +1372,7 @@ module.exports = {
 /* eslint-disable no-reserved-keys */
 
 var enumerate = _dereq_('../../lib/enumerate');
-var VERSION = "3.1.0";
+var VERSION = "3.2.0";
 
 var constants = {
   VERSION: VERSION,
@@ -1863,7 +1866,7 @@ module.exports = {
 },{}],22:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.1.0";
+var VERSION = "3.2.0";
 var PLATFORM = 'web';
 
 module.exports = {

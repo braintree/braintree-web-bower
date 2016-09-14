@@ -10,12 +10,14 @@ var errors = _dereq_('./errors');
 
 /**
  * An Apple Pay Payment Authorization Event object.
+ * @typedef {object} ApplePayPaymentAuthorizedEvent
  * @external ApplePayPaymentAuthorizedEvent
  * @see {@link https://developer.apple.com/reference/applepayjs/applepaypaymentauthorizedevent ApplePayPaymentAuthorizedEvent}
  */
 
 /**
  * An Apple Pay Payment Request object.
+ * @typedef {object} ApplePayPaymentRequest
  * @external ApplePayPaymentRequest
  * @see {@link https://developer.apple.com/reference/applepayjs/1916082-applepay_js_data_types/paymentrequest PaymentRequest}
  */
@@ -23,7 +25,7 @@ var errors = _dereq_('./errors');
 /**
  * @class
  * @param {object} options Options
- * @description <strong>You cannot use this constructor directly. Use {@link module:braintree-web/apple-pay.create|braintree.apple-pay.create} instead.</strong>
+ * @description <strong>You cannot use this constructor directly. Use {@link module:braintree-web/apple-pay.create|braintree.applePay.create} instead.</strong>
  * @classdesc This class represents an Apple Pay component. Instances of this class have methods for validating the merchant server and tokenizing payments.
  */
 function ApplePay(options) {
@@ -36,29 +38,35 @@ function ApplePay(options) {
 }
 
 /**
- * Merges a payment request with Braintree defaults
- * The following properties are assigned to `paymentRequest` if not already defined
- * - countryCode
- * - currencyCode
- * - merchantCapabilities
- * - supportedNetworks
+ * Merges a payment request with Braintree defaults to return an {external:ApplePayPaymentRequest}.
+ *
+ * The following properties are assigned to `paymentRequest` if not already defined. Their default values come from the Braintree gateway.
+ * - `countryCode`
+ * - `currencyCode`
+ * - `merchantCapabilities`
+ * - `supportedNetworks`
  * @public
  * @param {external:ApplePayPaymentRequest} paymentRequest The payment request details to apply on top of those from Braintree.
- * @returns {external:ApplePayPaymentRequest} The decorated `paymentRequest`.
+ * @returns {external:ApplePayPaymentRequest} The decorated `paymentRequest` object.
  * @example
  * var applePay = require('braintree-web/apple-pay');
  *
- * applePay.create({client: clientInstance}, function (createErr, applePayInstance) {
- *   // ...
- *   var paymentRequest = applePay.createPaymentRequest({
- *    total: {
- *      label: 'My Company',
- *      amount: '19.99'
+ * applePay.create({client: clientInstance}, function (applePayErr, applePayInstance) {
+ *   if (applePayErr) {
+ *     // Handle error here
+ *     return;
+ *   }
+ *
+ *   var paymentRequest = applePayInstance.createPaymentRequest({
+ *     total: {
+ *       label: 'My Company',
+ *       amount: '19.99'
+ *     }
  *   });
  *
- *   console.log(paymentRequest);
- *   // { total: { }, countryCode: 'US', currencyCode: 'USD', merchantCapabilities: [ ], supportedNetworks: [ ] }
+ *   var session = new ApplePaySession(1, paymentRequest);
  *
+ *   // ...
  */
 ApplePay.prototype.createPaymentRequest = function (paymentRequest) {
   var applePay = this._client.getConfiguration().gatewayConfiguration.applePay;
@@ -75,40 +83,42 @@ ApplePay.prototype.createPaymentRequest = function (paymentRequest) {
 };
 
 /**
- * Validates the merchant website, as required by ApplePaySession before payment can be authorized.
+ * Validates your merchant website, as required by `ApplePaySession` before payment can be authorized.
  * @public
  * @param {object} options Options
- * @param {string} options.validationURL The validationURL fram an ApplePayValidateMerchantEvent.
- * @param {string} [options.displayName]
- * - The canonical name for your store.
- * - The system may display this name to the user.
- * - Use a 128-character or less, UTF-8 string.
- * - Do not localize the name.
- * @param {string} [options.merchantIdentifier]
- * Your Apple merchant identifier. This is the Apple Merchant ID created on the Apple Developer Portal.
- * Defaults to the merchant identifier specified in the Braintree Control Panel.
- * You can use this field to override the merchant identifier for this transaction.
+ * @param {string} options.validationURL The validationURL fram an `ApplePayValidateMerchantEvent`.
+ * @param {string} options.displayName The canonical name for your store. Use a non-localized name. This parameter should be a UTF-8 string that is a maximum of 128 characters. The system may display this name to the user.
  * @param {callback} callback The second argument, <code>data</code>, is the Apple Pay merchant session object.
- * Pass the merchant session to your Apple Pay session's completeMerchantValidation method.
+ * Pass the merchant session to your Apple Pay session's `completeMerchantValidation` method.
  * @returns {void}
  * @example
  * var applePay = require('braintree-web/apple-pay');
  *
- * applePay.create({client: clientInstance}, function (createErr, applePayInstance) {
- *   var session = new ApplePaySession(1, {
- *     // This should be the payment request object that
- *     // contains the information needed to display the payment sheet.
+ * applePay.create({client: clientInstance}, function (applePayErr, applePayInstance) {
+ *   if (applePayErr) {
+ *     // Handle error here
+ *     return;
+ *   }
+ *
+ *   var paymentRequest = applePayInstance.createPaymentRequest({
+ *     total: {
+ *       label: 'My Company',
+ *       amount: '19.99'
+ *     }
  *   });
+ *   var session = new ApplePaySession(1, paymentRequest);
  *
  *   session.onvalidatemerchant = function (event) {
- *     applePay.performValidation({
- *       validationURL: event.validationURL
- *     }, function(err, validationData) {
- *       if (err) {
- *         console.error(err);
+ *     applePayInstance.performValidation({
+ *       validationURL: event.validationURL,
+ *       displayName: 'My Great Store'
+ *     }, function (validationErr, validationData) {
+ *       if (validationErr) {
+ *         console.error(validationErr);
  *         session.abort();
  *         return;
  *       }
+ *
  *       session.completeMerchantValidation(validationData);
  *     });
  *   };
@@ -170,40 +180,53 @@ ApplePay.prototype.performValidation = function (options, callback) {
           }
         }));
       }
-      analytics.sendEvent(this._client, 'applepay.performValidation.failed');
+      analytics.sendEvent(this._client, 'web.applepay.performValidation.failed');
     } else {
       callback(null, response);
-      analytics.sendEvent(this._client, 'applepay.performValidation.succeeded');
+      analytics.sendEvent(this._client, 'web.applepay.performValidation.succeeded');
     }
   }.bind(this));
 };
 
 /**
- * Tokenizes an Apple Pay payment.
+ * Tokenizes an Apple Pay payment. This will likely be called in your `ApplePaySession`'s `onpaymentauthorized` callback.
  * @public
  * @param {object} options Options
- * @param {object} options.token The `payment.token` property of an {@link external:ApplePayPaymentAuthorizedEvent}
+ * @param {object} options.token The `payment.token` property of an {@link external:ApplePayPaymentAuthorizedEvent}.
  * @param {callback} callback The second argument, <code>data</code>, is the tokenized payload.
  * @returns {void}
  * @example
  * var applePay = require('braintree-web/apple-pay');
  *
- * applePay.create({client: clientInstance}, function (createErr, applePayInstance) {
- *   var session = new ApplePaySession(1, { });
+ * applePay.create({client: clientInstance}, function (applePayErr, applePayInstance) {
+ *   if (applePayErr) {
+ *     // Handle error here
+ *     return;
+ *   }
+ *
+ *   var paymentRequest = applePayInstance.createPaymentRequest({
+ *     total: {
+ *       label: 'My Company',
+ *       amount: '19.99'
+ *     }
+ *   });
+ *   var session = new ApplePaySession(1, paymentRequest);
  *
  *   session.onpaymentauthorized = function (event) {
- *     applePay.tokenize({
+ *     applePayInstance.tokenize({
  *       token: event.payment.token
- *     }, function (err, tokenizedPayload) {
- *       if (err) {
+ *     }, function (tokenizeErr, tokenizedPayload) {
+ *       if (tokenizeErr) {
  *         session.completePayment(ApplePaySession.STATUS_FAILURE);
  *         return;
  *       }
  *       session.completePayment(ApplePaySession.STATUS_SUCCESS);
  *
- *       // Send the tokenizedPayload to your server.
+ *       // Send the tokenizedPayload to your server here!
  *     });
- *  };
+ *   };
+ *
+ *   // ...
  * });
  */
 ApplePay.prototype.tokenize = function (options, callback) {
@@ -244,10 +267,10 @@ ApplePay.prototype.tokenize = function (options, callback) {
           originalError: err
         }
       }));
-      analytics.sendEvent(this._client, 'applepay.tokenize.failed');
+      analytics.sendEvent(this._client, 'web.applepay.tokenize.failed');
     } else {
       callback(null, response.applePayCards[0]);
-      analytics.sendEvent(this._client, 'applepay.tokenize.succeeded');
+      analytics.sendEvent(this._client, 'web.applepay.tokenize.succeeded');
     }
   }.bind(this));
 };
@@ -307,7 +330,7 @@ var analytics = _dereq_('../lib/analytics');
 var deferred = _dereq_('../lib/deferred');
 var sharedErrors = _dereq_('../errors');
 var errors = _dereq_('./errors');
-var VERSION = "3.1.0";
+var VERSION = "3.2.0";
 
 /**
  * @static
@@ -460,7 +483,7 @@ module.exports = {
 },{"./add-metadata":5,"./constants":7}],7:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.1.0";
+var VERSION = "3.2.0";
 var PLATFORM = 'web';
 
 module.exports = {
