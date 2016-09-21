@@ -134,6 +134,9 @@ Client.prototype.request = function (options, callback) {
     url: this._baseUrl + options.endpoint,
     method: options.method,
     data: addMetadata(this._configuration, options.data),
+    // TODO: change this to options.headers and document it
+    // when features that require headers are out of beta
+    headers: options._headers,
     timeout: options.timeout
   }, function (err, data, status) {
     if (status === -1) {
@@ -245,6 +248,7 @@ function getConfiguration(options, callback) {
 
   attrs._meta = analyticsMetadata;
   attrs.braintreeLibraryVersion = constants.BRAINTREE_LIBRARY_VERSION;
+  attrs.configVersion = '3';
 
   request({
     url: configUrl,
@@ -285,7 +289,7 @@ module.exports = {
 var BraintreeError = _dereq_('../lib/error');
 var Client = _dereq_('./client');
 var getConfiguration = _dereq_('./get-configuration').getConfiguration;
-var packageVersion = "3.2.0";
+var packageVersion = "3.3.0";
 var deferred = _dereq_('../lib/deferred');
 var sharedErrors = _dereq_('../errors');
 
@@ -375,6 +379,7 @@ function request(options, cb) {
   var url = options.url;
   var body = options.data;
   var timeout = options.timeout;
+  var headers = options.headers || {};
   var req = getRequestObject();
   var callback = cb;
 
@@ -420,6 +425,19 @@ function request(options, cb) {
 
   if (isXHRAvailable && method === 'POST') {
     req.setRequestHeader('Content-Type', 'application/json');
+
+    // TODO: Make this work in IE9.
+    //
+    // To do this, we'll change these URL and headers...
+    // /my/endpoint
+    // Content-Type: text/plain
+    // Authorization: Bearer abc123
+    //
+    // ...to this URL:
+    // /my/endpoint?content_type=text%2Fplain&authorization:Bearer+abc123
+    Object.keys(headers).forEach(function (headerKey) {
+      req.setRequestHeader(headerKey, headers[headerKey]);
+    });
   }
 
   try {
@@ -680,7 +698,7 @@ module.exports = addMetadata;
 },{"./constants":14,"./create-authorization-data":15,"./json-clone":20}],14:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.2.0";
+var VERSION = "3.3.0";
 var PLATFORM = 'web';
 
 module.exports = {

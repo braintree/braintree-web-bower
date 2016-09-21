@@ -1,122 +1,193 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}(g.braintree || (g.braintree = {})).hostedFields = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 'use strict';
 
-var types = [
-  {
-    niceType: 'Visa',
-    type: 'visa',
-    pattern: '^4\\d*$',
-    gaps: [4, 8, 12],
-    lengths: [16],
-    code: {
-      name: 'CVV',
-      size: 3
-    }
-  },
-  {
-    niceType: 'MasterCard',
-    type: 'master-card',
-    pattern: '^(5|5[1-5]\\d*|2|22|222|222[1-9]\\d*|2[3-6]\\d*|27[0-1]\\d*|2720\\d*)$',
-    gaps: [4, 8, 12],
-    lengths: [16],
-    code: {
-      name: 'CVC',
-      size: 3
-    }
-  },
-  {
-    niceType: 'American Express',
-    type: 'american-express',
-    pattern: '^3([47]\\d*)?$',
-    isAmex: true,
-    gaps: [4, 10],
-    lengths: [15],
-    code: {
-      name: 'CID',
-      size: 4
-    }
-  },
-  {
-    niceType: 'Diners Club',
-    type: 'diners-club',
-    pattern: '^3((0([0-5]\\d*)?)|[689]\\d*)?$',
-    gaps: [4, 10],
-    lengths: [14],
-    code: {
-      name: 'CVV',
-      size: 3
-    }
-  },
-  {
-    niceType: 'Discover',
-    type: 'discover',
-    pattern: '^6(0|01|011\\d*|5\\d*|4|4[4-9]\\d*)?$',
-    gaps: [4, 8, 12],
-    lengths: [16, 19],
-    code: {
-      name: 'CID',
-      size: 3
-    }
-  },
-  {
-    niceType: 'JCB',
-    type: 'jcb',
-    pattern: '^((2|21|213|2131\\d*)|(1|18|180|1800\\d*)|(3|35\\d*))$',
-    gaps: [4, 8, 12],
-    lengths: [16],
-    code: {
-      name: 'CVV',
-      size: 3
-    }
-  },
-  {
-    niceType: 'UnionPay',
-    type: 'unionpay',
-    pattern: '^6(2\\d*)?$',
-    gaps: [4, 8, 12],
-    lengths: [16, 17, 18, 19],
-    code: {
-      name: 'CVN',
-      size: 3
-    }
-  },
-  {
-    niceType: 'Maestro',
-    type: 'maestro',
-    pattern: '^((5((0|[6-9])\\d*)?)|(6|6[37]\\d*))$',
-    gaps: [4, 8, 12],
-    lengths: [12, 13, 14, 15, 16, 17, 18, 19],
-    code: {
-      name: 'CVC',
-      size: 3
-    }
-  }
+var types = {};
+var VISA = 'visa';
+var MASTERCARD = 'master-card';
+var AMERICAN_EXPRESS = 'american-express';
+var DINERS_CLUB = 'diners-club';
+var DISCOVER = 'discover';
+var JCB = 'jcb';
+var UNIONPAY = 'unionpay';
+var MAESTRO = 'maestro';
+var CVV = 'CVV';
+var CID = 'CID';
+var CVC = 'CVC';
+var CVN = 'CVN';
+var testOrder = [
+  VISA,
+  MASTERCARD,
+  AMERICAN_EXPRESS,
+  DINERS_CLUB,
+  DISCOVER,
+  JCB,
+  UNIONPAY,
+  MAESTRO
 ];
 
-module.exports = function getCardTypes(cardNumber) {
-  var i, value;
-  var result = [];
+function clone(x) {
+  var prefixPattern, exactPattern, dupe;
+
+  if (!x) { return null; }
+
+  prefixPattern = x.prefixPattern.source;
+  exactPattern = x.exactPattern.source;
+  dupe = JSON.parse(JSON.stringify(x));
+  dupe.prefixPattern = prefixPattern;
+  dupe.exactPattern = exactPattern;
+
+  return dupe;
+}
+
+types[VISA] = {
+  niceType: 'Visa',
+  type: VISA,
+  prefixPattern: /^4$/,
+  exactPattern: /^4\d*$/,
+  gaps: [4, 8, 12],
+  lengths: [16],
+  code: {
+    name: CVV,
+    size: 3
+  }
+};
+
+types[MASTERCARD] = {
+  niceType: 'MasterCard',
+  type: MASTERCARD,
+  prefixPattern: /^(5|5[1-5]|2|22|222|222[1-9]|2[3-6]|27[0-1]|2720)$/,
+  exactPattern: /^(5[1-5]|222[1-9]|2[3-6]|27[0-1]|2720)\d*$/,
+  gaps: [4, 8, 12],
+  lengths: [16],
+  code: {
+    name: CVC,
+    size: 3
+  }
+};
+
+types[AMERICAN_EXPRESS] = {
+  niceType: 'American Express',
+  type: AMERICAN_EXPRESS,
+  prefixPattern: /^(3|34|37)$/,
+  exactPattern: /^3[47]\d*$/,
+  isAmex: true,
+  gaps: [4, 10],
+  lengths: [15],
+  code: {
+    name: CID,
+    size: 4
+  }
+};
+
+types[DINERS_CLUB] = {
+  niceType: 'Diners Club',
+  type: DINERS_CLUB,
+  prefixPattern: /^(3|3[0689]|30[0-5])$/,
+  exactPattern: /^3(0[0-5]|[689])\d*$/,
+  gaps: [4, 10],
+  lengths: [14],
+  code: {
+    name: CVV,
+    size: 3
+  }
+};
+
+types[DISCOVER] = {
+  niceType: 'Discover',
+  type: DISCOVER,
+  prefixPattern: /^(6|60|601|6011|65|64|64[4-9])$/,
+  exactPattern: /^(6011|65|64[4-9])\d*$/,
+  gaps: [4, 8, 12],
+  lengths: [16, 19],
+  code: {
+    name: CID,
+    size: 3
+  }
+};
+
+types[JCB] = {
+  niceType: 'JCB',
+  type: JCB,
+  prefixPattern: /^(2|21|213|2131|1|18|180|1800|3|35)$/,
+  exactPattern: /^(2131|1800|35)\d*$/,
+  gaps: [4, 8, 12],
+  lengths: [16],
+  code: {
+    name: CVV,
+    size: 3
+  }
+};
+
+types[UNIONPAY] = {
+  niceType: 'UnionPay',
+  type: UNIONPAY,
+  prefixPattern: /^(6|62)$/,
+  exactPattern: /^62\d*$/,
+  gaps: [4, 8, 12],
+  lengths: [16, 17, 18, 19],
+  code: {
+    name: CVN,
+    size: 3
+  }
+};
+
+types[MAESTRO] = {
+  niceType: 'Maestro',
+  type: MAESTRO,
+  prefixPattern: /^(5|5[06-9]|6\d*)$/,
+  exactPattern: /^5[06-9]\d*$/,
+  gaps: [4, 8, 12],
+  lengths: [12, 13, 14, 15, 16, 17, 18, 19],
+  code: {
+    name: CVC,
+    size: 3
+  }
+};
+
+function creditCardType(cardNumber) {
+  var type, value, i;
+  var prefixResults = [];
+  var exactResults = [];
 
   if (!(typeof cardNumber === 'string' || cardNumber instanceof String)) {
-    return result;
+    return [];
   }
 
-  if (cardNumber === '') { return clone(types); }
+  for (i = 0; i < testOrder.length; i++) {
+    type = testOrder[i];
+    value = types[type];
 
-  for (i = 0; i < types.length; i++) {
-    value = types[i];
+    if (cardNumber.length === 0) {
+      prefixResults.push(clone(value));
+      continue;
+    }
 
-    if (RegExp(value.pattern).test(cardNumber)) {
-      result.push(clone(value));
+    if (value.exactPattern.test(cardNumber)) {
+      exactResults.push(clone(value));
+    } else if (value.prefixPattern.test(cardNumber)) {
+      prefixResults.push(clone(value));
     }
   }
 
-  return result;
+  return exactResults.length ? exactResults : prefixResults;
+}
+
+creditCardType.getTypeInfo = function (type) {
+  return clone(types[type]);
 };
 
-function clone(x) {
-  return JSON.parse(JSON.stringify(x));
-}
+creditCardType.types = {
+  VISA: VISA,
+  MASTERCARD: MASTERCARD,
+  AMERICAN_EXPRESS: AMERICAN_EXPRESS,
+  DINERS_CLUB: DINERS_CLUB,
+  DISCOVER: DISCOVER,
+  JCB: JCB,
+  UNIONPAY: UNIONPAY,
+  MAESTRO: MAESTRO
+};
+
+module.exports = creditCardType;
 
 },{}],2:[function(_dereq_,module,exports){
 (function (global){
@@ -522,7 +593,7 @@ var EventEmitter = _dereq_('../../lib/event-emitter');
 var injectFrame = _dereq_('./inject-frame');
 var analytics = _dereq_('../../lib/analytics');
 var whitelistedFields = constants.whitelistedFields;
-var VERSION = "3.2.0";
+var VERSION = "3.3.0";
 var methods = _dereq_('../../lib/methods');
 var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
 var deferred = _dereq_('../../lib/deferred');
@@ -1264,7 +1335,7 @@ var HostedFields = _dereq_('./external/hosted-fields');
 var deferred = _dereq_('../lib/deferred');
 var BraintreeError = _dereq_('../lib/error');
 var sharedErrors = _dereq_('../errors');
-var VERSION = "3.2.0";
+var VERSION = "3.3.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -1372,7 +1443,7 @@ module.exports = {
 /* eslint-disable no-reserved-keys */
 
 var enumerate = _dereq_('../../lib/enumerate');
-var VERSION = "3.2.0";
+var VERSION = "3.3.0";
 
 var constants = {
   VERSION: VERSION,
@@ -1866,7 +1937,7 @@ module.exports = {
 },{}],22:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.2.0";
+var VERSION = "3.3.0";
 var PLATFORM = 'web';
 
 module.exports = {

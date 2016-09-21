@@ -330,7 +330,7 @@ var analytics = _dereq_('../lib/analytics');
 var deferred = _dereq_('../lib/deferred');
 var sharedErrors = _dereq_('../errors');
 var errors = _dereq_('./errors');
-var VERSION = "3.2.0";
+var VERSION = "3.3.0";
 
 /**
  * @static
@@ -483,7 +483,7 @@ module.exports = {
 },{"./add-metadata":5,"./constants":7}],7:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.2.0";
+var VERSION = "3.3.0";
 var PLATFORM = 'web';
 
 module.exports = {
