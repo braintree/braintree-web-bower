@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+## 2.29.0
+
+* PayPal
+  * Fixes a regression where some PayPal flows did not correctly fire `onSuccess` when the customer completed the flow
+
 ## 2.28.0
 
 * PayPal
