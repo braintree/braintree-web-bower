@@ -1,6 +1,10 @@
 CHANGELOG
 =========
 
+## 2.15.6
+
+* Bugfix - Maestro cards beginning with 6 and MasterCards beginning with 2 are now properly recognized
+
 ## 2.15.5
 
 * Fixes analytics reporting bugs
