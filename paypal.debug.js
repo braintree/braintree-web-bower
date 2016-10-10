@@ -692,7 +692,7 @@ module.exports = BraintreeBus;
 },{"../error":18,"./check-origin":10,"./events":11,"framebus":1}],13:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.3.0";
+var VERSION = "3.4.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -1029,7 +1029,7 @@ FrameService.prototype._pollForPopupClose = function () {
 
 module.exports = FrameService;
 
-},{"../../bus":12,"../../error":18,"../../uuid":34,"../shared/constants":25,"../shared/errors":26,"../shared/events":27,"./popup":22,"iframer":2}],20:[function(_dereq_,module,exports){
+},{"../../bus":12,"../../error":18,"../../uuid":35,"../shared/constants":25,"../shared/errors":26,"../shared/events":27,"./popup":22,"iframer":2}],20:[function(_dereq_,module,exports){
 'use strict';
 
 var FrameService = _dereq_('./frame-service');
@@ -1349,6 +1349,22 @@ module.exports = {
 },{}],34:[function(_dereq_,module,exports){
 'use strict';
 
+var BraintreeError = _dereq_('./error');
+var sharedErrors = _dereq_('../errors');
+
+module.exports = function (callback, functionName) {
+  if (typeof callback !== 'function') {
+    throw new BraintreeError({
+      type: sharedErrors.CALLBACK_REQUIRED.type,
+      code: sharedErrors.CALLBACK_REQUIRED.code,
+      message: functionName + ' must include a callback function.'
+    });
+  }
+};
+
+},{"../errors":6,"./error":18}],35:[function(_dereq_,module,exports){
+'use strict';
+
 function uuid() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
     var r = Math.random() * 16 | 0;
@@ -1360,22 +1376,22 @@ function uuid() {
 
 module.exports = uuid;
 
-},{}],35:[function(_dereq_,module,exports){
+},{}],36:[function(_dereq_,module,exports){
 'use strict';
 
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/error');
 var once = _dereq_('../../lib/once');
-var VERSION = "3.3.0";
+var VERSION = "3.4.0";
 var constants = _dereq_('../shared/constants');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
+var throwIfNoCallback = _dereq_('../../lib/throw-if-no-callback');
 var methods = _dereq_('../../lib/methods');
 var deferred = _dereq_('../../lib/deferred');
 var errors = _dereq_('../shared/errors');
 var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
 var querystring = _dereq_('../../lib/querystring');
-var sharedErrors = _dereq_('../../errors');
 
 /**
  * @typedef {object} PayPal~tokenizePayload
@@ -1516,13 +1532,7 @@ PayPal.prototype._initialize = function (callback) {
 PayPal.prototype.tokenize = function (options, callback) {
   var client = this._client;
 
-  if (typeof callback !== 'function') {
-    throw new BraintreeError({
-      type: sharedErrors.CALLBACK_REQUIRED.type,
-      code: sharedErrors.CALLBACK_REQUIRED.code,
-      message: 'tokenize must include a callback function.'
-    });
-  }
+  throwIfNoCallback(callback, 'tokenize');
 
   callback = once(deferred(callback));
 
@@ -1761,7 +1771,7 @@ PayPal.prototype.teardown = function (callback) {
 
 module.exports = PayPal;
 
-},{"../../errors":6,"../../lib/analytics":8,"../../lib/constants":13,"../../lib/convert-methods-to-error":14,"../../lib/deferred":16,"../../lib/error":18,"../../lib/frame-service/external":20,"../../lib/methods":30,"../../lib/once":31,"../../lib/querystring":33,"../shared/constants":37,"../shared/errors":38}],36:[function(_dereq_,module,exports){
+},{"../../lib/analytics":8,"../../lib/constants":13,"../../lib/convert-methods-to-error":14,"../../lib/deferred":16,"../../lib/error":18,"../../lib/frame-service/external":20,"../../lib/methods":30,"../../lib/once":31,"../../lib/querystring":33,"../../lib/throw-if-no-callback":34,"../shared/constants":38,"../shared/errors":39}],37:[function(_dereq_,module,exports){
 'use strict';
 /** @module braintree-web/paypal */
 
@@ -1770,9 +1780,10 @@ var BraintreeError = _dereq_('../lib/error');
 var browserDetection = _dereq_('../lib/browser-detection');
 var deferred = _dereq_('../lib/deferred');
 var errors = _dereq_('./shared/errors');
+var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 var PayPal = _dereq_('./external/paypal');
 var sharedErrors = _dereq_('../errors');
-var VERSION = "3.3.0";
+var VERSION = "3.4.0";
 
 /**
  * @static
@@ -1797,13 +1808,7 @@ var VERSION = "3.3.0";
 function create(options, callback) {
   var config, pp, clientVersion;
 
-  if (!callback) {
-    throw new BraintreeError({
-      type: sharedErrors.CALLBACK_REQUIRED.type,
-      code: sharedErrors.CALLBACK_REQUIRED.code,
-      message: 'create must include a callback function.'
-    });
-  }
+  throwIfNoCallback(callback, 'create');
 
   callback = deferred(callback);
 
@@ -1855,7 +1860,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../errors":6,"../lib/analytics":8,"../lib/browser-detection":9,"../lib/deferred":16,"../lib/error":18,"./external/paypal":35,"./shared/errors":38}],37:[function(_dereq_,module,exports){
+},{"../errors":6,"../lib/analytics":8,"../lib/browser-detection":9,"../lib/deferred":16,"../lib/error":18,"../lib/throw-if-no-callback":34,"./external/paypal":36,"./shared/errors":39}],38:[function(_dereq_,module,exports){
 'use strict';
 
 var POPUP_HEIGHT = 535;
@@ -1870,7 +1875,7 @@ module.exports = {
   POPUP_POLL_INTERVAL: 100
 };
 
-},{}],38:[function(_dereq_,module,exports){
+},{}],39:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../lib/error');
@@ -1918,5 +1923,5 @@ module.exports = {
   }
 };
 
-},{"../../lib/error":18}]},{},[36])(36)
+},{"../../lib/error":18}]},{},[37])(37)
 });

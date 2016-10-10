@@ -31,7 +31,7 @@ var errors = _dereq_('./errors');
 function ApplePay(options) {
   this._client = options.client;
   Object.defineProperty(this, 'merchantIdentifier', {
-    value: this._client.getConfiguration().gatewayConfiguration.applePay.merchantIdentifier,
+    value: this._client.getConfiguration().gatewayConfiguration.applePayWeb.merchantIdentifier,
     configurable: false,
     writable: false
   });
@@ -69,7 +69,7 @@ function ApplePay(options) {
  *   // ...
  */
 ApplePay.prototype.createPaymentRequest = function (paymentRequest) {
-  var applePay = this._client.getConfiguration().gatewayConfiguration.applePay;
+  var applePay = this._client.getConfiguration().gatewayConfiguration.applePayWeb;
   var defaults = {
     countryCode: applePay.countryCode,
     currencyCode: applePay.currencyCode,
@@ -328,9 +328,10 @@ var BraintreeError = _dereq_('../lib/error');
 var ApplePay = _dereq_('./apple-pay');
 var analytics = _dereq_('../lib/analytics');
 var deferred = _dereq_('../lib/deferred');
+var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 var sharedErrors = _dereq_('../errors');
 var errors = _dereq_('./errors');
-var VERSION = "3.3.0";
+var VERSION = "3.4.0";
 
 /**
  * @static
@@ -343,13 +344,7 @@ var VERSION = "3.3.0";
 function create(options, callback) {
   var clientVersion;
 
-  if (typeof callback !== 'function') {
-    throw new BraintreeError({
-      type: sharedErrors.CALLBACK_REQUIRED.type,
-      code: sharedErrors.CALLBACK_REQUIRED.code,
-      message: 'create must include a callback function.'
-    });
-  }
+  throwIfNoCallback(callback, 'create');
 
   callback = deferred(callback);
 
@@ -372,7 +367,7 @@ function create(options, callback) {
     return;
   }
 
-  if (!options.client.getConfiguration().gatewayConfiguration.applePay) {
+  if (!options.client.getConfiguration().gatewayConfiguration.applePayWeb) {
     callback(new BraintreeError(errors.APPLE_PAY_NOT_ENABLED));
     return;
   }
@@ -391,7 +386,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../errors":4,"../lib/analytics":6,"../lib/deferred":9,"../lib/error":11,"./apple-pay":1,"./errors":2}],4:[function(_dereq_,module,exports){
+},{"../errors":4,"../lib/analytics":6,"../lib/deferred":9,"../lib/error":11,"../lib/throw-if-no-callback":14,"./apple-pay":1,"./errors":2}],4:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./lib/error');
@@ -483,7 +478,7 @@ module.exports = {
 },{"./add-metadata":5,"./constants":7}],7:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.3.0";
+var VERSION = "3.4.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -696,5 +691,21 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}]},{},[3])(3)
+},{}],14:[function(_dereq_,module,exports){
+'use strict';
+
+var BraintreeError = _dereq_('./error');
+var sharedErrors = _dereq_('../errors');
+
+module.exports = function (callback, functionName) {
+  if (typeof callback !== 'function') {
+    throw new BraintreeError({
+      type: sharedErrors.CALLBACK_REQUIRED.type,
+      code: sharedErrors.CALLBACK_REQUIRED.code,
+      message: functionName + ' must include a callback function.'
+    });
+  }
+};
+
+},{"../errors":4,"./error":11}]},{},[3])(3)
 });

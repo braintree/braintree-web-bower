@@ -542,7 +542,7 @@ module.exports = function setAttributes(element, attributes) {
 var BraintreeError = _dereq_('../lib/error');
 var deferred = _dereq_('../lib/deferred');
 var errors = _dereq_('./errors');
-var sharedErrors = _dereq_('../errors');
+var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 
 /**
  * @class
@@ -577,13 +577,7 @@ function AmericanExpress(options) {
  * });
  */
 AmericanExpress.prototype.getRewardsBalance = function (options, callback) {
-  if (typeof callback !== 'function') {
-    throw new BraintreeError({
-      type: sharedErrors.CALLBACK_REQUIRED.type,
-      code: sharedErrors.CALLBACK_REQUIRED.code,
-      message: 'getRewardsBalance must include a callback function.'
-    });
-  }
+  throwIfNoCallback(callback, 'getRewardsBalance');
 
   callback = deferred(callback);
 
@@ -642,13 +636,7 @@ AmericanExpress.prototype.getRewardsBalance = function (options, callback) {
  * });
  */
 AmericanExpress.prototype.getExpressCheckoutProfile = function (options, callback) {
-  if (typeof callback !== 'function') {
-    throw new BraintreeError({
-      type: sharedErrors.CALLBACK_REQUIRED.type,
-      code: sharedErrors.CALLBACK_REQUIRED.code,
-      message: 'getExpressCheckoutProfile must include a callback function.'
-    });
-  }
+  throwIfNoCallback(callback, 'getExpressCheckoutProfile');
 
   callback = deferred(callback);
 
@@ -686,7 +674,7 @@ AmericanExpress.prototype.getExpressCheckoutProfile = function (options, callbac
 
 module.exports = AmericanExpress;
 
-},{"../errors":29,"../lib/deferred":49,"../lib/error":52,"./errors":8}],8:[function(_dereq_,module,exports){
+},{"../lib/deferred":49,"../lib/error":52,"../lib/throw-if-no-callback":70,"./errors":8}],8:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/error');
@@ -713,7 +701,8 @@ var BraintreeError = _dereq_('../lib/error');
 var AmericanExpress = _dereq_('./american-express');
 var deferred = _dereq_('../lib/deferred');
 var sharedErrors = _dereq_('../errors');
-var VERSION = "3.3.0";
+var VERSION = "3.4.0";
+var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 
 /**
  * @static
@@ -726,13 +715,7 @@ var VERSION = "3.3.0";
 function create(options, callback) {
   var clientVersion;
 
-  if (typeof callback !== 'function') {
-    throw new BraintreeError({
-      type: sharedErrors.CALLBACK_REQUIRED.type,
-      code: sharedErrors.CALLBACK_REQUIRED.code,
-      message: 'create must include a callback function.'
-    });
-  }
+  throwIfNoCallback(callback, 'create');
 
   callback = deferred(callback);
 
@@ -767,7 +750,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../errors":29,"../lib/deferred":49,"../lib/error":52,"./american-express":7}],10:[function(_dereq_,module,exports){
+},{"../errors":29,"../lib/deferred":49,"../lib/error":52,"../lib/throw-if-no-callback":70,"./american-express":7}],10:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -800,7 +783,7 @@ var errors = _dereq_('./errors');
 function ApplePay(options) {
   this._client = options.client;
   Object.defineProperty(this, 'merchantIdentifier', {
-    value: this._client.getConfiguration().gatewayConfiguration.applePay.merchantIdentifier,
+    value: this._client.getConfiguration().gatewayConfiguration.applePayWeb.merchantIdentifier,
     configurable: false,
     writable: false
   });
@@ -838,7 +821,7 @@ function ApplePay(options) {
  *   // ...
  */
 ApplePay.prototype.createPaymentRequest = function (paymentRequest) {
-  var applePay = this._client.getConfiguration().gatewayConfiguration.applePay;
+  var applePay = this._client.getConfiguration().gatewayConfiguration.applePayWeb;
   var defaults = {
     countryCode: applePay.countryCode,
     currencyCode: applePay.currencyCode,
@@ -1097,9 +1080,10 @@ var BraintreeError = _dereq_('../lib/error');
 var ApplePay = _dereq_('./apple-pay');
 var analytics = _dereq_('../lib/analytics');
 var deferred = _dereq_('../lib/deferred');
+var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 var sharedErrors = _dereq_('../errors');
 var errors = _dereq_('./errors');
-var VERSION = "3.3.0";
+var VERSION = "3.4.0";
 
 /**
  * @static
@@ -1112,13 +1096,7 @@ var VERSION = "3.3.0";
 function create(options, callback) {
   var clientVersion;
 
-  if (typeof callback !== 'function') {
-    throw new BraintreeError({
-      type: sharedErrors.CALLBACK_REQUIRED.type,
-      code: sharedErrors.CALLBACK_REQUIRED.code,
-      message: 'create must include a callback function.'
-    });
-  }
+  throwIfNoCallback(callback, 'create');
 
   callback = deferred(callback);
 
@@ -1141,7 +1119,7 @@ function create(options, callback) {
     return;
   }
 
-  if (!options.client.getConfiguration().gatewayConfiguration.applePay) {
+  if (!options.client.getConfiguration().gatewayConfiguration.applePayWeb) {
     callback(new BraintreeError(errors.APPLE_PAY_NOT_ENABLED));
     return;
   }
@@ -1160,7 +1138,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../errors":29,"../lib/analytics":39,"../lib/deferred":49,"../lib/error":52,"./apple-pay":10,"./errors":11}],13:[function(_dereq_,module,exports){
+},{"../errors":29,"../lib/analytics":39,"../lib/deferred":49,"../lib/error":52,"../lib/throw-if-no-callback":70,"./apple-pay":10,"./errors":11}],13:[function(_dereq_,module,exports){
 'use strict';
 
 var request = _dereq_('./request');
@@ -1300,7 +1278,11 @@ Client.prototype.request = function (options, callback) {
     // when features that require headers are out of beta
     headers: options._headers,
     timeout: options.timeout
-  }, function (err, data, status) {
+  }, this._bindRequestCallback(callback));
+};
+
+Client.prototype._bindRequestCallback = function (callback) {
+  return function (err, data, status) {
     if (status === -1) {
       callback(new BraintreeError(errors.CLIENT_REQUEST_TIMEOUT), null, status);
     } else if (status === 403) {
@@ -1319,7 +1301,7 @@ Client.prototype.request = function (options, callback) {
     } else {
       callback(null, data, status);
     }
-  });
+  };
 };
 
 module.exports = Client;
@@ -1416,12 +1398,20 @@ function getConfiguration(options, callback) {
     url: configUrl,
     method: 'GET',
     data: attrs
-  }, function (err, response) {
+  }, function (err, response, status) {
+    var errorTemplate;
+
     if (err) {
+      if (status === 403) {
+        errorTemplate = errors.CLIENT_AUTHORIZATION_INSUFFICIENT;
+      } else {
+        errorTemplate = errors.CLIENT_GATEWAY_NETWORK;
+      }
+
       callback(new BraintreeError({
-        type: errors.CLIENT_GATEWAY_NETWORK.type,
-        code: errors.CLIENT_GATEWAY_NETWORK.code,
-        message: errors.CLIENT_GATEWAY_NETWORK.message,
+        type: errorTemplate.type,
+        code: errorTemplate.code,
+        message: errorTemplate.message,
         details: {
           originalError: err
         }
@@ -1445,13 +1435,14 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../lib/constants":46,"../lib/create-authorization-data":48,"../lib/error":52,"../lib/uuid":70,"./errors":14,"./request":19}],16:[function(_dereq_,module,exports){
+},{"../lib/constants":46,"../lib/create-authorization-data":48,"../lib/error":52,"../lib/uuid":71,"./errors":14,"./request":19}],16:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/error');
 var Client = _dereq_('./client');
 var getConfiguration = _dereq_('./get-configuration').getConfiguration;
-var packageVersion = "3.3.0";
+var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
+var packageVersion = "3.4.0";
 var deferred = _dereq_('../lib/deferred');
 var sharedErrors = _dereq_('../errors');
 
@@ -1475,13 +1466,7 @@ var sharedErrors = _dereq_('../errors');
  * @static
  */
 function create(options, callback) {
-  if (typeof callback !== 'function') {
-    throw new BraintreeError({
-      type: sharedErrors.CALLBACK_REQUIRED.type,
-      code: sharedErrors.CALLBACK_REQUIRED.code,
-      message: 'create must include a callback function.'
-    });
-  }
+  throwIfNoCallback(callback, 'create');
 
   callback = deferred(callback);
 
@@ -1522,7 +1507,7 @@ module.exports = {
   VERSION: packageVersion
 };
 
-},{"../errors":29,"../lib/deferred":49,"../lib/error":52,"./client":13,"./get-configuration":15}],17:[function(_dereq_,module,exports){
+},{"../errors":29,"../lib/deferred":49,"../lib/error":52,"../lib/throw-if-no-callback":70,"./client":13,"./get-configuration":15}],17:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1773,7 +1758,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../lib/querystring":69,"../../lib/uuid":70}],22:[function(_dereq_,module,exports){
+},{"../../lib/querystring":69,"../../lib/uuid":71}],22:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (body) {
@@ -1938,9 +1923,10 @@ var kount = _dereq_('./kount');
 var fraudnet = _dereq_('./fraudnet');
 var BraintreeError = _dereq_('../lib/error');
 var methods = _dereq_('../lib/methods');
+var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
 var deferred = _dereq_('../lib/deferred');
-var VERSION = "3.3.0";
+var VERSION = "3.4.0";
 var sharedErrors = _dereq_('../errors');
 var errors = _dereq_('./errors');
 
@@ -1984,13 +1970,7 @@ function create(options, callback) {
   var data, kountInstance, fraudnetInstance, result, config, clientVersion;
   var instances = [];
 
-  if (typeof callback !== 'function') {
-    throw new BraintreeError({
-      type: sharedErrors.CALLBACK_REQUIRED.type,
-      code: sharedErrors.CALLBACK_REQUIRED.code,
-      message: 'create must include a callback function.'
-    });
-  }
+  throwIfNoCallback(callback, 'create');
 
   callback = deferred(callback);
 
@@ -2089,7 +2069,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../errors":29,"../lib/convert-methods-to-error":47,"../lib/deferred":49,"../lib/error":52,"../lib/methods":66,"./errors":24,"./fraudnet":25,"./kount":27}],27:[function(_dereq_,module,exports){
+},{"../errors":29,"../lib/convert-methods-to-error":47,"../lib/deferred":49,"../lib/error":52,"../lib/methods":66,"../lib/throw-if-no-callback":70,"./errors":24,"./fraudnet":25,"./kount":27}],27:[function(_dereq_,module,exports){
 'use strict';
 /* eslint-disable camelcase */
 
@@ -2275,13 +2255,14 @@ var errors = _dereq_('../shared/errors');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var uuid = _dereq_('../../lib/uuid');
 var findParentTags = _dereq_('../shared/find-parent-tags');
+var throwIfNoCallback = _dereq_('../../lib/throw-if-no-callback');
 var isIos = _dereq_('../../lib/is-ios');
 var events = constants.events;
 var EventEmitter = _dereq_('../../lib/event-emitter');
 var injectFrame = _dereq_('./inject-frame');
 var analytics = _dereq_('../../lib/analytics');
 var whitelistedFields = constants.whitelistedFields;
-var VERSION = "3.3.0";
+var VERSION = "3.4.0";
 var methods = _dereq_('../../lib/methods');
 var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
 var deferred = _dereq_('../../lib/deferred');
@@ -2788,13 +2769,7 @@ HostedFields.prototype.tokenize = function (options, callback) {
     options = {};
   }
 
-  if (typeof callback !== 'function') {
-    throw new BraintreeError({
-      type: sharedErrors.CALLBACK_REQUIRED.type,
-      code: sharedErrors.CALLBACK_REQUIRED.code,
-      message: 'tokenize must include a callback function.'
-    });
-  }
+  throwIfNoCallback(callback, 'tokenize');
 
   this._bus.emit(events.TOKENIZATION_REQUEST, options, function (response) {
     callback.apply(null, response);
@@ -2998,7 +2973,7 @@ HostedFields.prototype.getState = function () {
 
 module.exports = HostedFields;
 
-},{"../../errors":29,"../../lib/analytics":39,"../../lib/bus":44,"../../lib/classlist":45,"../../lib/constants":46,"../../lib/convert-methods-to-error":47,"../../lib/deferred":49,"../../lib/destructor":50,"../../lib/error":52,"../../lib/event-emitter":53,"../../lib/is-ios":63,"../../lib/methods":66,"../../lib/uuid":70,"../shared/constants":34,"../shared/errors":35,"../shared/find-parent-tags":36,"./compose-url":30,"./inject-frame":32,"credit-card-type":1,"iframer":3}],32:[function(_dereq_,module,exports){
+},{"../../errors":29,"../../lib/analytics":39,"../../lib/bus":44,"../../lib/classlist":45,"../../lib/constants":46,"../../lib/convert-methods-to-error":47,"../../lib/deferred":49,"../../lib/destructor":50,"../../lib/error":52,"../../lib/event-emitter":53,"../../lib/is-ios":63,"../../lib/methods":66,"../../lib/throw-if-no-callback":70,"../../lib/uuid":71,"../shared/constants":34,"../shared/errors":35,"../shared/find-parent-tags":36,"./compose-url":30,"./inject-frame":32,"credit-card-type":1,"iframer":3}],32:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function injectFrame(frame, container) {
@@ -3021,9 +2996,8 @@ module.exports = function injectFrame(frame, container) {
 
 var HostedFields = _dereq_('./external/hosted-fields');
 var deferred = _dereq_('../lib/deferred');
-var BraintreeError = _dereq_('../lib/error');
-var sharedErrors = _dereq_('../errors');
-var VERSION = "3.3.0";
+var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
+var VERSION = "3.4.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -3031,7 +3005,7 @@ var VERSION = "3.3.0";
  * @property {string} selector A CSS selector to find the container where the hosted field will be inserted.
  * @property {string} [placeholder] Will be used as the `placeholder` attribute of the input. If `placeholder` is not natively supported by the browser, it will be polyfilled.
  * @property {string} [type] Will be used as the `type` attribute of the input. To mask `cvv` input, for instance, `type: "password"` can be used.
- * @property {boolean} [formatInput=true] Enable or disable automatic formatting on this field. Note: Input formatting does not work properly on Android and iOS, so input formatting is automatically disabled on those browsers.
+ * @property {boolean} [formatInput=true] Enable or disable automatic formatting on this field.
  */
 
 /**
@@ -3096,13 +3070,7 @@ var VERSION = "3.3.0";
 function create(options, callback) {
   var integration;
 
-  if (typeof callback !== 'function') {
-    throw new BraintreeError({
-      type: sharedErrors.CALLBACK_REQUIRED.type,
-      code: sharedErrors.CALLBACK_REQUIRED.code,
-      message: 'create must include a callback function.'
-    });
-  }
+  throwIfNoCallback(callback, 'create');
 
   try {
     integration = new HostedFields(options);
@@ -3126,12 +3094,12 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../errors":29,"../lib/deferred":49,"../lib/error":52,"./external/hosted-fields":31}],34:[function(_dereq_,module,exports){
+},{"../lib/deferred":49,"../lib/throw-if-no-callback":70,"./external/hosted-fields":31}],34:[function(_dereq_,module,exports){
 'use strict';
 /* eslint-disable no-reserved-keys */
 
 var enumerate = _dereq_('../../lib/enumerate');
-var VERSION = "3.3.0";
+var VERSION = "3.4.0";
 
 var constants = {
   VERSION: VERSION,
@@ -3349,7 +3317,7 @@ var americanExpress = _dereq_('./american-express');
 var unionpay = _dereq_('./unionpay');
 var applePay = _dereq_('./apple-pay');
 var threeDSecure = _dereq_('./three-d-secure');
-var VERSION = "3.3.0";
+var VERSION = "3.4.0";
 
 module.exports = {
   /** @type {module:braintree-web/client} */
@@ -3375,7 +3343,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"./american-express":9,"./apple-pay":12,"./client":16,"./data-collector":26,"./hosted-fields":33,"./paypal":72,"./three-d-secure":76,"./unionpay":80}],38:[function(_dereq_,module,exports){
+},{"./american-express":9,"./apple-pay":12,"./client":16,"./data-collector":26,"./hosted-fields":33,"./paypal":73,"./three-d-secure":77,"./unionpay":81}],38:[function(_dereq_,module,exports){
 'use strict';
 
 var createAuthorizationData = _dereq_('./create-authorization-data');
@@ -3781,7 +3749,7 @@ module.exports = {
 },{}],46:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.3.0";
+var VERSION = "3.4.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -4185,7 +4153,7 @@ FrameService.prototype._pollForPopupClose = function () {
 
 module.exports = FrameService;
 
-},{"../../bus":44,"../../error":52,"../../uuid":70,"../shared/constants":60,"../shared/errors":61,"../shared/events":62,"./popup":57,"iframer":3}],55:[function(_dereq_,module,exports){
+},{"../../bus":44,"../../error":52,"../../uuid":71,"../shared/constants":60,"../shared/errors":61,"../shared/events":62,"./popup":57,"iframer":3}],55:[function(_dereq_,module,exports){
 'use strict';
 
 var FrameService = _dereq_('./frame-service');
@@ -4513,6 +4481,22 @@ module.exports = {
 },{}],70:[function(_dereq_,module,exports){
 'use strict';
 
+var BraintreeError = _dereq_('./error');
+var sharedErrors = _dereq_('../errors');
+
+module.exports = function (callback, functionName) {
+  if (typeof callback !== 'function') {
+    throw new BraintreeError({
+      type: sharedErrors.CALLBACK_REQUIRED.type,
+      code: sharedErrors.CALLBACK_REQUIRED.code,
+      message: functionName + ' must include a callback function.'
+    });
+  }
+};
+
+},{"../errors":29,"./error":52}],71:[function(_dereq_,module,exports){
+'use strict';
+
 function uuid() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
     var r = Math.random() * 16 | 0;
@@ -4524,22 +4508,22 @@ function uuid() {
 
 module.exports = uuid;
 
-},{}],71:[function(_dereq_,module,exports){
+},{}],72:[function(_dereq_,module,exports){
 'use strict';
 
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/error');
 var once = _dereq_('../../lib/once');
-var VERSION = "3.3.0";
+var VERSION = "3.4.0";
 var constants = _dereq_('../shared/constants');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
+var throwIfNoCallback = _dereq_('../../lib/throw-if-no-callback');
 var methods = _dereq_('../../lib/methods');
 var deferred = _dereq_('../../lib/deferred');
 var errors = _dereq_('../shared/errors');
 var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
 var querystring = _dereq_('../../lib/querystring');
-var sharedErrors = _dereq_('../../errors');
 
 /**
  * @typedef {object} PayPal~tokenizePayload
@@ -4680,13 +4664,7 @@ PayPal.prototype._initialize = function (callback) {
 PayPal.prototype.tokenize = function (options, callback) {
   var client = this._client;
 
-  if (typeof callback !== 'function') {
-    throw new BraintreeError({
-      type: sharedErrors.CALLBACK_REQUIRED.type,
-      code: sharedErrors.CALLBACK_REQUIRED.code,
-      message: 'tokenize must include a callback function.'
-    });
-  }
+  throwIfNoCallback(callback, 'tokenize');
 
   callback = once(deferred(callback));
 
@@ -4925,7 +4903,7 @@ PayPal.prototype.teardown = function (callback) {
 
 module.exports = PayPal;
 
-},{"../../errors":29,"../../lib/analytics":39,"../../lib/constants":46,"../../lib/convert-methods-to-error":47,"../../lib/deferred":49,"../../lib/error":52,"../../lib/frame-service/external":55,"../../lib/methods":66,"../../lib/once":67,"../../lib/querystring":69,"../shared/constants":73,"../shared/errors":74}],72:[function(_dereq_,module,exports){
+},{"../../lib/analytics":39,"../../lib/constants":46,"../../lib/convert-methods-to-error":47,"../../lib/deferred":49,"../../lib/error":52,"../../lib/frame-service/external":55,"../../lib/methods":66,"../../lib/once":67,"../../lib/querystring":69,"../../lib/throw-if-no-callback":70,"../shared/constants":74,"../shared/errors":75}],73:[function(_dereq_,module,exports){
 'use strict';
 /** @module braintree-web/paypal */
 
@@ -4934,9 +4912,10 @@ var BraintreeError = _dereq_('../lib/error');
 var browserDetection = _dereq_('../lib/browser-detection');
 var deferred = _dereq_('../lib/deferred');
 var errors = _dereq_('./shared/errors');
+var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 var PayPal = _dereq_('./external/paypal');
 var sharedErrors = _dereq_('../errors');
-var VERSION = "3.3.0";
+var VERSION = "3.4.0";
 
 /**
  * @static
@@ -4961,13 +4940,7 @@ var VERSION = "3.3.0";
 function create(options, callback) {
   var config, pp, clientVersion;
 
-  if (!callback) {
-    throw new BraintreeError({
-      type: sharedErrors.CALLBACK_REQUIRED.type,
-      code: sharedErrors.CALLBACK_REQUIRED.code,
-      message: 'create must include a callback function.'
-    });
-  }
+  throwIfNoCallback(callback, 'create');
 
   callback = deferred(callback);
 
@@ -5019,7 +4992,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../errors":29,"../lib/analytics":39,"../lib/browser-detection":41,"../lib/deferred":49,"../lib/error":52,"./external/paypal":71,"./shared/errors":74}],73:[function(_dereq_,module,exports){
+},{"../errors":29,"../lib/analytics":39,"../lib/browser-detection":41,"../lib/deferred":49,"../lib/error":52,"../lib/throw-if-no-callback":70,"./external/paypal":72,"./shared/errors":75}],74:[function(_dereq_,module,exports){
 'use strict';
 
 var POPUP_HEIGHT = 535;
@@ -5034,7 +5007,7 @@ module.exports = {
   POPUP_POLL_INTERVAL: 100
 };
 
-},{}],74:[function(_dereq_,module,exports){
+},{}],75:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../lib/error');
@@ -5082,7 +5055,7 @@ module.exports = {
   }
 };
 
-},{"../../lib/error":52}],75:[function(_dereq_,module,exports){
+},{"../../lib/error":52}],76:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../lib/error');
@@ -5094,10 +5067,10 @@ var Bus = _dereq_('../../lib/bus');
 var uuid = _dereq_('../../lib/uuid');
 var deferred = _dereq_('../../lib/deferred');
 var errors = _dereq_('../shared/errors');
+var throwIfNoCallback = _dereq_('../../lib/throw-if-no-callback');
 var events = _dereq_('../shared/events');
-var version = "3.3.0";
+var version = "3.4.0";
 var iFramer = _dereq_('iframer');
-var sharedErrors = _dereq_('../../errors');
 
 var IFRAME_HEIGHT = 400;
 var IFRAME_WIDTH = 400;
@@ -5187,13 +5160,7 @@ function ThreeDSecure(options) {
 ThreeDSecure.prototype.verifyCard = function (options, callback) {
   var url, addFrame, removeFrame, error, errorOption;
 
-  if (typeof callback !== 'function') {
-    throw new BraintreeError({
-      type: sharedErrors.CALLBACK_REQUIRED.type,
-      code: sharedErrors.CALLBACK_REQUIRED.code,
-      message: 'verifyCard must include a callback function.'
-    });
-  }
+  throwIfNoCallback(callback, 'verifyCard');
 
   options = options || {};
   callback = deferred(callback);
@@ -5411,7 +5378,7 @@ ThreeDSecure.prototype.teardown = function (callback) {
 
 module.exports = ThreeDSecure;
 
-},{"../../errors":29,"../../lib/analytics":39,"../../lib/bus":44,"../../lib/convert-methods-to-error":47,"../../lib/deferred":49,"../../lib/error":52,"../../lib/methods":66,"../../lib/uuid":70,"../shared/constants":77,"../shared/errors":78,"../shared/events":79,"iframer":3}],76:[function(_dereq_,module,exports){
+},{"../../lib/analytics":39,"../../lib/bus":44,"../../lib/convert-methods-to-error":47,"../../lib/deferred":49,"../../lib/error":52,"../../lib/methods":66,"../../lib/throw-if-no-callback":70,"../../lib/uuid":71,"../shared/constants":78,"../shared/errors":79,"../shared/events":80,"iframer":3}],77:[function(_dereq_,module,exports){
 'use strict';
 /** @module braintree-web/three-d-secure */
 
@@ -5419,10 +5386,11 @@ var ThreeDSecure = _dereq_('./external/three-d-secure');
 var browserDetection = _dereq_('../lib/browser-detection');
 var BraintreeError = _dereq_('../lib/error');
 var analytics = _dereq_('../lib/analytics');
+var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 var deferred = _dereq_('../lib/deferred');
 var errors = _dereq_('./shared/errors');
 var sharedErrors = _dereq_('../errors');
-var VERSION = "3.3.0";
+var VERSION = "3.4.0";
 
 /**
  * @static
@@ -5439,13 +5407,7 @@ var VERSION = "3.3.0";
 function create(options, callback) {
   var config, threeDSecure, error, clientVersion;
 
-  if (typeof callback !== 'function') {
-    throw new BraintreeError({
-      type: sharedErrors.CALLBACK_REQUIRED.type,
-      code: sharedErrors.CALLBACK_REQUIRED.code,
-      message: 'create must include a callback function.'
-    });
-  }
+  throwIfNoCallback(callback, 'create');
 
   callback = deferred(callback);
 
@@ -5499,14 +5461,14 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../errors":29,"../lib/analytics":39,"../lib/browser-detection":41,"../lib/deferred":49,"../lib/error":52,"./external/three-d-secure":75,"./shared/errors":78}],77:[function(_dereq_,module,exports){
+},{"../errors":29,"../lib/analytics":39,"../lib/browser-detection":41,"../lib/deferred":49,"../lib/error":52,"../lib/throw-if-no-callback":70,"./external/three-d-secure":76,"./shared/errors":79}],78:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   LANDING_FRAME_NAME: 'braintreethreedsecurelanding'
 };
 
-},{}],78:[function(_dereq_,module,exports){
+},{}],79:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../lib/error');
@@ -5543,7 +5505,7 @@ module.exports = {
   }
 };
 
-},{"../../lib/error":52}],79:[function(_dereq_,module,exports){
+},{"../../lib/error":52}],80:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../../lib/enumerate');
@@ -5552,7 +5514,7 @@ module.exports = enumerate([
   'AUTHENTICATION_COMPLETE'
 ], 'threedsecure:');
 
-},{"../../lib/enumerate":51}],80:[function(_dereq_,module,exports){
+},{"../../lib/enumerate":51}],81:[function(_dereq_,module,exports){
 'use strict';
 /**
  * @module braintree-web/unionpay
@@ -5563,9 +5525,10 @@ var UnionPay = _dereq_('./shared/unionpay');
 var BraintreeError = _dereq_('../lib/error');
 var analytics = _dereq_('../lib/analytics');
 var deferred = _dereq_('../lib/deferred');
+var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 var errors = _dereq_('./shared/errors');
 var sharedErrors = _dereq_('../errors');
-var VERSION = "3.3.0";
+var VERSION = "3.4.0";
 
 /**
 * @static
@@ -5586,13 +5549,7 @@ var VERSION = "3.3.0";
 function create(options, callback) {
   var config, clientVersion;
 
-  if (typeof callback !== 'function') {
-    throw new BraintreeError({
-      type: sharedErrors.CALLBACK_REQUIRED.type,
-      code: sharedErrors.CALLBACK_REQUIRED.code,
-      message: 'create must include a callback function.'
-    });
-  }
+  throwIfNoCallback(callback, 'create');
 
   callback = deferred(callback);
 
@@ -5636,7 +5593,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../errors":29,"../lib/analytics":39,"../lib/deferred":49,"../lib/error":52,"./shared/errors":82,"./shared/unionpay":83}],81:[function(_dereq_,module,exports){
+},{"../errors":29,"../lib/analytics":39,"../lib/deferred":49,"../lib/error":52,"../lib/throw-if-no-callback":70,"./shared/errors":83,"./shared/unionpay":84}],82:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../../lib/enumerate');
@@ -5650,7 +5607,7 @@ module.exports = {
   HOSTED_FIELDS_FRAME_NAME: 'braintreeunionpayhostedfields'
 };
 
-},{"../../lib/enumerate":51}],82:[function(_dereq_,module,exports){
+},{"../../lib/enumerate":51}],83:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../lib/error');
@@ -5718,7 +5675,7 @@ module.exports = {
   }
 };
 
-},{"../../lib/error":52}],83:[function(_dereq_,module,exports){
+},{"../../lib/error":52}],84:[function(_dereq_,module,exports){
 'use strict';
 
 var analytics = _dereq_('../../lib/analytics');
@@ -5731,8 +5688,9 @@ var errors = _dereq_('./errors');
 var events = constants.events;
 var iFramer = _dereq_('iframer');
 var methods = _dereq_('../../lib/methods');
-var VERSION = "3.3.0";
+var VERSION = "3.4.0";
 var uuid = _dereq_('../../lib/uuid');
+var throwIfNoCallback = _dereq_('../../lib/throw-if-no-callback');
 
 /**
  * @class
@@ -5828,6 +5786,8 @@ UnionPay.prototype.fetchCapabilities = function (options, callback) {
   var client = this._options.client;
   var cardNumber = options.card ? options.card.number : null;
   var hostedFields = options.hostedFields;
+
+  throwIfNoCallback(callback, 'fetchCapabilities');
 
   callback = deferred(callback);
 
@@ -5963,6 +5923,8 @@ UnionPay.prototype.enroll = function (options, callback) {
   var mobile = options.mobile;
   var hostedFields = options.hostedFields;
   var data;
+
+  throwIfNoCallback(callback, 'enroll');
 
   callback = deferred(callback);
 
@@ -6110,6 +6072,8 @@ UnionPay.prototype.tokenize = function (options, callback) {
   var card = options.card;
   var hostedFields = options.hostedFields;
 
+  throwIfNoCallback(callback, 'tokenize');
+
   callback = deferred(callback);
 
   if (card && hostedFields) {
@@ -6252,5 +6216,5 @@ UnionPay.prototype._initializeHostedFields = function (callback) {
 
 module.exports = UnionPay;
 
-},{"../../lib/analytics":39,"../../lib/bus":44,"../../lib/convert-methods-to-error":47,"../../lib/deferred":49,"../../lib/error":52,"../../lib/methods":66,"../../lib/uuid":70,"./constants":81,"./errors":82,"iframer":3}]},{},[37])(37)
+},{"../../lib/analytics":39,"../../lib/bus":44,"../../lib/convert-methods-to-error":47,"../../lib/deferred":49,"../../lib/error":52,"../../lib/methods":66,"../../lib/throw-if-no-callback":70,"../../lib/uuid":71,"./constants":82,"./errors":83,"iframer":3}]},{},[37])(37)
 });

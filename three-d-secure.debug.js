@@ -692,7 +692,7 @@ module.exports = BraintreeBus;
 },{"../error":18,"./check-origin":10,"./events":11,"framebus":1}],13:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.3.0";
+var VERSION = "3.4.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -969,6 +969,22 @@ module.exports = {
 },{}],23:[function(_dereq_,module,exports){
 'use strict';
 
+var BraintreeError = _dereq_('./error');
+var sharedErrors = _dereq_('../errors');
+
+module.exports = function (callback, functionName) {
+  if (typeof callback !== 'function') {
+    throw new BraintreeError({
+      type: sharedErrors.CALLBACK_REQUIRED.type,
+      code: sharedErrors.CALLBACK_REQUIRED.code,
+      message: functionName + ' must include a callback function.'
+    });
+  }
+};
+
+},{"../errors":6,"./error":18}],24:[function(_dereq_,module,exports){
+'use strict';
+
 function uuid() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
     var r = Math.random() * 16 | 0;
@@ -980,7 +996,7 @@ function uuid() {
 
 module.exports = uuid;
 
-},{}],24:[function(_dereq_,module,exports){
+},{}],25:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../lib/error');
@@ -992,10 +1008,10 @@ var Bus = _dereq_('../../lib/bus');
 var uuid = _dereq_('../../lib/uuid');
 var deferred = _dereq_('../../lib/deferred');
 var errors = _dereq_('../shared/errors');
+var throwIfNoCallback = _dereq_('../../lib/throw-if-no-callback');
 var events = _dereq_('../shared/events');
-var version = "3.3.0";
+var version = "3.4.0";
 var iFramer = _dereq_('iframer');
-var sharedErrors = _dereq_('../../errors');
 
 var IFRAME_HEIGHT = 400;
 var IFRAME_WIDTH = 400;
@@ -1085,13 +1101,7 @@ function ThreeDSecure(options) {
 ThreeDSecure.prototype.verifyCard = function (options, callback) {
   var url, addFrame, removeFrame, error, errorOption;
 
-  if (typeof callback !== 'function') {
-    throw new BraintreeError({
-      type: sharedErrors.CALLBACK_REQUIRED.type,
-      code: sharedErrors.CALLBACK_REQUIRED.code,
-      message: 'verifyCard must include a callback function.'
-    });
-  }
+  throwIfNoCallback(callback, 'verifyCard');
 
   options = options || {};
   callback = deferred(callback);
@@ -1309,7 +1319,7 @@ ThreeDSecure.prototype.teardown = function (callback) {
 
 module.exports = ThreeDSecure;
 
-},{"../../errors":6,"../../lib/analytics":8,"../../lib/bus":12,"../../lib/convert-methods-to-error":14,"../../lib/deferred":16,"../../lib/error":18,"../../lib/methods":21,"../../lib/uuid":23,"../shared/constants":26,"../shared/errors":27,"../shared/events":28,"iframer":2}],25:[function(_dereq_,module,exports){
+},{"../../lib/analytics":8,"../../lib/bus":12,"../../lib/convert-methods-to-error":14,"../../lib/deferred":16,"../../lib/error":18,"../../lib/methods":21,"../../lib/throw-if-no-callback":23,"../../lib/uuid":24,"../shared/constants":27,"../shared/errors":28,"../shared/events":29,"iframer":2}],26:[function(_dereq_,module,exports){
 'use strict';
 /** @module braintree-web/three-d-secure */
 
@@ -1317,10 +1327,11 @@ var ThreeDSecure = _dereq_('./external/three-d-secure');
 var browserDetection = _dereq_('../lib/browser-detection');
 var BraintreeError = _dereq_('../lib/error');
 var analytics = _dereq_('../lib/analytics');
+var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 var deferred = _dereq_('../lib/deferred');
 var errors = _dereq_('./shared/errors');
 var sharedErrors = _dereq_('../errors');
-var VERSION = "3.3.0";
+var VERSION = "3.4.0";
 
 /**
  * @static
@@ -1337,13 +1348,7 @@ var VERSION = "3.3.0";
 function create(options, callback) {
   var config, threeDSecure, error, clientVersion;
 
-  if (typeof callback !== 'function') {
-    throw new BraintreeError({
-      type: sharedErrors.CALLBACK_REQUIRED.type,
-      code: sharedErrors.CALLBACK_REQUIRED.code,
-      message: 'create must include a callback function.'
-    });
-  }
+  throwIfNoCallback(callback, 'create');
 
   callback = deferred(callback);
 
@@ -1397,14 +1402,14 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../errors":6,"../lib/analytics":8,"../lib/browser-detection":9,"../lib/deferred":16,"../lib/error":18,"./external/three-d-secure":24,"./shared/errors":27}],26:[function(_dereq_,module,exports){
+},{"../errors":6,"../lib/analytics":8,"../lib/browser-detection":9,"../lib/deferred":16,"../lib/error":18,"../lib/throw-if-no-callback":23,"./external/three-d-secure":25,"./shared/errors":28}],27:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   LANDING_FRAME_NAME: 'braintreethreedsecurelanding'
 };
 
-},{}],27:[function(_dereq_,module,exports){
+},{}],28:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../lib/error');
@@ -1441,7 +1446,7 @@ module.exports = {
   }
 };
 
-},{"../../lib/error":18}],28:[function(_dereq_,module,exports){
+},{"../../lib/error":18}],29:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../../lib/enumerate');
@@ -1450,5 +1455,5 @@ module.exports = enumerate([
   'AUTHENTICATION_COMPLETE'
 ], 'threedsecure:');
 
-},{"../../lib/enumerate":17}]},{},[25])(25)
+},{"../../lib/enumerate":17}]},{},[26])(26)
 });

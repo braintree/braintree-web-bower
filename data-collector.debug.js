@@ -137,9 +137,10 @@ var kount = _dereq_('./kount');
 var fraudnet = _dereq_('./fraudnet');
 var BraintreeError = _dereq_('../lib/error');
 var methods = _dereq_('../lib/methods');
+var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
 var deferred = _dereq_('../lib/deferred');
-var VERSION = "3.3.0";
+var VERSION = "3.4.0";
 var sharedErrors = _dereq_('../errors');
 var errors = _dereq_('./errors');
 
@@ -183,13 +184,7 @@ function create(options, callback) {
   var data, kountInstance, fraudnetInstance, result, config, clientVersion;
   var instances = [];
 
-  if (typeof callback !== 'function') {
-    throw new BraintreeError({
-      type: sharedErrors.CALLBACK_REQUIRED.type,
-      code: sharedErrors.CALLBACK_REQUIRED.code,
-      message: 'create must include a callback function.'
-    });
-  }
+  throwIfNoCallback(callback, 'create');
 
   callback = deferred(callback);
 
@@ -288,7 +283,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../errors":6,"../lib/convert-methods-to-error":7,"../lib/deferred":8,"../lib/error":10,"../lib/methods":11,"./errors":1,"./fraudnet":2,"./kount":4}],4:[function(_dereq_,module,exports){
+},{"../errors":6,"../lib/convert-methods-to-error":7,"../lib/deferred":8,"../lib/error":10,"../lib/methods":11,"../lib/throw-if-no-callback":12,"./errors":1,"./fraudnet":2,"./kount":4}],4:[function(_dereq_,module,exports){
 'use strict';
 /* eslint-disable camelcase */
 
@@ -579,5 +574,21 @@ module.exports = function (obj) {
   });
 };
 
-},{}]},{},[3])(3)
+},{}],12:[function(_dereq_,module,exports){
+'use strict';
+
+var BraintreeError = _dereq_('./error');
+var sharedErrors = _dereq_('../errors');
+
+module.exports = function (callback, functionName) {
+  if (typeof callback !== 'function') {
+    throw new BraintreeError({
+      type: sharedErrors.CALLBACK_REQUIRED.type,
+      code: sharedErrors.CALLBACK_REQUIRED.code,
+      message: functionName + ' must include a callback function.'
+    });
+  }
+};
+
+},{"../errors":6,"./error":10}]},{},[3])(3)
 });

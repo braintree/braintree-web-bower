@@ -4,7 +4,7 @@
 var BraintreeError = _dereq_('../lib/error');
 var deferred = _dereq_('../lib/deferred');
 var errors = _dereq_('./errors');
-var sharedErrors = _dereq_('../errors');
+var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 
 /**
  * @class
@@ -39,13 +39,7 @@ function AmericanExpress(options) {
  * });
  */
 AmericanExpress.prototype.getRewardsBalance = function (options, callback) {
-  if (typeof callback !== 'function') {
-    throw new BraintreeError({
-      type: sharedErrors.CALLBACK_REQUIRED.type,
-      code: sharedErrors.CALLBACK_REQUIRED.code,
-      message: 'getRewardsBalance must include a callback function.'
-    });
-  }
+  throwIfNoCallback(callback, 'getRewardsBalance');
 
   callback = deferred(callback);
 
@@ -104,13 +98,7 @@ AmericanExpress.prototype.getRewardsBalance = function (options, callback) {
  * });
  */
 AmericanExpress.prototype.getExpressCheckoutProfile = function (options, callback) {
-  if (typeof callback !== 'function') {
-    throw new BraintreeError({
-      type: sharedErrors.CALLBACK_REQUIRED.type,
-      code: sharedErrors.CALLBACK_REQUIRED.code,
-      message: 'getExpressCheckoutProfile must include a callback function.'
-    });
-  }
+  throwIfNoCallback(callback, 'getExpressCheckoutProfile');
 
   callback = deferred(callback);
 
@@ -148,7 +136,7 @@ AmericanExpress.prototype.getExpressCheckoutProfile = function (options, callbac
 
 module.exports = AmericanExpress;
 
-},{"../errors":4,"../lib/deferred":5,"../lib/error":7,"./errors":2}],2:[function(_dereq_,module,exports){
+},{"../lib/deferred":5,"../lib/error":7,"../lib/throw-if-no-callback":8,"./errors":2}],2:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/error');
@@ -175,7 +163,8 @@ var BraintreeError = _dereq_('../lib/error');
 var AmericanExpress = _dereq_('./american-express');
 var deferred = _dereq_('../lib/deferred');
 var sharedErrors = _dereq_('../errors');
-var VERSION = "3.3.0";
+var VERSION = "3.4.0";
+var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 
 /**
  * @static
@@ -188,13 +177,7 @@ var VERSION = "3.3.0";
 function create(options, callback) {
   var clientVersion;
 
-  if (typeof callback !== 'function') {
-    throw new BraintreeError({
-      type: sharedErrors.CALLBACK_REQUIRED.type,
-      code: sharedErrors.CALLBACK_REQUIRED.code,
-      message: 'create must include a callback function.'
-    });
-  }
+  throwIfNoCallback(callback, 'create');
 
   callback = deferred(callback);
 
@@ -229,7 +212,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../errors":4,"../lib/deferred":5,"../lib/error":7,"./american-express":1}],4:[function(_dereq_,module,exports){
+},{"../errors":4,"../lib/deferred":5,"../lib/error":7,"../lib/throw-if-no-callback":8,"./american-express":1}],4:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./lib/error');
@@ -358,5 +341,21 @@ BraintreeError.types = enumerate([
 
 module.exports = BraintreeError;
 
-},{"./enumerate":6}]},{},[3])(3)
+},{"./enumerate":6}],8:[function(_dereq_,module,exports){
+'use strict';
+
+var BraintreeError = _dereq_('./error');
+var sharedErrors = _dereq_('../errors');
+
+module.exports = function (callback, functionName) {
+  if (typeof callback !== 'function') {
+    throw new BraintreeError({
+      type: sharedErrors.CALLBACK_REQUIRED.type,
+      code: sharedErrors.CALLBACK_REQUIRED.code,
+      message: functionName + ' must include a callback function.'
+    });
+  }
+};
+
+},{"../errors":4,"./error":7}]},{},[3])(3)
 });

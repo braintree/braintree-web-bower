@@ -609,7 +609,7 @@ module.exports = BraintreeBus;
 },{"../error":17,"./check-origin":9,"./events":10,"framebus":1}],12:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.3.0";
+var VERSION = "3.4.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -886,6 +886,22 @@ module.exports = {
 },{}],22:[function(_dereq_,module,exports){
 'use strict';
 
+var BraintreeError = _dereq_('./error');
+var sharedErrors = _dereq_('../errors');
+
+module.exports = function (callback, functionName) {
+  if (typeof callback !== 'function') {
+    throw new BraintreeError({
+      type: sharedErrors.CALLBACK_REQUIRED.type,
+      code: sharedErrors.CALLBACK_REQUIRED.code,
+      message: functionName + ' must include a callback function.'
+    });
+  }
+};
+
+},{"../errors":6,"./error":17}],23:[function(_dereq_,module,exports){
+'use strict';
+
 function uuid() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
     var r = Math.random() * 16 | 0;
@@ -897,7 +913,7 @@ function uuid() {
 
 module.exports = uuid;
 
-},{}],23:[function(_dereq_,module,exports){
+},{}],24:[function(_dereq_,module,exports){
 'use strict';
 /**
  * @module braintree-web/unionpay
@@ -908,9 +924,10 @@ var UnionPay = _dereq_('./shared/unionpay');
 var BraintreeError = _dereq_('../lib/error');
 var analytics = _dereq_('../lib/analytics');
 var deferred = _dereq_('../lib/deferred');
+var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 var errors = _dereq_('./shared/errors');
 var sharedErrors = _dereq_('../errors');
-var VERSION = "3.3.0";
+var VERSION = "3.4.0";
 
 /**
 * @static
@@ -931,13 +948,7 @@ var VERSION = "3.3.0";
 function create(options, callback) {
   var config, clientVersion;
 
-  if (typeof callback !== 'function') {
-    throw new BraintreeError({
-      type: sharedErrors.CALLBACK_REQUIRED.type,
-      code: sharedErrors.CALLBACK_REQUIRED.code,
-      message: 'create must include a callback function.'
-    });
-  }
+  throwIfNoCallback(callback, 'create');
 
   callback = deferred(callback);
 
@@ -981,7 +992,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../errors":6,"../lib/analytics":8,"../lib/deferred":15,"../lib/error":17,"./shared/errors":25,"./shared/unionpay":26}],24:[function(_dereq_,module,exports){
+},{"../errors":6,"../lib/analytics":8,"../lib/deferred":15,"../lib/error":17,"../lib/throw-if-no-callback":22,"./shared/errors":26,"./shared/unionpay":27}],25:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../../lib/enumerate');
@@ -995,7 +1006,7 @@ module.exports = {
   HOSTED_FIELDS_FRAME_NAME: 'braintreeunionpayhostedfields'
 };
 
-},{"../../lib/enumerate":16}],25:[function(_dereq_,module,exports){
+},{"../../lib/enumerate":16}],26:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../lib/error');
@@ -1063,7 +1074,7 @@ module.exports = {
   }
 };
 
-},{"../../lib/error":17}],26:[function(_dereq_,module,exports){
+},{"../../lib/error":17}],27:[function(_dereq_,module,exports){
 'use strict';
 
 var analytics = _dereq_('../../lib/analytics');
@@ -1076,8 +1087,9 @@ var errors = _dereq_('./errors');
 var events = constants.events;
 var iFramer = _dereq_('iframer');
 var methods = _dereq_('../../lib/methods');
-var VERSION = "3.3.0";
+var VERSION = "3.4.0";
 var uuid = _dereq_('../../lib/uuid');
+var throwIfNoCallback = _dereq_('../../lib/throw-if-no-callback');
 
 /**
  * @class
@@ -1173,6 +1185,8 @@ UnionPay.prototype.fetchCapabilities = function (options, callback) {
   var client = this._options.client;
   var cardNumber = options.card ? options.card.number : null;
   var hostedFields = options.hostedFields;
+
+  throwIfNoCallback(callback, 'fetchCapabilities');
 
   callback = deferred(callback);
 
@@ -1308,6 +1322,8 @@ UnionPay.prototype.enroll = function (options, callback) {
   var mobile = options.mobile;
   var hostedFields = options.hostedFields;
   var data;
+
+  throwIfNoCallback(callback, 'enroll');
 
   callback = deferred(callback);
 
@@ -1455,6 +1471,8 @@ UnionPay.prototype.tokenize = function (options, callback) {
   var card = options.card;
   var hostedFields = options.hostedFields;
 
+  throwIfNoCallback(callback, 'tokenize');
+
   callback = deferred(callback);
 
   if (card && hostedFields) {
@@ -1597,5 +1615,5 @@ UnionPay.prototype._initializeHostedFields = function (callback) {
 
 module.exports = UnionPay;
 
-},{"../../lib/analytics":8,"../../lib/bus":11,"../../lib/convert-methods-to-error":13,"../../lib/deferred":15,"../../lib/error":17,"../../lib/methods":20,"../../lib/uuid":22,"./constants":24,"./errors":25,"iframer":2}]},{},[23])(23)
+},{"../../lib/analytics":8,"../../lib/bus":11,"../../lib/convert-methods-to-error":13,"../../lib/deferred":15,"../../lib/error":17,"../../lib/methods":20,"../../lib/throw-if-no-callback":22,"../../lib/uuid":23,"./constants":25,"./errors":26,"iframer":2}]},{},[24])(24)
 });

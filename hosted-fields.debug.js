@@ -587,13 +587,14 @@ var errors = _dereq_('../shared/errors');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var uuid = _dereq_('../../lib/uuid');
 var findParentTags = _dereq_('../shared/find-parent-tags');
+var throwIfNoCallback = _dereq_('../../lib/throw-if-no-callback');
 var isIos = _dereq_('../../lib/is-ios');
 var events = constants.events;
 var EventEmitter = _dereq_('../../lib/event-emitter');
 var injectFrame = _dereq_('./inject-frame');
 var analytics = _dereq_('../../lib/analytics');
 var whitelistedFields = constants.whitelistedFields;
-var VERSION = "3.3.0";
+var VERSION = "3.4.0";
 var methods = _dereq_('../../lib/methods');
 var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
 var deferred = _dereq_('../../lib/deferred');
@@ -1100,13 +1101,7 @@ HostedFields.prototype.tokenize = function (options, callback) {
     options = {};
   }
 
-  if (typeof callback !== 'function') {
-    throw new BraintreeError({
-      type: sharedErrors.CALLBACK_REQUIRED.type,
-      code: sharedErrors.CALLBACK_REQUIRED.code,
-      message: 'tokenize must include a callback function.'
-    });
-  }
+  throwIfNoCallback(callback, 'tokenize');
 
   this._bus.emit(events.TOKENIZATION_REQUEST, options, function (response) {
     callback.apply(null, response);
@@ -1310,7 +1305,7 @@ HostedFields.prototype.getState = function () {
 
 module.exports = HostedFields;
 
-},{"../../errors":7,"../../lib/analytics":16,"../../lib/bus":20,"../../lib/classlist":21,"../../lib/constants":22,"../../lib/convert-methods-to-error":23,"../../lib/deferred":25,"../../lib/destructor":26,"../../lib/error":28,"../../lib/event-emitter":29,"../../lib/is-ios":30,"../../lib/methods":33,"../../lib/uuid":36,"../shared/constants":12,"../shared/errors":13,"../shared/find-parent-tags":14,"./compose-url":8,"./inject-frame":10,"credit-card-type":1,"iframer":3}],10:[function(_dereq_,module,exports){
+},{"../../errors":7,"../../lib/analytics":16,"../../lib/bus":20,"../../lib/classlist":21,"../../lib/constants":22,"../../lib/convert-methods-to-error":23,"../../lib/deferred":25,"../../lib/destructor":26,"../../lib/error":28,"../../lib/event-emitter":29,"../../lib/is-ios":30,"../../lib/methods":33,"../../lib/throw-if-no-callback":36,"../../lib/uuid":37,"../shared/constants":12,"../shared/errors":13,"../shared/find-parent-tags":14,"./compose-url":8,"./inject-frame":10,"credit-card-type":1,"iframer":3}],10:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function injectFrame(frame, container) {
@@ -1333,9 +1328,8 @@ module.exports = function injectFrame(frame, container) {
 
 var HostedFields = _dereq_('./external/hosted-fields');
 var deferred = _dereq_('../lib/deferred');
-var BraintreeError = _dereq_('../lib/error');
-var sharedErrors = _dereq_('../errors');
-var VERSION = "3.3.0";
+var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
+var VERSION = "3.4.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -1343,7 +1337,7 @@ var VERSION = "3.3.0";
  * @property {string} selector A CSS selector to find the container where the hosted field will be inserted.
  * @property {string} [placeholder] Will be used as the `placeholder` attribute of the input. If `placeholder` is not natively supported by the browser, it will be polyfilled.
  * @property {string} [type] Will be used as the `type` attribute of the input. To mask `cvv` input, for instance, `type: "password"` can be used.
- * @property {boolean} [formatInput=true] Enable or disable automatic formatting on this field. Note: Input formatting does not work properly on Android and iOS, so input formatting is automatically disabled on those browsers.
+ * @property {boolean} [formatInput=true] Enable or disable automatic formatting on this field.
  */
 
 /**
@@ -1408,13 +1402,7 @@ var VERSION = "3.3.0";
 function create(options, callback) {
   var integration;
 
-  if (typeof callback !== 'function') {
-    throw new BraintreeError({
-      type: sharedErrors.CALLBACK_REQUIRED.type,
-      code: sharedErrors.CALLBACK_REQUIRED.code,
-      message: 'create must include a callback function.'
-    });
-  }
+  throwIfNoCallback(callback, 'create');
 
   try {
     integration = new HostedFields(options);
@@ -1438,12 +1426,12 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../errors":7,"../lib/deferred":25,"../lib/error":28,"./external/hosted-fields":9}],12:[function(_dereq_,module,exports){
+},{"../lib/deferred":25,"../lib/throw-if-no-callback":36,"./external/hosted-fields":9}],12:[function(_dereq_,module,exports){
 'use strict';
 /* eslint-disable no-reserved-keys */
 
 var enumerate = _dereq_('../../lib/enumerate');
-var VERSION = "3.3.0";
+var VERSION = "3.4.0";
 
 var constants = {
   VERSION: VERSION,
@@ -1937,7 +1925,7 @@ module.exports = {
 },{}],22:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.3.0";
+var VERSION = "3.4.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -2303,6 +2291,22 @@ module.exports = {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],36:[function(_dereq_,module,exports){
+'use strict';
+
+var BraintreeError = _dereq_('./error');
+var sharedErrors = _dereq_('../errors');
+
+module.exports = function (callback, functionName) {
+  if (typeof callback !== 'function') {
+    throw new BraintreeError({
+      type: sharedErrors.CALLBACK_REQUIRED.type,
+      code: sharedErrors.CALLBACK_REQUIRED.code,
+      message: functionName + ' must include a callback function.'
+    });
+  }
+};
+
+},{"../errors":7,"./error":28}],37:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {

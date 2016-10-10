@@ -138,7 +138,11 @@ Client.prototype.request = function (options, callback) {
     // when features that require headers are out of beta
     headers: options._headers,
     timeout: options.timeout
-  }, function (err, data, status) {
+  }, this._bindRequestCallback(callback));
+};
+
+Client.prototype._bindRequestCallback = function (callback) {
+  return function (err, data, status) {
     if (status === -1) {
       callback(new BraintreeError(errors.CLIENT_REQUEST_TIMEOUT), null, status);
     } else if (status === 403) {
@@ -157,7 +161,7 @@ Client.prototype.request = function (options, callback) {
     } else {
       callback(null, data, status);
     }
-  });
+  };
 };
 
 module.exports = Client;
@@ -254,12 +258,20 @@ function getConfiguration(options, callback) {
     url: configUrl,
     method: 'GET',
     data: attrs
-  }, function (err, response) {
+  }, function (err, response, status) {
+    var errorTemplate;
+
     if (err) {
+      if (status === 403) {
+        errorTemplate = errors.CLIENT_AUTHORIZATION_INSUFFICIENT;
+      } else {
+        errorTemplate = errors.CLIENT_GATEWAY_NETWORK;
+      }
+
       callback(new BraintreeError({
-        type: errors.CLIENT_GATEWAY_NETWORK.type,
-        code: errors.CLIENT_GATEWAY_NETWORK.code,
-        message: errors.CLIENT_GATEWAY_NETWORK.message,
+        type: errorTemplate.type,
+        code: errorTemplate.code,
+        message: errorTemplate.message,
         details: {
           originalError: err
         }
@@ -283,13 +295,14 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../lib/constants":14,"../lib/create-authorization-data":15,"../lib/error":18,"../lib/uuid":24,"./errors":2,"./request":7}],4:[function(_dereq_,module,exports){
+},{"../lib/constants":14,"../lib/create-authorization-data":15,"../lib/error":18,"../lib/uuid":25,"./errors":2,"./request":7}],4:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/error');
 var Client = _dereq_('./client');
 var getConfiguration = _dereq_('./get-configuration').getConfiguration;
-var packageVersion = "3.3.0";
+var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
+var packageVersion = "3.4.0";
 var deferred = _dereq_('../lib/deferred');
 var sharedErrors = _dereq_('../errors');
 
@@ -313,13 +326,7 @@ var sharedErrors = _dereq_('../errors');
  * @static
  */
 function create(options, callback) {
-  if (typeof callback !== 'function') {
-    throw new BraintreeError({
-      type: sharedErrors.CALLBACK_REQUIRED.type,
-      code: sharedErrors.CALLBACK_REQUIRED.code,
-      message: 'create must include a callback function.'
-    });
-  }
+  throwIfNoCallback(callback, 'create');
 
   callback = deferred(callback);
 
@@ -360,7 +367,7 @@ module.exports = {
   VERSION: packageVersion
 };
 
-},{"../errors":12,"../lib/deferred":16,"../lib/error":18,"./client":1,"./get-configuration":3}],5:[function(_dereq_,module,exports){
+},{"../errors":12,"../lib/deferred":16,"../lib/error":18,"../lib/throw-if-no-callback":24,"./client":1,"./get-configuration":3}],5:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -611,7 +618,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../lib/querystring":23,"../../lib/uuid":24}],10:[function(_dereq_,module,exports){
+},{"../../lib/querystring":23,"../../lib/uuid":25}],10:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (body) {
@@ -698,7 +705,7 @@ module.exports = addMetadata;
 },{"./constants":14,"./create-authorization-data":15,"./json-clone":20}],14:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.3.0";
+var VERSION = "3.4.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -1053,6 +1060,22 @@ module.exports = {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],24:[function(_dereq_,module,exports){
+'use strict';
+
+var BraintreeError = _dereq_('./error');
+var sharedErrors = _dereq_('../errors');
+
+module.exports = function (callback, functionName) {
+  if (typeof callback !== 'function') {
+    throw new BraintreeError({
+      type: sharedErrors.CALLBACK_REQUIRED.type,
+      code: sharedErrors.CALLBACK_REQUIRED.code,
+      message: functionName + ' must include a callback function.'
+    });
+  }
+};
+
+},{"../errors":12,"./error":18}],25:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {
