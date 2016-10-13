@@ -557,6 +557,11 @@ module.exports = {
   METHOD_CALLED_AFTER_TEARDOWN: {
     type: BraintreeError.types.MERCHANT,
     code: 'METHOD_CALLED_AFTER_TEARDOWN'
+  },
+  BRAINTREE_API_ACCESS_RESTRICTED: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'BRAINTREE_API_ACCESS_RESTRICTED',
+    message: 'Your access is restricted and cannot use this part of the Braintree API.'
   }
 };
 
@@ -594,7 +599,7 @@ var EventEmitter = _dereq_('../../lib/event-emitter');
 var injectFrame = _dereq_('./inject-frame');
 var analytics = _dereq_('../../lib/analytics');
 var whitelistedFields = constants.whitelistedFields;
-var VERSION = "3.4.0";
+var VERSION = "3.5.0";
 var methods = _dereq_('../../lib/methods');
 var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
 var deferred = _dereq_('../../lib/deferred');
@@ -772,7 +777,7 @@ var getCardTypes = _dereq_('credit-card-type');
  * @example
  * <caption>Listening to a cardTypeChange event</caption>
  * hostedFields.create({ ... }, function (createErr, hostedFieldsInstance) {
- *   hosteFieldsInstance.on('cardTypeChange', function (event) {
+ *   hostedFieldsInstance.on('cardTypeChange', function (event) {
  *     if (event.cards.length === 1) {
  *       console.log(event.cards[0].type);
  *     } else {
@@ -1329,7 +1334,7 @@ module.exports = function injectFrame(frame, container) {
 var HostedFields = _dereq_('./external/hosted-fields');
 var deferred = _dereq_('../lib/deferred');
 var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
-var VERSION = "3.4.0";
+var VERSION = "3.5.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -1338,6 +1343,8 @@ var VERSION = "3.4.0";
  * @property {string} [placeholder] Will be used as the `placeholder` attribute of the input. If `placeholder` is not natively supported by the browser, it will be polyfilled.
  * @property {string} [type] Will be used as the `type` attribute of the input. To mask `cvv` input, for instance, `type: "password"` can be used.
  * @property {boolean} [formatInput=true] Enable or disable automatic formatting on this field.
+ * @property {object|boolean} [select] If truthy, this field becomes a `<select>` dropdown list. This can only be used for `expirationMonth` and `expirationYear` fields.
+ * @property {string[]} [select.options] An array of 12 strings, one per month. This can only be used for the `expirationMonth` field. For example, the array can look like `['01 - January', '02 - February', ...]`.
  */
 
 /**
@@ -1431,10 +1438,11 @@ module.exports = {
 /* eslint-disable no-reserved-keys */
 
 var enumerate = _dereq_('../../lib/enumerate');
-var VERSION = "3.4.0";
+var VERSION = "3.5.0";
 
 var constants = {
   VERSION: VERSION,
+  maxExpirationYearAge: 19,
   externalEvents: {
     FOCUS: 'focus',
     BLUR: 'blur',
@@ -1925,7 +1933,7 @@ module.exports = {
 },{}],22:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.4.0";
+var VERSION = "3.5.0";
 var PLATFORM = 'web';
 
 module.exports = {

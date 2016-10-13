@@ -366,6 +366,11 @@ module.exports = {
   METHOD_CALLED_AFTER_TEARDOWN: {
     type: BraintreeError.types.MERCHANT,
     code: 'METHOD_CALLED_AFTER_TEARDOWN'
+  },
+  BRAINTREE_API_ACCESS_RESTRICTED: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'BRAINTREE_API_ACCESS_RESTRICTED',
+    message: 'Your access is restricted and cannot use this part of the Braintree API.'
   }
 };
 
@@ -609,7 +614,7 @@ module.exports = BraintreeBus;
 },{"../error":17,"./check-origin":9,"./events":10,"framebus":1}],12:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.4.0";
+var VERSION = "3.5.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -927,7 +932,7 @@ var deferred = _dereq_('../lib/deferred');
 var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 var errors = _dereq_('./shared/errors');
 var sharedErrors = _dereq_('../errors');
-var VERSION = "3.4.0";
+var VERSION = "3.5.0";
 
 /**
 * @static
@@ -1087,7 +1092,7 @@ var errors = _dereq_('./errors');
 var events = constants.events;
 var iFramer = _dereq_('iframer');
 var methods = _dereq_('../../lib/methods');
-var VERSION = "3.4.0";
+var VERSION = "3.5.0";
 var uuid = _dereq_('../../lib/uuid');
 var throwIfNoCallback = _dereq_('../../lib/throw-if-no-callback');
 
