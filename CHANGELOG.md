@@ -1,6 +1,15 @@
 CHANGELOG
 =========
 
+## 2.30.0
+
+* Friendlier error when using a client token generated with insufficient privileges
+* PayPal
+  * Adds support for additional currencies in Checkout with PayPal flow
+    - `HUF`
+    - `TWD`
+  * Bugfix - Fix privacy policy and user agreement links in some flows
+
 ## 2.29.0
 
 * PayPal
