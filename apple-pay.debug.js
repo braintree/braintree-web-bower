@@ -180,10 +180,10 @@ ApplePay.prototype.performValidation = function (options, callback) {
           }
         }));
       }
-      analytics.sendEvent(this._client, 'web.applepay.performValidation.failed');
+      analytics.sendEvent(this._client, 'applepay.performValidation.failed');
     } else {
       callback(null, response);
-      analytics.sendEvent(this._client, 'web.applepay.performValidation.succeeded');
+      analytics.sendEvent(this._client, 'applepay.performValidation.succeeded');
     }
   }.bind(this));
 };
@@ -267,10 +267,10 @@ ApplePay.prototype.tokenize = function (options, callback) {
           originalError: err
         }
       }));
-      analytics.sendEvent(this._client, 'web.applepay.tokenize.failed');
+      analytics.sendEvent(this._client, 'applepay.tokenize.failed');
     } else {
       callback(null, response.applePayCards[0]);
-      analytics.sendEvent(this._client, 'web.applepay.tokenize.succeeded');
+      analytics.sendEvent(this._client, 'applepay.tokenize.succeeded');
     }
   }.bind(this));
 };
@@ -331,7 +331,7 @@ var deferred = _dereq_('../lib/deferred');
 var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 var sharedErrors = _dereq_('../errors');
 var errors = _dereq_('./errors');
-var VERSION = "3.5.0";
+var VERSION = "3.6.0";
 
 /**
  * @static
@@ -372,7 +372,7 @@ function create(options, callback) {
     return;
   }
 
-  analytics.sendEvent(options.client, 'web.applepay.initialized');
+  analytics.sendEvent(options.client, 'applepay.initialized');
 
   callback(null, new ApplePay(options));
 }
@@ -465,7 +465,10 @@ function sendAnalyticsEvent(client, kind, callback) {
   var timestamp = _millisToSeconds(Date.now());
   var url = configuration.gatewayConfiguration.analytics.url;
   var data = {
-    analytics: [{kind: kind, timestamp: timestamp}]
+    analytics: [{
+      kind: constants.ANALYTICS_PREFIX + kind,
+      timestamp: timestamp
+    }]
   };
 
   request({
@@ -483,10 +486,11 @@ module.exports = {
 },{"./add-metadata":5,"./constants":7}],7:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.5.0";
+var VERSION = "3.6.0";
 var PLATFORM = 'web';
 
 module.exports = {
+  ANALYTICS_PREFIX: 'web.',
   ANALYTICS_REQUEST_TIMEOUT_MS: 2000,
   INTEGRATION_TIMEOUT_MS: 60000,
   VERSION: VERSION,

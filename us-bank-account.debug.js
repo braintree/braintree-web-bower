@@ -27,7 +27,75 @@ module.exports = {
   }
 };
 
-},{"./lib/error":5}],2:[function(_dereq_,module,exports){
+},{"./lib/error":10}],2:[function(_dereq_,module,exports){
+'use strict';
+
+var createAuthorizationData = _dereq_('./create-authorization-data');
+var jsonClone = _dereq_('./json-clone');
+var constants = _dereq_('./constants');
+
+function addMetadata(configuration, data) {
+  var key;
+  var attrs = data ? jsonClone(data) : {};
+  var authAttrs = createAuthorizationData(configuration.authorization).attrs;
+  var _meta = jsonClone(configuration.analyticsMetadata);
+
+  attrs.braintreeLibraryVersion = constants.BRAINTREE_LIBRARY_VERSION;
+
+  for (key in attrs._meta) {
+    if (attrs._meta.hasOwnProperty(key)) {
+      _meta[key] = attrs._meta[key];
+    }
+  }
+
+  attrs._meta = _meta;
+
+  if (authAttrs.tokenizationKey) {
+    attrs.tokenizationKey = authAttrs.tokenizationKey;
+  } else {
+    attrs.authorizationFingerprint = authAttrs.authorizationFingerprint;
+  }
+
+  return attrs;
+}
+
+module.exports = addMetadata;
+
+},{"./constants":5,"./create-authorization-data":7,"./json-clone":11}],3:[function(_dereq_,module,exports){
+'use strict';
+
+var constants = _dereq_('./constants');
+var addMetadata = _dereq_('./add-metadata');
+
+function _millisToSeconds(millis) {
+  return Math.floor(millis / 1000);
+}
+
+function sendAnalyticsEvent(client, kind, callback) {
+  var configuration = client.getConfiguration();
+  var request = client._request;
+  var timestamp = _millisToSeconds(Date.now());
+  var url = configuration.gatewayConfiguration.analytics.url;
+  var data = {
+    analytics: [{
+      kind: constants.ANALYTICS_PREFIX + kind,
+      timestamp: timestamp
+    }]
+  };
+
+  request({
+    url: url,
+    method: 'post',
+    data: addMetadata(configuration, data),
+    timeout: constants.ANALYTICS_REQUEST_TIMEOUT_MS
+  }, callback);
+}
+
+module.exports = {
+  sendEvent: sendAnalyticsEvent
+};
+
+},{"./add-metadata":2,"./constants":5}],4:[function(_dereq_,module,exports){
 'use strict';
 
 // Taken from https://github.com/sindresorhus/decamelize/blob/95980ab6fb44c40eaca7792bdf93aff7c210c805/index.js
@@ -47,7 +115,91 @@ module.exports = function (obj) {
   }, {});
 };
 
-},{}],3:[function(_dereq_,module,exports){
+},{}],5:[function(_dereq_,module,exports){
+'use strict';
+
+var VERSION = "3.6.0";
+var PLATFORM = 'web';
+
+module.exports = {
+  ANALYTICS_PREFIX: 'web.',
+  ANALYTICS_REQUEST_TIMEOUT_MS: 2000,
+  INTEGRATION_TIMEOUT_MS: 60000,
+  VERSION: VERSION,
+  INTEGRATION: 'custom',
+  SOURCE: 'client',
+  PLATFORM: PLATFORM,
+  BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
+};
+
+},{}],6:[function(_dereq_,module,exports){
+'use strict';
+
+var BraintreeError = _dereq_('./error');
+var sharedErrors = _dereq_('../errors');
+
+module.exports = function (instance, methodNames) {
+  methodNames.forEach(function (methodName) {
+    instance[methodName] = function () {
+      throw new BraintreeError({
+        type: sharedErrors.METHOD_CALLED_AFTER_TEARDOWN.type,
+        code: sharedErrors.METHOD_CALLED_AFTER_TEARDOWN.code,
+        message: methodName + ' cannot be called after teardown.'
+      });
+    };
+  });
+};
+
+},{"../errors":1,"./error":10}],7:[function(_dereq_,module,exports){
+'use strict';
+
+var atob = _dereq_('../lib/polyfill').atob;
+
+var apiUrls = {
+  production: 'https://api.braintreegateway.com:443',
+  sandbox: 'https://api.sandbox.braintreegateway.com:443'
+};
+
+/* eslint-enable no-undef,block-scoped-var */
+
+function _isTokenizationKey(str) {
+  return /^[a-zA-Z0-9]+_[a-zA-Z0-9]+_[a-zA-Z0-9_]+$/.test(str);
+}
+
+function _parseTokenizationKey(tokenizationKey) {
+  var tokens = tokenizationKey.split('_');
+  var environment = tokens[0];
+  var merchantId = tokens.slice(2).join('_');
+
+  return {
+    merchantId: merchantId,
+    environment: environment
+  };
+}
+
+function createAuthorizationData(authorization) {
+  var parsedClientToken, parsedTokenizationKey;
+  var data = {
+    attrs: {},
+    configUrl: ''
+  };
+
+  if (_isTokenizationKey(authorization)) {
+    parsedTokenizationKey = _parseTokenizationKey(authorization);
+    data.attrs.tokenizationKey = authorization;
+    data.configUrl = apiUrls[parsedTokenizationKey.environment] + '/merchants/' + parsedTokenizationKey.merchantId + '/client_api/v1/configuration';
+  } else {
+    parsedClientToken = JSON.parse(atob(authorization));
+    data.attrs.authorizationFingerprint = parsedClientToken.authorizationFingerprint;
+    data.configUrl = parsedClientToken.configUrl;
+  }
+
+  return data;
+}
+
+module.exports = createAuthorizationData;
+
+},{"../lib/polyfill":14}],8:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (fn) {
@@ -61,7 +213,7 @@ module.exports = function (fn) {
   };
 };
 
-},{}],4:[function(_dereq_,module,exports){
+},{}],9:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -75,7 +227,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],5:[function(_dereq_,module,exports){
+},{}],10:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -152,7 +304,23 @@ BraintreeError.types = enumerate([
 
 module.exports = BraintreeError;
 
-},{"./enumerate":4}],6:[function(_dereq_,module,exports){
+},{"./enumerate":9}],11:[function(_dereq_,module,exports){
+'use strict';
+
+module.exports = function (value) {
+  return JSON.parse(JSON.stringify(value));
+};
+
+},{}],12:[function(_dereq_,module,exports){
+'use strict';
+
+module.exports = function (obj) {
+  return Object.keys(obj).filter(function (key) {
+    return typeof obj[key] === 'function';
+  });
+};
+
+},{}],13:[function(_dereq_,module,exports){
 'use strict';
 
 function once(fn) {
@@ -168,7 +336,46 @@ function once(fn) {
 
 module.exports = once;
 
-},{}],7:[function(_dereq_,module,exports){
+},{}],14:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+
+var atobNormalized = typeof global.atob === 'function' ? global.atob : atob;
+
+function atob(base64String) {
+  var a, b, c, b1, b2, b3, b4, i;
+  var base64Matcher = new RegExp('^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})([=]{1,2})?$');
+  var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+  var result = '';
+
+  if (!base64Matcher.test(base64String)) {
+    throw new Error('Non base64 encoded input passed to window.atob polyfill');
+  }
+
+  i = 0;
+  do {
+    b1 = characters.indexOf(base64String.charAt(i++));
+    b2 = characters.indexOf(base64String.charAt(i++));
+    b3 = characters.indexOf(base64String.charAt(i++));
+    b4 = characters.indexOf(base64String.charAt(i++));
+
+    a = (b1 & 0x3F) << 2 | b2 >> 4 & 0x3;
+    b = (b2 & 0xF) << 4 | b3 >> 2 & 0xF;
+    c = (b3 & 0x3) << 6 | b4 & 0x3F;
+
+    result += String.fromCharCode(a) + (b ? String.fromCharCode(b) : '') + (c ? String.fromCharCode(c) : '');
+  } while (i < base64String.length);
+
+  return result;
+}
+
+module.exports = {
+  atob: atobNormalized,
+  _atob: atob
+};
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],15:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./error');
@@ -184,7 +391,7 @@ module.exports = function (callback, functionName) {
   }
 };
 
-},{"../errors":1,"./error":5}],8:[function(_dereq_,module,exports){
+},{"../errors":1,"./error":10}],16:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -192,28 +399,58 @@ module.exports = {
   PLAID_LINK_JS: 'https://cdn.plaid.com/link/stable/link-initialize.js'
 };
 
-},{}],9:[function(_dereq_,module,exports){
+},{}],17:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/error');
 
 module.exports = {
-  US_BANK_OPTION_REQUIRED: {
+  US_BANK_ACCOUNT_OPTION_REQUIRED: {
     type: BraintreeError.types.MERCHANT,
-    code: 'US_BANK_OPTION_REQUIRED'
+    code: 'US_BANK_ACCOUNT_OPTION_REQUIRED'
   },
-  US_BANK_MUTUALLY_EXCLUSIVE_OPTIONS: {
+  US_BANK_ACCOUNT_MUTUALLY_EXCLUSIVE_OPTIONS: {
     type: BraintreeError.types.MERCHANT,
-    code: 'US_BANK_MUTUALLY_EXCLUSIVE_OPTIONS'
+    code: 'US_BANK_ACCOUNT_MUTUALLY_EXCLUSIVE_OPTIONS'
   },
-  US_BANK_LOGIN_LOAD_FAILED: {
+  US_BANK_ACCOUNT_LOGIN_LOAD_FAILED: {
     type: BraintreeError.types.NETWORK,
-    code: 'US_BANK_LOGIN_LOAD_FAILED',
+    code: 'US_BANK_ACCOUNT_LOGIN_LOAD_FAILED',
     message: 'Bank login flow failed to load.'
+  },
+  US_BANK_ACCOUNT_LOGIN_CLOSED: {
+    type: BraintreeError.types.CUSTOMER,
+    code: 'US_BANK_ACCOUNT_LOGIN_CLOSED',
+    message: 'Customer closed bank login flow before authorizing.'
+  },
+  US_BANK_ACCOUNT_LOGIN_REQUEST_ACTIVE: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'US_BANK_ACCOUNT_LOGIN_REQUEST_ACTIVE',
+    message: 'Another bank login tokenization request is active.'
+  },
+  US_BANK_ACCOUNT_TOKENIZATION_NETWORK_ERROR: {
+    type: BraintreeError.types.NETWORK,
+    code: 'US_BANK_ACCOUNT_TOKENIZATION_NETWORK_ERROR',
+    message: 'A tokenization network error occurred.'
+  },
+  US_BANK_ACCOUNT_FAILED_TOKENIZATION: {
+    type: BraintreeError.types.CUSTOMER,
+    code: 'US_BANK_ACCOUNT_FAILED_TOKENIZATION',
+    message: 'The supplied data failed tokenization.'
+  },
+  US_BANK_ACCOUNT_NOT_ENABLED: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'US_BANK_ACCOUNT_NOT_ENABLED',
+    message: 'US bank account is not enabled.'
+  },
+  US_BANK_ACCOUNT_BANK_LOGIN_NOT_ENABLED: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'US_BANK_ACCOUNT_BANK_LOGIN_NOT_ENABLED',
+    message: 'Bank login is not enabled.'
   }
 };
 
-},{"../lib/error":5}],10:[function(_dereq_,module,exports){
+},{"../lib/error":10}],18:[function(_dereq_,module,exports){
 'use strict';
 /**
  * @module braintree-web/us-bank-account
@@ -221,10 +458,11 @@ module.exports = {
  */
 
 var BraintreeError = _dereq_('../lib/error');
+var errors = _dereq_('./errors');
 var USBankAccount = _dereq_('./us-bank-account');
 var deferred = _dereq_('../lib/deferred');
 var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
-var VERSION = "3.5.0";
+var VERSION = "3.6.0";
 var sharedErrors = _dereq_('../errors');
 
 /**
@@ -236,7 +474,7 @@ var sharedErrors = _dereq_('../errors');
  * @returns {void}
  */
 function create(options, callback) {
-  var clientVersion, braintreeApi;
+  var clientVersion, braintreeApi, usBankAccount;
 
   throwIfNoCallback(callback, 'create');
 
@@ -267,6 +505,12 @@ function create(options, callback) {
     return;
   }
 
+  usBankAccount = options.client.getConfiguration().gatewayConfiguration.usBankAccount;
+  if (!usBankAccount) {
+    callback(new BraintreeError(errors.US_BANK_ACCOUNT_NOT_ENABLED));
+    return;
+  }
+
   callback(null, new USBankAccount(options));
 }
 
@@ -279,28 +523,121 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../errors":1,"../lib/deferred":3,"../lib/error":5,"../lib/throw-if-no-callback":7,"./us-bank-account":11}],11:[function(_dereq_,module,exports){
+},{"../errors":1,"../lib/deferred":8,"../lib/error":10,"../lib/throw-if-no-callback":15,"./errors":17,"./us-bank-account":19}],19:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/error');
 var constants = _dereq_('./constants');
 var errors = _dereq_('./errors');
+var sharedErrors = _dereq_('../errors');
+var analytics = _dereq_('../lib/analytics');
 var deferred = _dereq_('../lib/deferred');
 var once = _dereq_('../lib/once');
+var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
+var methods = _dereq_('../lib/methods');
 var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 var camelCaseToSnakeCase = _dereq_('../lib/camel-case-to-snake-case');
 
 /**
+ * @typedef {object} USBankAccount~tokenizePayload
+ * @property {string} nonce The payment method nonce.
+ * @property {string} type The payment method type, always `us_bank_account`.
+ * @property {object} details Additional account details. Currently empty.
+ */
+
+/**
  * @class
- * @param {object} options Options
- * @description <strong>You cannot use this constructor directly. Use {@link module:braintree-web/us-bank-account.create|braintree.us-bank-account.create} instead.</strong>
- * @classdesc This class represents a US Bank Account component.
+ * @param {object} options See {@link module:braintree-web/us-bank-account.create|us-bank-account.create}.
+ * @classdesc This class represents a US Bank Account component. Instances of this class can tokenize raw bank details or present a bank login. <strong>You cannot use this constructor directly. Use {@link module:braintree-web/us-bank-account.create|braintree.us-bank-account.create} instead.</strong>
  */
 function USBankAccount(options) {
   this._client = options.client;
+
+  this._isTokenizingBankLogin = false;
+
+  analytics.sendEvent(this._client, 'web.usbankaccount.initialized');
 }
 
+/**
+ * Tokenizes bank information to return a payment method nonce. You can tokenize bank details by providing information like account and routing numbers. You can also tokenize with a bank login UI that prompts the customer to log into their bank account.
+ * @public
+ * @param {object} options All tokenization options for the US Bank Account component.
+ * @param {string} options.mandateText A string for proof of customer authorization. For example, `'I authorize Braintree to debit my bank account on behalf of My Online Store.'`.
+ * @param {object} [options.bankDetails] Bank detail information (such as account and routing numbers). `bankDetails` or `bankLogin` option must be provided.
+ * @param {string} options.bankDetails.routingNumber The customer's bank routing number, such as `'307075259'`.
+ * @param {string} options.bankDetails.accountNumber The customer's bank account number, such as `'999999999'`.
+ * @param {string} options.bankDetails.accountType The customer's bank account type. Must be `'checking'` or `'savings'`.
+ * @param {string} options.bankDetails.accountHolderName The customer's bank account holder name, such as `'Rosetta Fox'`.
+ * @param {object} options.bankDetails.billingAddress The customer's billing address.
+ * @param {string} options.bankDetails.billingAddress.streetAddress The street address for the customer's billing address, such as `'123 Fake St'`.
+ * @param {string} [options.bankDetails.billingAddress.extendedAddress] The extended street address for the customer's billing address, such as `'Apartment B'`.
+ * @param {string} options.bankDetails.billingAddress.locality The locality for the customer's billing address. This is typically a city, such as `'San Francisco'`.
+ * @param {string} options.bankDetails.billingAddress.region The region for the customer's billing address. This is typically a state, such as `'CA'`.
+ * @param {string} options.bankDetails.billingAddress.postalCode The postal code for the customer's billing address. This is typically a ZIP code, such as `'94119'`.
+ * @param {object} [options.bankLogin] Bank login information. `bankLogin` or `bankDetails` option must be provided.
+ * @param {string} options.bankLogin.displayName Display name for the bank login UI, such as `'My Store'`.
+ * @param {callback} callback The second argument, <code>data</code>, is a {@link USBankAccount~tokenizePayload|tokenizePayload}.
+ * @returns {void}
+ * @example
+ * <caption>Tokenizing raw bank details</caption>
+ * submitButton.addEventListener('click', function (event) {
+ *   var routingNumberInput = document.querySelector('input#routing-number');
+ *   var accountNumberInput = document.querySelector('input#account-number');
+ *   var accountHolderNameInput = document.querySelector('input#account-holder-name');
+ *   var accountTypeInput = document.querySelector('input[name="account-type"]:checked');
+ *   var billingAddressStreetInput = document.querySelector('input#street-address');
+ *   var billingAddressExtendedInput = document.querySelector('input#extended-address');
+ *   var billingAddressLocalityInput = document.querySelector('input#locality');
+ *   var billingAddressRegionSelect = document.querySelector('select#region');
+ *   var billingAddressPostalInput = document.querySelector('input#postal-code');
+ *
+ *   event.preventDefault();
+ *
+ *   usBankAccountInstance.tokenize({
+ *     bankDetails: {
+ *       routingNumber: routingNumberInput.value,
+ *       accountNumber: accountNumberInput.value,
+ *       accountHolderName: accountHolderNameInput.value,
+ *       accountType: accountTypeInput.value,
+ *       billingAddress: {
+ *         streetAddress: billingAddressStreetInput.value,
+ *         extendedAddress: billingAddressExtendedInput.value,
+ *         locality: billingAddressLocalityInput.value,
+ *         region: billingAddressRegionSelect.value,
+ *         postalCode: billingAddressPostalInput.value
+ *       }
+ *     },
+ *     mandateText: 'I authorize Braintree to debit my bank account on behalf of My Online Store.'
+ *   }, function (tokenizeErr, tokenizedPayload) {
+ *     if (tokenizeErr) {
+ *       console.error('There was an error tokenizing the bank details.');
+ *       return;
+ *     }
+ *
+ *     // Send tokenizePayload.nonce to your server here!
+ *   });
+ * });
+ * @example
+ * <caption>Tokenizing with bank login UI</caption>
+ * bankLoginButton.addEventListener('click', function (event) {
+ *   event.preventDefault();
+ *
+ *   usBankAccountInstance.tokenize({
+ *     bankLogin: {
+ *       displayName: 'My Online Store'
+ *     },
+ *     mandateText: 'I authorize Braintree to debit my bank account on behalf of My Online Store.'
+ *   }, function (tokenizeErr, tokenizedPayload) {
+ *     if (tokenizeErr) {
+ *       console.error('There was an error tokenizing the bank details.');
+ *       return;
+ *     }
+ *
+ *     // Send tokenizePayload.nonce to your server here!
+ *   });
+ * });
+ */
 USBankAccount.prototype.tokenize = function (options, callback) {
   throwIfNoCallback(callback, 'tokenize');
 
@@ -309,8 +646,8 @@ USBankAccount.prototype.tokenize = function (options, callback) {
 
   if (!options.mandateText) {
     callback(new BraintreeError({
-      type: errors.US_BANK_OPTION_REQUIRED.type,
-      code: errors.US_BANK_OPTION_REQUIRED.code,
+      type: errors.US_BANK_ACCOUNT_OPTION_REQUIRED.type,
+      code: errors.US_BANK_ACCOUNT_OPTION_REQUIRED.code,
       message: 'mandateText property is required.'
     }));
     return;
@@ -318,8 +655,8 @@ USBankAccount.prototype.tokenize = function (options, callback) {
 
   if (options.bankDetails && options.bankLogin) {
     callback(new BraintreeError({
-      type: errors.US_BANK_MUTUALLY_EXCLUSIVE_OPTIONS.type,
-      code: errors.US_BANK_MUTUALLY_EXCLUSIVE_OPTIONS.code,
+      type: errors.US_BANK_ACCOUNT_MUTUALLY_EXCLUSIVE_OPTIONS.type,
+      code: errors.US_BANK_ACCOUNT_MUTUALLY_EXCLUSIVE_OPTIONS.code,
       message: 'tokenize must be called with bankDetails or bankLogin, not both.'
     }));
   } else if (options.bankDetails) {
@@ -328,8 +665,8 @@ USBankAccount.prototype.tokenize = function (options, callback) {
     this._tokenizeBankLogin(options, callback);
   } else {
     callback(new BraintreeError({
-      type: errors.US_BANK_OPTION_REQUIRED.type,
-      code: errors.US_BANK_OPTION_REQUIRED.code,
+      type: errors.US_BANK_ACCOUNT_OPTION_REQUIRED.type,
+      code: errors.US_BANK_ACCOUNT_OPTION_REQUIRED.code,
       message: 'tokenize must be called with bankDetails or bankLogin.'
     }));
   }
@@ -337,22 +674,23 @@ USBankAccount.prototype.tokenize = function (options, callback) {
 
 USBankAccount.prototype._tokenizeBankDetails = function (options, callback) {
   var i, key;
+  var client = this._client;
   var bankDetails = options.bankDetails;
-  var apiConfig = this._client.getConfiguration().gatewayConfiguration.braintreeApi;
+  var apiConfig = client.getConfiguration().gatewayConfiguration.braintreeApi;
 
   for (i = 0; i < constants.REQUIRED_BANK_DETAILS.length; i++) {
     key = constants.REQUIRED_BANK_DETAILS[i];
     if (!bankDetails[key]) {
       callback(new BraintreeError({
-        type: errors.US_BANK_OPTION_REQUIRED.type,
-        code: errors.US_BANK_OPTION_REQUIRED.code,
+        type: errors.US_BANK_ACCOUNT_OPTION_REQUIRED.type,
+        code: errors.US_BANK_ACCOUNT_OPTION_REQUIRED.code,
         message: 'bankDetails.' + key + ' property is required.'
       }));
       return;
     }
   }
 
-  this._client._request({
+  client._request({
     method: 'POST',
     url: apiConfig.url + '/tokens',
     headers: {
@@ -372,28 +710,49 @@ USBankAccount.prototype._tokenizeBankDetails = function (options, callback) {
       }
       /* eslint-enable camelcase */
     }
-  }, function (err, response) {
+  }, function (err, response, status) {
+    var error;
+
     if (err) {
-      callback(err);
+      error = errorFrom(err, status);
+      analytics.sendEvent(client, 'web.usbankaccount.bankdetails.tokenization.failed');
+      callback(error);
       return;
     }
+
+    analytics.sendEvent(client, 'web.usbankaccount.bankdetails.tokenization.succeeded');
 
     callback(null, formatTokenizeResponse(response));
   });
 };
 
 USBankAccount.prototype._tokenizeBankLogin = function (options, callback) {
+  var self = this;
   var client = this._client;
-  var apiConfig = this._client.getConfiguration().gatewayConfiguration.braintreeApi;
+  var gatewayConfiguration = client.getConfiguration().gatewayConfiguration;
+  var isProduction = gatewayConfiguration.environment === 'production';
+  var plaidConfig = gatewayConfiguration.usBankAccount.plaid;
+  var apiConfig = gatewayConfiguration.braintreeApi;
 
   if (!options.bankLogin.displayName) {
     callback(new BraintreeError({
-      type: errors.US_BANK_OPTION_REQUIRED.type,
-      code: errors.US_BANK_OPTION_REQUIRED.code,
+      type: errors.US_BANK_ACCOUNT_OPTION_REQUIRED.type,
+      code: errors.US_BANK_ACCOUNT_OPTION_REQUIRED.code,
       message: 'displayName property is required when using bankLogin.'
     }));
     return;
   }
+
+  if (!plaidConfig) {
+    callback(new BraintreeError(errors.US_BANK_ACCOUNT_BANK_LOGIN_NOT_ENABLED));
+    return;
+  }
+
+  if (this._isTokenizingBankLogin) {
+    callback(new BraintreeError(errors.US_BANK_ACCOUNT_LOGIN_REQUEST_ACTIVE));
+    return;
+  }
+  this._isTokenizingBankLogin = true;
 
   this._loadPlaid(function (plaidLoadErr, plaid) {
     if (plaidLoadErr) {
@@ -402,13 +761,17 @@ USBankAccount.prototype._tokenizeBankLogin = function (options, callback) {
     }
 
     plaid.create({
-      env: 'tartan',
       clientName: options.bankLogin.displayName,
-      key: 'test_key',
+      env: isProduction ? 'production' : 'tartan',
+      key: isProduction ? plaidConfig.publicKey : 'test_key',
       product: 'auth',
       selectAccount: true,
       onExit: function () {
-        callback(new Error('Customer closed bank login flow.'));
+        self._isTokenizingBankLogin = false;
+
+        analytics.sendEvent(client, 'web.usbankaccount.banklogin.tokenization.closed.by-user');
+
+        callback(new BraintreeError(errors.US_BANK_ACCOUNT_LOGIN_CLOSED));
       },
       onSuccess: function (publicToken, metadata) {
         client._request({
@@ -428,18 +791,43 @@ USBankAccount.prototype._tokenizeBankLogin = function (options, callback) {
             }
             /* eslint-enable camelcase */
           }
-        }, function (tokenizeErr, response) {
+        }, function (tokenizeErr, response, status) {
+          var error;
+
+          self._isTokenizingBankLogin = false;
+
           if (tokenizeErr) {
-            callback(tokenizeErr);
+            error = errorFrom(tokenizeErr, status);
+            analytics.sendEvent(client, 'web.usbankaccount.banklogin.tokenization.failed');
+
+            callback(error);
             return;
           }
+
+          analytics.sendEvent(client, 'web.usbankaccount.banklogin.tokenization.succeeded');
 
           callback(null, formatTokenizeResponse(response));
         });
       }
     }).open();
+
+    analytics.sendEvent(client, 'web.usbankaccount.banklogin.tokenization.started');
   });
 };
+
+function errorFrom(err, status) {
+  var error;
+
+  if (status === 401) {
+    error = new BraintreeError(sharedErrors.BRAINTREE_API_ACCESS_RESTRICTED);
+  } else if (status < 500) {
+    error = new BraintreeError(errors.US_BANK_ACCOUNT_FAILED_TOKENIZATION);
+  } else {
+    error = new BraintreeError(errors.US_BANK_ACCOUNT_TOKENIZATION_NETWORK_ERROR);
+  }
+  error.details = {originalError: err};
+  return error;
+}
 
 function formatTokenizeResponse(response) {
   return {
@@ -451,7 +839,7 @@ function formatTokenizeResponse(response) {
 }
 
 USBankAccount.prototype._loadPlaid = function (callback) {
-  var script;
+  var existingScript, script;
 
   callback = once(callback);
 
@@ -460,39 +848,72 @@ USBankAccount.prototype._loadPlaid = function (callback) {
     return;
   }
 
-  script = document.createElement('script');
+  existingScript = document.querySelector('script[src="' + constants.PLAID_LINK_JS + '"]');
 
-  script.src = constants.PLAID_LINK_JS;
-  script.async = true;
-  script.onerror = function () {
-    removeLoadListeners(script);
-    callback(new BraintreeError(errors.US_BANK_LOGIN_LOAD_FAILED));
-  };
+  if (existingScript) {
+    addLoadListeners(existingScript, callback);
+  } else {
+    script = document.createElement('script');
 
-  script.onload = script.onreadystatechange = function () {
-    if (!this.readyState || this.readyState === 'loaded' || this.readyState === 'complete') {
-      removeLoadListeners(script);
-      callback(null, global.Plaid);
-    }
-  };
+    script.src = constants.PLAID_LINK_JS;
+    script.async = true;
 
-  document.body.appendChild(script);
+    addLoadListeners(script, callback);
 
-  this._plaidScript = script;
+    document.body.appendChild(script);
+
+    this._plaidScript = script;
+  }
 };
 
-function removeLoadListeners(script) {
-  script.onerror = script.onload = script.onreadystatechange = null;
+function addLoadListeners(script, callback) {
+  function loadHandler() {
+    var readyState = this.readyState; // eslint-disable-line no-invalid-this
+
+    if (!readyState || readyState === 'loaded' || readyState === 'complete') {
+      removeLoadListeners();
+      callback(null, global.Plaid);
+    }
+  }
+
+  function errorHandler() {
+    script.parentNode.removeChild(script);
+
+    callback(new BraintreeError(errors.US_BANK_ACCOUNT_LOGIN_LOAD_FAILED));
+  }
+
+  function removeLoadListeners() {
+    script.removeEventListener('error', errorHandler);
+    script.removeEventListener('load', loadHandler);
+    script.removeEventListener('readystatechange', loadHandler);
+  }
+
+  script.addEventListener('error', errorHandler);
+  script.addEventListener('load', loadHandler);
+  script.addEventListener('readystatechange', loadHandler);
 }
 
-USBankAccount.prototype.teardown = function () {
+/**
+ * Cleanly tear down anything set up by {@link module:braintree-web/us-bank-account.create|create}.
+ * @public
+ * @param {callback} [callback] Called once teardown is complete. No data is returned if teardown completes successfully.
+ * @returns {void}
+ */
+USBankAccount.prototype.teardown = function (callback) {
   if (this._plaidScript) {
     document.body.removeChild(this._plaidScript);
+  }
+
+  convertMethodsToError(this, methods(USBankAccount.prototype));
+
+  if (callback) {
+    callback = deferred(callback);
+    callback();
   }
 };
 
 module.exports = USBankAccount;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../lib/camel-case-to-snake-case":2,"../lib/deferred":3,"../lib/error":5,"../lib/once":6,"../lib/throw-if-no-callback":7,"./constants":8,"./errors":9}]},{},[10])(10)
+},{"../errors":1,"../lib/analytics":3,"../lib/camel-case-to-snake-case":4,"../lib/convert-methods-to-error":6,"../lib/deferred":8,"../lib/error":10,"../lib/methods":12,"../lib/once":13,"../lib/throw-if-no-callback":15,"./constants":16,"./errors":17}]},{},[18])(18)
 });

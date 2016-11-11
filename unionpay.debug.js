@@ -424,7 +424,10 @@ function sendAnalyticsEvent(client, kind, callback) {
   var timestamp = _millisToSeconds(Date.now());
   var url = configuration.gatewayConfiguration.analytics.url;
   var data = {
-    analytics: [{kind: kind, timestamp: timestamp}]
+    analytics: [{
+      kind: constants.ANALYTICS_PREFIX + kind,
+      timestamp: timestamp
+    }]
   };
 
   request({
@@ -614,10 +617,11 @@ module.exports = BraintreeBus;
 },{"../error":17,"./check-origin":9,"./events":10,"framebus":1}],12:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.5.0";
+var VERSION = "3.6.0";
 var PLATFORM = 'web';
 
 module.exports = {
+  ANALYTICS_PREFIX: 'web.',
   ANALYTICS_REQUEST_TIMEOUT_MS: 2000,
   INTEGRATION_TIMEOUT_MS: 60000,
   VERSION: VERSION,
@@ -932,7 +936,7 @@ var deferred = _dereq_('../lib/deferred');
 var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 var errors = _dereq_('./shared/errors');
 var sharedErrors = _dereq_('../errors');
-var VERSION = "3.5.0";
+var VERSION = "3.6.0";
 
 /**
 * @static
@@ -983,7 +987,7 @@ function create(options, callback) {
     return;
   }
 
-  analytics.sendEvent(options.client, 'web.unionpay.initialized');
+  analytics.sendEvent(options.client, 'unionpay.initialized');
 
   callback(null, new UnionPay(options));
 }
@@ -1092,7 +1096,7 @@ var errors = _dereq_('./errors');
 var events = constants.events;
 var iFramer = _dereq_('iframer');
 var methods = _dereq_('../../lib/methods');
-var VERSION = "3.5.0";
+var VERSION = "3.6.0";
 var uuid = _dereq_('../../lib/uuid');
 var throwIfNoCallback = _dereq_('../../lib/throw-if-no-callback');
 
@@ -1223,11 +1227,11 @@ UnionPay.prototype.fetchCapabilities = function (options, callback) {
           }));
         }
 
-        analytics.sendEvent(client, 'web.unionpay.capabilities-failed');
+        analytics.sendEvent(client, 'unionpay.capabilities-failed');
         return;
       }
 
-      analytics.sendEvent(client, 'web.unionpay.capabilities-received');
+      analytics.sendEvent(client, 'unionpay.capabilities-received');
       callback(null, response);
     });
   } else if (hostedFields) {
@@ -1396,12 +1400,12 @@ UnionPay.prototype.enroll = function (options, callback) {
           error.details = {originalError: err};
         }
 
-        analytics.sendEvent(client, 'web.unionpay.enrollment-failed');
+        analytics.sendEvent(client, 'unionpay.enrollment-failed');
         callback(error);
         return;
       }
 
-      analytics.sendEvent(client, 'web.unionpay.enrollment-succeeded');
+      analytics.sendEvent(client, 'unionpay.enrollment-succeeded');
       callback(null, {
         enrollmentId: response.unionPayEnrollmentId,
         smsCodeRequired: response.smsCodeRequired
@@ -1517,7 +1521,7 @@ UnionPay.prototype.tokenize = function (options, callback) {
       data: data
     }, function (err, response, status) {
       if (err) {
-        analytics.sendEvent(client, 'web.unionpay.nonce-failed');
+        analytics.sendEvent(client, 'unionpay.nonce-failed');
 
         if (status === 403) {
           error = err;
@@ -1537,7 +1541,7 @@ UnionPay.prototype.tokenize = function (options, callback) {
       delete tokenizedCard.consumed;
       delete tokenizedCard.threeDSecureInfo;
 
-      analytics.sendEvent(client, 'web.unionpay.nonce-received');
+      analytics.sendEvent(client, 'unionpay.nonce-received');
       callback(null, tokenizedCard);
     });
   } else if (hostedFields) {

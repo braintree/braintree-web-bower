@@ -72,10 +72,10 @@ function Client(configuration) {
  * Used by other modules to formulate all network requests to the Braintree gateway. It is also capable of being used directly from your own form to tokenize credit card information. However, be sure to satisfy PCI compliance if you use direct card tokenization.
  * @public
  * @param {object} options Request options:
- * @param {string} options.method HTTP method. i.e. "get" or "post"
- * @param {string} options.endpoint Enpoint path. i.e. "payment_methods"
- * @param {object} options.data Data to send with the request
- * @param {string} [options.timeout=60000] Timeout limit
+ * @param {string} options.method HTTP method, e.g. "get" or "post".
+ * @param {string} options.endpoint Endpoint path, e.g. "payment_methods".
+ * @param {object} options.data Data to send with the request.
+ * @param {number} [options.timeout=60000] Set a timeout (in milliseconds) for the request.
  * @param {callback} callback The second argument, <code>data</code>, is the returned server data.
  * @example
  * <caption>Direct Credit Card Tokenization</caption>
@@ -92,6 +92,9 @@ function Client(configuration) {
  *       expirationDate: form['cc-date'].value,
  *       billingAddress: {
  *         postalCode: form['cc-postal'].value
+ *       },
+ *       options: {
+ *         validate: false
  *       }
  *     }
  *   };
@@ -104,6 +107,7 @@ function Client(configuration) {
  *     method: 'post',
  *     data: data
  *   }, function (requestErr, response) {
+ *     // More detailed example of handling API errors: https://codepen.io/braintree/pen/MbwjdM
  *     if (requestErr) { throw new Error(requestErr); }
  *
  *     console.log('Got nonce:', response.creditCards[0].nonce);
@@ -302,7 +306,7 @@ var BraintreeError = _dereq_('../lib/error');
 var Client = _dereq_('./client');
 var getConfiguration = _dereq_('./get-configuration').getConfiguration;
 var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
-var packageVersion = "3.5.0";
+var packageVersion = "3.6.0";
 var deferred = _dereq_('../lib/deferred');
 var sharedErrors = _dereq_('../errors');
 
@@ -430,7 +434,7 @@ function request(options, cb) {
   req.open(method, url, true);
   req.timeout = timeout;
 
-  if (isXHRAvailable && method === 'POST') {
+  if (isXHRAvailable) {
     req.setRequestHeader('Content-Type', 'application/json');
 
     // TODO: Make this work in IE9.
@@ -710,10 +714,11 @@ module.exports = addMetadata;
 },{"./constants":14,"./create-authorization-data":15,"./json-clone":20}],14:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.5.0";
+var VERSION = "3.6.0";
 var PLATFORM = 'web';
 
 module.exports = {
+  ANALYTICS_PREFIX: 'web.',
   ANALYTICS_REQUEST_TIMEOUT_MS: 2000,
   INTEGRATION_TIMEOUT_MS: 60000,
   VERSION: VERSION,

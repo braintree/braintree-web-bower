@@ -424,7 +424,10 @@ function sendAnalyticsEvent(client, kind, callback) {
   var timestamp = _millisToSeconds(Date.now());
   var url = configuration.gatewayConfiguration.analytics.url;
   var data = {
-    analytics: [{kind: kind, timestamp: timestamp}]
+    analytics: [{
+      kind: constants.ANALYTICS_PREFIX + kind,
+      timestamp: timestamp
+    }]
   };
 
   request({
@@ -697,10 +700,11 @@ module.exports = BraintreeBus;
 },{"../error":18,"./check-origin":10,"./events":11,"framebus":1}],13:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.5.0";
+var VERSION = "3.6.0";
 var PLATFORM = 'web';
 
 module.exports = {
+  ANALYTICS_PREFIX: 'web.',
   ANALYTICS_REQUEST_TIMEOUT_MS: 2000,
   INTEGRATION_TIMEOUT_MS: 60000,
   VERSION: VERSION,
@@ -1015,7 +1019,7 @@ var deferred = _dereq_('../../lib/deferred');
 var errors = _dereq_('../shared/errors');
 var throwIfNoCallback = _dereq_('../../lib/throw-if-no-callback');
 var events = _dereq_('../shared/events');
-var version = "3.5.0";
+var version = "3.6.0";
 var iFramer = _dereq_('iframer');
 
 var IFRAME_HEIGHT = 400;
@@ -1302,7 +1306,7 @@ ThreeDSecure.prototype.teardown = function (callback) {
 
   convertMethodsToError(this, methods(ThreeDSecure.prototype));
 
-  analytics.sendEvent(this._options.client, 'web.threedsecure.teardown-completed');
+  analytics.sendEvent(this._options.client, 'threedsecure.teardown-completed');
 
   if (this._bus) {
     this._bus.teardown();
@@ -1336,7 +1340,7 @@ var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 var deferred = _dereq_('../lib/deferred');
 var errors = _dereq_('./shared/errors');
 var sharedErrors = _dereq_('../errors');
-var VERSION = "3.5.0";
+var VERSION = "3.6.0";
 
 /**
  * @static
@@ -1386,7 +1390,7 @@ function create(options, callback) {
     return;
   }
 
-  analytics.sendEvent(options.client, 'web.threedsecure.initialized');
+  analytics.sendEvent(options.client, 'threedsecure.initialized');
 
   try {
     threeDSecure = new ThreeDSecure(options);

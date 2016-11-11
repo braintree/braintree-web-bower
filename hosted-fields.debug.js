@@ -599,7 +599,7 @@ var EventEmitter = _dereq_('../../lib/event-emitter');
 var injectFrame = _dereq_('./inject-frame');
 var analytics = _dereq_('../../lib/analytics');
 var whitelistedFields = constants.whitelistedFields;
-var VERSION = "3.5.0";
+var VERSION = "3.6.0";
 var methods = _dereq_('../../lib/methods');
 var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
 var deferred = _dereq_('../../lib/deferred');
@@ -893,7 +893,7 @@ function HostedFields(options) {
 
   this._client = options.client;
 
-  analytics.sendEvent(this._client, 'web.custom.hosted-fields.initialized');
+  analytics.sendEvent(this._client, 'custom.hosted-fields.initialized');
 
   Object.keys(options.fields).forEach(function (key) {
     var field, container, frame;
@@ -960,7 +960,7 @@ function HostedFields(options) {
   }.bind(this));
 
   failureTimeout = setTimeout(function () {
-    analytics.sendEvent(self._client, 'web.custom.hosted-fields.load.timed-out');
+    analytics.sendEvent(self._client, 'custom.hosted-fields.load.timed-out');
   }, INTEGRATION_TIMEOUT_MS);
 
   this._bus.on(events.FRAME_READY, function (reply) {
@@ -1050,7 +1050,7 @@ HostedFields.prototype.teardown = function (callback) {
   var client = this._client;
 
   this._destructor.teardown(function (err) {
-    analytics.sendEvent(client, 'web.custom.hosted-fields.teardown-completed');
+    analytics.sendEvent(client, 'custom.hosted-fields.teardown-completed');
 
     if (typeof callback === 'function') {
       callback = deferred(callback);
@@ -1334,7 +1334,7 @@ module.exports = function injectFrame(frame, container) {
 var HostedFields = _dereq_('./external/hosted-fields');
 var deferred = _dereq_('../lib/deferred');
 var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
-var VERSION = "3.5.0";
+var VERSION = "3.6.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -1363,7 +1363,33 @@ var VERSION = "3.5.0";
  *
  * These are the CSS properties that Hosted Fields supports. Any other CSS should be specified on your page and outside of any Braintree configuration. Trying to set unsupported properties will fail and put a warning in the console.
  *
- * `color` `font-family` `font-size-adjust` `font-size` `font-stretch` `font-style` `font-variant-alternates` `font-variant-caps` `font-variant-east-asian` `font-variant-ligatures` `font-variant-numeric` `font-variant` `font-weight` `font` `line-height` `opacity` `outline` `text-shadow` `transition` `-moz-osx-font-smoothing` `-moz-tap-highlight-color` `-moz-transition` `-webkit-font-smoothing` `-webkit-tap-highlight-color` `-webkit-transition`
+ * Supported CSS properties are:
+ * `color`
+ * `font-family`
+ * `font-size-adjust`
+ * `font-size`
+ * `font-stretch`
+ * `font-style`
+ * `font-variant-alternates`
+ * `font-variant-caps`
+ * `font-variant-east-asian`
+ * `font-variant-ligatures`
+ * `font-variant-numeric`
+ * `font-variant`
+ * `font-weight`
+ * `font`
+ * `letter-spacing`
+ * `line-height`
+ * `opacity`
+ * `outline`
+ * `text-shadow`
+ * `transition`
+ * `-moz-osx-font-smoothing`
+ * `-moz-tap-highlight-color`
+ * `-moz-transition`
+ * `-webkit-font-smoothing`
+ * `-webkit-tap-highlight-color`
+ * `-webkit-transition`
  * @typedef {object} styleOptions
  */
 
@@ -1438,7 +1464,7 @@ module.exports = {
 /* eslint-disable no-reserved-keys */
 
 var enumerate = _dereq_('../../lib/enumerate');
-var VERSION = "3.5.0";
+var VERSION = "3.6.0";
 
 var constants = {
   VERSION: VERSION,
@@ -1491,6 +1517,7 @@ var constants = {
     'font-variant-ligatures',
     'font-variant-numeric',
     'font-weight',
+    'letter-spacing',
     'line-height',
     'opacity',
     'outline',
@@ -1660,7 +1687,10 @@ function sendAnalyticsEvent(client, kind, callback) {
   var timestamp = _millisToSeconds(Date.now());
   var url = configuration.gatewayConfiguration.analytics.url;
   var data = {
-    analytics: [{kind: kind, timestamp: timestamp}]
+    analytics: [{
+      kind: constants.ANALYTICS_PREFIX + kind,
+      timestamp: timestamp
+    }]
   };
 
   request({
@@ -1933,10 +1963,11 @@ module.exports = {
 },{}],22:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.5.0";
+var VERSION = "3.6.0";
 var PLATFORM = 'web';
 
 module.exports = {
+  ANALYTICS_PREFIX: 'web.',
   ANALYTICS_REQUEST_TIMEOUT_MS: 2000,
   INTEGRATION_TIMEOUT_MS: 60000,
   VERSION: VERSION,
