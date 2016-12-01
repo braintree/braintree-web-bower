@@ -700,7 +700,7 @@ module.exports = BraintreeBus;
 },{"../error":18,"./check-origin":10,"./events":11,"framebus":1}],13:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.6.0";
+var VERSION = "3.6.1";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -904,6 +904,8 @@ var REQUIRED_CONFIG_KEYS = [
   'openFrameUrl'
 ];
 
+function noop() {}
+
 function _validateFrameConfiguration(options) {
   if (!options) {
     throw new Error('Valid configuration is required');
@@ -1013,6 +1015,34 @@ FrameService.prototype.focus = function () {
   if (!this.isFrameClosed()) {
     this._frame.focus();
   }
+};
+
+FrameService.prototype.createHandler = function (options) {
+  options = options || {};
+
+  return {
+    close: function () {
+      if (options.beforeClose) {
+        options.beforeClose();
+      }
+
+      this.close();
+    }.bind(this),
+    focus: function () {
+      if (options.beforeFocus) {
+        options.beforeFocus();
+      }
+
+      this.focus();
+    }.bind(this)
+  };
+};
+
+FrameService.prototype.createNoopHandler = function () {
+  return {
+    close: noop,
+    focus: noop
+  };
 };
 
 FrameService.prototype.teardown = function () {
@@ -1405,7 +1435,7 @@ module.exports = uuid;
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/error');
 var once = _dereq_('../../lib/once');
-var VERSION = "3.6.0";
+var VERSION = "3.6.1";
 var constants = _dereq_('../shared/constants');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
@@ -1436,8 +1466,8 @@ var querystring = _dereq_('../../lib/querystring');
  * @property {string} details.shippingAddress.postalCode Postal code.
  * @property {string} details.shippingAddress.countryCode 2 character country code (e.g. US).
  * @property {?object} details.billingAddress User's billing address details.
- * You will also need to enable the PayPal Billing Address Request feature in your PayPal account.
- * To enable this feature, [contact PayPal](https://developers.braintreepayments.com/support/guides/paypal/setup-guide#contacting-paypal-support).
+ * Not available to all merchants; [contact PayPal](https://developers.braintreepayments.com/support/guides/paypal/setup-guide#contacting-paypal-support) for details on eligibility and enabling this feature.
+ * Alternatively, see `shippingAddress` above as an available client option.
  * @property {string} details.billingAddress.line1 Street number and name.
  * @property {string} details.billingAddress.line2 Extended address.
  * @property {string} details.billingAddress.city City or locality.
@@ -1586,6 +1616,11 @@ PayPal.prototype.tokenize = function (options, callback) {
 
   callback = once(deferred(callback));
 
+  if (!options || !constants.FLOW_ENDPOINTS.hasOwnProperty(options.flow)) {
+    callback(new BraintreeError(errors.PAYPAL_FLOW_OPTION_REQUIRED));
+    return this._frameService.createNoopHandler();
+  }
+
   if (this._authorizationInProgress) {
     analytics.sendEvent(client, 'paypal.tokenization.error.already-opened');
 
@@ -1599,15 +1634,11 @@ PayPal.prototype.tokenize = function (options, callback) {
     this._frameService.open(this._createFrameServiceCallback(options, callback));
   }
 
-  return {
-    close: function () {
+  return this._frameService.createHandler({
+    beforeClose: function () {
       analytics.sendEvent(client, 'paypal.tokenization.closed.by-merchant');
-      this._frameService.close();
-    }.bind(this),
-    focus: function () {
-      this._frameService.focus();
-    }.bind(this)
-  };
+    }
+  });
 };
 
 PayPal.prototype._createFrameServiceCallback = function (options, callback) {
@@ -1708,16 +1739,7 @@ PayPal.prototype._formatTokenizeData = function (options, params) {
 
 PayPal.prototype._navigateFrameToAuth = function (options, callback) {
   var client = this._client;
-  var endpoint = 'paypal_hermes/';
-
-  if (options.flow === 'checkout') {
-    endpoint += 'create_payment_resource';
-  } else if (options.flow === 'vault') {
-    endpoint += 'setup_billing_agreement';
-  } else {
-    callback(new BraintreeError(errors.PAYPAL_FLOW_OPTION_REQUIRED));
-    return;
-  }
+  var endpoint = 'paypal_hermes/' + constants.FLOW_ENDPOINTS[options.flow];
 
   client.request({
     endpoint: endpoint,
@@ -1837,7 +1859,7 @@ var errors = _dereq_('./shared/errors');
 var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 var PayPal = _dereq_('./external/paypal');
 var sharedErrors = _dereq_('../errors');
-var VERSION = "3.6.0";
+var VERSION = "3.6.1";
 
 /**
  * @static
@@ -1846,7 +1868,7 @@ var VERSION = "3.6.0";
  * @param {Client} options.client A {@link Client} instance.
  * @param {callback} callback The second argument, `data`, is the {@link PayPal} instance.
  * @example
- * braintree.paypal.create(
+ * braintree.paypal.create({
  *   client: clientInstance
  * }, function (createErr, paypalInstance) {
  *   if (createErr) {
@@ -1856,7 +1878,7 @@ var VERSION = "3.6.0";
  *       console.error('Error!', createErr);
  *     }
  *   }
- * }
+ * });
  * @returns {void}
  */
 function create(options, callback) {
@@ -1926,7 +1948,11 @@ module.exports = {
   POPUP_BASE_OPTIONS: 'resizable,scrollbars,height=' + POPUP_HEIGHT + ',width=' + POPUP_WIDTH,
   POPUP_WIDTH: POPUP_WIDTH,
   POPUP_HEIGHT: POPUP_HEIGHT,
-  POPUP_POLL_INTERVAL: 100
+  POPUP_POLL_INTERVAL: 100,
+  FLOW_ENDPOINTS: {
+    checkout: 'create_payment_resource',
+    vault: 'setup_billing_agreement'
+  }
 };
 
 },{}],39:[function(_dereq_,module,exports){

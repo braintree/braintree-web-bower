@@ -140,7 +140,7 @@ var methods = _dereq_('../lib/methods');
 var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
 var deferred = _dereq_('../lib/deferred');
-var VERSION = "3.6.0";
+var VERSION = "3.6.1";
 var sharedErrors = _dereq_('../errors');
 var errors = _dereq_('./errors');
 

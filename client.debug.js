@@ -306,7 +306,7 @@ var BraintreeError = _dereq_('../lib/error');
 var Client = _dereq_('./client');
 var getConfiguration = _dereq_('./get-configuration').getConfiguration;
 var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
-var packageVersion = "3.6.0";
+var packageVersion = "3.6.1";
 var deferred = _dereq_('../lib/deferred');
 var sharedErrors = _dereq_('../errors');
 
@@ -714,7 +714,7 @@ module.exports = addMetadata;
 },{"./constants":14,"./create-authorization-data":15,"./json-clone":20}],14:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.6.0";
+var VERSION = "3.6.1";
 var PLATFORM = 'web';
 
 module.exports = {

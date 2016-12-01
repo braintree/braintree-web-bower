@@ -700,7 +700,7 @@ module.exports = BraintreeBus;
 },{"../error":18,"./check-origin":10,"./events":11,"framebus":1}],13:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.6.0";
+var VERSION = "3.6.1";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -1019,7 +1019,7 @@ var deferred = _dereq_('../../lib/deferred');
 var errors = _dereq_('../shared/errors');
 var throwIfNoCallback = _dereq_('../../lib/throw-if-no-callback');
 var events = _dereq_('../shared/events');
-var version = "3.6.0";
+var version = "3.6.1";
 var iFramer = _dereq_('iframer');
 
 var IFRAME_HEIGHT = 400;
@@ -1153,6 +1153,7 @@ ThreeDSecure.prototype.verifyCard = function (options, callback) {
     data: {amount: options.amount}
   }, function (err, response) {
     if (err) {
+      this._verifyCardInProgress = false;
       callback(err);
       return;
     }
@@ -1340,7 +1341,7 @@ var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 var deferred = _dereq_('../lib/deferred');
 var errors = _dereq_('./shared/errors');
 var sharedErrors = _dereq_('../errors');
-var VERSION = "3.6.0";
+var VERSION = "3.6.1";
 
 /**
  * @static
