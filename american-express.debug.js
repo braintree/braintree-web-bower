@@ -4,6 +4,7 @@
 var BraintreeError = _dereq_('../lib/error');
 var deferred = _dereq_('../lib/deferred');
 var errors = _dereq_('./errors');
+var assign = _dereq_('../lib/assign').assign;
 var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 
 /**
@@ -39,11 +40,14 @@ function AmericanExpress(options) {
  * });
  */
 AmericanExpress.prototype.getRewardsBalance = function (options, callback) {
+  var nonce = options.nonce;
+  var data;
+
   throwIfNoCallback(callback, 'getRewardsBalance');
 
   callback = deferred(callback);
 
-  if (!options.nonce) {
+  if (!nonce) {
     callback(new BraintreeError({
       type: errors.AMEX_NONCE_REQUIRED.type,
       code: errors.AMEX_NONCE_REQUIRED.code,
@@ -52,13 +56,17 @@ AmericanExpress.prototype.getRewardsBalance = function (options, callback) {
     return;
   }
 
+  delete options.nonce;
+
+  data = assign({
+    _meta: {source: 'american-express'},
+    paymentMethodNonce: nonce
+  }, options);
+
   this._client.request({
     method: 'get',
     endpoint: 'payment_methods/amex_rewards_balance',
-    data: {
-      _meta: {source: 'american-express'},
-      paymentMethodNonce: options.nonce
-    }
+    data: data
   }, function (err, response) {
     if (err) {
       callback(new BraintreeError({
@@ -136,7 +144,7 @@ AmericanExpress.prototype.getExpressCheckoutProfile = function (options, callbac
 
 module.exports = AmericanExpress;
 
-},{"../lib/deferred":5,"../lib/error":7,"../lib/throw-if-no-callback":8,"./errors":2}],2:[function(_dereq_,module,exports){
+},{"../lib/assign":5,"../lib/deferred":6,"../lib/error":8,"../lib/throw-if-no-callback":9,"./errors":2}],2:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/error');
@@ -152,7 +160,7 @@ module.exports = {
   }
 };
 
-},{"../lib/error":7}],3:[function(_dereq_,module,exports){
+},{"../lib/error":8}],3:[function(_dereq_,module,exports){
 'use strict';
 /**
  * @module braintree-web/american-express
@@ -163,7 +171,7 @@ var BraintreeError = _dereq_('../lib/error');
 var AmericanExpress = _dereq_('./american-express');
 var deferred = _dereq_('../lib/deferred');
 var sharedErrors = _dereq_('../errors');
-var VERSION = "3.6.1";
+var VERSION = "3.6.2";
 var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 
 /**
@@ -212,7 +220,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../errors":4,"../lib/deferred":5,"../lib/error":7,"../lib/throw-if-no-callback":8,"./american-express":1}],4:[function(_dereq_,module,exports){
+},{"../errors":4,"../lib/deferred":6,"../lib/error":8,"../lib/throw-if-no-callback":9,"./american-express":1}],4:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./lib/error');
@@ -241,7 +249,32 @@ module.exports = {
   }
 };
 
-},{"./lib/error":7}],5:[function(_dereq_,module,exports){
+},{"./lib/error":8}],5:[function(_dereq_,module,exports){
+'use strict';
+
+var assignNormalized = typeof Object.assign === 'function' ? Object.assign : assignPolyfill;
+
+function assignPolyfill(destination) {
+  var i, source, key;
+
+  for (i = 1; i < arguments.length; i++) {
+    source = arguments[i];
+    for (key in source) {
+      if (source.hasOwnProperty(key)) {
+        destination[key] = source[key];
+      }
+    }
+  }
+
+  return destination;
+}
+
+module.exports = {
+  assign: assignNormalized,
+  _assign: assignPolyfill
+};
+
+},{}],6:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (fn) {
@@ -255,7 +288,7 @@ module.exports = function (fn) {
   };
 };
 
-},{}],6:[function(_dereq_,module,exports){
+},{}],7:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -269,7 +302,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],7:[function(_dereq_,module,exports){
+},{}],8:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -346,7 +379,7 @@ BraintreeError.types = enumerate([
 
 module.exports = BraintreeError;
 
-},{"./enumerate":6}],8:[function(_dereq_,module,exports){
+},{"./enumerate":7}],9:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./error');
@@ -362,5 +395,5 @@ module.exports = function (callback, functionName) {
   }
 };
 
-},{"../errors":4,"./error":7}]},{},[3])(3)
+},{"../errors":4,"./error":8}]},{},[3])(3)
 });
