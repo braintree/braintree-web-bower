@@ -709,7 +709,7 @@ var BraintreeError = _dereq_('../lib/error');
 var AmericanExpress = _dereq_('./american-express');
 var deferred = _dereq_('../lib/deferred');
 var sharedErrors = _dereq_('../errors');
-var VERSION = "3.6.2";
+var VERSION = "3.6.3";
 var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 
 /**
@@ -1091,7 +1091,7 @@ var deferred = _dereq_('../lib/deferred');
 var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 var sharedErrors = _dereq_('../errors');
 var errors = _dereq_('./errors');
-var VERSION = "3.6.2";
+var VERSION = "3.6.3";
 
 /**
  * @static
@@ -1454,7 +1454,7 @@ var BraintreeError = _dereq_('../lib/error');
 var Client = _dereq_('./client');
 var getConfiguration = _dereq_('./get-configuration').getConfiguration;
 var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
-var packageVersion = "3.6.2";
+var packageVersion = "3.6.3";
 var deferred = _dereq_('../lib/deferred');
 var sharedErrors = _dereq_('../errors');
 
@@ -1938,7 +1938,7 @@ var methods = _dereq_('../lib/methods');
 var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
 var deferred = _dereq_('../lib/deferred');
-var VERSION = "3.6.2";
+var VERSION = "3.6.3";
 var sharedErrors = _dereq_('../errors');
 var errors = _dereq_('./errors');
 
@@ -2280,7 +2280,7 @@ var EventEmitter = _dereq_('../../lib/event-emitter');
 var injectFrame = _dereq_('./inject-frame');
 var analytics = _dereq_('../../lib/analytics');
 var whitelistedFields = constants.whitelistedFields;
-var VERSION = "3.6.2";
+var VERSION = "3.6.3";
 var methods = _dereq_('../../lib/methods');
 var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
 var deferred = _dereq_('../../lib/deferred');
@@ -3015,7 +3015,7 @@ module.exports = function injectFrame(frame, container) {
 var HostedFields = _dereq_('./external/hosted-fields');
 var deferred = _dereq_('../lib/deferred');
 var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
-var VERSION = "3.6.2";
+var VERSION = "3.6.3";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -3145,7 +3145,7 @@ module.exports = {
 /* eslint-disable no-reserved-keys */
 
 var enumerate = _dereq_('../../lib/enumerate');
-var VERSION = "3.6.2";
+var VERSION = "3.6.3";
 
 var constants = {
   VERSION: VERSION,
@@ -3366,7 +3366,7 @@ var unionpay = _dereq_('./unionpay');
 var applePay = _dereq_('./apple-pay');
 var threeDSecure = _dereq_('./three-d-secure');
 var usBankAccount = _dereq_('./us-bank-account');
-var VERSION = "3.6.2";
+var VERSION = "3.6.3";
 
 module.exports = {
   /** @type {module:braintree-web/client} */
@@ -3848,7 +3848,7 @@ module.exports = {
 },{}],48:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.6.2";
+var VERSION = "3.6.3";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -4658,7 +4658,7 @@ module.exports = uuid;
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/error');
 var once = _dereq_('../../lib/once');
-var VERSION = "3.6.2";
+var VERSION = "3.6.3";
 var constants = _dereq_('../shared/constants');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
@@ -5082,7 +5082,7 @@ var errors = _dereq_('./shared/errors');
 var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 var PayPal = _dereq_('./external/paypal');
 var sharedErrors = _dereq_('../errors');
-var VERSION = "3.6.2";
+var VERSION = "3.6.3";
 
 /**
  * @static
@@ -5245,7 +5245,7 @@ var deferred = _dereq_('../../lib/deferred');
 var errors = _dereq_('../shared/errors');
 var throwIfNoCallback = _dereq_('../../lib/throw-if-no-callback');
 var events = _dereq_('../shared/events');
-var version = "3.6.2";
+var version = "3.6.3";
 var iFramer = _dereq_('iframer');
 
 var IFRAME_HEIGHT = 400;
@@ -5567,7 +5567,7 @@ var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 var deferred = _dereq_('../lib/deferred');
 var errors = _dereq_('./shared/errors');
 var sharedErrors = _dereq_('../errors');
-var VERSION = "3.6.2";
+var VERSION = "3.6.3";
 
 /**
  * @static
@@ -5705,7 +5705,7 @@ var deferred = _dereq_('../lib/deferred');
 var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 var errors = _dereq_('./shared/errors');
 var sharedErrors = _dereq_('../errors');
-var VERSION = "3.6.2";
+var VERSION = "3.6.3";
 
 /**
 * @static
@@ -5865,7 +5865,7 @@ var errors = _dereq_('./errors');
 var events = constants.events;
 var iFramer = _dereq_('iframer');
 var methods = _dereq_('../../lib/methods');
-var VERSION = "3.6.2";
+var VERSION = "3.6.3";
 var uuid = _dereq_('../../lib/uuid');
 var throwIfNoCallback = _dereq_('../../lib/throw-if-no-callback');
 
@@ -6464,7 +6464,7 @@ var errors = _dereq_('./errors');
 var USBankAccount = _dereq_('./us-bank-account');
 var deferred = _dereq_('../lib/deferred');
 var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
-var VERSION = "3.6.2";
+var VERSION = "3.6.3";
 var sharedErrors = _dereq_('../errors');
 
 /**
