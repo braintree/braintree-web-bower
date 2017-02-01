@@ -1,7 +1,7 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}(g.braintree || (g.braintree = {})).dataCollector = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 'use strict';
 
-var BraintreeError = _dereq_('../lib/error');
+var BraintreeError = _dereq_('../lib/braintree-error');
 
 module.exports = {
   DATA_COLLECTOR_KOUNT_NOT_ENABLED: {
@@ -25,7 +25,7 @@ module.exports = {
   }
 };
 
-},{"../lib/error":10}],2:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":6}],2:[function(_dereq_,module,exports){
 'use strict';
 
 function setup() {
@@ -135,13 +135,13 @@ module.exports = {
 
 var kount = _dereq_('./kount');
 var fraudnet = _dereq_('./fraudnet');
-var BraintreeError = _dereq_('../lib/error');
+var BraintreeError = _dereq_('../lib/braintree-error');
 var methods = _dereq_('../lib/methods');
 var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
 var deferred = _dereq_('../lib/deferred');
-var VERSION = "3.6.3";
-var sharedErrors = _dereq_('../errors');
+var VERSION = "3.7.0";
+var sharedErrors = _dereq_('../lib/errors');
 var errors = _dereq_('./errors');
 
 /**
@@ -284,7 +284,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../errors":6,"../lib/convert-methods-to-error":7,"../lib/deferred":8,"../lib/error":10,"../lib/methods":11,"../lib/throw-if-no-callback":12,"./errors":1,"./fraudnet":2,"./kount":4}],4:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":6,"../lib/convert-methods-to-error":7,"../lib/deferred":8,"../lib/errors":10,"../lib/methods":11,"../lib/throw-if-no-callback":12,"./errors":1,"./fraudnet":2,"./kount":4}],4:[function(_dereq_,module,exports){
 'use strict';
 /* eslint-disable camelcase */
 
@@ -422,81 +422,6 @@ else break a;sjcl.random.addEntropy(F,1024,"crypto['getRandomValues']")}}catch(a
 },{"crypto":undefined}],6:[function(_dereq_,module,exports){
 'use strict';
 
-var BraintreeError = _dereq_('./lib/error');
-
-module.exports = {
-  CALLBACK_REQUIRED: {
-    type: BraintreeError.types.MERCHANT,
-    code: 'CALLBACK_REQUIRED'
-  },
-  INSTANTIATION_OPTION_REQUIRED: {
-    type: BraintreeError.types.MERCHANT,
-    code: 'INSTANTIATION_OPTION_REQUIRED'
-  },
-  INCOMPATIBLE_VERSIONS: {
-    type: BraintreeError.types.MERCHANT,
-    code: 'INCOMPATIBLE_VERSIONS'
-  },
-  METHOD_CALLED_AFTER_TEARDOWN: {
-    type: BraintreeError.types.MERCHANT,
-    code: 'METHOD_CALLED_AFTER_TEARDOWN'
-  },
-  BRAINTREE_API_ACCESS_RESTRICTED: {
-    type: BraintreeError.types.MERCHANT,
-    code: 'BRAINTREE_API_ACCESS_RESTRICTED',
-    message: 'Your access is restricted and cannot use this part of the Braintree API.'
-  }
-};
-
-},{"./lib/error":10}],7:[function(_dereq_,module,exports){
-'use strict';
-
-var BraintreeError = _dereq_('./error');
-var sharedErrors = _dereq_('../errors');
-
-module.exports = function (instance, methodNames) {
-  methodNames.forEach(function (methodName) {
-    instance[methodName] = function () {
-      throw new BraintreeError({
-        type: sharedErrors.METHOD_CALLED_AFTER_TEARDOWN.type,
-        code: sharedErrors.METHOD_CALLED_AFTER_TEARDOWN.code,
-        message: methodName + ' cannot be called after teardown.'
-      });
-    };
-  });
-};
-
-},{"../errors":6,"./error":10}],8:[function(_dereq_,module,exports){
-'use strict';
-
-module.exports = function (fn) {
-  return function () {
-    // IE9 doesn't support passing arguments to setTimeout so we have to emulate it.
-    var args = arguments;
-
-    setTimeout(function () {
-      fn.apply(null, args);
-    }, 1);
-  };
-};
-
-},{}],9:[function(_dereq_,module,exports){
-'use strict';
-
-function enumerate(values, prefix) {
-  prefix = prefix == null ? '' : prefix;
-
-  return values.reduce(function (enumeration, value) {
-    enumeration[value] = prefix + value;
-    return enumeration;
-  }, {});
-}
-
-module.exports = enumerate;
-
-},{}],10:[function(_dereq_,module,exports){
-'use strict';
-
 var enumerate = _dereq_('./enumerate');
 
 /**
@@ -571,7 +496,82 @@ BraintreeError.types = enumerate([
 
 module.exports = BraintreeError;
 
-},{"./enumerate":9}],11:[function(_dereq_,module,exports){
+},{"./enumerate":9}],7:[function(_dereq_,module,exports){
+'use strict';
+
+var BraintreeError = _dereq_('./braintree-error');
+var sharedErrors = _dereq_('../lib/errors');
+
+module.exports = function (instance, methodNames) {
+  methodNames.forEach(function (methodName) {
+    instance[methodName] = function () {
+      throw new BraintreeError({
+        type: sharedErrors.METHOD_CALLED_AFTER_TEARDOWN.type,
+        code: sharedErrors.METHOD_CALLED_AFTER_TEARDOWN.code,
+        message: methodName + ' cannot be called after teardown.'
+      });
+    };
+  });
+};
+
+},{"../lib/errors":10,"./braintree-error":6}],8:[function(_dereq_,module,exports){
+'use strict';
+
+module.exports = function (fn) {
+  return function () {
+    // IE9 doesn't support passing arguments to setTimeout so we have to emulate it.
+    var args = arguments;
+
+    setTimeout(function () {
+      fn.apply(null, args);
+    }, 1);
+  };
+};
+
+},{}],9:[function(_dereq_,module,exports){
+'use strict';
+
+function enumerate(values, prefix) {
+  prefix = prefix == null ? '' : prefix;
+
+  return values.reduce(function (enumeration, value) {
+    enumeration[value] = prefix + value;
+    return enumeration;
+  }, {});
+}
+
+module.exports = enumerate;
+
+},{}],10:[function(_dereq_,module,exports){
+'use strict';
+
+var BraintreeError = _dereq_('./braintree-error');
+
+module.exports = {
+  CALLBACK_REQUIRED: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'CALLBACK_REQUIRED'
+  },
+  INSTANTIATION_OPTION_REQUIRED: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'INSTANTIATION_OPTION_REQUIRED'
+  },
+  INCOMPATIBLE_VERSIONS: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'INCOMPATIBLE_VERSIONS'
+  },
+  METHOD_CALLED_AFTER_TEARDOWN: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'METHOD_CALLED_AFTER_TEARDOWN'
+  },
+  BRAINTREE_API_ACCESS_RESTRICTED: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'BRAINTREE_API_ACCESS_RESTRICTED',
+    message: 'Your access is restricted and cannot use this part of the Braintree API.'
+  }
+};
+
+},{"./braintree-error":6}],11:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -583,8 +583,8 @@ module.exports = function (obj) {
 },{}],12:[function(_dereq_,module,exports){
 'use strict';
 
-var BraintreeError = _dereq_('./error');
-var sharedErrors = _dereq_('../errors');
+var BraintreeError = _dereq_('./braintree-error');
+var sharedErrors = _dereq_('../lib/errors');
 
 module.exports = function (callback, functionName) {
   if (typeof callback !== 'function') {
@@ -596,5 +596,5 @@ module.exports = function (callback, functionName) {
   }
 };
 
-},{"../errors":6,"./error":10}]},{},[3])(3)
+},{"../lib/errors":10,"./braintree-error":6}]},{},[3])(3)
 });

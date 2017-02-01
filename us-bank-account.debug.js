@@ -1,35 +1,6 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}(g.braintree || (g.braintree = {})).usBankAccount = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 'use strict';
 
-var BraintreeError = _dereq_('./lib/error');
-
-module.exports = {
-  CALLBACK_REQUIRED: {
-    type: BraintreeError.types.MERCHANT,
-    code: 'CALLBACK_REQUIRED'
-  },
-  INSTANTIATION_OPTION_REQUIRED: {
-    type: BraintreeError.types.MERCHANT,
-    code: 'INSTANTIATION_OPTION_REQUIRED'
-  },
-  INCOMPATIBLE_VERSIONS: {
-    type: BraintreeError.types.MERCHANT,
-    code: 'INCOMPATIBLE_VERSIONS'
-  },
-  METHOD_CALLED_AFTER_TEARDOWN: {
-    type: BraintreeError.types.MERCHANT,
-    code: 'METHOD_CALLED_AFTER_TEARDOWN'
-  },
-  BRAINTREE_API_ACCESS_RESTRICTED: {
-    type: BraintreeError.types.MERCHANT,
-    code: 'BRAINTREE_API_ACCESS_RESTRICTED',
-    message: 'Your access is restricted and cannot use this part of the Braintree API.'
-  }
-};
-
-},{"./lib/error":10}],2:[function(_dereq_,module,exports){
-'use strict';
-
 var createAuthorizationData = _dereq_('./create-authorization-data');
 var jsonClone = _dereq_('./json-clone');
 var constants = _dereq_('./constants');
@@ -61,7 +32,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":5,"./create-authorization-data":7,"./json-clone":11}],3:[function(_dereq_,module,exports){
+},{"./constants":5,"./create-authorization-data":7,"./json-clone":11}],2:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('./constants');
@@ -95,7 +66,84 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":2,"./constants":5}],4:[function(_dereq_,module,exports){
+},{"./add-metadata":1,"./constants":5}],3:[function(_dereq_,module,exports){
+'use strict';
+
+var enumerate = _dereq_('./enumerate');
+
+/**
+ * @class
+ * @global
+ * @param {object} options Construction options
+ * @classdesc This class is used to report error conditions, frequently as the first parameter to callbacks throughout the Braintree SDK.
+ * @description <strong>You cannot use this constructor directly. Interact with instances of this class through {@link callback callbacks}.</strong>
+ */
+function BraintreeError(options) {
+  if (!BraintreeError.types.hasOwnProperty(options.type)) {
+    throw new Error(options.type + ' is not a valid type.');
+  }
+
+  if (!options.code) {
+    throw new Error('Error code required.');
+  }
+
+  if (!options.message) {
+    throw new Error('Error message required.');
+  }
+
+  this.name = 'BraintreeError';
+
+  /**
+   * @type {string}
+   * @description A code that corresponds to specific errors.
+   */
+  this.code = options.code;
+
+  /**
+   * @type {string}
+   * @description A short description of the error.
+   */
+  this.message = options.message;
+
+  /**
+   * @type {BraintreeError.types}
+   * @description The type of error.
+   */
+  this.type = options.type;
+
+  /**
+   * @type {object=}
+   * @description Additional information about the error, such as an underlying network error response.
+   */
+  this.details = options.details;
+}
+
+BraintreeError.prototype = Object.create(Error.prototype);
+BraintreeError.prototype.constructor = BraintreeError;
+
+/**
+ * Enum for {@link BraintreeError} types.
+ * @name BraintreeError.types
+ * @enum
+ * @readonly
+ * @memberof BraintreeError
+ * @property {string} CUSTOMER An error caused by the customer.
+ * @property {string} MERCHANT An error that is actionable by the merchant.
+ * @property {string} NETWORK An error due to a network problem.
+ * @property {string} INTERNAL An error caused by Braintree code.
+ * @property {string} UNKNOWN An error where the origin is unknown.
+ */
+BraintreeError.types = enumerate([
+  'CUSTOMER',
+  'MERCHANT',
+  'NETWORK',
+  'INTERNAL',
+  'UNKNOWN'
+]);
+
+module.exports = BraintreeError;
+
+},{"./enumerate":9}],4:[function(_dereq_,module,exports){
 'use strict';
 
 // Taken from https://github.com/sindresorhus/decamelize/blob/95980ab6fb44c40eaca7792bdf93aff7c210c805/index.js
@@ -118,7 +166,7 @@ module.exports = function (obj) {
 },{}],5:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.6.3";
+var VERSION = "3.7.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -135,8 +183,8 @@ module.exports = {
 },{}],6:[function(_dereq_,module,exports){
 'use strict';
 
-var BraintreeError = _dereq_('./error');
-var sharedErrors = _dereq_('../errors');
+var BraintreeError = _dereq_('./braintree-error');
+var sharedErrors = _dereq_('../lib/errors');
 
 module.exports = function (instance, methodNames) {
   methodNames.forEach(function (methodName) {
@@ -150,7 +198,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"../errors":1,"./error":10}],7:[function(_dereq_,module,exports){
+},{"../lib/errors":10,"./braintree-error":3}],7:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/polyfill').atob;
@@ -230,81 +278,33 @@ module.exports = enumerate;
 },{}],10:[function(_dereq_,module,exports){
 'use strict';
 
-var enumerate = _dereq_('./enumerate');
+var BraintreeError = _dereq_('./braintree-error');
 
-/**
- * @class
- * @global
- * @param {object} options Construction options
- * @classdesc This class is used to report error conditions, frequently as the first parameter to callbacks throughout the Braintree SDK.
- * @description <strong>You cannot use this constructor directly. Interact with instances of this class through {@link callback callbacks}.</strong>
- */
-function BraintreeError(options) {
-  if (!BraintreeError.types.hasOwnProperty(options.type)) {
-    throw new Error(options.type + ' is not a valid type.');
+module.exports = {
+  CALLBACK_REQUIRED: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'CALLBACK_REQUIRED'
+  },
+  INSTANTIATION_OPTION_REQUIRED: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'INSTANTIATION_OPTION_REQUIRED'
+  },
+  INCOMPATIBLE_VERSIONS: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'INCOMPATIBLE_VERSIONS'
+  },
+  METHOD_CALLED_AFTER_TEARDOWN: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'METHOD_CALLED_AFTER_TEARDOWN'
+  },
+  BRAINTREE_API_ACCESS_RESTRICTED: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'BRAINTREE_API_ACCESS_RESTRICTED',
+    message: 'Your access is restricted and cannot use this part of the Braintree API.'
   }
+};
 
-  if (!options.code) {
-    throw new Error('Error code required.');
-  }
-
-  if (!options.message) {
-    throw new Error('Error message required.');
-  }
-
-  this.name = 'BraintreeError';
-
-  /**
-   * @type {string}
-   * @description A code that corresponds to specific errors.
-   */
-  this.code = options.code;
-
-  /**
-   * @type {string}
-   * @description A short description of the error.
-   */
-  this.message = options.message;
-
-  /**
-   * @type {BraintreeError.types}
-   * @description The type of error.
-   */
-  this.type = options.type;
-
-  /**
-   * @type {object=}
-   * @description Additional information about the error, such as an underlying network error response.
-   */
-  this.details = options.details;
-}
-
-BraintreeError.prototype = Object.create(Error.prototype);
-BraintreeError.prototype.constructor = BraintreeError;
-
-/**
- * Enum for {@link BraintreeError} types.
- * @name BraintreeError.types
- * @enum
- * @readonly
- * @memberof BraintreeError
- * @property {string} CUSTOMER An error caused by the customer.
- * @property {string} MERCHANT An error that is actionable by the merchant.
- * @property {string} NETWORK An error due to a network problem.
- * @property {string} INTERNAL An error caused by Braintree code.
- * @property {string} UNKNOWN An error where the origin is unknown.
- */
-BraintreeError.types = enumerate([
-  'CUSTOMER',
-  'MERCHANT',
-  'NETWORK',
-  'INTERNAL',
-  'UNKNOWN'
-]);
-
-module.exports = BraintreeError;
-
-},{"./enumerate":9}],11:[function(_dereq_,module,exports){
+},{"./braintree-error":3}],11:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
@@ -378,8 +378,8 @@ module.exports = {
 },{}],15:[function(_dereq_,module,exports){
 'use strict';
 
-var BraintreeError = _dereq_('./error');
-var sharedErrors = _dereq_('../errors');
+var BraintreeError = _dereq_('./braintree-error');
+var sharedErrors = _dereq_('../lib/errors');
 
 module.exports = function (callback, functionName) {
   if (typeof callback !== 'function') {
@@ -391,7 +391,7 @@ module.exports = function (callback, functionName) {
   }
 };
 
-},{"../errors":1,"./error":10}],16:[function(_dereq_,module,exports){
+},{"../lib/errors":10,"./braintree-error":3}],16:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -402,7 +402,7 @@ module.exports = {
 },{}],17:[function(_dereq_,module,exports){
 'use strict';
 
-var BraintreeError = _dereq_('../lib/error');
+var BraintreeError = _dereq_('../lib/braintree-error');
 
 module.exports = {
   US_BANK_ACCOUNT_OPTION_REQUIRED: {
@@ -450,20 +450,20 @@ module.exports = {
   }
 };
 
-},{"../lib/error":10}],18:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":3}],18:[function(_dereq_,module,exports){
 'use strict';
 /**
  * @module braintree-web/us-bank-account
  * @description This module is for accepting payments of US bank accounts.
  */
 
-var BraintreeError = _dereq_('../lib/error');
+var BraintreeError = _dereq_('../lib/braintree-error');
 var errors = _dereq_('./errors');
 var USBankAccount = _dereq_('./us-bank-account');
 var deferred = _dereq_('../lib/deferred');
 var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
-var VERSION = "3.6.3";
-var sharedErrors = _dereq_('../errors');
+var VERSION = "3.7.0";
+var sharedErrors = _dereq_('../lib/errors');
 
 /**
  * @static
@@ -523,14 +523,14 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../errors":1,"../lib/deferred":8,"../lib/error":10,"../lib/throw-if-no-callback":15,"./errors":17,"./us-bank-account":19}],19:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":3,"../lib/deferred":8,"../lib/errors":10,"../lib/throw-if-no-callback":15,"./errors":17,"./us-bank-account":19}],19:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
-var BraintreeError = _dereq_('../lib/error');
+var BraintreeError = _dereq_('../lib/braintree-error');
 var constants = _dereq_('./constants');
 var errors = _dereq_('./errors');
-var sharedErrors = _dereq_('../errors');
+var sharedErrors = _dereq_('../lib/errors');
 var analytics = _dereq_('../lib/analytics');
 var deferred = _dereq_('../lib/deferred');
 var once = _dereq_('../lib/once');
@@ -915,5 +915,5 @@ USBankAccount.prototype.teardown = function (callback) {
 module.exports = USBankAccount;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../errors":1,"../lib/analytics":3,"../lib/camel-case-to-snake-case":4,"../lib/convert-methods-to-error":6,"../lib/deferred":8,"../lib/error":10,"../lib/methods":12,"../lib/once":13,"../lib/throw-if-no-callback":15,"./constants":16,"./errors":17}]},{},[18])(18)
+},{"../lib/analytics":2,"../lib/braintree-error":3,"../lib/camel-case-to-snake-case":4,"../lib/convert-methods-to-error":6,"../lib/deferred":8,"../lib/errors":10,"../lib/methods":12,"../lib/once":13,"../lib/throw-if-no-callback":15,"./constants":16,"./errors":17}]},{},[18])(18)
 });

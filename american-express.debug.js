@@ -1,7 +1,7 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}(g.braintree || (g.braintree = {})).americanExpress = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 'use strict';
 
-var BraintreeError = _dereq_('../lib/error');
+var BraintreeError = _dereq_('../lib/braintree-error');
 var deferred = _dereq_('../lib/deferred');
 var errors = _dereq_('./errors');
 var assign = _dereq_('../lib/assign').assign;
@@ -144,10 +144,10 @@ AmericanExpress.prototype.getExpressCheckoutProfile = function (options, callbac
 
 module.exports = AmericanExpress;
 
-},{"../lib/assign":5,"../lib/deferred":6,"../lib/error":8,"../lib/throw-if-no-callback":9,"./errors":2}],2:[function(_dereq_,module,exports){
+},{"../lib/assign":4,"../lib/braintree-error":5,"../lib/deferred":6,"../lib/throw-if-no-callback":9,"./errors":2}],2:[function(_dereq_,module,exports){
 'use strict';
 
-var BraintreeError = _dereq_('../lib/error');
+var BraintreeError = _dereq_('../lib/braintree-error');
 
 module.exports = {
   AMEX_NONCE_REQUIRED: {
@@ -160,18 +160,18 @@ module.exports = {
   }
 };
 
-},{"../lib/error":8}],3:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":5}],3:[function(_dereq_,module,exports){
 'use strict';
 /**
  * @module braintree-web/american-express
  * @description This module is for use with Amex Express Checkout. To accept American Express cards, use Hosted Fields.
  */
 
-var BraintreeError = _dereq_('../lib/error');
+var BraintreeError = _dereq_('../lib/braintree-error');
 var AmericanExpress = _dereq_('./american-express');
 var deferred = _dereq_('../lib/deferred');
-var sharedErrors = _dereq_('../errors');
-var VERSION = "3.6.3";
+var sharedErrors = _dereq_('../lib/errors');
+var VERSION = "3.7.0";
 var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 
 /**
@@ -220,36 +220,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../errors":4,"../lib/deferred":6,"../lib/error":8,"../lib/throw-if-no-callback":9,"./american-express":1}],4:[function(_dereq_,module,exports){
-'use strict';
-
-var BraintreeError = _dereq_('./lib/error');
-
-module.exports = {
-  CALLBACK_REQUIRED: {
-    type: BraintreeError.types.MERCHANT,
-    code: 'CALLBACK_REQUIRED'
-  },
-  INSTANTIATION_OPTION_REQUIRED: {
-    type: BraintreeError.types.MERCHANT,
-    code: 'INSTANTIATION_OPTION_REQUIRED'
-  },
-  INCOMPATIBLE_VERSIONS: {
-    type: BraintreeError.types.MERCHANT,
-    code: 'INCOMPATIBLE_VERSIONS'
-  },
-  METHOD_CALLED_AFTER_TEARDOWN: {
-    type: BraintreeError.types.MERCHANT,
-    code: 'METHOD_CALLED_AFTER_TEARDOWN'
-  },
-  BRAINTREE_API_ACCESS_RESTRICTED: {
-    type: BraintreeError.types.MERCHANT,
-    code: 'BRAINTREE_API_ACCESS_RESTRICTED',
-    message: 'Your access is restricted and cannot use this part of the Braintree API.'
-  }
-};
-
-},{"./lib/error":8}],5:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":5,"../lib/deferred":6,"../lib/errors":8,"../lib/throw-if-no-callback":9,"./american-express":1}],4:[function(_dereq_,module,exports){
 'use strict';
 
 var assignNormalized = typeof Object.assign === 'function' ? Object.assign : assignPolyfill;
@@ -274,35 +245,7 @@ module.exports = {
   _assign: assignPolyfill
 };
 
-},{}],6:[function(_dereq_,module,exports){
-'use strict';
-
-module.exports = function (fn) {
-  return function () {
-    // IE9 doesn't support passing arguments to setTimeout so we have to emulate it.
-    var args = arguments;
-
-    setTimeout(function () {
-      fn.apply(null, args);
-    }, 1);
-  };
-};
-
-},{}],7:[function(_dereq_,module,exports){
-'use strict';
-
-function enumerate(values, prefix) {
-  prefix = prefix == null ? '' : prefix;
-
-  return values.reduce(function (enumeration, value) {
-    enumeration[value] = prefix + value;
-    return enumeration;
-  }, {});
-}
-
-module.exports = enumerate;
-
-},{}],8:[function(_dereq_,module,exports){
+},{}],5:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -379,11 +322,68 @@ BraintreeError.types = enumerate([
 
 module.exports = BraintreeError;
 
-},{"./enumerate":7}],9:[function(_dereq_,module,exports){
+},{"./enumerate":7}],6:[function(_dereq_,module,exports){
 'use strict';
 
-var BraintreeError = _dereq_('./error');
-var sharedErrors = _dereq_('../errors');
+module.exports = function (fn) {
+  return function () {
+    // IE9 doesn't support passing arguments to setTimeout so we have to emulate it.
+    var args = arguments;
+
+    setTimeout(function () {
+      fn.apply(null, args);
+    }, 1);
+  };
+};
+
+},{}],7:[function(_dereq_,module,exports){
+'use strict';
+
+function enumerate(values, prefix) {
+  prefix = prefix == null ? '' : prefix;
+
+  return values.reduce(function (enumeration, value) {
+    enumeration[value] = prefix + value;
+    return enumeration;
+  }, {});
+}
+
+module.exports = enumerate;
+
+},{}],8:[function(_dereq_,module,exports){
+'use strict';
+
+var BraintreeError = _dereq_('./braintree-error');
+
+module.exports = {
+  CALLBACK_REQUIRED: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'CALLBACK_REQUIRED'
+  },
+  INSTANTIATION_OPTION_REQUIRED: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'INSTANTIATION_OPTION_REQUIRED'
+  },
+  INCOMPATIBLE_VERSIONS: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'INCOMPATIBLE_VERSIONS'
+  },
+  METHOD_CALLED_AFTER_TEARDOWN: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'METHOD_CALLED_AFTER_TEARDOWN'
+  },
+  BRAINTREE_API_ACCESS_RESTRICTED: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'BRAINTREE_API_ACCESS_RESTRICTED',
+    message: 'Your access is restricted and cannot use this part of the Braintree API.'
+  }
+};
+
+},{"./braintree-error":5}],9:[function(_dereq_,module,exports){
+'use strict';
+
+var BraintreeError = _dereq_('./braintree-error');
+var sharedErrors = _dereq_('../lib/errors');
 
 module.exports = function (callback, functionName) {
   if (typeof callback !== 'function') {
@@ -395,5 +395,5 @@ module.exports = function (callback, functionName) {
   }
 };
 
-},{"../errors":4,"./error":8}]},{},[3])(3)
+},{"../lib/errors":8,"./braintree-error":5}]},{},[3])(3)
 });
