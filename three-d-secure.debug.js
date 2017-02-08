@@ -319,12 +319,14 @@ module.exports = function assign(target) {
 }
 
 },{}],4:[function(_dereq_,module,exports){
-module.exports={
-  "src": "about:blank",
-  "frameBorder": 0,
-  "allowtransparency": true,
-  "scrolling": "no"
-}
+'use strict';
+
+module.exports = {
+  src: 'about:blank',
+  frameBorder: 0,
+  allowtransparency: true,
+  scrolling: 'no'
+};
 
 },{}],5:[function(_dereq_,module,exports){
 'use strict';
@@ -494,6 +496,8 @@ module.exports = BraintreeError;
 (function (global){
 'use strict';
 
+var MINIMUM_SUPPORTED_CHROME_IOS_VERSION = 48;
+
 function isOperaMini(ua) {
   ua = ua || global.navigator.userAgent;
   return ua.indexOf('Opera Mini') > -1;
@@ -531,9 +535,24 @@ function isAndroid(ua) {
   return /Android/.test(ua);
 }
 
+function isUnsupportedIosChrome(ua) {
+  var match, version;
+
+  ua = ua || global.navigator.userAgent;
+  match = ua.match(/CriOS\/(\d+)\./);
+
+  if (!match) {
+    return false;
+  }
+
+  version = parseInt(match[1], 10);
+
+  return version < MINIMUM_SUPPORTED_CHROME_IOS_VERSION;
+}
+
 function supportsPopups(ua) {
   ua = ua || global.navigator.userAgent;
-  return !(isIosWebview(ua) || isAndroidWebview(ua) || isOperaMini(ua));
+  return !(isIosWebview(ua) || isAndroidWebview(ua) || isOperaMini(ua) || isUnsupportedIosChrome(ua));
 }
 
 // The Google Search iOS app is technically a webview and doesn't support popups.
@@ -569,6 +588,7 @@ module.exports = {
   isHTTPS: isHTTPS,
   isIos: isIos,
   isAndroid: isAndroid,
+  isUnsupportedIosChrome: isUnsupportedIosChrome,
   supportsPopups: supportsPopups
 };
 
@@ -748,7 +768,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":8,"./check-origin":10,"./events":11,"framebus":1}],13:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.7.0";
+var VERSION = "3.8.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -766,7 +786,7 @@ module.exports = {
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
-var sharedErrors = _dereq_('../lib/errors');
+var sharedErrors = _dereq_('./errors');
 
 module.exports = function (instance, methodNames) {
   methodNames.forEach(function (methodName) {
@@ -780,7 +800,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"../lib/errors":18,"./braintree-error":8}],15:[function(_dereq_,module,exports){
+},{"./braintree-error":8,"./errors":18}],15:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/polyfill').atob;
@@ -789,8 +809,6 @@ var apiUrls = {
   production: 'https://api.braintreegateway.com:443',
   sandbox: 'https://api.sandbox.braintreegateway.com:443'
 };
-
-/* eslint-enable no-undef,block-scoped-var */
 
 function _isTokenizationKey(str) {
   return /^[a-zA-Z0-9]+_[a-zA-Z0-9]+_[a-zA-Z0-9_]+$/.test(str);
@@ -871,6 +889,10 @@ module.exports = {
     type: BraintreeError.types.MERCHANT,
     code: 'INSTANTIATION_OPTION_REQUIRED'
   },
+  INVALID_OPTION: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'INVALID_OPTION'
+  },
   INCOMPATIBLE_VERSIONS: {
     type: BraintreeError.types.MERCHANT,
     code: 'INCOMPATIBLE_VERSIONS'
@@ -893,10 +915,9 @@ var parser;
 var legalHosts = {
   'paypal.com': 1,
   'braintreepayments.com': 1,
-  'braintreegateway.com': 1
+  'braintreegateway.com': 1,
+  'braintree-api.com': 1
 };
-
-/* eslint-enable no-undef,block-scoped-var */
 
 function stripSubdomains(domain) {
   return domain.split('.').slice(-2).join('.');
@@ -979,7 +1000,7 @@ module.exports = {
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
-var sharedErrors = _dereq_('../lib/errors');
+var sharedErrors = _dereq_('./errors');
 
 module.exports = function (callback, functionName) {
   if (typeof callback !== 'function') {
@@ -991,7 +1012,7 @@ module.exports = function (callback, functionName) {
   }
 };
 
-},{"../lib/errors":18,"./braintree-error":8}],24:[function(_dereq_,module,exports){
+},{"./braintree-error":8,"./errors":18}],24:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {
@@ -1019,7 +1040,7 @@ var deferred = _dereq_('../../lib/deferred');
 var errors = _dereq_('../shared/errors');
 var throwIfNoCallback = _dereq_('../../lib/throw-if-no-callback');
 var events = _dereq_('../shared/events');
-var version = "3.7.0";
+var VERSION = "3.8.0";
 var iFramer = _dereq_('iframer');
 
 var IFRAME_HEIGHT = 400;
@@ -1045,6 +1066,7 @@ var IFRAME_WIDTH = 400;
 function ThreeDSecure(options) {
   this._options = options;
   this._assetsUrl = options.client.getConfiguration().gatewayConfiguration.assetsUrl;
+  this._isDebug = options.client.getConfiguration().isDebug;
   this._client = options.client;
 }
 
@@ -1231,7 +1253,7 @@ ThreeDSecure.prototype._createIframe = function (options) {
     merchantUrl: location.href
   });
 
-  authenticationCompleteBaseUrl = this._assetsUrl + '/web/' + version + '/html/three-d-secure-authentication-complete-frame.html?channel=' + encodeURIComponent(this._bus.channel) + '&';
+  authenticationCompleteBaseUrl = this._assetsUrl + '/web/' + VERSION + '/html/three-d-secure-authentication-complete-frame.html?channel=' + encodeURIComponent(this._bus.channel) + '&';
 
   if (parentURL.indexOf('#') > -1) {
     parentURL = parentURL.split('#')[0];
@@ -1241,7 +1263,7 @@ ThreeDSecure.prototype._createIframe = function (options) {
     reply({
       acsUrl: response.acsUrl,
       pareq: response.pareq,
-      termUrl: response.termUrl + '&three_d_secure_version=' + version + '&authentication_complete_base_url=' + encodeURIComponent(authenticationCompleteBaseUrl),
+      termUrl: response.termUrl + '&three_d_secure_version=' + VERSION + '&authentication_complete_base_url=' + encodeURIComponent(authenticationCompleteBaseUrl),
       md: response.md,
       parentUrl: parentURL
     });
@@ -1251,7 +1273,7 @@ ThreeDSecure.prototype._createIframe = function (options) {
     this._handleAuthResponse(data, options);
   }.bind(this));
 
-  url = this._assetsUrl + '/web/' + version + '/html/three-d-secure-bank-frame.html';
+  url = this._assetsUrl + '/web/' + VERSION + '/html/three-d-secure-bank-frame' + (this._isDebug ? '' : '.min') + '.html';
 
   this._bankIframe = iFramer({
     src: url,
@@ -1341,7 +1363,7 @@ var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 var deferred = _dereq_('../lib/deferred');
 var errors = _dereq_('./shared/errors');
 var sharedErrors = _dereq_('../lib/errors');
-var VERSION = "3.7.0";
+var VERSION = "3.8.0";
 
 /**
  * @static
@@ -1356,7 +1378,7 @@ var VERSION = "3.7.0";
  * }, callback);
  */
 function create(options, callback) {
-  var config, threeDSecure, error, clientVersion;
+  var config, threeDSecure, error, clientVersion, isProduction;
 
   throwIfNoCallback(callback, 'create');
 
@@ -1382,7 +1404,11 @@ function create(options, callback) {
       code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
       message: 'Client (version ' + clientVersion + ') and 3D Secure (version ' + VERSION + ') components must be from the same SDK version.'
     };
-  } else if (!browserDetection.isHTTPS()) {
+  }
+
+  isProduction = config.gatewayConfiguration.environment === 'production';
+
+  if (isProduction && !browserDetection.isHTTPS()) {
     error = errors.THREEDS_HTTPS_REQUIRED;
   }
 

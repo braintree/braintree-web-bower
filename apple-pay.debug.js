@@ -328,10 +328,10 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var ApplePay = _dereq_('./apple-pay');
 var analytics = _dereq_('../lib/analytics');
 var deferred = _dereq_('../lib/deferred');
-var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 var sharedErrors = _dereq_('../lib/errors');
+var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 var errors = _dereq_('./errors');
-var VERSION = "3.7.0";
+var VERSION = "3.8.0";
 
 /**
  * @static
@@ -534,7 +534,7 @@ module.exports = BraintreeError;
 },{"./enumerate":10}],7:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.7.0";
+var VERSION = "3.8.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -557,8 +557,6 @@ var apiUrls = {
   production: 'https://api.braintreegateway.com:443',
   sandbox: 'https://api.sandbox.braintreegateway.com:443'
 };
-
-/* eslint-enable no-undef,block-scoped-var */
 
 function _isTokenizationKey(str) {
   return /^[a-zA-Z0-9]+_[a-zA-Z0-9]+_[a-zA-Z0-9_]+$/.test(str);
@@ -639,6 +637,10 @@ module.exports = {
     type: BraintreeError.types.MERCHANT,
     code: 'INSTANTIATION_OPTION_REQUIRED'
   },
+  INVALID_OPTION: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'INVALID_OPTION'
+  },
   INCOMPATIBLE_VERSIONS: {
     type: BraintreeError.types.MERCHANT,
     code: 'INCOMPATIBLE_VERSIONS'
@@ -704,7 +706,7 @@ module.exports = {
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
-var sharedErrors = _dereq_('../lib/errors');
+var sharedErrors = _dereq_('./errors');
 
 module.exports = function (callback, functionName) {
   if (typeof callback !== 'function') {
@@ -716,5 +718,5 @@ module.exports = function (callback, functionName) {
   }
 };
 
-},{"../lib/errors":11,"./braintree-error":6}]},{},[3])(3)
+},{"./braintree-error":6,"./errors":11}]},{},[3])(3)
 });

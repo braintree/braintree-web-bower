@@ -166,7 +166,7 @@ module.exports = function (obj) {
 },{}],5:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.7.0";
+var VERSION = "3.8.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -184,7 +184,7 @@ module.exports = {
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
-var sharedErrors = _dereq_('../lib/errors');
+var sharedErrors = _dereq_('./errors');
 
 module.exports = function (instance, methodNames) {
   methodNames.forEach(function (methodName) {
@@ -198,7 +198,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"../lib/errors":10,"./braintree-error":3}],7:[function(_dereq_,module,exports){
+},{"./braintree-error":3,"./errors":10}],7:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/polyfill').atob;
@@ -207,8 +207,6 @@ var apiUrls = {
   production: 'https://api.braintreegateway.com:443',
   sandbox: 'https://api.sandbox.braintreegateway.com:443'
 };
-
-/* eslint-enable no-undef,block-scoped-var */
 
 function _isTokenizationKey(str) {
   return /^[a-zA-Z0-9]+_[a-zA-Z0-9]+_[a-zA-Z0-9_]+$/.test(str);
@@ -288,6 +286,10 @@ module.exports = {
   INSTANTIATION_OPTION_REQUIRED: {
     type: BraintreeError.types.MERCHANT,
     code: 'INSTANTIATION_OPTION_REQUIRED'
+  },
+  INVALID_OPTION: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'INVALID_OPTION'
   },
   INCOMPATIBLE_VERSIONS: {
     type: BraintreeError.types.MERCHANT,
@@ -379,7 +381,7 @@ module.exports = {
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
-var sharedErrors = _dereq_('../lib/errors');
+var sharedErrors = _dereq_('./errors');
 
 module.exports = function (callback, functionName) {
   if (typeof callback !== 'function') {
@@ -391,7 +393,7 @@ module.exports = function (callback, functionName) {
   }
 };
 
-},{"../lib/errors":10,"./braintree-error":3}],16:[function(_dereq_,module,exports){
+},{"./braintree-error":3,"./errors":10}],16:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -462,7 +464,7 @@ var errors = _dereq_('./errors');
 var USBankAccount = _dereq_('./us-bank-account');
 var deferred = _dereq_('../lib/deferred');
 var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
-var VERSION = "3.7.0";
+var VERSION = "3.8.0";
 var sharedErrors = _dereq_('../lib/errors');
 
 /**
@@ -697,19 +699,17 @@ USBankAccount.prototype._tokenizeBankDetails = function (options, callback) {
       Authorization: 'Bearer ' + apiConfig.accessToken,
       'Braintree-Version': '2016-08-25'
     },
-    data: {
+    data: camelCaseToSnakeCase({
       type: 'us_bank_account',
-      /* eslint-disable camelcase */
-      routing_number: bankDetails.routingNumber,
-      account_number: bankDetails.accountNumber,
-      account_holder_name: bankDetails.accountHolderName,
-      account_type: bankDetails.accountType,
-      billing_address: camelCaseToSnakeCase(bankDetails.billingAddress),
-      ach_mandate: {
+      routingNumber: bankDetails.routingNumber,
+      accountNumber: bankDetails.accountNumber,
+      accountHolderName: bankDetails.accountHolderName,
+      accountType: bankDetails.accountType,
+      billingAddress: camelCaseToSnakeCase(bankDetails.billingAddress),
+      achMandate: {
         text: options.mandateText
       }
-      /* eslint-enable camelcase */
-    }
+    })
   }, function (err, response, status) {
     var error;
 
@@ -781,16 +781,14 @@ USBankAccount.prototype._tokenizeBankLogin = function (options, callback) {
             Authorization: 'Bearer ' + apiConfig.accessToken,
             'Braintree-Version': '2016-08-25'
           },
-          data: {
+          data: camelCaseToSnakeCase({
             type: 'plaid_public_token',
-            /* eslint-disable camelcase */
-            public_token: publicToken,
-            account_id: metadata.account_id,
-            ach_mandate: {
+            publicToken: publicToken,
+            accountId: metadata.account_id,
+            achMandate: {
               text: options.mandateText
             }
-            /* eslint-enable camelcase */
-          }
+          })
         }, function (tokenizeErr, response, status) {
           var error;
 

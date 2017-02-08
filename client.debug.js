@@ -6,7 +6,9 @@ var isWhitelistedDomain = _dereq_('../lib/is-whitelisted-domain');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var addMetadata = _dereq_('../lib/add-metadata');
 var deferred = _dereq_('../lib/deferred');
+var constants = _dereq_('./constants');
 var errors = _dereq_('./errors');
+var sharedErrors = _dereq_('../lib/errors');
 
 /**
  * This object is returned by {@link Client#getConfiguration|getConfiguration}. This information is used extensively by other Braintree modules to properly configure themselves.
@@ -27,7 +29,7 @@ var errors = _dereq_('./errors');
  * @classdesc This class is required by many other Braintree components. It serves as the base API layer that communicates with our servers. It is also capable of being used to formulate direct calls to our servers, such as direct credit card tokenization. See {@link Client#request}.
  */
 function Client(configuration) {
-  var configurationJSON, gatewayConfiguration;
+  var configurationJSON, gatewayConfiguration, braintreeApiConfiguration;
 
   configuration = configuration || {};
 
@@ -62,8 +64,25 @@ function Client(configuration) {
   };
 
   this._request = request;
-  this._baseUrl = configuration.gatewayConfiguration.clientApiUrl + '/v1/';
   this._configuration = this.getConfiguration();
+
+  this._clientApiBaseUrl = gatewayConfiguration.clientApiUrl + '/v1/';
+
+  braintreeApiConfiguration = gatewayConfiguration.braintreeApi;
+  if (braintreeApiConfiguration) {
+    this._braintreeApi = {
+      baseUrl: braintreeApiConfiguration.url + '/',
+      accessToken: braintreeApiConfiguration.accessToken
+    };
+
+    if (!isWhitelistedDomain(this._braintreeApi.baseUrl)) {
+      throw new BraintreeError({
+        type: errors.CLIENT_GATEWAY_CONFIGURATION_INVALID_DOMAIN.type,
+        code: errors.CLIENT_GATEWAY_CONFIGURATION_INVALID_DOMAIN.code,
+        message: 'braintreeApi URL is on an invalid domain.'
+      });
+    }
+  }
 }
 
 /**
@@ -114,7 +133,7 @@ function Client(configuration) {
  * @returns {void}
  */
 Client.prototype.request = function (options, callback) {
-  var optionName;
+  var optionName, api, baseUrl, requestOptions;
 
   if (!options.method) {
     optionName = 'options.method';
@@ -132,15 +151,47 @@ Client.prototype.request = function (options, callback) {
     return;
   }
 
-  this._request({
-    url: this._baseUrl + options.endpoint,
+  if ('api' in options) {
+    api = options.api;
+  } else {
+    api = 'clientApi';
+  }
+
+  requestOptions = {
     method: options.method,
-    data: addMetadata(this._configuration, options.data),
-    // TODO: change this to options.headers and document it
-    // when features that require headers are out of beta
-    headers: options._headers,
     timeout: options.timeout
-  }, this._bindRequestCallback(callback));
+  };
+
+  if (api === 'clientApi') {
+    baseUrl = this._clientApiBaseUrl;
+
+    requestOptions.data = addMetadata(this._configuration, options.data);
+  } else if (api === 'braintreeApi') {
+    if (!this._braintreeApi) {
+      callback(new BraintreeError(sharedErrors.BRAINTREE_API_ACCESS_RESTRICTED));
+      return;
+    }
+
+    baseUrl = this._braintreeApi.baseUrl;
+
+    requestOptions.data = options.data;
+
+    requestOptions.headers = {
+      'Braintree-Version': constants.BRAINTREE_API_VERSION_HEADER,
+      Authorization: 'Bearer ' + this._braintreeApi.accessToken
+    };
+  } else {
+    callback(new BraintreeError({
+      type: errors.CLIENT_OPTION_INVALID.type,
+      code: errors.CLIENT_OPTION_INVALID.code,
+      message: 'options.api is invalid.'
+    }));
+    return;
+  }
+
+  requestOptions.url = baseUrl + options.endpoint;
+
+  this._request(requestOptions, this._bindRequestCallback(callback));
 };
 
 Client.prototype._bindRequestCallback = function (callback) {
@@ -172,7 +223,14 @@ Client.prototype.toJSON = function () {
 
 module.exports = Client;
 
-},{"../lib/add-metadata":12,"../lib/braintree-error":13,"../lib/deferred":16,"../lib/is-whitelisted-domain":19,"./errors":2,"./request":7}],2:[function(_dereq_,module,exports){
+},{"../lib/add-metadata":13,"../lib/braintree-error":14,"../lib/deferred":17,"../lib/errors":19,"../lib/is-whitelisted-domain":20,"./constants":2,"./errors":3,"./request":8}],2:[function(_dereq_,module,exports){
+'use strict';
+
+module.exports = {
+  BRAINTREE_API_VERSION_HEADER: '2016-10-07'
+};
+
+},{}],3:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -185,6 +243,10 @@ module.exports = {
   CLIENT_OPTION_REQUIRED: {
     type: BraintreeError.types.MERCHANT,
     code: 'CLIENT_OPTION_REQUIRED'
+  },
+  CLIENT_OPTION_INVALID: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'CLIENT_OPTION_INVALID'
   },
   CLIENT_MISSING_GATEWAY_CONFIGURATION: {
     type: BraintreeError.types.INTERNAL,
@@ -223,7 +285,7 @@ module.exports = {
   }
 };
 
-},{"../lib/braintree-error":13}],3:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":14}],4:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -301,14 +363,14 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../lib/braintree-error":13,"../lib/constants":14,"../lib/create-authorization-data":15,"../lib/uuid":25,"./errors":2,"./request":7}],4:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":14,"../lib/constants":15,"../lib/create-authorization-data":16,"../lib/uuid":26,"./errors":3,"./request":8}],5:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Client = _dereq_('./client');
 var getConfiguration = _dereq_('./get-configuration').getConfiguration;
+var VERSION = "3.8.0";
 var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
-var packageVersion = "3.7.0";
 var deferred = _dereq_('../lib/deferred');
 var sharedErrors = _dereq_('../lib/errors');
 
@@ -353,6 +415,10 @@ function create(options, callback) {
       return;
     }
 
+    if (options.debug) {
+      configuration.isDebug = true;
+    }
+
     try {
       client = new Client(configuration);
     } catch (clientCreationError) {
@@ -370,10 +436,10 @@ module.exports = {
    * @description The current version of the SDK, i.e. `{@pkg version}`.
    * @type {string}
    */
-  VERSION: packageVersion
+  VERSION: VERSION
 };
 
-},{"../lib/braintree-error":13,"../lib/deferred":16,"../lib/errors":18,"../lib/throw-if-no-callback":24,"./client":1,"./get-configuration":3}],5:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":14,"../lib/deferred":17,"../lib/errors":19,"../lib/throw-if-no-callback":25,"./client":1,"./get-configuration":4}],6:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -463,7 +529,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../lib/querystring":23,"./parse-body":10,"./prep-body":11}],6:[function(_dereq_,module,exports){
+},{"../../lib/querystring":24,"./parse-body":11,"./prep-body":12}],7:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -472,7 +538,7 @@ module.exports = function getUserAgent() {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],7:[function(_dereq_,module,exports){
+},{}],8:[function(_dereq_,module,exports){
 'use strict';
 
 var ajaxIsAvaliable;
@@ -503,7 +569,7 @@ module.exports = function (options, cb) {
   }
 };
 
-},{"../../lib/once":21,"./ajax-driver":5,"./get-user-agent":6,"./is-http":8,"./jsonp-driver":9}],8:[function(_dereq_,module,exports){
+},{"../../lib/once":22,"./ajax-driver":6,"./get-user-agent":7,"./is-http":9,"./jsonp-driver":10}],9:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -512,7 +578,7 @@ module.exports = function () {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],9:[function(_dereq_,module,exports){
+},{}],10:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -624,7 +690,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../lib/querystring":23,"../../lib/uuid":25}],10:[function(_dereq_,module,exports){
+},{"../../lib/querystring":24,"../../lib/uuid":26}],11:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (body) {
@@ -635,7 +701,7 @@ module.exports = function (body) {
   return body;
 };
 
-},{}],11:[function(_dereq_,module,exports){
+},{}],12:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (method, body) {
@@ -650,7 +716,7 @@ module.exports = function (method, body) {
   return body;
 };
 
-},{}],12:[function(_dereq_,module,exports){
+},{}],13:[function(_dereq_,module,exports){
 'use strict';
 
 var createAuthorizationData = _dereq_('./create-authorization-data');
@@ -684,7 +750,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":14,"./create-authorization-data":15,"./json-clone":20}],13:[function(_dereq_,module,exports){
+},{"./constants":15,"./create-authorization-data":16,"./json-clone":21}],14:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -761,10 +827,10 @@ BraintreeError.types = enumerate([
 
 module.exports = BraintreeError;
 
-},{"./enumerate":17}],14:[function(_dereq_,module,exports){
+},{"./enumerate":18}],15:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.7.0";
+var VERSION = "3.8.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -778,7 +844,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],15:[function(_dereq_,module,exports){
+},{}],16:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/polyfill').atob;
@@ -787,8 +853,6 @@ var apiUrls = {
   production: 'https://api.braintreegateway.com:443',
   sandbox: 'https://api.sandbox.braintreegateway.com:443'
 };
-
-/* eslint-enable no-undef,block-scoped-var */
 
 function _isTokenizationKey(str) {
   return /^[a-zA-Z0-9]+_[a-zA-Z0-9]+_[a-zA-Z0-9_]+$/.test(str);
@@ -827,7 +891,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":22}],16:[function(_dereq_,module,exports){
+},{"../lib/polyfill":23}],17:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (fn) {
@@ -841,7 +905,7 @@ module.exports = function (fn) {
   };
 };
 
-},{}],17:[function(_dereq_,module,exports){
+},{}],18:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -855,7 +919,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],18:[function(_dereq_,module,exports){
+},{}],19:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -868,6 +932,10 @@ module.exports = {
   INSTANTIATION_OPTION_REQUIRED: {
     type: BraintreeError.types.MERCHANT,
     code: 'INSTANTIATION_OPTION_REQUIRED'
+  },
+  INVALID_OPTION: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'INVALID_OPTION'
   },
   INCOMPATIBLE_VERSIONS: {
     type: BraintreeError.types.MERCHANT,
@@ -884,17 +952,16 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":13}],19:[function(_dereq_,module,exports){
+},{"./braintree-error":14}],20:[function(_dereq_,module,exports){
 'use strict';
 
 var parser;
 var legalHosts = {
   'paypal.com': 1,
   'braintreepayments.com': 1,
-  'braintreegateway.com': 1
+  'braintreegateway.com': 1,
+  'braintree-api.com': 1
 };
-
-/* eslint-enable no-undef,block-scoped-var */
 
 function stripSubdomains(domain) {
   return domain.split('.').slice(-2).join('.');
@@ -918,14 +985,14 @@ function isWhitelistedDomain(url) {
 
 module.exports = isWhitelistedDomain;
 
-},{}],20:[function(_dereq_,module,exports){
+},{}],21:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],21:[function(_dereq_,module,exports){
+},{}],22:[function(_dereq_,module,exports){
 'use strict';
 
 function once(fn) {
@@ -941,7 +1008,7 @@ function once(fn) {
 
 module.exports = once;
 
-},{}],22:[function(_dereq_,module,exports){
+},{}],23:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -980,7 +1047,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],23:[function(_dereq_,module,exports){
+},{}],24:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1071,11 +1138,11 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],24:[function(_dereq_,module,exports){
+},{}],25:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
-var sharedErrors = _dereq_('../lib/errors');
+var sharedErrors = _dereq_('./errors');
 
 module.exports = function (callback, functionName) {
   if (typeof callback !== 'function') {
@@ -1087,7 +1154,7 @@ module.exports = function (callback, functionName) {
   }
 };
 
-},{"../lib/errors":18,"./braintree-error":13}],25:[function(_dereq_,module,exports){
+},{"./braintree-error":14,"./errors":19}],26:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {
@@ -1101,5 +1168,5 @@ function uuid() {
 
 module.exports = uuid;
 
-},{}]},{},[4])(4)
+},{}]},{},[5])(5)
 });

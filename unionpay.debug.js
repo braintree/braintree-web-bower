@@ -319,12 +319,14 @@ module.exports = function assign(target) {
 }
 
 },{}],4:[function(_dereq_,module,exports){
-module.exports={
-  "src": "about:blank",
-  "frameBorder": 0,
-  "allowtransparency": true,
-  "scrolling": "no"
-}
+'use strict';
+
+module.exports = {
+  src: 'about:blank',
+  frameBorder: 0,
+  allowtransparency: true,
+  scrolling: 'no'
+};
 
 },{}],5:[function(_dereq_,module,exports){
 'use strict';
@@ -665,7 +667,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":8,"./check-origin":9,"./events":10,"framebus":1}],12:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.7.0";
+var VERSION = "3.8.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -683,7 +685,7 @@ module.exports = {
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
-var sharedErrors = _dereq_('../lib/errors');
+var sharedErrors = _dereq_('./errors');
 
 module.exports = function (instance, methodNames) {
   methodNames.forEach(function (methodName) {
@@ -697,7 +699,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"../lib/errors":17,"./braintree-error":8}],14:[function(_dereq_,module,exports){
+},{"./braintree-error":8,"./errors":17}],14:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/polyfill').atob;
@@ -706,8 +708,6 @@ var apiUrls = {
   production: 'https://api.braintreegateway.com:443',
   sandbox: 'https://api.sandbox.braintreegateway.com:443'
 };
-
-/* eslint-enable no-undef,block-scoped-var */
 
 function _isTokenizationKey(str) {
   return /^[a-zA-Z0-9]+_[a-zA-Z0-9]+_[a-zA-Z0-9_]+$/.test(str);
@@ -788,6 +788,10 @@ module.exports = {
     type: BraintreeError.types.MERCHANT,
     code: 'INSTANTIATION_OPTION_REQUIRED'
   },
+  INVALID_OPTION: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'INVALID_OPTION'
+  },
   INCOMPATIBLE_VERSIONS: {
     type: BraintreeError.types.MERCHANT,
     code: 'INCOMPATIBLE_VERSIONS'
@@ -810,10 +814,9 @@ var parser;
 var legalHosts = {
   'paypal.com': 1,
   'braintreepayments.com': 1,
-  'braintreegateway.com': 1
+  'braintreegateway.com': 1,
+  'braintree-api.com': 1
 };
-
-/* eslint-enable no-undef,block-scoped-var */
 
 function stripSubdomains(domain) {
   return domain.split('.').slice(-2).join('.');
@@ -896,7 +899,7 @@ module.exports = {
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
-var sharedErrors = _dereq_('../lib/errors');
+var sharedErrors = _dereq_('./errors');
 
 module.exports = function (callback, functionName) {
   if (typeof callback !== 'function') {
@@ -908,7 +911,7 @@ module.exports = function (callback, functionName) {
   }
 };
 
-},{"../lib/errors":17,"./braintree-error":8}],23:[function(_dereq_,module,exports){
+},{"./braintree-error":8,"./errors":17}],23:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {
@@ -936,7 +939,7 @@ var deferred = _dereq_('../lib/deferred');
 var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 var errors = _dereq_('./shared/errors');
 var sharedErrors = _dereq_('../lib/errors');
-var VERSION = "3.7.0";
+var VERSION = "3.8.0";
 
 /**
 * @static
@@ -1096,7 +1099,7 @@ var errors = _dereq_('./errors');
 var events = constants.events;
 var iFramer = _dereq_('iframer');
 var methods = _dereq_('../../lib/methods');
-var VERSION = "3.7.0";
+var VERSION = "3.8.0";
 var uuid = _dereq_('../../lib/uuid');
 var throwIfNoCallback = _dereq_('../../lib/throw-if-no-callback');
 
@@ -1595,6 +1598,7 @@ UnionPay.prototype.teardown = function (callback) {
 };
 
 UnionPay.prototype._initializeHostedFields = function (callback) {
+  var assetsUrl, isDebug;
   var componentId = uuid();
 
   if (this._bus) {
@@ -1602,13 +1606,16 @@ UnionPay.prototype._initializeHostedFields = function (callback) {
     return;
   }
 
+  assetsUrl = this._options.client.getConfiguration().gatewayConfiguration.assetsUrl;
+  isDebug = this._options.client.getConfiguration().isDebug;
+
   this._bus = new Bus({
     channel: componentId,
     merchantUrl: location.href
   });
   this._hostedFieldsFrame = iFramer({
     name: constants.HOSTED_FIELDS_FRAME_NAME + '_' + componentId,
-    src: this._options.client.getConfiguration().gatewayConfiguration.assetsUrl + '/web/' + VERSION + '/html/unionpay-hosted-fields-frame.html',
+    src: assetsUrl + '/web/' + VERSION + '/html/unionpay-hosted-fields-frame' + (isDebug ? '' : '.min') + '.html',
     height: 0,
     width: 0
   });

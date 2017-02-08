@@ -56,12 +56,12 @@ AmericanExpress.prototype.getRewardsBalance = function (options, callback) {
     return;
   }
 
-  delete options.nonce;
-
   data = assign({
     _meta: {source: 'american-express'},
     paymentMethodNonce: nonce
   }, options);
+
+  delete data.nonce;
 
   this._client.request({
     method: 'get',
@@ -171,7 +171,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var AmericanExpress = _dereq_('./american-express');
 var deferred = _dereq_('../lib/deferred');
 var sharedErrors = _dereq_('../lib/errors');
-var VERSION = "3.7.0";
+var VERSION = "3.8.0";
 var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 
 /**
@@ -364,6 +364,10 @@ module.exports = {
     type: BraintreeError.types.MERCHANT,
     code: 'INSTANTIATION_OPTION_REQUIRED'
   },
+  INVALID_OPTION: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'INVALID_OPTION'
+  },
   INCOMPATIBLE_VERSIONS: {
     type: BraintreeError.types.MERCHANT,
     code: 'INCOMPATIBLE_VERSIONS'
@@ -383,7 +387,7 @@ module.exports = {
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
-var sharedErrors = _dereq_('../lib/errors');
+var sharedErrors = _dereq_('./errors');
 
 module.exports = function (callback, functionName) {
   if (typeof callback !== 'function') {
@@ -395,5 +399,5 @@ module.exports = function (callback, functionName) {
   }
 };
 
-},{"../lib/errors":8,"./braintree-error":5}]},{},[3])(3)
+},{"./braintree-error":5,"./errors":8}]},{},[3])(3)
 });

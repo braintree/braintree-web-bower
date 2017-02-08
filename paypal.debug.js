@@ -319,12 +319,14 @@ module.exports = function assign(target) {
 }
 
 },{}],4:[function(_dereq_,module,exports){
-module.exports={
-  "src": "about:blank",
-  "frameBorder": 0,
-  "allowtransparency": true,
-  "scrolling": "no"
-}
+'use strict';
+
+module.exports = {
+  src: 'about:blank',
+  frameBorder: 0,
+  allowtransparency: true,
+  scrolling: 'no'
+};
 
 },{}],5:[function(_dereq_,module,exports){
 'use strict';
@@ -494,6 +496,8 @@ module.exports = BraintreeError;
 (function (global){
 'use strict';
 
+var MINIMUM_SUPPORTED_CHROME_IOS_VERSION = 48;
+
 function isOperaMini(ua) {
   ua = ua || global.navigator.userAgent;
   return ua.indexOf('Opera Mini') > -1;
@@ -531,9 +535,24 @@ function isAndroid(ua) {
   return /Android/.test(ua);
 }
 
+function isUnsupportedIosChrome(ua) {
+  var match, version;
+
+  ua = ua || global.navigator.userAgent;
+  match = ua.match(/CriOS\/(\d+)\./);
+
+  if (!match) {
+    return false;
+  }
+
+  version = parseInt(match[1], 10);
+
+  return version < MINIMUM_SUPPORTED_CHROME_IOS_VERSION;
+}
+
 function supportsPopups(ua) {
   ua = ua || global.navigator.userAgent;
-  return !(isIosWebview(ua) || isAndroidWebview(ua) || isOperaMini(ua));
+  return !(isIosWebview(ua) || isAndroidWebview(ua) || isOperaMini(ua) || isUnsupportedIosChrome(ua));
 }
 
 // The Google Search iOS app is technically a webview and doesn't support popups.
@@ -569,6 +588,7 @@ module.exports = {
   isHTTPS: isHTTPS,
   isIos: isIos,
   isAndroid: isAndroid,
+  isUnsupportedIosChrome: isUnsupportedIosChrome,
   supportsPopups: supportsPopups
 };
 
@@ -748,7 +768,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":8,"./check-origin":10,"./events":11,"framebus":1}],13:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.7.0";
+var VERSION = "3.8.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -766,7 +786,7 @@ module.exports = {
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
-var sharedErrors = _dereq_('../lib/errors');
+var sharedErrors = _dereq_('./errors');
 
 module.exports = function (instance, methodNames) {
   methodNames.forEach(function (methodName) {
@@ -780,7 +800,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"../lib/errors":18,"./braintree-error":8}],15:[function(_dereq_,module,exports){
+},{"./braintree-error":8,"./errors":18}],15:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/polyfill').atob;
@@ -789,8 +809,6 @@ var apiUrls = {
   production: 'https://api.braintreegateway.com:443',
   sandbox: 'https://api.sandbox.braintreegateway.com:443'
 };
-
-/* eslint-enable no-undef,block-scoped-var */
 
 function _isTokenizationKey(str) {
   return /^[a-zA-Z0-9]+_[a-zA-Z0-9]+_[a-zA-Z0-9_]+$/.test(str);
@@ -870,6 +888,10 @@ module.exports = {
   INSTANTIATION_OPTION_REQUIRED: {
     type: BraintreeError.types.MERCHANT,
     code: 'INSTANTIATION_OPTION_REQUIRED'
+  },
+  INVALID_OPTION: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'INVALID_OPTION'
   },
   INCOMPATIBLE_VERSIONS: {
     type: BraintreeError.types.MERCHANT,
@@ -1210,10 +1232,9 @@ var parser;
 var legalHosts = {
   'paypal.com': 1,
   'braintreepayments.com': 1,
-  'braintreegateway.com': 1
+  'braintreegateway.com': 1,
+  'braintree-api.com': 1
 };
-
-/* eslint-enable no-undef,block-scoped-var */
 
 function stripSubdomains(domain) {
   return domain.split('.').slice(-2).join('.');
@@ -1403,7 +1424,7 @@ module.exports = {
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
-var sharedErrors = _dereq_('../lib/errors');
+var sharedErrors = _dereq_('./errors');
 
 module.exports = function (callback, functionName) {
   if (typeof callback !== 'function') {
@@ -1415,7 +1436,7 @@ module.exports = function (callback, functionName) {
   }
 };
 
-},{"../lib/errors":18,"./braintree-error":8}],35:[function(_dereq_,module,exports){
+},{"./braintree-error":8,"./errors":18}],35:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {
@@ -1435,7 +1456,7 @@ module.exports = uuid;
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var once = _dereq_('../../lib/once');
-var VERSION = "3.7.0";
+var VERSION = "3.8.0";
 var constants = _dereq_('../shared/constants');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
@@ -1505,7 +1526,8 @@ var querystring = _dereq_('../../lib/querystring');
 function PayPal(options) {
   this._client = options.client;
   this._assetsUrl = options.client.getConfiguration().gatewayConfiguration.paypal.assetsUrl + '/web/' + VERSION;
-  this._loadingFrameUrl = this._assetsUrl + '/html/paypal-landing-frame.html';
+  this._isDebug = options.client.getConfiguration().isDebug;
+  this._loadingFrameUrl = this._assetsUrl + '/html/paypal-landing-frame' + (this._isDebug ? '' : '.min') + '.html';
   this._authorizationInProgress = false;
 }
 
@@ -1517,7 +1539,7 @@ PayPal.prototype._initialize = function (callback) {
 
   frameService.create({
     name: constants.LANDING_FRAME_NAME,
-    dispatchFrameUrl: this._assetsUrl + '/html/dispatch-frame.html',
+    dispatchFrameUrl: this._assetsUrl + '/html/dispatch-frame' + (this._isDebug ? '' : '.min') + '.html',
     openFrameUrl: this._loadingFrameUrl
   }, function (service) {
     this._frameService = service;
@@ -1642,6 +1664,9 @@ PayPal.prototype.tokenize = function (options, callback) {
     this._authorizationInProgress = true;
 
     analytics.sendEvent(client, 'paypal.tokenization.opened');
+    if (options.offerCredit === true && options.flow === 'checkout') {
+      analytics.sendEvent(client, 'paypal.credit.offered');
+    }
     this._navigateFrameToAuth(options, callback);
     // This MUST happen after _navigateFrameToAuth for Metro browsers to work.
     this._frameService.open(this._createFrameServiceCallback(options, callback));
@@ -1674,6 +1699,7 @@ PayPal.prototype._createFrameServiceCallback = function (options, callback) {
 };
 
 PayPal.prototype._tokenizePayPal = function (options, params, callback) {
+  var payload;
   var client = this._client;
 
   this._frameService.redirect(this._loadingFrameUrl);
@@ -1694,8 +1720,13 @@ PayPal.prototype._tokenizePayPal = function (options, params, callback) {
         }
       }));
     } else {
+      payload = this._formatTokenizePayload(response);
+
       analytics.sendEvent(client, 'paypal.tokenization.success');
-      callback(null, this._formatTokenizePayload(response));
+      if (payload.creditFinancingOffered) {
+        analytics.sendEvent(client, 'paypal.credit.accepted');
+      }
+      callback(null, payload);
     }
     this._frameService.close();
   }.bind(this));
@@ -1807,8 +1838,8 @@ PayPal.prototype._formatPaymentResourceData = function (options) {
   var gatewayConfiguration = this._client.getConfiguration().gatewayConfiguration;
   var serviceId = this._frameService._serviceId;
   var paymentResource = {
-    returnUrl: gatewayConfiguration.paypal.assetsUrl + '/web/' + VERSION + '/html/paypal-redirect-frame.html?channel=' + serviceId,
-    cancelUrl: gatewayConfiguration.paypal.assetsUrl + '/web/' + VERSION + '/html/paypal-cancel-frame.html?channel=' + serviceId,
+    returnUrl: gatewayConfiguration.paypal.assetsUrl + '/web/' + VERSION + '/html/paypal-redirect-frame' + (this._isDebug ? '' : '.min') + '.html?channel=' + serviceId,
+    cancelUrl: gatewayConfiguration.paypal.assetsUrl + '/web/' + VERSION + '/html/paypal-cancel-frame' + (this._isDebug ? '' : '.min') + '.html?channel=' + serviceId,
     correlationId: serviceId,
     experienceProfile: {
       brandName: options.displayName || gatewayConfiguration.paypal.displayName,
@@ -1876,7 +1907,7 @@ var errors = _dereq_('./shared/errors');
 var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 var PayPal = _dereq_('./external/paypal');
 var sharedErrors = _dereq_('../lib/errors');
-var VERSION = "3.7.0";
+var VERSION = "3.8.0";
 
 /**
  * @static

@@ -130,7 +130,6 @@ module.exports = {
 
 },{}],3:[function(_dereq_,module,exports){
 'use strict';
-/* eslint-disable camelcase */
 /** @module braintree-web/data-collector */
 
 var kount = _dereq_('./kount');
@@ -140,7 +139,7 @@ var methods = _dereq_('../lib/methods');
 var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
 var deferred = _dereq_('../lib/deferred');
-var VERSION = "3.7.0";
+var VERSION = "3.8.0";
 var sharedErrors = _dereq_('../lib/errors');
 var errors = _dereq_('./errors');
 
@@ -258,7 +257,7 @@ function create(options, callback) {
     }
 
     fraudnetInstance = fraudnet.setup();
-    data.correlation_id = fraudnetInstance.sessionId;
+    data.correlation_id = fraudnetInstance.sessionId; // eslint-disable-line camelcase
     instances.push(fraudnetInstance);
   }
 
@@ -284,11 +283,11 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/braintree-error":6,"../lib/convert-methods-to-error":7,"../lib/deferred":8,"../lib/errors":10,"../lib/methods":11,"../lib/throw-if-no-callback":12,"./errors":1,"./fraudnet":2,"./kount":4}],4:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":6,"../lib/convert-methods-to-error":8,"../lib/deferred":9,"../lib/errors":11,"../lib/methods":12,"../lib/throw-if-no-callback":13,"./errors":1,"./fraudnet":2,"./kount":4}],4:[function(_dereq_,module,exports){
 'use strict';
-/* eslint-disable camelcase */
 
 var sjcl = _dereq_('./vendor/sjcl');
+var camelCaseToSnakeCase = _dereq_('../lib/camel-case-to-snake-case');
 
 var QA_URL = 'https://assets.qa.braintreepayments.com/data';
 var IFRAME_ID = 'braintreeDataFrame';
@@ -325,10 +324,10 @@ Kount.prototype._removeIframe = function () {
 };
 
 Kount.prototype._getDeviceData = function () {
-  return {
-    device_session_id: this._deviceSessionId,
-    fraud_merchant_id: this._currentEnvironment.id
-  };
+  return camelCaseToSnakeCase({
+    deviceSessionId: this._deviceSessionId,
+    fraudMerchantId: this._currentEnvironment.id
+  });
 };
 
 Kount.prototype._generateDeviceSessionId = function () {
@@ -387,7 +386,7 @@ module.exports = {
   environmentUrls: environmentUrls
 };
 
-},{"./vendor/sjcl":5}],5:[function(_dereq_,module,exports){
+},{"../lib/camel-case-to-snake-case":7,"./vendor/sjcl":5}],5:[function(_dereq_,module,exports){
 "use strict";var sjcl={cipher:{},hash:{},keyexchange:{},mode:{},misc:{},codec:{},exception:{corrupt:function(a){this.toString=function(){return"CORRUPT: "+this.message};this.message=a},invalid:function(a){this.toString=function(){return"INVALID: "+this.message};this.message=a},bug:function(a){this.toString=function(){return"BUG: "+this.message};this.message=a},notReady:function(a){this.toString=function(){return"NOT READY: "+this.message};this.message=a}}};
 sjcl.cipher.aes=function(a){this.l[0][0][0]||this.G();var b,c,d,e,f=this.l[0][4],g=this.l[1];b=a.length;var k=1;if(4!==b&&6!==b&&8!==b)throw new sjcl.exception.invalid("invalid aes key size");this.b=[d=a.slice(0),e=[]];for(a=b;a<4*b+28;a++){c=d[a-1];if(0===a%b||8===b&&4===a%b)c=f[c>>>24]<<24^f[c>>16&255]<<16^f[c>>8&255]<<8^f[c&255],0===a%b&&(c=c<<8^c>>>24^k<<24,k=k<<1^283*(k>>7));d[a]=d[a-b]^c}for(b=0;a;b++,a--)c=d[b&3?a:a-4],e[b]=4>=a||4>b?c:g[0][f[c>>>24]]^g[1][f[c>>16&255]]^g[2][f[c>>8&255]]^g[3][f[c&
 255]]};
@@ -496,11 +495,31 @@ BraintreeError.types = enumerate([
 
 module.exports = BraintreeError;
 
-},{"./enumerate":9}],7:[function(_dereq_,module,exports){
+},{"./enumerate":10}],7:[function(_dereq_,module,exports){
+'use strict';
+
+// Taken from https://github.com/sindresorhus/decamelize/blob/95980ab6fb44c40eaca7792bdf93aff7c210c805/index.js
+function transformKey(key) {
+  return key.replace(/([a-z\d])([A-Z])/g, '$1_$2')
+    .replace(/([A-Z]+)([A-Z][a-z\d]+)/g, '$1_$2')
+    .toLowerCase();
+}
+
+module.exports = function (obj) {
+  return Object.keys(obj).reduce(function (newObj, key) {
+    var transformedKey = transformKey(key);
+
+    newObj[transformedKey] = obj[key];
+
+    return newObj;
+  }, {});
+};
+
+},{}],8:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
-var sharedErrors = _dereq_('../lib/errors');
+var sharedErrors = _dereq_('./errors');
 
 module.exports = function (instance, methodNames) {
   methodNames.forEach(function (methodName) {
@@ -514,7 +533,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"../lib/errors":10,"./braintree-error":6}],8:[function(_dereq_,module,exports){
+},{"./braintree-error":6,"./errors":11}],9:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (fn) {
@@ -528,7 +547,7 @@ module.exports = function (fn) {
   };
 };
 
-},{}],9:[function(_dereq_,module,exports){
+},{}],10:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -542,7 +561,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],10:[function(_dereq_,module,exports){
+},{}],11:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -555,6 +574,10 @@ module.exports = {
   INSTANTIATION_OPTION_REQUIRED: {
     type: BraintreeError.types.MERCHANT,
     code: 'INSTANTIATION_OPTION_REQUIRED'
+  },
+  INVALID_OPTION: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'INVALID_OPTION'
   },
   INCOMPATIBLE_VERSIONS: {
     type: BraintreeError.types.MERCHANT,
@@ -571,7 +594,7 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":6}],11:[function(_dereq_,module,exports){
+},{"./braintree-error":6}],12:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -580,11 +603,11 @@ module.exports = function (obj) {
   });
 };
 
-},{}],12:[function(_dereq_,module,exports){
+},{}],13:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
-var sharedErrors = _dereq_('../lib/errors');
+var sharedErrors = _dereq_('./errors');
 
 module.exports = function (callback, functionName) {
   if (typeof callback !== 'function') {
@@ -596,5 +619,5 @@ module.exports = function (callback, functionName) {
   }
 };
 
-},{"../lib/errors":10,"./braintree-error":6}]},{},[3])(3)
+},{"./braintree-error":6,"./errors":11}]},{},[3])(3)
 });

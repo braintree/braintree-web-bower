@@ -382,6 +382,8 @@ module.exports = BraintreeError;
 (function (global){
 'use strict';
 
+var MINIMUM_SUPPORTED_CHROME_IOS_VERSION = 48;
+
 function isOperaMini(ua) {
   ua = ua || global.navigator.userAgent;
   return ua.indexOf('Opera Mini') > -1;
@@ -419,9 +421,24 @@ function isAndroid(ua) {
   return /Android/.test(ua);
 }
 
+function isUnsupportedIosChrome(ua) {
+  var match, version;
+
+  ua = ua || global.navigator.userAgent;
+  match = ua.match(/CriOS\/(\d+)\./);
+
+  if (!match) {
+    return false;
+  }
+
+  version = parseInt(match[1], 10);
+
+  return version < MINIMUM_SUPPORTED_CHROME_IOS_VERSION;
+}
+
 function supportsPopups(ua) {
   ua = ua || global.navigator.userAgent;
-  return !(isIosWebview(ua) || isAndroidWebview(ua) || isOperaMini(ua));
+  return !(isIosWebview(ua) || isAndroidWebview(ua) || isOperaMini(ua) || isUnsupportedIosChrome(ua));
 }
 
 // The Google Search iOS app is technically a webview and doesn't support popups.
@@ -457,6 +474,7 @@ module.exports = {
   isHTTPS: isHTTPS,
   isIos: isIos,
   isAndroid: isAndroid,
+  isUnsupportedIosChrome: isUnsupportedIosChrome,
   supportsPopups: supportsPopups
 };
 
@@ -464,7 +482,7 @@ module.exports = {
 },{}],6:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.7.0";
+var VERSION = "3.8.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -487,8 +505,6 @@ var apiUrls = {
   production: 'https://api.braintreegateway.com:443',
   sandbox: 'https://api.sandbox.braintreegateway.com:443'
 };
-
-/* eslint-enable no-undef,block-scoped-var */
 
 function _isTokenizationKey(str) {
   return /^[a-zA-Z0-9]+_[a-zA-Z0-9]+_[a-zA-Z0-9_]+$/.test(str);
@@ -568,6 +584,10 @@ module.exports = {
   INSTANTIATION_OPTION_REQUIRED: {
     type: BraintreeError.types.MERCHANT,
     code: 'INSTANTIATION_OPTION_REQUIRED'
+  },
+  INVALID_OPTION: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'INVALID_OPTION'
   },
   INCOMPATIBLE_VERSIONS: {
     type: BraintreeError.types.MERCHANT,
@@ -758,13 +778,14 @@ module.exports = {
 /** @module braintree-web/paypal-checkout */
 
 var BraintreeError = _dereq_('../lib/braintree-error');
+var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./errors');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('../lib/wrap-promise');
 var PayPalCheckout = _dereq_('./paypal-checkout');
 var sharedErrors = _dereq_('../lib/errors');
 var browserDetection = _dereq_('../lib/browser-detection');
-var VERSION = "3.7.0";
+var VERSION = "3.8.0";
 
 /**
  * @static
@@ -850,6 +871,8 @@ function create(options) {
       return;
     }
 
+    analytics.sendEvent(options.client, 'paypal-checkout.initialized');
+
     resolve(new PayPalCheckout(options));
   });
 }
@@ -863,7 +886,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/braintree-error":4,"../lib/browser-detection":5,"../lib/errors":10,"../lib/promise":15,"../lib/wrap-promise":16,"./errors":17,"./paypal-checkout":19}],19:[function(_dereq_,module,exports){
+},{"../lib/analytics":3,"../lib/braintree-error":4,"../lib/browser-detection":5,"../lib/errors":10,"../lib/promise":15,"../lib/wrap-promise":16,"./errors":17,"./paypal-checkout":19}],19:[function(_dereq_,module,exports){
 'use strict';
 
 var analytics = _dereq_('../lib/analytics');
@@ -902,6 +925,19 @@ var constants = _dereq_('../paypal/shared/constants');
  * @property {string} details.billingAddress.state State or region.
  * @property {string} details.billingAddress.postalCode Postal code.
  * @property {string} details.billingAddress.countryCode 2 character country code (e.g. US).
+ * @property {?object} creditFinancingOffered This property will only be present when the customer pays with PayPal Credit.
+ * @property {object} creditFinancingOffered.totalCost This is the estimated total payment amount including interest and fees the user will pay during the lifetime of the loan.
+ * @property {string} creditFinancingOffered.totalCost.value An amount defined by [ISO 4217](http://www.iso.org/iso/home/standards/currency_codes.htm) for the given currency.
+ * @property {string} creditFinancingOffered.totalCost.currency 3 letter currency code as defined by [ISO 4217](http://www.iso.org/iso/home/standards/currency_codes.htm).
+ * @property {number} creditFinancingOffered.term Length of financing terms in months.
+ * @property {object} creditFinancingOffered.monthlyPayment This is the estimated amount per month that the customer will need to pay including fees and interest.
+ * @property {string} creditFinancingOffered.monthlyPayment.value An amount defined by [ISO 4217](http://www.iso.org/iso/home/standards/currency_codes.htm) for the given currency.
+ * @property {string} creditFinancingOffered.monthlyPayment.currency 3 letter currency code as defined by [ISO 4217](http://www.iso.org/iso/home/standards/currency_codes.htm).
+ * @property {object} creditFinancingOffered.totalInterest Estimated interest or fees amount the payer will have to pay during the lifetime of the loan.
+ * @property {string} creditFinancingOffered.totalInterest.value An amount defined by [ISO 4217](http://www.iso.org/iso/home/standards/currency_codes.htm) for the given currency.
+ * @property {string} creditFinancingOffered.totalInterest.currency 3 letter currency code as defined by [ISO 4217](http://www.iso.org/iso/home/standards/currency_codes.htm).
+ * @property {boolean} creditFinancingOffered.payerAcceptance Status of whether the customer ultimately was approved for and chose to make the payment using the approved installment credit.
+ * @property {boolean} creditFinancingOffered.cartAmountImmutable Indicates whether the cart amount is editable after payer's acceptance on PayPal side.
  */
 
 /**
@@ -1008,6 +1044,9 @@ PayPalCheckout.prototype.createPayment = wrapPromise(function (options) {
     endpoint = 'paypal_hermes/' + constants.FLOW_ENDPOINTS[options.flow];
 
     analytics.sendEvent(client, 'paypal-checkout.createPayment');
+    if (options.offerCredit === true && options.flow === 'checkout') {
+      analytics.sendEvent(client, 'paypal-checkout.credit.offered');
+    }
 
     client.request({
       endpoint: endpoint,
@@ -1078,6 +1117,7 @@ PayPalCheckout.prototype.tokenizePayment = wrapPromise(function (tokenizeOptions
   var self = this; // eslint-disable-line no-invalid-this
 
   return new Promise(function (resolve, reject) {
+    var payload;
     var client = self._client;
     var options = {
       flow: tokenizeOptions.billingToken ? 'vault' : 'checkout'
@@ -1107,8 +1147,14 @@ PayPalCheckout.prototype.tokenizePayment = wrapPromise(function (tokenizeOptions
           }
         }));
       } else {
+        payload = self._formatTokenizePayload(response);
+
         analytics.sendEvent(client, 'paypal-checkout.tokenization.success');
-        resolve(self._formatTokenizePayload(response));
+        if (payload.creditFinancingOffered) {
+          analytics.sendEvent(client, 'paypal-checkout.credit.accepted');
+        }
+
+        resolve(payload);
       }
     });
   });
@@ -1198,6 +1244,10 @@ PayPalCheckout.prototype._formatTokenizePayload = function (response) {
 
   if (account.details && account.details.payerInfo) {
     payload.details = account.details.payerInfo;
+  }
+
+  if (account.details && account.details.creditFinancingOffered) {
+    payload.creditFinancingOffered = account.details.creditFinancingOffered;
   }
 
   return payload;
