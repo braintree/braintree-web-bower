@@ -1,6 +1,25 @@
 CHANGELOG
 =========
 
+## 2.31.0
+
+* PayPal
+ * Support PayPal popups in Chrome for iOS 9+
+ * Adds support for additional locale codes:
+    - `id_ID`
+    - `ko_KR`
+    - `pt_PT`
+    - `ru_RU`
+    - `th_TH`
+    - `zh_CN`
+    - `zh_TW`
+* Hosted Fields
+  * Support Visa card numbers that are 18 or 19 digits
+  * Fix bug where some versions of IE could not render Hosted Fields inputs because of window.top being undefined
+* Drop-in
+  * Support Visa card numbers that are 18 or 19 digits
+  * Fix bug where some versions of IE could not render Hosted Fields inputs because of window.top being undefined
+
 ## 2.30.0
 
 * Friendlier error when using a client token generated with insufficient privileges
@@ -175,7 +194,7 @@ CHANGELOG
 ## 2.16.0
 
 * DataCollector
-  * bundles BraintreeData functionality into v.zero integrations
+  * Bundles BraintreeData functionality
 
 ## 2.15.4
 
