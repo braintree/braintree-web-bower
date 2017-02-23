@@ -51,7 +51,7 @@
     payload = _packagePayload(event, args, origin);
     if (payload === false) { return false; }
 
-    _broadcast(win.top, payload, origin);
+    _broadcast(win.top || win.self, payload, origin);
 
     return true;
   }
@@ -768,7 +768,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":8,"./check-origin":10,"./events":11,"framebus":1}],13:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.8.0";
+var VERSION = "3.9.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -1015,6 +1015,15 @@ module.exports = function (callback, functionName) {
 },{"./braintree-error":8,"./errors":18}],24:[function(_dereq_,module,exports){
 'use strict';
 
+function useMin(isDebug) {
+  return isDebug ? '' : '.min';
+}
+
+module.exports = useMin;
+
+},{}],25:[function(_dereq_,module,exports){
+'use strict';
+
 function uuid() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
     var r = Math.random() * 16 | 0;
@@ -1026,7 +1035,7 @@ function uuid() {
 
 module.exports = uuid;
 
-},{}],25:[function(_dereq_,module,exports){
+},{}],26:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../lib/braintree-error');
@@ -1034,13 +1043,14 @@ var analytics = _dereq_('../../lib/analytics');
 var methods = _dereq_('../../lib/methods');
 var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
 var constants = _dereq_('../shared/constants');
+var useMin = _dereq_('../../lib/use-min');
 var Bus = _dereq_('../../lib/bus');
 var uuid = _dereq_('../../lib/uuid');
 var deferred = _dereq_('../../lib/deferred');
 var errors = _dereq_('../shared/errors');
 var throwIfNoCallback = _dereq_('../../lib/throw-if-no-callback');
 var events = _dereq_('../shared/events');
-var VERSION = "3.8.0";
+var VERSION = "3.9.0";
 var iFramer = _dereq_('iframer');
 
 var IFRAME_HEIGHT = 400;
@@ -1273,7 +1283,7 @@ ThreeDSecure.prototype._createIframe = function (options) {
     this._handleAuthResponse(data, options);
   }.bind(this));
 
-  url = this._assetsUrl + '/web/' + VERSION + '/html/three-d-secure-bank-frame' + (this._isDebug ? '' : '.min') + '.html';
+  url = this._assetsUrl + '/web/' + VERSION + '/html/three-d-secure-bank-frame' + useMin(this._isDebug) + '.html';
 
   this._bankIframe = iFramer({
     src: url,
@@ -1351,7 +1361,7 @@ ThreeDSecure.prototype.teardown = function (callback) {
 
 module.exports = ThreeDSecure;
 
-},{"../../lib/analytics":7,"../../lib/braintree-error":8,"../../lib/bus":12,"../../lib/convert-methods-to-error":14,"../../lib/deferred":16,"../../lib/methods":21,"../../lib/throw-if-no-callback":23,"../../lib/uuid":24,"../shared/constants":27,"../shared/errors":28,"../shared/events":29,"iframer":2}],26:[function(_dereq_,module,exports){
+},{"../../lib/analytics":7,"../../lib/braintree-error":8,"../../lib/bus":12,"../../lib/convert-methods-to-error":14,"../../lib/deferred":16,"../../lib/methods":21,"../../lib/throw-if-no-callback":23,"../../lib/use-min":24,"../../lib/uuid":25,"../shared/constants":28,"../shared/errors":29,"../shared/events":30,"iframer":2}],27:[function(_dereq_,module,exports){
 'use strict';
 /** @module braintree-web/three-d-secure */
 
@@ -1363,7 +1373,7 @@ var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 var deferred = _dereq_('../lib/deferred');
 var errors = _dereq_('./shared/errors');
 var sharedErrors = _dereq_('../lib/errors');
-var VERSION = "3.8.0";
+var VERSION = "3.9.0";
 
 /**
  * @static
@@ -1438,14 +1448,14 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/analytics":7,"../lib/braintree-error":8,"../lib/browser-detection":9,"../lib/deferred":16,"../lib/errors":18,"../lib/throw-if-no-callback":23,"./external/three-d-secure":25,"./shared/errors":28}],27:[function(_dereq_,module,exports){
+},{"../lib/analytics":7,"../lib/braintree-error":8,"../lib/browser-detection":9,"../lib/deferred":16,"../lib/errors":18,"../lib/throw-if-no-callback":23,"./external/three-d-secure":26,"./shared/errors":29}],28:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   LANDING_FRAME_NAME: 'braintreethreedsecurelanding'
 };
 
-},{}],28:[function(_dereq_,module,exports){
+},{}],29:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../lib/braintree-error');
@@ -1482,7 +1492,7 @@ module.exports = {
   }
 };
 
-},{"../../lib/braintree-error":8}],29:[function(_dereq_,module,exports){
+},{"../../lib/braintree-error":8}],30:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../../lib/enumerate');
@@ -1491,5 +1501,5 @@ module.exports = enumerate([
   'AUTHENTICATION_COMPLETE'
 ], 'threedsecure:');
 
-},{"../../lib/enumerate":17}]},{},[26])(26)
+},{"../../lib/enumerate":17}]},{},[27])(27)
 });

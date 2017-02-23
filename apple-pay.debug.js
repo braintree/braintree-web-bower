@@ -30,6 +30,17 @@ var errors = _dereq_('./errors');
  */
 function ApplePay(options) {
   this._client = options.client;
+  /**
+   * @name ApplePay#merchantIdentifier
+   * @description A special merchant ID which represents the merchant association with Braintree. Required when using `ApplePaySession.canMakePaymentsWithActiveCard`.
+   * @example
+   * var promise = ApplePaySession.canMakePaymentsWithActiveCard(applePayInstance.merchantIdentifier);
+   * promise.then(function (canMakePaymentsWithActiveCard) {
+   *   if (canMakePaymentsWithActiveCard) {
+   *     // Set up Apple Pay buttons
+   *   }
+   * });
+   */
   Object.defineProperty(this, 'merchantIdentifier', {
     value: this._client.getConfiguration().gatewayConfiguration.applePayWeb.merchantIdentifier,
     configurable: false,
@@ -331,7 +342,7 @@ var deferred = _dereq_('../lib/deferred');
 var sharedErrors = _dereq_('../lib/errors');
 var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 var errors = _dereq_('./errors');
-var VERSION = "3.8.0";
+var VERSION = "3.9.0";
 
 /**
  * @static
@@ -534,7 +545,7 @@ module.exports = BraintreeError;
 },{"./enumerate":10}],7:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.8.0";
+var VERSION = "3.9.0";
 var PLATFORM = 'web';
 
 module.exports = {

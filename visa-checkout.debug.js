@@ -146,7 +146,7 @@ module.exports = BraintreeError;
 },{"./enumerate":7}],4:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.8.0";
+var VERSION = "3.9.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -372,7 +372,7 @@ var analytics = _dereq_('../lib/analytics');
 var deferred = _dereq_('../lib/deferred');
 var sharedErrors = _dereq_('../lib/errors');
 var errors = _dereq_('./errors');
-var VERSION = "3.8.0";
+var VERSION = "3.9.0";
 var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 
 /**

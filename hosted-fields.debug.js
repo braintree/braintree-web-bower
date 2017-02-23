@@ -242,7 +242,7 @@ module.exports = creditCardType;
     payload = _packagePayload(event, args, origin);
     if (payload === false) { return false; }
 
-    _broadcast(win.top, payload, origin);
+    _broadcast(win.top || win.self, payload, origin);
 
     return true;
   }
@@ -581,16 +581,17 @@ module.exports = attributeValidationError;
 'use strict';
 
 var constants = _dereq_('../shared/constants');
+var useMin = _dereq_('../../lib/use-min');
 
 module.exports = function composeUrl(assetsUrl, componentId, isDebug) {
   return assetsUrl +
     '/web/' +
     constants.VERSION +
-    '/html/hosted-fields-frame' + (isDebug ? '' : '.min') + '.html#' +
+    '/html/hosted-fields-frame' + useMin(isDebug) + '.html#' +
     componentId;
 };
 
-},{"../shared/constants":12}],9:[function(_dereq_,module,exports){
+},{"../../lib/use-min":38,"../shared/constants":12}],9:[function(_dereq_,module,exports){
 'use strict';
 
 var Destructor = _dereq_('../../lib/destructor');
@@ -611,7 +612,7 @@ var EventEmitter = _dereq_('../../lib/event-emitter');
 var injectFrame = _dereq_('./inject-frame');
 var analytics = _dereq_('../../lib/analytics');
 var whitelistedFields = constants.whitelistedFields;
-var VERSION = "3.8.0";
+var VERSION = "3.9.0";
 var methods = _dereq_('../../lib/methods');
 var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
 var deferred = _dereq_('../../lib/deferred');
@@ -1078,6 +1079,7 @@ HostedFields.prototype.teardown = function (callback) {
  * @public
  * @param {object} [options] All tokenization options for the Hosted Fields component.
  * @param {boolean} [options.vault=false] When true, will vault the tokenized card. Cards will only be vaulted when using a client created with a client token that includes a customer ID.
+ * @param {string} [options.billingAddress.postalCode] When supplied, this postal code will be tokenized along with the contents of the fields. If a postal code is provided as part of the Hosted Fields configuration, the value of the field will be tokenized and this value will be ignored.
  * @param {callback} callback The second argument, <code>data</code>, is a {@link HostedFields~tokenizePayload|tokenizePayload}
  * @example <caption>Tokenize a card</caption>
  * hostedFieldsInstance.tokenize(function (tokenizeErr, payload) {
@@ -1105,6 +1107,18 @@ HostedFields.prototype.teardown = function (callback) {
  * @example <caption>Tokenize and vault a card</caption>
  * hostedFieldsInstance.tokenize({
  *   vault: true
+ * }, function (tokenizeErr, payload) {
+ *   if (tokenizeErr) {
+ *     console.error(tokenizeErr);
+ *   } else {
+ *     console.log('Got nonce:', payload.nonce);
+ *   }
+ * });
+ * @example <caption>Tokenize a card with the postal code option</caption>
+ * hostedFieldsInstance.tokenize({
+ *   billingAddress: {
+ *     postalCode: '11111'
+ *   }
  * }, function (tokenizeErr, payload) {
  *   if (tokenizeErr) {
  *     console.error(tokenizeErr);
@@ -1278,31 +1292,13 @@ HostedFields.prototype.setAttribute = function (options, callback) {
 };
 
 /**
- * Sets the placeholder of a {@link module:braintree-web/hosted-fields~field field}.
+ * @deprecated since version 3.8.0. Use {@link HostedFields#setAttribute|setAttribute} instead.
+ *
  * @public
  * @param {string} field The field whose placeholder you wish to change. Must be a valid {@link module:braintree-web/hosted-fields~fieldOptions fieldOption}.
  * @param {string} placeholder Will be used as the `placeholder` attribute of the input.
  * @param {callback} [callback] Callback executed on completion, containing an error if one occurred. No data is returned if the placeholder updated successfully.
  *
- * @example
- * hostedFieldsInstance.setPlaceholder('number', '4111 1111 1111 1111', function (placeholderErr) {
- *   if (placeholderErr) {
- *     console.error(placeholderErr);
- *   }
- * });
- *
- * @example <caption>Update CVV field on card type change</caption>
- * hostedFieldsInstance.on('cardTypeChange', function (event) {
- *   // Update the placeholder value if there is only one possible card type
- *   if (event.cards.length === 1) {
- *     hostedFields.setPlaceholder('cvv', event.cards[0].code.name, function (placeholderErr) {
- *       if (placeholderErr) {
- *         // Handle errors, such as invalid field name
- *         console.error(placeholderErr);
- *       }
- *     });
- *   }
- * });
  * @returns {void}
  */
 HostedFields.prototype.setPlaceholder = function (field, placeholder, callback) {
@@ -1373,7 +1369,7 @@ HostedFields.prototype.getState = function () {
 
 module.exports = HostedFields;
 
-},{"../../lib/analytics":16,"../../lib/braintree-error":18,"../../lib/bus":21,"../../lib/classlist":22,"../../lib/constants":23,"../../lib/convert-methods-to-error":24,"../../lib/deferred":26,"../../lib/destructor":27,"../../lib/errors":29,"../../lib/event-emitter":30,"../../lib/is-ios":31,"../../lib/methods":34,"../../lib/throw-if-no-callback":37,"../../lib/uuid":38,"../shared/constants":12,"../shared/errors":13,"../shared/find-parent-tags":14,"./attribute-validation-error":7,"./compose-url":8,"./inject-frame":10,"credit-card-type":1,"iframer":3}],10:[function(_dereq_,module,exports){
+},{"../../lib/analytics":16,"../../lib/braintree-error":18,"../../lib/bus":21,"../../lib/classlist":22,"../../lib/constants":23,"../../lib/convert-methods-to-error":24,"../../lib/deferred":26,"../../lib/destructor":27,"../../lib/errors":29,"../../lib/event-emitter":30,"../../lib/is-ios":31,"../../lib/methods":34,"../../lib/throw-if-no-callback":37,"../../lib/uuid":39,"../shared/constants":12,"../shared/errors":13,"../shared/find-parent-tags":14,"./attribute-validation-error":7,"./compose-url":8,"./inject-frame":10,"credit-card-type":1,"iframer":3}],10:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function injectFrame(frame, container) {
@@ -1397,7 +1393,7 @@ module.exports = function injectFrame(frame, container) {
 var HostedFields = _dereq_('./external/hosted-fields');
 var deferred = _dereq_('../lib/deferred');
 var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
-var VERSION = "3.8.0";
+var VERSION = "3.9.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -1527,7 +1523,7 @@ module.exports = {
 /* eslint-disable no-reserved-keys */
 
 var enumerate = _dereq_('../../lib/enumerate');
-var VERSION = "3.8.0";
+var VERSION = "3.9.0";
 
 var constants = {
   VERSION: VERSION,
@@ -2117,7 +2113,7 @@ module.exports = {
 },{}],23:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.8.0";
+var VERSION = "3.9.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -2453,6 +2449,15 @@ module.exports = function (callback, functionName) {
 };
 
 },{"./braintree-error":18,"./errors":29}],38:[function(_dereq_,module,exports){
+'use strict';
+
+function useMin(isDebug) {
+  return isDebug ? '' : '.min';
+}
+
+module.exports = useMin;
+
+},{}],39:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {

@@ -166,7 +166,7 @@ module.exports = function (obj) {
 },{}],5:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.8.0";
+var VERSION = "3.9.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -464,7 +464,7 @@ var errors = _dereq_('./errors');
 var USBankAccount = _dereq_('./us-bank-account');
 var deferred = _dereq_('../lib/deferred');
 var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
-var VERSION = "3.8.0";
+var VERSION = "3.9.0";
 var sharedErrors = _dereq_('../lib/errors');
 
 /**
@@ -678,7 +678,6 @@ USBankAccount.prototype._tokenizeBankDetails = function (options, callback) {
   var i, key;
   var client = this._client;
   var bankDetails = options.bankDetails;
-  var apiConfig = client.getConfiguration().gatewayConfiguration.braintreeApi;
 
   for (i = 0; i < constants.REQUIRED_BANK_DETAILS.length; i++) {
     key = constants.REQUIRED_BANK_DETAILS[i];
@@ -692,13 +691,10 @@ USBankAccount.prototype._tokenizeBankDetails = function (options, callback) {
     }
   }
 
-  client._request({
+  client.request({
     method: 'POST',
-    url: apiConfig.url + '/tokens',
-    headers: {
-      Authorization: 'Bearer ' + apiConfig.accessToken,
-      'Braintree-Version': '2016-08-25'
-    },
+    endpoint: 'tokens',
+    api: 'braintreeApi',
     data: camelCaseToSnakeCase({
       type: 'us_bank_account',
       routingNumber: bankDetails.routingNumber,
@@ -732,7 +728,6 @@ USBankAccount.prototype._tokenizeBankLogin = function (options, callback) {
   var gatewayConfiguration = client.getConfiguration().gatewayConfiguration;
   var isProduction = gatewayConfiguration.environment === 'production';
   var plaidConfig = gatewayConfiguration.usBankAccount.plaid;
-  var apiConfig = gatewayConfiguration.braintreeApi;
 
   if (!options.bankLogin.displayName) {
     callback(new BraintreeError({
@@ -774,13 +769,10 @@ USBankAccount.prototype._tokenizeBankLogin = function (options, callback) {
         callback(new BraintreeError(errors.US_BANK_ACCOUNT_LOGIN_CLOSED));
       },
       onSuccess: function (publicToken, metadata) {
-        client._request({
+        client.request({
           method: 'POST',
-          url: apiConfig.url + '/tokens',
-          headers: {
-            Authorization: 'Bearer ' + apiConfig.accessToken,
-            'Braintree-Version': '2016-08-25'
-          },
+          endpoint: 'tokens',
+          api: 'braintreeApi',
           data: camelCaseToSnakeCase({
             type: 'plaid_public_token',
             publicToken: publicToken,

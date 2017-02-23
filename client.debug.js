@@ -1,4 +1,239 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}(g.braintree || (g.braintree = {})).client = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
+(function (root) {
+
+  // Store setTimeout reference so promise-polyfill will be unaffected by
+  // other code modifying setTimeout (like sinon.useFakeTimers())
+  var setTimeoutFunc = setTimeout;
+
+  function noop() {}
+  
+  // Polyfill for Function.prototype.bind
+  function bind(fn, thisArg) {
+    return function () {
+      fn.apply(thisArg, arguments);
+    };
+  }
+
+  function Promise(fn) {
+    if (typeof this !== 'object') throw new TypeError('Promises must be constructed via new');
+    if (typeof fn !== 'function') throw new TypeError('not a function');
+    this._state = 0;
+    this._handled = false;
+    this._value = undefined;
+    this._deferreds = [];
+
+    doResolve(fn, this);
+  }
+
+  function handle(self, deferred) {
+    while (self._state === 3) {
+      self = self._value;
+    }
+    if (self._state === 0) {
+      self._deferreds.push(deferred);
+      return;
+    }
+    self._handled = true;
+    Promise._immediateFn(function () {
+      var cb = self._state === 1 ? deferred.onFulfilled : deferred.onRejected;
+      if (cb === null) {
+        (self._state === 1 ? resolve : reject)(deferred.promise, self._value);
+        return;
+      }
+      var ret;
+      try {
+        ret = cb(self._value);
+      } catch (e) {
+        reject(deferred.promise, e);
+        return;
+      }
+      resolve(deferred.promise, ret);
+    });
+  }
+
+  function resolve(self, newValue) {
+    try {
+      // Promise Resolution Procedure: https://github.com/promises-aplus/promises-spec#the-promise-resolution-procedure
+      if (newValue === self) throw new TypeError('A promise cannot be resolved with itself.');
+      if (newValue && (typeof newValue === 'object' || typeof newValue === 'function')) {
+        var then = newValue.then;
+        if (newValue instanceof Promise) {
+          self._state = 3;
+          self._value = newValue;
+          finale(self);
+          return;
+        } else if (typeof then === 'function') {
+          doResolve(bind(then, newValue), self);
+          return;
+        }
+      }
+      self._state = 1;
+      self._value = newValue;
+      finale(self);
+    } catch (e) {
+      reject(self, e);
+    }
+  }
+
+  function reject(self, newValue) {
+    self._state = 2;
+    self._value = newValue;
+    finale(self);
+  }
+
+  function finale(self) {
+    if (self._state === 2 && self._deferreds.length === 0) {
+      Promise._immediateFn(function() {
+        if (!self._handled) {
+          Promise._unhandledRejectionFn(self._value);
+        }
+      });
+    }
+
+    for (var i = 0, len = self._deferreds.length; i < len; i++) {
+      handle(self, self._deferreds[i]);
+    }
+    self._deferreds = null;
+  }
+
+  function Handler(onFulfilled, onRejected, promise) {
+    this.onFulfilled = typeof onFulfilled === 'function' ? onFulfilled : null;
+    this.onRejected = typeof onRejected === 'function' ? onRejected : null;
+    this.promise = promise;
+  }
+
+  /**
+   * Take a potentially misbehaving resolver function and make sure
+   * onFulfilled and onRejected are only called once.
+   *
+   * Makes no guarantees about asynchrony.
+   */
+  function doResolve(fn, self) {
+    var done = false;
+    try {
+      fn(function (value) {
+        if (done) return;
+        done = true;
+        resolve(self, value);
+      }, function (reason) {
+        if (done) return;
+        done = true;
+        reject(self, reason);
+      });
+    } catch (ex) {
+      if (done) return;
+      done = true;
+      reject(self, ex);
+    }
+  }
+
+  Promise.prototype['catch'] = function (onRejected) {
+    return this.then(null, onRejected);
+  };
+
+  Promise.prototype.then = function (onFulfilled, onRejected) {
+    var prom = new (this.constructor)(noop);
+
+    handle(this, new Handler(onFulfilled, onRejected, prom));
+    return prom;
+  };
+
+  Promise.all = function (arr) {
+    var args = Array.prototype.slice.call(arr);
+
+    return new Promise(function (resolve, reject) {
+      if (args.length === 0) return resolve([]);
+      var remaining = args.length;
+
+      function res(i, val) {
+        try {
+          if (val && (typeof val === 'object' || typeof val === 'function')) {
+            var then = val.then;
+            if (typeof then === 'function') {
+              then.call(val, function (val) {
+                res(i, val);
+              }, reject);
+              return;
+            }
+          }
+          args[i] = val;
+          if (--remaining === 0) {
+            resolve(args);
+          }
+        } catch (ex) {
+          reject(ex);
+        }
+      }
+
+      for (var i = 0; i < args.length; i++) {
+        res(i, args[i]);
+      }
+    });
+  };
+
+  Promise.resolve = function (value) {
+    if (value && typeof value === 'object' && value.constructor === Promise) {
+      return value;
+    }
+
+    return new Promise(function (resolve) {
+      resolve(value);
+    });
+  };
+
+  Promise.reject = function (value) {
+    return new Promise(function (resolve, reject) {
+      reject(value);
+    });
+  };
+
+  Promise.race = function (values) {
+    return new Promise(function (resolve, reject) {
+      for (var i = 0, len = values.length; i < len; i++) {
+        values[i].then(resolve, reject);
+      }
+    });
+  };
+
+  // Use polyfill for setImmediate for performance gains
+  Promise._immediateFn = (typeof setImmediate === 'function' && function (fn) { setImmediate(fn); }) ||
+    function (fn) {
+      setTimeoutFunc(fn, 0);
+    };
+
+  Promise._unhandledRejectionFn = function _unhandledRejectionFn(err) {
+    if (typeof console !== 'undefined' && console) {
+      console.warn('Possible Unhandled Promise Rejection:', err); // eslint-disable-line no-console
+    }
+  };
+
+  /**
+   * Set the immediate function to execute callbacks
+   * @param fn {function} Function to execute
+   * @deprecated
+   */
+  Promise._setImmediateFn = function _setImmediateFn(fn) {
+    Promise._immediateFn = fn;
+  };
+
+  /**
+   * Change the function to execute on unhandled rejection
+   * @param {function} fn Function to execute on unhandled rejection
+   * @deprecated
+   */
+  Promise._setUnhandledRejectionFn = function _setUnhandledRejectionFn(fn) {
+    Promise._unhandledRejectionFn = fn;
+  };
+  
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = Promise;
+  } else if (!root.Promise) {
+    root.Promise = Promise;
+  }
+
+})(this);
+
+},{}],2:[function(_dereq_,module,exports){
 'use strict';
 
 var request = _dereq_('./request');
@@ -223,14 +458,14 @@ Client.prototype.toJSON = function () {
 
 module.exports = Client;
 
-},{"../lib/add-metadata":13,"../lib/braintree-error":14,"../lib/deferred":17,"../lib/errors":19,"../lib/is-whitelisted-domain":20,"./constants":2,"./errors":3,"./request":8}],2:[function(_dereq_,module,exports){
+},{"../lib/add-metadata":14,"../lib/braintree-error":15,"../lib/deferred":18,"../lib/errors":20,"../lib/is-whitelisted-domain":21,"./constants":3,"./errors":4,"./request":9}],3:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   BRAINTREE_API_VERSION_HEADER: '2016-10-07'
 };
 
-},{}],3:[function(_dereq_,module,exports){
+},{}],4:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -285,7 +520,7 @@ module.exports = {
   }
 };
 
-},{"../lib/braintree-error":14}],4:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":15}],5:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -363,15 +598,15 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../lib/braintree-error":14,"../lib/constants":15,"../lib/create-authorization-data":16,"../lib/uuid":26,"./errors":3,"./request":8}],5:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":15,"../lib/constants":16,"../lib/create-authorization-data":17,"../lib/uuid":28,"./errors":4,"./request":9}],6:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Client = _dereq_('./client');
 var getConfiguration = _dereq_('./get-configuration').getConfiguration;
-var VERSION = "3.8.0";
-var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
-var deferred = _dereq_('../lib/deferred');
+var VERSION = "3.9.0";
+var Promise = _dereq_('../lib/promise');
+var wrapPromise = _dereq_('../lib/wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
 
 /** @module braintree-web/client */
@@ -381,57 +616,52 @@ var sharedErrors = _dereq_('../lib/errors');
  * @description This function is the entry point for the <code>braintree.client</code> module. It is used for creating {@link Client} instances that service communication to Braintree servers.
  * @param {object} options Object containing all {@link Client} options:
  * @param {string} options.authorization A tokenizationKey or clientToken.
- * @param {callback} callback The second argument, <code>data</code>, is the {@link Client} instance.
- * @returns {void}
+ * @param {callback} [callback] The second argument, <code>data</code>, is the {@link Client} instance.
+ * @returns {Promise|void} Returns a promise that resolves the client instance if no callback is provided.
  * @example
  * var createClient = require('braintree-web/client').create;
  *
  * createClient({
  *   authorization: CLIENT_AUTHORIZATION
  * }, function (createErr, clientInstance) {
- *   ...
+ *   // ...
  * });
  * @static
  */
-function create(options, callback) {
-  throwIfNoCallback(callback, 'create');
-
-  callback = deferred(callback);
-
-  if (!options.authorization) {
-    callback(new BraintreeError({
-      type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
-      code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
-      message: 'options.authorization is required when instantiating a client.'
-    }));
-    return;
-  }
-
-  getConfiguration(options, function (err, configuration) {
-    var client;
-
-    if (err) {
-      callback(err);
-      return;
+function create(options) {
+  return new Promise(function (resolve) {
+    if (!options.authorization) {
+      throw new BraintreeError({
+        type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
+        code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
+        message: 'options.authorization is required when instantiating a client.'
+      });
     }
 
-    if (options.debug) {
-      configuration.isDebug = true;
-    }
+    getConfiguration(options, function (err, configuration) {
+      var client;
 
-    try {
-      client = new Client(configuration);
-    } catch (clientCreationError) {
-      callback(clientCreationError);
-      return;
-    }
+      if (err) {
+        throw err;
+      }
 
-    callback(null, client);
+      if (options.debug) {
+        configuration.isDebug = true;
+      }
+
+      try {
+        client = new Client(configuration);
+      } catch (clientCreationError) {
+        throw clientCreationError;
+      }
+
+      resolve(client);
+    });
   });
 }
 
 module.exports = {
-  create: create,
+  create: wrapPromise(create),
   /**
    * @description The current version of the SDK, i.e. `{@pkg version}`.
    * @type {string}
@@ -439,7 +669,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/braintree-error":14,"../lib/deferred":17,"../lib/errors":19,"../lib/throw-if-no-callback":25,"./client":1,"./get-configuration":4}],6:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":15,"../lib/errors":20,"../lib/promise":26,"../lib/wrap-promise":29,"./client":2,"./get-configuration":5}],7:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -529,7 +759,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../lib/querystring":24,"./parse-body":11,"./prep-body":12}],7:[function(_dereq_,module,exports){
+},{"../../lib/querystring":27,"./parse-body":12,"./prep-body":13}],8:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -538,7 +768,7 @@ module.exports = function getUserAgent() {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],8:[function(_dereq_,module,exports){
+},{}],9:[function(_dereq_,module,exports){
 'use strict';
 
 var ajaxIsAvaliable;
@@ -569,7 +799,7 @@ module.exports = function (options, cb) {
   }
 };
 
-},{"../../lib/once":22,"./ajax-driver":6,"./get-user-agent":7,"./is-http":9,"./jsonp-driver":10}],9:[function(_dereq_,module,exports){
+},{"../../lib/once":23,"./ajax-driver":7,"./get-user-agent":8,"./is-http":10,"./jsonp-driver":11}],10:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -578,7 +808,7 @@ module.exports = function () {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],10:[function(_dereq_,module,exports){
+},{}],11:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -690,7 +920,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../lib/querystring":24,"../../lib/uuid":26}],11:[function(_dereq_,module,exports){
+},{"../../lib/querystring":27,"../../lib/uuid":28}],12:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (body) {
@@ -701,7 +931,7 @@ module.exports = function (body) {
   return body;
 };
 
-},{}],12:[function(_dereq_,module,exports){
+},{}],13:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (method, body) {
@@ -716,7 +946,7 @@ module.exports = function (method, body) {
   return body;
 };
 
-},{}],13:[function(_dereq_,module,exports){
+},{}],14:[function(_dereq_,module,exports){
 'use strict';
 
 var createAuthorizationData = _dereq_('./create-authorization-data');
@@ -750,7 +980,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":15,"./create-authorization-data":16,"./json-clone":21}],14:[function(_dereq_,module,exports){
+},{"./constants":16,"./create-authorization-data":17,"./json-clone":22}],15:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -827,10 +1057,10 @@ BraintreeError.types = enumerate([
 
 module.exports = BraintreeError;
 
-},{"./enumerate":18}],15:[function(_dereq_,module,exports){
+},{"./enumerate":19}],16:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.8.0";
+var VERSION = "3.9.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -844,7 +1074,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],16:[function(_dereq_,module,exports){
+},{}],17:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/polyfill').atob;
@@ -891,7 +1121,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":23}],17:[function(_dereq_,module,exports){
+},{"../lib/polyfill":24}],18:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (fn) {
@@ -905,7 +1135,7 @@ module.exports = function (fn) {
   };
 };
 
-},{}],18:[function(_dereq_,module,exports){
+},{}],19:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -919,7 +1149,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],19:[function(_dereq_,module,exports){
+},{}],20:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -952,7 +1182,7 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":14}],20:[function(_dereq_,module,exports){
+},{"./braintree-error":15}],21:[function(_dereq_,module,exports){
 'use strict';
 
 var parser;
@@ -985,14 +1215,14 @@ function isWhitelistedDomain(url) {
 
 module.exports = isWhitelistedDomain;
 
-},{}],21:[function(_dereq_,module,exports){
+},{}],22:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],22:[function(_dereq_,module,exports){
+},{}],23:[function(_dereq_,module,exports){
 'use strict';
 
 function once(fn) {
@@ -1008,7 +1238,7 @@ function once(fn) {
 
 module.exports = once;
 
-},{}],23:[function(_dereq_,module,exports){
+},{}],24:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1047,7 +1277,33 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],24:[function(_dereq_,module,exports){
+},{}],25:[function(_dereq_,module,exports){
+'use strict';
+
+module.exports = function (promise, callback) { // eslint-disable-line consistent-return
+  if (callback) {
+    promise
+      .then(function (data) {
+        callback(null, data);
+      })
+      .catch(function (err) {
+        callback(err);
+      });
+  } else {
+    return promise;
+  }
+};
+
+},{}],26:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+
+var Promise = global.Promise || _dereq_('promise-polyfill');
+
+module.exports = Promise;
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"promise-polyfill":1}],27:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1138,23 +1394,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],25:[function(_dereq_,module,exports){
-'use strict';
-
-var BraintreeError = _dereq_('./braintree-error');
-var sharedErrors = _dereq_('./errors');
-
-module.exports = function (callback, functionName) {
-  if (typeof callback !== 'function') {
-    throw new BraintreeError({
-      type: sharedErrors.CALLBACK_REQUIRED.type,
-      code: sharedErrors.CALLBACK_REQUIRED.code,
-      message: functionName + ' must include a callback function.'
-    });
-  }
-};
-
-},{"./braintree-error":14,"./errors":19}],26:[function(_dereq_,module,exports){
+},{}],28:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {
@@ -1168,5 +1408,28 @@ function uuid() {
 
 module.exports = uuid;
 
-},{}]},{},[5])(5)
+},{}],29:[function(_dereq_,module,exports){
+'use strict';
+
+var deferred = _dereq_('./deferred');
+var once = _dereq_('./once');
+var promiseOrCallback = _dereq_('./promise-or-callback');
+
+function wrapPromise(fn) {
+  return function () {
+    var callback;
+    var args = Array.prototype.slice.call(arguments);
+    var lastArg = args[args.length - 1];
+
+    if (typeof lastArg === 'function') {
+      callback = args.pop();
+      callback = once(deferred(callback));
+    }
+    return promiseOrCallback(fn.apply(this, args), callback); // eslint-disable-line no-invalid-this
+  };
+}
+
+module.exports = wrapPromise;
+
+},{"./deferred":18,"./once":23,"./promise-or-callback":25}]},{},[6])(6)
 });

@@ -51,7 +51,7 @@
     payload = _packagePayload(event, args, origin);
     if (payload === false) { return false; }
 
-    _broadcast(win.top, payload, origin);
+    _broadcast(win.top || win.self, payload, origin);
 
     return true;
   }
@@ -381,7 +381,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":13,"./create-authorization-data":15,"./json-clone":29}],7:[function(_dereq_,module,exports){
+},{"./constants":14,"./create-authorization-data":17,"./json-clone":31}],7:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('./constants');
@@ -415,7 +415,32 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":6,"./constants":13}],8:[function(_dereq_,module,exports){
+},{"./add-metadata":6,"./constants":14}],8:[function(_dereq_,module,exports){
+'use strict';
+
+var assignNormalized = typeof Object.assign === 'function' ? Object.assign : assignPolyfill;
+
+function assignPolyfill(destination) {
+  var i, source, key;
+
+  for (i = 1; i < arguments.length; i++) {
+    source = arguments[i];
+    for (key in source) {
+      if (source.hasOwnProperty(key)) {
+        destination[key] = source[key];
+      }
+    }
+  }
+
+  return destination;
+}
+
+module.exports = {
+  assign: assignNormalized,
+  _assign: assignPolyfill
+};
+
+},{}],9:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -492,7 +517,7 @@ BraintreeError.types = enumerate([
 
 module.exports = BraintreeError;
 
-},{"./enumerate":17}],9:[function(_dereq_,module,exports){
+},{"./enumerate":19}],10:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -593,7 +618,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],10:[function(_dereq_,module,exports){
+},{}],11:[function(_dereq_,module,exports){
 'use strict';
 
 var isWhitelistedDomain = _dereq_('../is-whitelisted-domain');
@@ -625,7 +650,7 @@ module.exports = {
   checkOrigin: checkOrigin
 };
 
-},{"../is-whitelisted-domain":28}],11:[function(_dereq_,module,exports){
+},{"../is-whitelisted-domain":30}],12:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../enumerate');
@@ -634,7 +659,7 @@ module.exports = enumerate([
   'CONFIGURATION_REQUEST'
 ], 'bus:');
 
-},{"../enumerate":17}],12:[function(_dereq_,module,exports){
+},{"../enumerate":19}],13:[function(_dereq_,module,exports){
 'use strict';
 
 var bus = _dereq_('framebus');
@@ -765,10 +790,10 @@ BraintreeBus.events = events;
 
 module.exports = BraintreeBus;
 
-},{"../braintree-error":8,"./check-origin":10,"./events":11,"framebus":1}],13:[function(_dereq_,module,exports){
+},{"../braintree-error":9,"./check-origin":11,"./events":12,"framebus":1}],14:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.8.0";
+var VERSION = "3.9.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -782,7 +807,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],14:[function(_dereq_,module,exports){
+},{}],15:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -800,7 +825,29 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"./braintree-error":8,"./errors":18}],15:[function(_dereq_,module,exports){
+},{"./braintree-error":9,"./errors":20}],16:[function(_dereq_,module,exports){
+'use strict';
+
+var BraintreeError = _dereq_('./braintree-error');
+
+function convertToBraintreeError(originalErr, btErrorObject) {
+  if (originalErr instanceof BraintreeError) {
+    return originalErr;
+  }
+
+  return new BraintreeError({
+    type: btErrorObject.type,
+    code: btErrorObject.code,
+    message: btErrorObject.message,
+    details: {
+      originalError: originalErr
+    }
+  });
+}
+
+module.exports = convertToBraintreeError;
+
+},{"./braintree-error":9}],17:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/polyfill').atob;
@@ -847,7 +894,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":32}],16:[function(_dereq_,module,exports){
+},{"../lib/polyfill":34}],18:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (fn) {
@@ -861,7 +908,7 @@ module.exports = function (fn) {
   };
 };
 
-},{}],17:[function(_dereq_,module,exports){
+},{}],19:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -875,7 +922,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],18:[function(_dereq_,module,exports){
+},{}],20:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -908,7 +955,8 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":8}],19:[function(_dereq_,module,exports){
+},{"./braintree-error":9}],21:[function(_dereq_,module,exports){
+(function (global){
 'use strict';
 
 var popup = _dereq_('./popup');
@@ -919,6 +967,7 @@ var constants = _dereq_('../shared/constants');
 var uuid = _dereq_('../../uuid');
 var iFramer = _dereq_('iframer');
 var BraintreeError = _dereq_('../../braintree-error');
+var assign = _dereq_('../../assign').assign;
 
 var REQUIRED_CONFIG_KEYS = [
   'name',
@@ -952,7 +1001,9 @@ function FrameService(options) {
   this._options = {
     name: options.name + '_' + this._serviceId,
     dispatchFrameUrl: options.dispatchFrameUrl,
-    openFrameUrl: options.openFrameUrl
+    openFrameUrl: options.openFrameUrl,
+    height: options.height,
+    width: options.width
   };
   this._state = options.state;
 
@@ -1007,9 +1058,33 @@ FrameService.prototype._setBusEvents = function () {
   }.bind(this));
 };
 
-FrameService.prototype.open = function (callback) {
-  this._onCompleteCallback = callback;
+FrameService.prototype._initializePopupBridge = function (callback) {
+  global.popupBridge.onComplete = function (err, payload) {
+    var popupDismissed = !payload && !err;
 
+    if (err || popupDismissed) {
+      // User clicked "Done" button of browser view
+      callback(new BraintreeError(errors.FRAME_SERVICE_FRAME_CLOSED));
+      return;
+    }
+    // User completed popup flow (includes success and cancel cases)
+    callback(null, payload);
+  };
+};
+
+FrameService.prototype._openPopupBridge = function (options) {
+  var popupOptions = assign({}, this._options, options);
+
+  popup.open(popupOptions);
+};
+
+FrameService.prototype.open = function (callback) {
+  if (global.popupBridge) {
+    // Popup Bridge does not need to open a frame until the landing frame redirects to PayPal
+    this._initializePopupBridge(callback);
+    return;
+  }
+  this._onCompleteCallback = callback;
   this._frame = popup.open(this._options);
   if (this.isFrameClosed()) {
     this._cleanupFrame();
@@ -1022,6 +1097,12 @@ FrameService.prototype.open = function (callback) {
 };
 
 FrameService.prototype.redirect = function (url) {
+  if (global.popupBridge) {
+    this._openPopupBridge({
+      openFrameUrl: url
+    });
+    return;
+  }
   if (this._frame && !this.isFrameClosed()) {
     this._frame.location.href = url;
   }
@@ -1099,7 +1180,8 @@ FrameService.prototype._pollForPopupClose = function () {
 
 module.exports = FrameService;
 
-},{"../../braintree-error":8,"../../bus":12,"../../uuid":35,"../shared/constants":25,"../shared/errors":26,"../shared/events":27,"./popup":22,"iframer":2}],20:[function(_dereq_,module,exports){
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"../../assign":8,"../../braintree-error":9,"../../bus":13,"../../uuid":38,"../shared/constants":27,"../shared/errors":28,"../shared/events":29,"./popup":24,"iframer":2}],22:[function(_dereq_,module,exports){
 'use strict';
 
 var FrameService = _dereq_('./frame-service');
@@ -1114,60 +1196,66 @@ module.exports = {
   }
 };
 
-},{"./frame-service":19}],21:[function(_dereq_,module,exports){
+},{"./frame-service":21}],23:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('../../shared/constants');
 var position = _dereq_('./position');
 
-module.exports = function composePopupOptions() {
+module.exports = function composePopupOptions(options) {
+  var height = options.height || constants.DEFAULT_POPUP_HEIGHT;
+  var width = options.width || constants.DEFAULT_POPUP_WIDTH;
+
   return [
     constants.POPUP_BASE_OPTIONS,
-    'top=' + position.top(),
-    'left=' + position.left()
+    'height=' + height,
+    'width=' + width,
+    'top=' + position.top(height),
+    'left=' + position.left(width)
   ].join(',');
 };
 
-},{"../../shared/constants":25,"./position":24}],22:[function(_dereq_,module,exports){
+},{"../../shared/constants":27,"./position":26}],24:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   open: _dereq_('./open')
 };
 
-},{"./open":23}],23:[function(_dereq_,module,exports){
+},{"./open":25}],25:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
 var composeOptions = _dereq_('./compose-options');
 
 module.exports = function openPopup(options) {
+  if (global.popupBridge) {
+    return global.popupBridge.open(options.openFrameUrl);
+  }
   return global.open(
     options.openFrameUrl,
     options.name,
-    composeOptions()
+    composeOptions(options)
   );
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./compose-options":21}],24:[function(_dereq_,module,exports){
+},{"./compose-options":23}],26:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
-var constants = _dereq_('../../shared/constants');
-
-function top() {
+function top(height) {
   var windowHeight = global.outerHeight || document.documentElement.clientHeight;
   var windowTop = global.screenY == null ? global.screenTop : global.screenY;
 
-  return center(windowHeight, constants.POPUP_HEIGHT, windowTop);
+  return center(windowHeight, height, windowTop);
 }
 
-function left() {
+function left(width) {
   var windowWidth = global.outerWidth || document.documentElement.clientWidth;
   var windowLeft = global.screenX == null ? global.screenLeft : global.screenX;
 
-  return center(windowWidth, constants.POPUP_WIDTH, windowLeft);
+  return center(windowWidth, width, windowLeft);
 }
 
 function center(windowMetric, popupMetric, offset) {
@@ -1181,23 +1269,20 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../shared/constants":25}],25:[function(_dereq_,module,exports){
+},{}],27:[function(_dereq_,module,exports){
 'use strict';
-
-var POPUP_HEIGHT = 535;
-var POPUP_WIDTH = 450;
 
 module.exports = {
   DISPATCH_FRAME_NAME: 'dispatch',
   DISPATCH_FRAME_CLASS: 'braintree-dispatch-frame',
-  POPUP_BASE_OPTIONS: 'resizable,scrollbars,height=' + POPUP_HEIGHT + ',width=' + POPUP_WIDTH,
-  POPUP_WIDTH: POPUP_WIDTH,
-  POPUP_HEIGHT: POPUP_HEIGHT,
+  POPUP_BASE_OPTIONS: 'resizable,scrollbars',
+  DEFAULT_POPUP_WIDTH: 450,
+  DEFAULT_POPUP_HEIGHT: 535,
   POPUP_POLL_INTERVAL: 100,
   POPUP_CLOSE_TIMEOUT: 100
 };
 
-},{}],26:[function(_dereq_,module,exports){
+},{}],28:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../braintree-error');
@@ -1215,7 +1300,7 @@ module.exports = {
   }
 };
 
-},{"../../braintree-error":8}],27:[function(_dereq_,module,exports){
+},{"../../braintree-error":9}],29:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../../enumerate');
@@ -1225,7 +1310,7 @@ module.exports = enumerate([
   'DISPATCH_FRAME_REPORT'
 ], 'frameService:');
 
-},{"../../enumerate":17}],28:[function(_dereq_,module,exports){
+},{"../../enumerate":19}],30:[function(_dereq_,module,exports){
 'use strict';
 
 var parser;
@@ -1258,14 +1343,14 @@ function isWhitelistedDomain(url) {
 
 module.exports = isWhitelistedDomain;
 
-},{}],29:[function(_dereq_,module,exports){
+},{}],31:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],30:[function(_dereq_,module,exports){
+},{}],32:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -1274,7 +1359,7 @@ module.exports = function (obj) {
   });
 };
 
-},{}],31:[function(_dereq_,module,exports){
+},{}],33:[function(_dereq_,module,exports){
 'use strict';
 
 function once(fn) {
@@ -1290,7 +1375,7 @@ function once(fn) {
 
 module.exports = once;
 
-},{}],32:[function(_dereq_,module,exports){
+},{}],34:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1329,7 +1414,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],33:[function(_dereq_,module,exports){
+},{}],35:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1420,7 +1505,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],34:[function(_dereq_,module,exports){
+},{}],36:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -1436,7 +1521,16 @@ module.exports = function (callback, functionName) {
   }
 };
 
-},{"./braintree-error":8,"./errors":18}],35:[function(_dereq_,module,exports){
+},{"./braintree-error":9,"./errors":20}],37:[function(_dereq_,module,exports){
+'use strict';
+
+function useMin(isDebug) {
+  return isDebug ? '' : '.min';
+}
+
+module.exports = useMin;
+
+},{}],38:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {
@@ -1450,13 +1544,16 @@ function uuid() {
 
 module.exports = uuid;
 
-},{}],36:[function(_dereq_,module,exports){
+},{}],39:[function(_dereq_,module,exports){
+(function (global){
 'use strict';
 
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
+var convertToBraintreeError = _dereq_('../../lib/convert-to-braintree-error');
+var useMin = _dereq_('../../lib/use-min');
 var once = _dereq_('../../lib/once');
-var VERSION = "3.8.0";
+var VERSION = "3.9.0";
 var constants = _dereq_('../shared/constants');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
@@ -1527,7 +1624,7 @@ function PayPal(options) {
   this._client = options.client;
   this._assetsUrl = options.client.getConfiguration().gatewayConfiguration.paypal.assetsUrl + '/web/' + VERSION;
   this._isDebug = options.client.getConfiguration().isDebug;
-  this._loadingFrameUrl = this._assetsUrl + '/html/paypal-landing-frame' + (this._isDebug ? '' : '.min') + '.html';
+  this._loadingFrameUrl = this._assetsUrl + '/html/paypal-landing-frame' + useMin(this._isDebug) + '.html';
   this._authorizationInProgress = false;
 }
 
@@ -1539,7 +1636,7 @@ PayPal.prototype._initialize = function (callback) {
 
   frameService.create({
     name: constants.LANDING_FRAME_NAME,
-    dispatchFrameUrl: this._assetsUrl + '/html/dispatch-frame' + (this._isDebug ? '' : '.min') + '.html',
+    dispatchFrameUrl: this._assetsUrl + '/html/dispatch-frame' + useMin(this._isDebug) + '.html',
     openFrameUrl: this._loadingFrameUrl
   }, function (service) {
     this._frameService = service;
@@ -1607,6 +1704,9 @@ PayPal.prototype._initialize = function (callback) {
  * @param {string} [options.shippingAddressOverride.recipientName] Recipient's name.
  * @param {boolean} [options.shippingAddressEditable=true] Set to false to disable user editing of the shipping address.
  * @param {string} [options.billingAgreementDescription] Use this option to set the description of the preapproved payment agreement visible to customers in their PayPal profile during Vault flows. Max 255 characters.
+ * @param {string} [options.landingPageType] Use this option to specify the PayPal page to display when a user lands on the PayPal site to complete the payment.
+ * * `login` - A non-PayPal account landing page is used.
+ * * `billing` - A PayPal account login page is used.
  * @param {callback} callback The second argument, <code>data</code>, is a {@link PayPal~tokenizePayload|tokenizePayload}.
  * @example
  * button.addEventListener('click', function () {
@@ -1663,10 +1763,14 @@ PayPal.prototype.tokenize = function (options, callback) {
   } else {
     this._authorizationInProgress = true;
 
-    analytics.sendEvent(client, 'paypal.tokenization.opened');
+    if (!global.popupBridge) {
+      analytics.sendEvent(client, 'paypal.tokenization.opened');
+    }
+
     if (options.offerCredit === true && options.flow === 'checkout') {
       analytics.sendEvent(client, 'paypal.credit.offered');
     }
+
     this._navigateFrameToAuth(options, callback);
     // This MUST happen after _navigateFrameToAuth for Metro browsers to work.
     this._frameService.open(this._createFrameServiceCallback(options, callback));
@@ -1682,6 +1786,23 @@ PayPal.prototype.tokenize = function (options, callback) {
 PayPal.prototype._createFrameServiceCallback = function (options, callback) {
   var client = this._client;
 
+  if (global.popupBridge) {
+    return function (err, payload) {
+      var cancelled = payload && payload.path && payload.path.substring(0, 7) === '/cancel';
+
+      this._authorizationInProgress = false;
+
+      // `err` exists when the user clicks "Done" button of browser view
+      if (err || cancelled) {
+        analytics.sendEvent(client, 'paypal.tokenization.closed-popupbridge.by-user');
+        // Call merchant's tokenize callback with an error
+        callback(new BraintreeError(errors.PAYPAL_POPUP_CLOSED));
+      } else if (payload) {
+        this._tokenizePayPal(options, payload.queryItems, callback);
+      }
+    }.bind(this);
+  }
+
   return function (err, params) {
     this._authorizationInProgress = false;
 
@@ -1692,7 +1813,7 @@ PayPal.prototype._createFrameServiceCallback = function (options, callback) {
       } else if (err.code === 'FRAME_SERVICE_FRAME_OPEN_FAILED') {
         callback(new BraintreeError(errors.PAYPAL_POPUP_OPEN_FAILED));
       }
-    } else {
+    } else if (params) {
       this._tokenizePayPal(options, params, callback);
     }
   }.bind(this);
@@ -1702,7 +1823,9 @@ PayPal.prototype._tokenizePayPal = function (options, params, callback) {
   var payload;
   var client = this._client;
 
-  this._frameService.redirect(this._loadingFrameUrl);
+  if (!global.popupBridge) {
+    this._frameService.redirect(this._loadingFrameUrl);
+  }
 
   client.request({
     endpoint: 'payment_methods/paypal_accounts',
@@ -1710,22 +1833,29 @@ PayPal.prototype._tokenizePayPal = function (options, params, callback) {
     data: this._formatTokenizeData(options, params)
   }, function (err, response) {
     if (err) {
-      analytics.sendEvent(client, 'paypal.tokenization.failed');
-      callback(err instanceof BraintreeError ? err : new BraintreeError({
+      if (global.popupBridge) {
+        analytics.sendEvent(client, 'paypal.tokenization.failed-popupbridge');
+      } else {
+        analytics.sendEvent(client, 'paypal.tokenization.failed');
+      }
+      callback(convertToBraintreeError(err, {
         type: errors.PAYPAL_ACCOUNT_TOKENIZATION_FAILED.type,
         code: errors.PAYPAL_ACCOUNT_TOKENIZATION_FAILED.code,
-        message: errors.PAYPAL_ACCOUNT_TOKENIZATION_FAILED.message,
-        details: {
-          originalError: err
-        }
+        message: errors.PAYPAL_ACCOUNT_TOKENIZATION_FAILED.message
       }));
     } else {
       payload = this._formatTokenizePayload(response);
 
-      analytics.sendEvent(client, 'paypal.tokenization.success');
+      if (global.popupBridge) {
+        analytics.sendEvent(client, 'paypal.tokenization.success-popupbridge');
+      } else {
+        analytics.sendEvent(client, 'paypal.tokenization.success');
+      }
+
       if (payload.creditFinancingOffered) {
         analytics.sendEvent(client, 'paypal.credit.accepted');
       }
+
       callback(null, payload);
     }
     this._frameService.close();
@@ -1763,7 +1893,7 @@ PayPal.prototype._formatTokenizeData = function (options, params) {
   var isTokenizationKey = clientConfiguration.authorizationType === 'TOKENIZATION_KEY';
   var data = {
     paypalAccount: {
-      correlationId: this._frameService._serviceId,
+      correlationId: params.ba_token || params.token,
       options: {
         validate: options.flow === 'vault' && !isTokenizationKey
       }
@@ -1807,16 +1937,14 @@ PayPal.prototype._navigateFrameToAuth = function (options, callback) {
           }
         }));
       } else {
-        callback(err instanceof BraintreeError ? err : new BraintreeError({
+        callback(convertToBraintreeError(err, {
           type: errors.PAYPAL_FLOW_FAILED.type,
           code: errors.PAYPAL_FLOW_FAILED.code,
-          message: errors.PAYPAL_FLOW_FAILED.message,
-          details: {
-            originalError: err
-          }
+          message: errors.PAYPAL_FLOW_FAILED.message
         }));
       }
       this._frameService.close();
+      this._authorizationInProgress = false;
     } else {
       if (options.flow === 'checkout') {
         redirectUrl = response.paymentResource.redirectUrl;
@@ -1826,6 +1954,10 @@ PayPal.prototype._navigateFrameToAuth = function (options, callback) {
 
       if (options.useraction === 'commit') {
         redirectUrl = querystring.queryify(redirectUrl, {useraction: 'commit'});
+      }
+
+      if (global.popupBridge) {
+        analytics.sendEvent(client, 'paypal.tokenization.opened-popupbridge');
       }
 
       this._frameService.redirect(redirectUrl);
@@ -1838,16 +1970,21 @@ PayPal.prototype._formatPaymentResourceData = function (options) {
   var gatewayConfiguration = this._client.getConfiguration().gatewayConfiguration;
   var serviceId = this._frameService._serviceId;
   var paymentResource = {
-    returnUrl: gatewayConfiguration.paypal.assetsUrl + '/web/' + VERSION + '/html/paypal-redirect-frame' + (this._isDebug ? '' : '.min') + '.html?channel=' + serviceId,
-    cancelUrl: gatewayConfiguration.paypal.assetsUrl + '/web/' + VERSION + '/html/paypal-cancel-frame' + (this._isDebug ? '' : '.min') + '.html?channel=' + serviceId,
-    correlationId: serviceId,
+    returnUrl: gatewayConfiguration.paypal.assetsUrl + '/web/' + VERSION + '/html/paypal-redirect-frame' + useMin(this._isDebug) + '.html?channel=' + serviceId,
+    cancelUrl: gatewayConfiguration.paypal.assetsUrl + '/web/' + VERSION + '/html/paypal-cancel-frame' + useMin(this._isDebug) + '.html?channel=' + serviceId,
     experienceProfile: {
       brandName: options.displayName || gatewayConfiguration.paypal.displayName,
       localeCode: options.locale,
       noShipping: (!options.enableShippingAddress).toString(),
-      addressOverride: options.shippingAddressEditable === false
+      addressOverride: options.shippingAddressEditable === false,
+      landingPageType: options.landingPageType
     }
   };
+
+  if (global.popupBridge && typeof global.popupBridge.getReturnUrlPrefix === 'function') {
+    paymentResource.returnUrl = global.popupBridge.getReturnUrlPrefix() + 'return';
+    paymentResource.cancelUrl = global.popupBridge.getReturnUrlPrefix() + 'cancel';
+  }
 
   if (options.flow === 'checkout') {
     paymentResource.amount = options.amount;
@@ -1895,7 +2032,9 @@ PayPal.prototype.teardown = function (callback) {
 
 module.exports = PayPal;
 
-},{"../../lib/analytics":7,"../../lib/braintree-error":8,"../../lib/constants":13,"../../lib/convert-methods-to-error":14,"../../lib/deferred":16,"../../lib/frame-service/external":20,"../../lib/methods":30,"../../lib/once":31,"../../lib/querystring":33,"../../lib/throw-if-no-callback":34,"../shared/constants":38,"../shared/errors":39}],37:[function(_dereq_,module,exports){
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"../../lib/analytics":7,"../../lib/braintree-error":9,"../../lib/constants":14,"../../lib/convert-methods-to-error":15,"../../lib/convert-to-braintree-error":16,"../../lib/deferred":18,"../../lib/frame-service/external":22,"../../lib/methods":32,"../../lib/once":33,"../../lib/querystring":35,"../../lib/throw-if-no-callback":36,"../../lib/use-min":37,"../shared/constants":41,"../shared/errors":42}],40:[function(_dereq_,module,exports){
+(function (global){
 'use strict';
 /** @module braintree-web/paypal */
 
@@ -1907,7 +2046,7 @@ var errors = _dereq_('./shared/errors');
 var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 var PayPal = _dereq_('./external/paypal');
 var sharedErrors = _dereq_('../lib/errors');
-var VERSION = "3.8.0";
+var VERSION = "3.9.0";
 
 /**
  * @static
@@ -1962,7 +2101,7 @@ function create(options, callback) {
     return;
   }
 
-  if (!browserDetection.supportsPopups()) {
+  if (!global.popupBridge && !browserDetection.supportsPopups()) {
     callback(new BraintreeError(errors.PAYPAL_BROWSER_NOT_SUPPORTED));
     return;
   }
@@ -1984,26 +2123,19 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/analytics":7,"../lib/braintree-error":8,"../lib/browser-detection":9,"../lib/deferred":16,"../lib/errors":18,"../lib/throw-if-no-callback":34,"./external/paypal":36,"./shared/errors":39}],38:[function(_dereq_,module,exports){
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"../lib/analytics":7,"../lib/braintree-error":9,"../lib/browser-detection":10,"../lib/deferred":18,"../lib/errors":20,"../lib/throw-if-no-callback":36,"./external/paypal":39,"./shared/errors":42}],41:[function(_dereq_,module,exports){
 'use strict';
 
-var POPUP_HEIGHT = 535;
-var POPUP_WIDTH = 450;
-
 module.exports = {
-  AUTH_INIT_ERROR_MESSAGE: 'Could not initialize PayPal flow.',
   LANDING_FRAME_NAME: 'braintreepaypallanding',
-  POPUP_BASE_OPTIONS: 'resizable,scrollbars,height=' + POPUP_HEIGHT + ',width=' + POPUP_WIDTH,
-  POPUP_WIDTH: POPUP_WIDTH,
-  POPUP_HEIGHT: POPUP_HEIGHT,
-  POPUP_POLL_INTERVAL: 100,
   FLOW_ENDPOINTS: {
     checkout: 'create_payment_resource',
     vault: 'setup_billing_agreement'
   }
 };
 
-},{}],39:[function(_dereq_,module,exports){
+},{}],42:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../lib/braintree-error');
@@ -2056,5 +2188,5 @@ module.exports = {
   }
 };
 
-},{"../../lib/braintree-error":8}]},{},[37])(37)
+},{"../../lib/braintree-error":9}]},{},[40])(40)
 });

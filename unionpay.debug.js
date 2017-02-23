@@ -51,7 +51,7 @@
     payload = _packagePayload(event, args, origin);
     if (payload === false) { return false; }
 
-    _broadcast(win.top, payload, origin);
+    _broadcast(win.top || win.self, payload, origin);
 
     return true;
   }
@@ -667,7 +667,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":8,"./check-origin":9,"./events":10,"framebus":1}],12:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.8.0";
+var VERSION = "3.9.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -914,6 +914,15 @@ module.exports = function (callback, functionName) {
 },{"./braintree-error":8,"./errors":17}],23:[function(_dereq_,module,exports){
 'use strict';
 
+function useMin(isDebug) {
+  return isDebug ? '' : '.min';
+}
+
+module.exports = useMin;
+
+},{}],24:[function(_dereq_,module,exports){
+'use strict';
+
 function uuid() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
     var r = Math.random() * 16 | 0;
@@ -925,7 +934,7 @@ function uuid() {
 
 module.exports = uuid;
 
-},{}],24:[function(_dereq_,module,exports){
+},{}],25:[function(_dereq_,module,exports){
 'use strict';
 /**
  * @module braintree-web/unionpay
@@ -939,7 +948,7 @@ var deferred = _dereq_('../lib/deferred');
 var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 var errors = _dereq_('./shared/errors');
 var sharedErrors = _dereq_('../lib/errors');
-var VERSION = "3.8.0";
+var VERSION = "3.9.0";
 
 /**
 * @static
@@ -1004,7 +1013,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/analytics":7,"../lib/braintree-error":8,"../lib/deferred":15,"../lib/errors":17,"../lib/throw-if-no-callback":22,"./shared/errors":26,"./shared/unionpay":27}],25:[function(_dereq_,module,exports){
+},{"../lib/analytics":7,"../lib/braintree-error":8,"../lib/deferred":15,"../lib/errors":17,"../lib/throw-if-no-callback":22,"./shared/errors":27,"./shared/unionpay":28}],26:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../../lib/enumerate');
@@ -1018,7 +1027,7 @@ module.exports = {
   HOSTED_FIELDS_FRAME_NAME: 'braintreeunionpayhostedfields'
 };
 
-},{"../../lib/enumerate":16}],26:[function(_dereq_,module,exports){
+},{"../../lib/enumerate":16}],27:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../lib/braintree-error');
@@ -1086,20 +1095,21 @@ module.exports = {
   }
 };
 
-},{"../../lib/braintree-error":8}],27:[function(_dereq_,module,exports){
+},{"../../lib/braintree-error":8}],28:[function(_dereq_,module,exports){
 'use strict';
 
 var analytics = _dereq_('../../lib/analytics');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var Bus = _dereq_('../../lib/bus');
 var constants = _dereq_('./constants');
+var useMin = _dereq_('../../lib/use-min');
 var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
 var deferred = _dereq_('../../lib/deferred');
 var errors = _dereq_('./errors');
 var events = constants.events;
 var iFramer = _dereq_('iframer');
 var methods = _dereq_('../../lib/methods');
-var VERSION = "3.8.0";
+var VERSION = "3.9.0";
 var uuid = _dereq_('../../lib/uuid');
 var throwIfNoCallback = _dereq_('../../lib/throw-if-no-callback');
 
@@ -1615,7 +1625,7 @@ UnionPay.prototype._initializeHostedFields = function (callback) {
   });
   this._hostedFieldsFrame = iFramer({
     name: constants.HOSTED_FIELDS_FRAME_NAME + '_' + componentId,
-    src: assetsUrl + '/web/' + VERSION + '/html/unionpay-hosted-fields-frame' + (isDebug ? '' : '.min') + '.html',
+    src: assetsUrl + '/web/' + VERSION + '/html/unionpay-hosted-fields-frame' + useMin(isDebug) + '.html',
     height: 0,
     width: 0
   });
@@ -1631,5 +1641,5 @@ UnionPay.prototype._initializeHostedFields = function (callback) {
 
 module.exports = UnionPay;
 
-},{"../../lib/analytics":7,"../../lib/braintree-error":8,"../../lib/bus":11,"../../lib/convert-methods-to-error":13,"../../lib/deferred":15,"../../lib/methods":20,"../../lib/throw-if-no-callback":22,"../../lib/uuid":23,"./constants":25,"./errors":26,"iframer":2}]},{},[24])(24)
+},{"../../lib/analytics":7,"../../lib/braintree-error":8,"../../lib/bus":11,"../../lib/convert-methods-to-error":13,"../../lib/deferred":15,"../../lib/methods":20,"../../lib/throw-if-no-callback":22,"../../lib/use-min":23,"../../lib/uuid":24,"./constants":26,"./errors":27,"iframer":2}]},{},[25])(25)
 });
