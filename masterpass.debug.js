@@ -1,4 +1,4 @@
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}(g.braintree || (g.braintree = {})).paypal = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}(g.braintree || (g.braintree = {})).masterpass = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 (function (root, factory) {
@@ -348,6 +348,241 @@ module.exports = function setAttributes(element, attributes) {
 };
 
 },{}],6:[function(_dereq_,module,exports){
+(function (root) {
+
+  // Store setTimeout reference so promise-polyfill will be unaffected by
+  // other code modifying setTimeout (like sinon.useFakeTimers())
+  var setTimeoutFunc = setTimeout;
+
+  function noop() {}
+  
+  // Polyfill for Function.prototype.bind
+  function bind(fn, thisArg) {
+    return function () {
+      fn.apply(thisArg, arguments);
+    };
+  }
+
+  function Promise(fn) {
+    if (typeof this !== 'object') throw new TypeError('Promises must be constructed via new');
+    if (typeof fn !== 'function') throw new TypeError('not a function');
+    this._state = 0;
+    this._handled = false;
+    this._value = undefined;
+    this._deferreds = [];
+
+    doResolve(fn, this);
+  }
+
+  function handle(self, deferred) {
+    while (self._state === 3) {
+      self = self._value;
+    }
+    if (self._state === 0) {
+      self._deferreds.push(deferred);
+      return;
+    }
+    self._handled = true;
+    Promise._immediateFn(function () {
+      var cb = self._state === 1 ? deferred.onFulfilled : deferred.onRejected;
+      if (cb === null) {
+        (self._state === 1 ? resolve : reject)(deferred.promise, self._value);
+        return;
+      }
+      var ret;
+      try {
+        ret = cb(self._value);
+      } catch (e) {
+        reject(deferred.promise, e);
+        return;
+      }
+      resolve(deferred.promise, ret);
+    });
+  }
+
+  function resolve(self, newValue) {
+    try {
+      // Promise Resolution Procedure: https://github.com/promises-aplus/promises-spec#the-promise-resolution-procedure
+      if (newValue === self) throw new TypeError('A promise cannot be resolved with itself.');
+      if (newValue && (typeof newValue === 'object' || typeof newValue === 'function')) {
+        var then = newValue.then;
+        if (newValue instanceof Promise) {
+          self._state = 3;
+          self._value = newValue;
+          finale(self);
+          return;
+        } else if (typeof then === 'function') {
+          doResolve(bind(then, newValue), self);
+          return;
+        }
+      }
+      self._state = 1;
+      self._value = newValue;
+      finale(self);
+    } catch (e) {
+      reject(self, e);
+    }
+  }
+
+  function reject(self, newValue) {
+    self._state = 2;
+    self._value = newValue;
+    finale(self);
+  }
+
+  function finale(self) {
+    if (self._state === 2 && self._deferreds.length === 0) {
+      Promise._immediateFn(function() {
+        if (!self._handled) {
+          Promise._unhandledRejectionFn(self._value);
+        }
+      });
+    }
+
+    for (var i = 0, len = self._deferreds.length; i < len; i++) {
+      handle(self, self._deferreds[i]);
+    }
+    self._deferreds = null;
+  }
+
+  function Handler(onFulfilled, onRejected, promise) {
+    this.onFulfilled = typeof onFulfilled === 'function' ? onFulfilled : null;
+    this.onRejected = typeof onRejected === 'function' ? onRejected : null;
+    this.promise = promise;
+  }
+
+  /**
+   * Take a potentially misbehaving resolver function and make sure
+   * onFulfilled and onRejected are only called once.
+   *
+   * Makes no guarantees about asynchrony.
+   */
+  function doResolve(fn, self) {
+    var done = false;
+    try {
+      fn(function (value) {
+        if (done) return;
+        done = true;
+        resolve(self, value);
+      }, function (reason) {
+        if (done) return;
+        done = true;
+        reject(self, reason);
+      });
+    } catch (ex) {
+      if (done) return;
+      done = true;
+      reject(self, ex);
+    }
+  }
+
+  Promise.prototype['catch'] = function (onRejected) {
+    return this.then(null, onRejected);
+  };
+
+  Promise.prototype.then = function (onFulfilled, onRejected) {
+    var prom = new (this.constructor)(noop);
+
+    handle(this, new Handler(onFulfilled, onRejected, prom));
+    return prom;
+  };
+
+  Promise.all = function (arr) {
+    var args = Array.prototype.slice.call(arr);
+
+    return new Promise(function (resolve, reject) {
+      if (args.length === 0) return resolve([]);
+      var remaining = args.length;
+
+      function res(i, val) {
+        try {
+          if (val && (typeof val === 'object' || typeof val === 'function')) {
+            var then = val.then;
+            if (typeof then === 'function') {
+              then.call(val, function (val) {
+                res(i, val);
+              }, reject);
+              return;
+            }
+          }
+          args[i] = val;
+          if (--remaining === 0) {
+            resolve(args);
+          }
+        } catch (ex) {
+          reject(ex);
+        }
+      }
+
+      for (var i = 0; i < args.length; i++) {
+        res(i, args[i]);
+      }
+    });
+  };
+
+  Promise.resolve = function (value) {
+    if (value && typeof value === 'object' && value.constructor === Promise) {
+      return value;
+    }
+
+    return new Promise(function (resolve) {
+      resolve(value);
+    });
+  };
+
+  Promise.reject = function (value) {
+    return new Promise(function (resolve, reject) {
+      reject(value);
+    });
+  };
+
+  Promise.race = function (values) {
+    return new Promise(function (resolve, reject) {
+      for (var i = 0, len = values.length; i < len; i++) {
+        values[i].then(resolve, reject);
+      }
+    });
+  };
+
+  // Use polyfill for setImmediate for performance gains
+  Promise._immediateFn = (typeof setImmediate === 'function' && function (fn) { setImmediate(fn); }) ||
+    function (fn) {
+      setTimeoutFunc(fn, 0);
+    };
+
+  Promise._unhandledRejectionFn = function _unhandledRejectionFn(err) {
+    if (typeof console !== 'undefined' && console) {
+      console.warn('Possible Unhandled Promise Rejection:', err); // eslint-disable-line no-console
+    }
+  };
+
+  /**
+   * Set the immediate function to execute callbacks
+   * @param fn {function} Function to execute
+   * @deprecated
+   */
+  Promise._setImmediateFn = function _setImmediateFn(fn) {
+    Promise._immediateFn = fn;
+  };
+
+  /**
+   * Change the function to execute on unhandled rejection
+   * @param {function} fn Function to execute on unhandled rejection
+   * @deprecated
+   */
+  Promise._setUnhandledRejectionFn = function _setUnhandledRejectionFn(fn) {
+    Promise._unhandledRejectionFn = fn;
+  };
+  
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = Promise;
+  } else if (!root.Promise) {
+    root.Promise = Promise;
+  }
+
+})(this);
+
+},{}],7:[function(_dereq_,module,exports){
 'use strict';
 
 var createAuthorizationData = _dereq_('./create-authorization-data');
@@ -381,7 +616,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":14,"./create-authorization-data":17,"./json-clone":31}],7:[function(_dereq_,module,exports){
+},{"./constants":15,"./create-authorization-data":18,"./json-clone":32}],8:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('./constants');
@@ -415,7 +650,7 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":6,"./constants":14}],8:[function(_dereq_,module,exports){
+},{"./add-metadata":7,"./constants":15}],9:[function(_dereq_,module,exports){
 'use strict';
 
 var assignNormalized = typeof Object.assign === 'function' ? Object.assign : assignPolyfill;
@@ -440,7 +675,7 @@ module.exports = {
   _assign: assignPolyfill
 };
 
-},{}],9:[function(_dereq_,module,exports){
+},{}],10:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -517,7 +752,7 @@ BraintreeError.types = enumerate([
 
 module.exports = BraintreeError;
 
-},{"./enumerate":19}],10:[function(_dereq_,module,exports){
+},{"./enumerate":20}],11:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -618,7 +853,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],11:[function(_dereq_,module,exports){
+},{}],12:[function(_dereq_,module,exports){
 'use strict';
 
 var isWhitelistedDomain = _dereq_('../is-whitelisted-domain');
@@ -650,7 +885,7 @@ module.exports = {
   checkOrigin: checkOrigin
 };
 
-},{"../is-whitelisted-domain":30}],12:[function(_dereq_,module,exports){
+},{"../is-whitelisted-domain":31}],13:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../enumerate');
@@ -659,7 +894,7 @@ module.exports = enumerate([
   'CONFIGURATION_REQUEST'
 ], 'bus:');
 
-},{"../enumerate":19}],13:[function(_dereq_,module,exports){
+},{"../enumerate":20}],14:[function(_dereq_,module,exports){
 'use strict';
 
 var bus = _dereq_('framebus');
@@ -790,7 +1025,7 @@ BraintreeBus.events = events;
 
 module.exports = BraintreeBus;
 
-},{"../braintree-error":9,"./check-origin":11,"./events":12,"framebus":1}],14:[function(_dereq_,module,exports){
+},{"../braintree-error":10,"./check-origin":12,"./events":13,"framebus":1}],15:[function(_dereq_,module,exports){
 'use strict';
 
 var VERSION = "3.10.0";
@@ -807,7 +1042,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],15:[function(_dereq_,module,exports){
+},{}],16:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -825,7 +1060,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"./braintree-error":9,"./errors":20}],16:[function(_dereq_,module,exports){
+},{"./braintree-error":10,"./errors":21}],17:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -847,7 +1082,7 @@ function convertToBraintreeError(originalErr, btErrorObject) {
 
 module.exports = convertToBraintreeError;
 
-},{"./braintree-error":9}],17:[function(_dereq_,module,exports){
+},{"./braintree-error":10}],18:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/polyfill').atob;
@@ -896,7 +1131,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":34}],18:[function(_dereq_,module,exports){
+},{"../lib/polyfill":35}],19:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (fn) {
@@ -910,7 +1145,7 @@ module.exports = function (fn) {
   };
 };
 
-},{}],19:[function(_dereq_,module,exports){
+},{}],20:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -924,7 +1159,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],20:[function(_dereq_,module,exports){
+},{}],21:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -957,7 +1192,7 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":9}],21:[function(_dereq_,module,exports){
+},{"./braintree-error":10}],22:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1183,7 +1418,7 @@ FrameService.prototype._pollForPopupClose = function () {
 module.exports = FrameService;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../assign":8,"../../braintree-error":9,"../../bus":13,"../../uuid":38,"../shared/constants":27,"../shared/errors":28,"../shared/events":29,"./popup":24,"iframer":2}],22:[function(_dereq_,module,exports){
+},{"../../assign":9,"../../braintree-error":10,"../../bus":14,"../../uuid":38,"../shared/constants":28,"../shared/errors":29,"../shared/events":30,"./popup":25,"iframer":2}],23:[function(_dereq_,module,exports){
 'use strict';
 
 var FrameService = _dereq_('./frame-service');
@@ -1198,7 +1433,7 @@ module.exports = {
   }
 };
 
-},{"./frame-service":21}],23:[function(_dereq_,module,exports){
+},{"./frame-service":22}],24:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('../../shared/constants');
@@ -1217,14 +1452,14 @@ module.exports = function composePopupOptions(options) {
   ].join(',');
 };
 
-},{"../../shared/constants":27,"./position":26}],24:[function(_dereq_,module,exports){
+},{"../../shared/constants":28,"./position":27}],25:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   open: _dereq_('./open')
 };
 
-},{"./open":25}],25:[function(_dereq_,module,exports){
+},{"./open":26}],26:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1242,7 +1477,7 @@ module.exports = function openPopup(options) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./compose-options":23}],26:[function(_dereq_,module,exports){
+},{"./compose-options":24}],27:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1271,7 +1506,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],27:[function(_dereq_,module,exports){
+},{}],28:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -1284,7 +1519,7 @@ module.exports = {
   POPUP_CLOSE_TIMEOUT: 100
 };
 
-},{}],28:[function(_dereq_,module,exports){
+},{}],29:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../braintree-error');
@@ -1302,7 +1537,7 @@ module.exports = {
   }
 };
 
-},{"../../braintree-error":9}],29:[function(_dereq_,module,exports){
+},{"../../braintree-error":10}],30:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../../enumerate');
@@ -1312,7 +1547,7 @@ module.exports = enumerate([
   'DISPATCH_FRAME_REPORT'
 ], 'frameService:');
 
-},{"../../enumerate":19}],30:[function(_dereq_,module,exports){
+},{"../../enumerate":20}],31:[function(_dereq_,module,exports){
 'use strict';
 
 var parser;
@@ -1347,14 +1582,14 @@ function isWhitelistedDomain(url) {
 
 module.exports = isWhitelistedDomain;
 
-},{}],31:[function(_dereq_,module,exports){
+},{}],32:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],32:[function(_dereq_,module,exports){
+},{}],33:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -1363,7 +1598,7 @@ module.exports = function (obj) {
   });
 };
 
-},{}],33:[function(_dereq_,module,exports){
+},{}],34:[function(_dereq_,module,exports){
 'use strict';
 
 function once(fn) {
@@ -1379,7 +1614,7 @@ function once(fn) {
 
 module.exports = once;
 
-},{}],34:[function(_dereq_,module,exports){
+},{}],35:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1418,123 +1653,33 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],35:[function(_dereq_,module,exports){
-(function (global){
-'use strict';
-
-function _notEmpty(obj) {
-  var key;
-
-  for (key in obj) {
-    if (obj.hasOwnProperty(key)) { return true; }
-  }
-
-  return false;
-}
-
-function _isArray(value) {
-  return value && typeof value === 'object' && typeof value.length === 'number' &&
-    Object.prototype.toString.call(value) === '[object Array]' || false;
-}
-
-function parse(url) {
-  var query, params;
-
-  url = url || global.location.href;
-
-  if (!/\?/.test(url)) {
-    return {};
-  }
-
-  query = url.replace(/#.*$/, '').replace(/^.*\?/, '').split('&');
-
-  params = query.reduce(function (toReturn, keyValue) {
-    var parts = keyValue.split('=');
-    var key = decodeURIComponent(parts[0]);
-    var value = decodeURIComponent(parts[1]);
-
-    toReturn[key] = value;
-    return toReturn;
-  }, {});
-
-  return params;
-}
-
-function stringify(params, namespace) {
-  var k, v, p;
-  var query = [];
-
-  for (p in params) {
-    if (!params.hasOwnProperty(p)) {
-      continue;
-    }
-
-    v = params[p];
-
-    if (namespace) {
-      if (_isArray(params)) {
-        k = namespace + '[]';
-      } else {
-        k = namespace + '[' + p + ']';
-      }
-    } else {
-      k = p;
-    }
-    if (typeof v === 'object') {
-      query.push(stringify(v, k));
-    } else {
-      query.push(encodeURIComponent(k) + '=' + encodeURIComponent(v));
-    }
-  }
-
-  return query.join('&');
-}
-
-function queryify(url, params) {
-  url = url || '';
-
-  if (params != null && typeof params === 'object' && _notEmpty(params)) {
-    url += url.indexOf('?') === -1 ? '?' : '';
-    url += url.indexOf('=') !== -1 ? '&' : '';
-    url += stringify(params);
-  }
-
-  return url;
-}
-
-module.exports = {
-  parse: parse,
-  stringify: stringify,
-  queryify: queryify
-};
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],36:[function(_dereq_,module,exports){
 'use strict';
 
-var BraintreeError = _dereq_('./braintree-error');
-var sharedErrors = _dereq_('./errors');
-
-module.exports = function (callback, functionName) {
-  if (typeof callback !== 'function') {
-    throw new BraintreeError({
-      type: sharedErrors.CALLBACK_REQUIRED.type,
-      code: sharedErrors.CALLBACK_REQUIRED.code,
-      message: functionName + ' must include a callback function.'
-    });
+module.exports = function (promise, callback) { // eslint-disable-line consistent-return
+  if (callback) {
+    promise
+      .then(function (data) {
+        callback(null, data);
+      })
+      .catch(function (err) {
+        callback(err);
+      });
+  } else {
+    return promise;
   }
 };
 
-},{"./braintree-error":9,"./errors":20}],37:[function(_dereq_,module,exports){
+},{}],37:[function(_dereq_,module,exports){
+(function (global){
 'use strict';
 
-function useMin(isDebug) {
-  return isDebug ? '' : '.min';
-}
+var Promise = global.Promise || _dereq_('promise-polyfill');
 
-module.exports = useMin;
+module.exports = Promise;
 
-},{}],38:[function(_dereq_,module,exports){
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"promise-polyfill":6}],38:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {
@@ -1549,671 +1694,431 @@ function uuid() {
 module.exports = uuid;
 
 },{}],39:[function(_dereq_,module,exports){
+'use strict';
+
+var deferred = _dereq_('./deferred');
+var once = _dereq_('./once');
+var promiseOrCallback = _dereq_('./promise-or-callback');
+
+function wrapPromise(fn) {
+  return function () {
+    var callback;
+    var args = Array.prototype.slice.call(arguments);
+    var lastArg = args[args.length - 1];
+
+    if (typeof lastArg === 'function') {
+      callback = args.pop();
+      callback = once(deferred(callback));
+    }
+    return promiseOrCallback(fn.apply(this, args), callback); // eslint-disable-line no-invalid-this
+  };
+}
+
+module.exports = wrapPromise;
+
+},{"./deferred":19,"./once":34,"./promise-or-callback":36}],40:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
+var Promise = _dereq_('../../lib/promise');
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
-var convertToBraintreeError = _dereq_('../../lib/convert-to-braintree-error');
-var useMin = _dereq_('../../lib/use-min');
-var once = _dereq_('../../lib/once');
-var VERSION = "3.10.0";
-var constants = _dereq_('../shared/constants');
-var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
-var analytics = _dereq_('../../lib/analytics');
-var throwIfNoCallback = _dereq_('../../lib/throw-if-no-callback');
-var methods = _dereq_('../../lib/methods');
-var deferred = _dereq_('../../lib/deferred');
 var errors = _dereq_('../shared/errors');
+var VERSION = "3.10.0";
+var methods = _dereq_('../../lib/methods');
+var wrapPromise = _dereq_('../../lib/wrap-promise');
+var analytics = _dereq_('../../lib/analytics');
 var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
-var querystring = _dereq_('../../lib/querystring');
+var convertToBraintreeError = _dereq_('../../lib/convert-to-braintree-error');
+var constants = _dereq_('../shared/constants');
+
+var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 
 /**
- * @typedef {object} PayPal~tokenizePayload
- * @property {string} nonce The payment method nonce.
- * @property {string} type The payment method type, always `PayPalAccount`.
- * @property {object} details Additional PayPal account details.
- * @property {string} details.email User's email address.
- * @property {string} details.payerId User's payer ID, the unique identifier for each PayPal account.
- * @property {string} details.firstName User's given name.
- * @property {string} details.lastName User's surname.
- * @property {?string} details.countryCode User's 2 character country code.
- * @property {?string} details.phone User's phone number (e.g. 555-867-5309).
- * @property {?object} details.shippingAddress User's shipping address details, only available if shipping address is enabled.
- * @property {string} details.shippingAddress.recipientName Recipient of postage.
- * @property {string} details.shippingAddress.line1 Street number and name.
- * @property {string} details.shippingAddress.line2 Extended address.
- * @property {string} details.shippingAddress.city City or locality.
- * @property {string} details.shippingAddress.state State or region.
- * @property {string} details.shippingAddress.postalCode Postal code.
- * @property {string} details.shippingAddress.countryCode 2 character country code (e.g. US).
- * @property {?object} details.billingAddress User's billing address details.
- * Not available to all merchants; [contact PayPal](https://developers.braintreepayments.com/support/guides/paypal/setup-guide#contacting-paypal-support) for details on eligibility and enabling this feature.
- * Alternatively, see `shippingAddress` above as an available client option.
- * @property {string} details.billingAddress.line1 Street number and name.
- * @property {string} details.billingAddress.line2 Extended address.
- * @property {string} details.billingAddress.city City or locality.
- * @property {string} details.billingAddress.state State or region.
- * @property {string} details.billingAddress.postalCode Postal code.
- * @property {string} details.billingAddress.countryCode 2 character country code (e.g. US).
- * @property {?object} creditFinancingOffered This property will only be present when the customer pays with PayPal Credit.
- * @property {object} creditFinancingOffered.totalCost This is the estimated total payment amount including interest and fees the user will pay during the lifetime of the loan.
- * @property {string} creditFinancingOffered.totalCost.value An amount defined by [ISO 4217](http://www.iso.org/iso/home/standards/currency_codes.htm) for the given currency.
- * @property {string} creditFinancingOffered.totalCost.currency 3 letter currency code as defined by [ISO 4217](http://www.iso.org/iso/home/standards/currency_codes.htm).
- * @property {number} creditFinancingOffered.term Length of financing terms in months.
- * @property {object} creditFinancingOffered.monthlyPayment This is the estimated amount per month that the customer will need to pay including fees and interest.
- * @property {string} creditFinancingOffered.monthlyPayment.value An amount defined by [ISO 4217](http://www.iso.org/iso/home/standards/currency_codes.htm) for the given currency.
- * @property {string} creditFinancingOffered.monthlyPayment.currency 3 letter currency code as defined by [ISO 4217](http://www.iso.org/iso/home/standards/currency_codes.htm).
- * @property {object} creditFinancingOffered.totalInterest Estimated interest or fees amount the payer will have to pay during the lifetime of the loan.
- * @property {string} creditFinancingOffered.totalInterest.value An amount defined by [ISO 4217](http://www.iso.org/iso/home/standards/currency_codes.htm) for the given currency.
- * @property {string} creditFinancingOffered.totalInterest.currency 3 letter currency code as defined by [ISO 4217](http://www.iso.org/iso/home/standards/currency_codes.htm).
- * @property {boolean} creditFinancingOffered.payerAcceptance Status of whether the customer ultimately was approved for and chose to make the payment using the approved installment credit.
- * @property {boolean} creditFinancingOffered.cartAmountImmutable Indicates whether the cart amount is editable after payer's acceptance on PayPal side.
- *
+ * Masterpass Address object.
+ * @typedef {object} Masterpass~Address
+ * @property {string} countryCodeAlpha2 The customer's country code.
+ * @property {string} extendedAddress The customer's extended address.
+ * @property {string} locality The customer's locality.
+ * @property {string} postalCode The customer's postal code.
+ * @property {string} region The customer's region.
+ * @property {string} streetAddress The customer's street address.
  */
 
 /**
- * @typedef {object} PayPal~tokenizeReturn
- * @property {Function} close A handle to close the PayPal checkout flow.
- * @property {Function} focus A handle to focus the PayPal checkout flow. Note that some browsers (notably iOS Safari) do not support focusing popups. Firefox requires the focus call to occur as the result of a user interaction, such as a button click.
+ * @typedef {object} Masterpass~tokenizePayload
+ * @property {string} nonce The payment method nonce.
+ * @property {string} description The human readable description.
+ * @property {string} type The payment method type, always `MasterpassCard`.
+ * @property {object} details Additional account details.
+ * @property {string} details.cardType Type of card, ex: Visa, MasterCard.
+ * @property {string} details.lastTwo Last two digits of card number.
+ * @property {Masterpass~Address} billingAddress The customer's billing address.
+ * @property {Masterpass~Address} shippingAddress The customer's shipping address.
  */
 
 /**
  * @class
- * @param {object} options see {@link module:braintree-web/paypal.create|paypal.create}
- * @classdesc This class represents a PayPal component. Instances of this class have methods for launching auth dialogs and other programmatic interactions with the PayPal component.
- *
- * This component has been deprecated in favor of the {@link PayPalCheckout|PayPal Checkout component}.
- * @description <strong>Do not use this constructor directly. Use {@link module:braintree-web/paypal.create|braintree-web.paypal.create} instead.</strong>
+ * @param {object} options see {@link module:braintree-web/masterpass.create|masterpass.create}
+ * @description <strong>You cannot use this constructor directly. Use {@link module:braintree-web/masterpass.create|braintree.masterpass.create} instead.</strong>
+ * @classdesc This class represents an Masterpass component. Instances of this class have methods for launching a new window to process a transaction with Masterpass.
  */
-function PayPal(options) {
+function Masterpass(options) {
+  var configuration = options.client.getConfiguration();
+
   this._client = options.client;
-  this._assetsUrl = options.client.getConfiguration().gatewayConfiguration.paypal.assetsUrl + '/web/' + VERSION;
-  this._isDebug = options.client.getConfiguration().isDebug;
-  this._loadingFrameUrl = this._assetsUrl + '/html/paypal-landing-frame' + useMin(this._isDebug) + '.html';
-  this._authorizationInProgress = false;
+  this._assetsUrl = configuration.gatewayConfiguration.assetsUrl + '/web/' + VERSION;
+  this._isDebug = configuration.isDebug;
+  this._authInProgress = false;
+  if (global.popupBridge && typeof global.popupBridge.getReturnUrlPrefix === 'function') {
+    this._callbackUrl = global.popupBridge.getReturnUrlPrefix() + 'return';
+  } else {
+    this._callbackUrl = this._assetsUrl + '/html/masterpass-redirect-frame' + (this._isDebug ? '' : '.min') + '.html';
+  }
 }
 
-PayPal.prototype._initialize = function (callback) {
-  var client = this._client;
-  var failureTimeout = setTimeout(function () {
-    analytics.sendEvent(client, 'paypal.load.timed-out');
-  }, INTEGRATION_TIMEOUT_MS);
+Masterpass.prototype._initialize = function () {
+  var self = this;
 
-  frameService.create({
-    name: constants.LANDING_FRAME_NAME,
-    dispatchFrameUrl: this._assetsUrl + '/html/dispatch-frame' + useMin(this._isDebug) + '.html',
-    openFrameUrl: this._loadingFrameUrl
-  }, function (service) {
-    this._frameService = service;
-    clearTimeout(failureTimeout);
-    analytics.sendEvent(client, 'paypal.load.succeeded');
-    callback();
-  }.bind(this));
-};
+  return new Promise(function (resolve) {
+    var failureTimeout = setTimeout(function () {
+      analytics.sendEvent(self._client, 'masterpass.load.timed-out');
+    }, INTEGRATION_TIMEOUT_MS);
 
-/**
- * Launches the PayPal login flow and returns a nonce payload. Only one PayPal login flow should be active at a time. One way to achieve this is to disable your PayPal button while the flow is open.
- * @public
- * @param {object} options All tokenization options for the PayPal component.
- * @param {string} options.flow Set to 'checkout' for one-time payment flow, or 'vault' for Vault flow. If 'vault' is used with a client token generated with a customer id, the PayPal account will be added to that customer as a saved payment method.
- * @param {string} [options.intent=authorize]
- * Checkout flows only.
- * * `authorize` - Submits the transaction for authorization but not settlement.
- * * `sale` - Payment will be immediately submitted for settlement upon creating a transaction.
- * @param {boolean} [options.offerCredit=false] Offers the customer PayPal Credit if they qualify. Checkout flows only.
- * @param {string} [options.useraction]
- * Changes the call-to-action in the PayPal flow. By default the final button will show the localized
- * word for "Continue" and implies that the final amount billed is not yet known.
- *
- * Setting this option to `commit` changes the button text to "Pay Now" and page text will convey to
- * the user that billing will take place immediately.
- * @param {string|number} [options.amount] The amount of the transaction. Required when using the Checkout flow.
- * @param {string} [options.currency] The currency code of the amount, such as 'USD'. Required when using the Checkout flow.
- * @param {string} [options.displayName] The merchant name displayed inside of the PayPal lightbox; defaults to the company name on your Braintree account
- * @param {string} [options.locale=en_US] Use this option to change the language, links, and terminology used in the PayPal flow. This locale will be used unless the buyer has set a preferred locale for their account. If an unsupported locale is supplied, a fallback locale (determined by buyer preference or browser data) will be used and no error will be thrown.
- *
- * Supported locales are:
- * `da_DK`,
- * `de_DE`,
- * `en_AU`,
- * `en_GB`,
- * `en_US`,
- * `es_ES`,
- * `fr_CA`,
- * `fr_FR`,
- * `id_ID`,
- * `it_IT`,
- * `ja_JP`,
- * `ko_KR`,
- * `nl_NL`,
- * `no_NO`,
- * `pl_PL`,
- * `pt_BR`,
- * `pt_PT`,
- * `ru_RU`,
- * `sv_SE`,
- * `th_TH`,
- * `zh_CN`,
- * `zh_HK`,
- * and `zh_TW`.
- *
- * @param {boolean} [options.enableShippingAddress=false] Returns a shipping address object in {@link PayPal#tokenize}.
- * @param {object} [options.shippingAddressOverride] Allows you to pass a shipping address you have already collected into the PayPal payment flow.
- * @param {string} options.shippingAddressOverride.line1 Street address.
- * @param {string} [options.shippingAddressOverride.line2] Street address (extended).
- * @param {string} options.shippingAddressOverride.city City.
- * @param {string} options.shippingAddressOverride.state State.
- * @param {string} options.shippingAddressOverride.postalCode Postal code.
- * @param {string} options.shippingAddressOverride.countryCode Country.
- * @param {string} [options.shippingAddressOverride.phone] Phone number.
- * @param {string} [options.shippingAddressOverride.recipientName] Recipient's name.
- * @param {boolean} [options.shippingAddressEditable=true] Set to false to disable user editing of the shipping address.
- * @param {string} [options.billingAgreementDescription] Use this option to set the description of the preapproved payment agreement visible to customers in their PayPal profile during Vault flows. Max 255 characters.
- * @param {string} [options.landingPageType=login] Use this option to specify the PayPal page to display when a user lands on the PayPal site to complete the payment. It defaults to `login`.
- * * `login` - A PayPal account login page is used.
- * * `billing` - A non-PayPal account landing page is used.
- * @param {callback} callback The second argument, <code>data</code>, is a {@link PayPal~tokenizePayload|tokenizePayload}.
- * @example Tokenizing with the vault flow
- * button.addEventListener('click', function () {
- *   // Disable the button so that we don't attempt to open multiple popups.
- *   button.setAttribute('disabled', 'disabled');
- *
- *   // Because PayPal tokenization opens a popup, this must be called
- *   // as a result of a user action, such as a button click.
- *   paypalInstance.tokenize({
- *     flow: 'vault' // Required
- *     // Any other tokenization options
- *   }, function (tokenizeErr, payload) {
- *     button.removeAttribute('disabled');
- *
- *     if (tokenizeErr) {
- *       // Handle tokenization errors or premature flow closure
- *
- *       switch (tokenizeErr.code) {
- *         case 'PAYPAL_POPUP_CLOSED':
- *           console.error('Customer closed PayPal popup.');
- *           break;
- *         case 'PAYPAL_ACCOUNT_TOKENIZATION_FAILED':
- *           console.error('PayPal tokenization failed. See details:', tokenizeErr.details);
- *           break;
- *         case 'PAYPAL_FLOW_FAILED':
- *           console.error('Unable to initialize PayPal flow. Are your options correct?', tokenizeErr.details);
- *           break;
- *         default:
- *           console.error('Error!', tokenizeErr);
- *       }
- *     } else {
- *       // Submit payload.nonce to your server
- *     }
- *   });
- * });
-
- * @example Tokenizing with the checkout flow
- * button.addEventListener('click', function () {
- *   // Disable the button so that we don't attempt to open multiple popups.
- *   button.setAttribute('disabled', 'disabled');
- *
- *   // Because PayPal tokenization opens a popup, this must be called
- *   // as a result of a user action, such as a button click.
- *   paypalInstance.tokenize({
- *     flow: 'checkout', // Required
- *     amount: '10.00', // Required
- *     currency: 'USD' // Required
- *     // Any other tokenization options
- *   }, function (tokenizeErr, payload) {
- *     button.removeAttribute('disabled');
- *
- *     if (tokenizeErr) {
- *       // Handle tokenization errors or premature flow closure
- *
- *       switch (tokenizeErr.code) {
- *         case 'PAYPAL_POPUP_CLOSED':
- *           console.error('Customer closed PayPal popup.');
- *           break;
- *         case 'PAYPAL_ACCOUNT_TOKENIZATION_FAILED':
- *           console.error('PayPal tokenization failed. See details:', tokenizeErr.details);
- *           break;
- *         case 'PAYPAL_FLOW_FAILED':
- *           console.error('Unable to initialize PayPal flow. Are your options correct?', tokenizeErr.details);
- *           break;
- *         default:
- *           console.error('Error!', tokenizeErr);
- *       }
- *     } else {
- *       // Submit payload.nonce to your server
- *     }
- *   });
- * });
- * @returns {PayPal~tokenizeReturn} A handle to manage the PayPal checkout frame.
- */
-PayPal.prototype.tokenize = function (options, callback) {
-  var client = this._client;
-
-  throwIfNoCallback(callback, 'tokenize');
-
-  callback = once(deferred(callback));
-
-  if (!options || !constants.FLOW_ENDPOINTS.hasOwnProperty(options.flow)) {
-    callback(new BraintreeError(errors.PAYPAL_FLOW_OPTION_REQUIRED));
-    return this._frameService.createNoopHandler();
-  }
-
-  if (this._authorizationInProgress) {
-    analytics.sendEvent(client, 'paypal.tokenization.error.already-opened');
-
-    callback(new BraintreeError(errors.PAYPAL_TOKENIZATION_REQUEST_ACTIVE));
-  } else {
-    this._authorizationInProgress = true;
-
-    if (!global.popupBridge) {
-      analytics.sendEvent(client, 'paypal.tokenization.opened');
-    }
-
-    if (options.offerCredit === true && options.flow === 'checkout') {
-      analytics.sendEvent(client, 'paypal.credit.offered');
-    }
-
-    this._navigateFrameToAuth(options, callback);
-    // This MUST happen after _navigateFrameToAuth for Metro browsers to work.
-    this._frameService.open(this._createFrameServiceCallback(options, callback));
-  }
-
-  return this._frameService.createHandler({
-    beforeClose: function () {
-      analytics.sendEvent(client, 'paypal.tokenization.closed.by-merchant');
-    }
+    frameService.create({
+      name: constants.LANDING_FRAME_NAME,
+      height: constants.POPUP_HEIGHT,
+      width: constants.POPUP_WIDTH,
+      dispatchFrameUrl: self._assetsUrl + '/html/dispatch-frame' + (self._isDebug ? '' : '.min') + '.html',
+      openFrameUrl: self._assetsUrl + '/html/masterpass-landing-frame' + (self._isDebug ? '' : '.min') + '.html'
+    }, function (service) {
+      self._frameService = service;
+      clearTimeout(failureTimeout);
+      analytics.sendEvent(self._client, 'masterpass.load.succeeded');
+      resolve(self);
+    });
   });
 };
 
-PayPal.prototype._createFrameServiceCallback = function (options, callback) {
-  var client = this._client;
+/**
+ * Launches the Masterpass flow and returns a nonce payload. Only one Masterpass flow should be active at a time. One way to achieve this is to disable your Masterpass button while the flow is open.
+ * @public
+ * @function
+ * @param {object} options All options for initiating the Masterpass payment flow.
+ * @param {string} options.currencyCode The currency code to process the payment.
+ * @param {string} options.subtotal The amount to authorize for the transaction.
+ * @param {callback} [callback] The second argument, <code>data</code>, is a {@link Masterpass~tokenizePayload|tokenizePayload}. If no callback is provided, the method will return a Promise that resolves with a {@link Masterpass~tokenizePayload|tokenizePayload}.
+ * @returns {Promise|void}
+ * @example
+ * button.addEventListener('click', function () {
+ *   // Disable the button so that we don't attempt to open multiple popups.
+ *   button.setAttribute('disabled', 'disabled');
+ *
+ *   // Because tokenize opens a new window, this must be called
+ *   // as a result of a user action, such as a button click.
+ *   masterpassInstance.tokenize({
+ *     currencyCode: 'USD',
+ *     subtotal: '10.00'
+ *   }).then(function (payload) {
+ *     button.removeAttribute('disabled');
+ *     // Submit payload.nonce to your server
+ *   }).catch(function (tokenizeError) {
+ *     button.removeAttribute('disabled');
+ *     // Handle flow errors or premature flow closure
+ *
+ *     switch (tokenizeErr.code) {
+ *       case 'MASTERPASS_POPUP_CLOSED':
+ *         console.error('Customer closed Masterpass popup.');
+ *         break;
+ *       case 'MASTERPASS_ACCOUNT_TOKENIZATION_FAILED':
+ *         console.error('Masterpass tokenization failed. See details:', tokenizeErr.details);
+ *         break;
+ *       case 'MASTERPASS_FLOW_FAILED':
+ *         console.error('Unable to initialize Masterpass flow. Are your options correct?', tokenizeErr.details);
+ *         break;
+ *       default:
+ *         console.error('Error!', tokenizeErr);
+ *     }
+ *   });
+ * });
+ */
+Masterpass.prototype.tokenize = wrapPromise(function (options) {
+  var self = this; // eslint-disable-line no-invalid-this
+
+  return new Promise(function (resolve, reject) {
+    if (!options || hasMissingOption(options)) {
+      throw new BraintreeError(errors.MASTERPASS_TOKENIZE_MISSING_REQUIRED_OPTION);
+    }
+
+    if (self._authInProgress) {
+      throw new BraintreeError(errors.MASTERPASS_TOKENIZATION_ALREADY_IN_PROGRESS);
+    }
+
+    self._navigateFrameToLoadingPage(options, reject);
+    // This MUST happen after _navigateFrameToLoadingPage for Metro browsers to work.
+    self._frameService.open(self._createFrameOpenHandler(resolve, reject));
+  });
+});
+
+Masterpass.prototype._navigateFrameToLoadingPage = function (options, reject) {
+  this._authInProgress = true;
+
+  this._client.request({
+    method: 'post',
+    endpoint: 'masterpass/request_token',
+    data: {
+      requestToken: {
+        originUrl: global.location.protocol + '//' + global.location.hostname,
+        subtotal: options.subtotal,
+        currencyCode: options.currencyCode,
+        callbackUrl: this._callbackUrl
+      }
+    }
+  }, function (err, response, status) {
+    var redirectUrl = this._assetsUrl + '/html/masterpass-loading-frame' + (this._isDebug ? '' : '.min') + '.html';
+    var gatewayConfiguration = this._client.getConfiguration().gatewayConfiguration;
+
+    if (err) {
+      this._closeWindow();
+
+      if (status === 422) {
+        reject(convertToBraintreeError(err, errors.MASTERPASS_INVALID_PAYMENT_OPTION));
+      } else {
+        reject(convertToBraintreeError(err, errors.MASTERPASS_FLOW_FAILED));
+      }
+      return;
+    }
+
+    redirectUrl += '?environment=' + gatewayConfiguration.environment;
+    redirectUrl += '&requestToken=' + response.requestToken;
+    redirectUrl += '&callbackUrl=' + this._callbackUrl;
+    redirectUrl += '&merchantCheckoutId=' + gatewayConfiguration.masterpass.merchantCheckoutId;
+    redirectUrl += '&allowedCardTypes=' + gatewayConfiguration.masterpass.supportedNetworks;
+    this._frameService.redirect(redirectUrl);
+  }.bind(this));
+};
+
+Masterpass.prototype._createFrameOpenHandler = function (resolve, reject) {
+  var self = this;
 
   if (global.popupBridge) {
-    return function (err, payload) {
-      var cancelled = payload && payload.path && payload.path.substring(0, 7) === '/cancel';
+    return function (popupBridgeErr, payload) {
+      self._authInProgress = false;
 
-      this._authorizationInProgress = false;
-
-      // `err` exists when the user clicks "Done" button of browser view
-      if (err || cancelled) {
-        analytics.sendEvent(client, 'paypal.tokenization.closed-popupbridge.by-user');
-        // Call merchant's tokenize callback with an error
-        callback(new BraintreeError(errors.PAYPAL_POPUP_CLOSED));
-      } else if (payload) {
-        this._tokenizePayPal(options, payload.queryItems, callback);
+      if (popupBridgeErr) {
+        analytics.sendEvent(self._client, 'masterpass.tokenization.closed-popupbridge.by-user');
+        reject(convertToBraintreeError(popupBridgeErr, errors.MASTERPASS_POPUP_CLOSED));
+        return;
+      } else if (!payload.queryItems) {
+        analytics.sendEvent(self._client, 'masterpass.tokenization.failed-popupbridge');
+        reject(new BraintreeError(errors.MASTERPASS_FLOW_FAILED));
+        return;
       }
-    }.bind(this);
+
+      self._tokenizeMasterpass(payload.queryItems, resolve, reject);
+    };
   }
 
-  return function (err, params) {
-    this._authorizationInProgress = false;
+  return function (frameServiceErr, payload) {
+    if (frameServiceErr) {
+      self._authInProgress = false;
 
-    if (err) {
-      if (err.code === 'FRAME_SERVICE_FRAME_CLOSED') {
-        analytics.sendEvent(client, 'paypal.tokenization.closed.by-user');
-        callback(new BraintreeError(errors.PAYPAL_POPUP_CLOSED));
-      } else if (err.code === 'FRAME_SERVICE_FRAME_OPEN_FAILED') {
-        callback(new BraintreeError(errors.PAYPAL_POPUP_OPEN_FAILED));
+      if (frameServiceErr.code === 'FRAME_SERVICE_FRAME_CLOSED') {
+        analytics.sendEvent(self._client, 'masterpass.tokenization.closed.by-user');
+        reject(new BraintreeError(errors.MASTERPASS_POPUP_CLOSED));
+        return;
       }
-    } else if (params) {
-      this._tokenizePayPal(options, params, callback);
+
+      if (frameServiceErr.code === 'FRAME_SERVICE_FRAME_OPEN_FAILED') {
+        analytics.sendEvent(self._client, 'masterpass.tokenization.failed.to-open');
+        reject(new BraintreeError(errors.MASTERPASS_POPUP_OPEN_FAILED));
+        return;
+      }
+
+      analytics.sendEvent(self._client, 'masterpass.tokenization.failed');
+      self._closeWindow();
+      reject(convertToBraintreeError(frameServiceErr, errors.MASTERPASS_FLOW_FAILED));
+      return;
     }
-  }.bind(this);
-};
 
-PayPal.prototype._tokenizePayPal = function (options, params, callback) {
-  var payload;
-  var client = this._client;
-
-  if (!global.popupBridge) {
-    this._frameService.redirect(this._loadingFrameUrl);
-  }
-
-  client.request({
-    endpoint: 'payment_methods/paypal_accounts',
-    method: 'post',
-    data: this._formatTokenizeData(options, params)
-  }, function (err, response) {
-    if (err) {
-      if (global.popupBridge) {
-        analytics.sendEvent(client, 'paypal.tokenization.failed-popupbridge');
-      } else {
-        analytics.sendEvent(client, 'paypal.tokenization.failed');
-      }
-      callback(convertToBraintreeError(err, {
-        type: errors.PAYPAL_ACCOUNT_TOKENIZATION_FAILED.type,
-        code: errors.PAYPAL_ACCOUNT_TOKENIZATION_FAILED.code,
-        message: errors.PAYPAL_ACCOUNT_TOKENIZATION_FAILED.message
-      }));
-    } else {
-      payload = this._formatTokenizePayload(response);
-
-      if (global.popupBridge) {
-        analytics.sendEvent(client, 'paypal.tokenization.success-popupbridge');
-      } else {
-        analytics.sendEvent(client, 'paypal.tokenization.success');
-      }
-
-      if (payload.creditFinancingOffered) {
-        analytics.sendEvent(client, 'paypal.credit.accepted');
-      }
-
-      callback(null, payload);
-    }
-    this._frameService.close();
-  }.bind(this));
-};
-
-PayPal.prototype._formatTokenizePayload = function (response) {
-  var payload;
-  var account = {};
-
-  if (response.paypalAccounts) {
-    account = response.paypalAccounts[0];
-  }
-
-  payload = {
-    nonce: account.nonce,
-    details: {},
-    type: account.type
+    self._tokenizeMasterpass(payload, resolve, reject);
   };
-
-  if (account.details && account.details.payerInfo) {
-    payload.details = account.details.payerInfo;
-  }
-
-  if (account.details && account.details.creditFinancingOffered) {
-    payload.creditFinancingOffered = account.details.creditFinancingOffered;
-  }
-
-  return payload;
 };
 
-PayPal.prototype._formatTokenizeData = function (options, params) {
-  var clientConfiguration = this._client.getConfiguration();
-  var gatewayConfiguration = clientConfiguration.gatewayConfiguration;
-  var isTokenizationKey = clientConfiguration.authorizationType === 'TOKENIZATION_KEY';
-  var data = {
-    paypalAccount: {
-      correlationId: params.ba_token || params.token,
-      options: {
-        validate: options.flow === 'vault' && !isTokenizationKey
-      }
-    }
-  };
+Masterpass.prototype._tokenizeMasterpass = function (payload, resolve, reject) {
+  var self = this;
 
-  if (params.ba_token) {
-    data.paypalAccount.billingAgreementToken = params.ba_token;
+  if (payload.mpstatus === 'success') {
+    self._client.request({
+      endpoint: 'payment_methods/masterpass_cards',
+      method: 'post',
+      data: {
+        masterpassCard: {
+          checkoutResourceUrl: payload.checkout_resource_url,
+          requestToken: payload.oauth_token,
+          verifierToken: payload.oauth_verifier
+        }
+      }
+    }, function (tokenizeErr, response) {
+      self._closeWindow();
+      if (tokenizeErr) {
+        if (global.popupBridge) {
+          analytics.sendEvent(self._client, 'masterpass.tokenization.failed-popupbridge');
+        } else {
+          analytics.sendEvent(self._client, 'masterpass.tokenization.failed');
+        }
+        reject(convertToBraintreeError(tokenizeErr, errors.MASTERPASS_ACCOUNT_TOKENIZATION_FAILED));
+        return;
+      }
+
+      if (global.popupBridge) {
+        analytics.sendEvent(self._client, 'masterpass.tokenization.success-popupbridge');
+      } else {
+        analytics.sendEvent(self._client, 'masterpass.tokenization.success');
+      }
+      resolve(response.masterpassCards[0]);
+    });
   } else {
-    data.paypalAccount.paymentToken = params.paymentId;
-    data.paypalAccount.payerId = params.PayerID;
-    data.paypalAccount.unilateral = gatewayConfiguration.paypal.unvettedMerchant;
-
-    if (options.hasOwnProperty('intent')) {
-      data.paypalAccount.intent = options.intent;
-    }
+    analytics.sendEvent(self._client, 'masterpass.tokenization.closed.by-user');
+    self._closeWindow();
+    reject(new BraintreeError(errors.MASTERPASS_POPUP_CLOSED));
   }
-
-  return data;
 };
 
-PayPal.prototype._navigateFrameToAuth = function (options, callback) {
-  var client = this._client;
-  var endpoint = 'paypal_hermes/' + constants.FLOW_ENDPOINTS[options.flow];
-
-  client.request({
-    endpoint: endpoint,
-    method: 'post',
-    data: this._formatPaymentResourceData(options)
-  }, function (err, response, status) {
-    var redirectUrl;
-
-    if (err) {
-      if (status === 422) {
-        callback(new BraintreeError({
-          type: errors.PAYPAL_INVALID_PAYMENT_OPTION.type,
-          code: errors.PAYPAL_INVALID_PAYMENT_OPTION.code,
-          message: errors.PAYPAL_INVALID_PAYMENT_OPTION.message,
-          details: {
-            originalError: err
-          }
-        }));
-      } else {
-        callback(convertToBraintreeError(err, {
-          type: errors.PAYPAL_FLOW_FAILED.type,
-          code: errors.PAYPAL_FLOW_FAILED.code,
-          message: errors.PAYPAL_FLOW_FAILED.message
-        }));
-      }
-      this._frameService.close();
-      this._authorizationInProgress = false;
-    } else {
-      if (options.flow === 'checkout') {
-        redirectUrl = response.paymentResource.redirectUrl;
-      } else {
-        redirectUrl = response.agreementSetup.approvalUrl;
-      }
-
-      if (options.useraction === 'commit') {
-        redirectUrl = querystring.queryify(redirectUrl, {useraction: 'commit'});
-      }
-
-      if (global.popupBridge) {
-        analytics.sendEvent(client, 'paypal.tokenization.opened-popupbridge');
-      }
-
-      this._frameService.redirect(redirectUrl);
-    }
-  }.bind(this));
-};
-
-PayPal.prototype._formatPaymentResourceData = function (options) {
-  var key;
-  var gatewayConfiguration = this._client.getConfiguration().gatewayConfiguration;
-  var serviceId = this._frameService._serviceId;
-  var paymentResource = {
-    returnUrl: gatewayConfiguration.paypal.assetsUrl + '/web/' + VERSION + '/html/paypal-redirect-frame' + useMin(this._isDebug) + '.html?channel=' + serviceId,
-    cancelUrl: gatewayConfiguration.paypal.assetsUrl + '/web/' + VERSION + '/html/paypal-cancel-frame' + useMin(this._isDebug) + '.html?channel=' + serviceId,
-    experienceProfile: {
-      brandName: options.displayName || gatewayConfiguration.paypal.displayName,
-      localeCode: options.locale,
-      noShipping: (!options.enableShippingAddress).toString(),
-      addressOverride: options.shippingAddressEditable === false,
-      landingPageType: options.landingPageType
-    }
-  };
-
-  if (global.popupBridge && typeof global.popupBridge.getReturnUrlPrefix === 'function') {
-    paymentResource.returnUrl = global.popupBridge.getReturnUrlPrefix() + 'return';
-    paymentResource.cancelUrl = global.popupBridge.getReturnUrlPrefix() + 'cancel';
-  }
-
-  if (options.flow === 'checkout') {
-    paymentResource.amount = options.amount;
-    paymentResource.currencyIsoCode = options.currency;
-    paymentResource.offerPaypalCredit = options.offerCredit === true;
-
-    if (options.hasOwnProperty('intent')) {
-      paymentResource.intent = options.intent;
-    }
-
-    for (key in options.shippingAddressOverride) {
-      if (options.shippingAddressOverride.hasOwnProperty(key)) {
-        paymentResource[key] = options.shippingAddressOverride[key];
-      }
-    }
-  } else {
-    paymentResource.shippingAddress = options.shippingAddressOverride;
-
-    if (options.billingAgreementDescription) {
-      paymentResource.description = options.billingAgreementDescription;
-    }
-  }
-
-  return paymentResource;
+Masterpass.prototype._closeWindow = function () {
+  this._authInProgress = false;
+  this._frameService.close();
 };
 
 /**
- * Cleanly tear down anything set up by {@link module:braintree-web/paypal.create|create}.
+ * Cleanly tear down anything set up by {@link module:braintree-web/masterpass.create|create}.
  * @public
+ * @function
  * @param {callback} [callback] Called once teardown is complete. No data is returned if teardown completes successfully.
- * @returns {void}
+ * @returns {Promise|void}
  */
-PayPal.prototype.teardown = function (callback) {
-  this._frameService.teardown();
+Masterpass.prototype.teardown = wrapPromise(function () {
+  var self = this; // eslint-disable-line no-invalid-this
 
-  convertMethodsToError(this, methods(PayPal.prototype));
+  return new Promise(function (resolve) {
+    self._frameService.teardown();
 
-  analytics.sendEvent(this._client, 'paypal.teardown-completed');
+    convertMethodsToError(self, methods(Masterpass.prototype));
 
-  if (typeof callback === 'function') {
-    callback = deferred(callback);
-    callback();
+    analytics.sendEvent(self._client, 'masterpass.teardown-completed');
+
+    resolve();
+  });
+});
+
+function hasMissingOption(options) {
+  var i, option;
+
+  for (i = 0; i < constants.REQUIRED_OPTIONS_FOR_TOKENIZE.length; i++) {
+    option = constants.REQUIRED_OPTIONS_FOR_TOKENIZE[i];
+
+    if (!options.hasOwnProperty(option)) {
+      return true;
+    }
   }
-};
 
-module.exports = PayPal;
+  return false;
+}
+
+module.exports = Masterpass;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../lib/analytics":7,"../../lib/braintree-error":9,"../../lib/constants":14,"../../lib/convert-methods-to-error":15,"../../lib/convert-to-braintree-error":16,"../../lib/deferred":18,"../../lib/frame-service/external":22,"../../lib/methods":32,"../../lib/once":33,"../../lib/querystring":35,"../../lib/throw-if-no-callback":36,"../../lib/use-min":37,"../shared/constants":41,"../shared/errors":42}],40:[function(_dereq_,module,exports){
+},{"../../lib/analytics":8,"../../lib/braintree-error":10,"../../lib/constants":15,"../../lib/convert-methods-to-error":16,"../../lib/convert-to-braintree-error":17,"../../lib/frame-service/external":23,"../../lib/methods":33,"../../lib/promise":37,"../../lib/wrap-promise":39,"../shared/constants":42,"../shared/errors":43}],41:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
-/**
- * @module braintree-web/paypal
- * @description A component to integrate with PayPal.
- * @deprecated Use the {@link PayPalCheckout|PayPal Checkout component} instead
+/** @module braintree-web/masterpass
+ * @description Processes Masterpass. *This component is currently in beta and is subject to change.*
  */
 
-var analytics = _dereq_('../lib/analytics');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var browserDetection = _dereq_('../lib/browser-detection');
-var deferred = _dereq_('../lib/deferred');
-var errors = _dereq_('./shared/errors');
-var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
-var PayPal = _dereq_('./external/paypal');
-var sharedErrors = _dereq_('../lib/errors');
+var Masterpass = _dereq_('./external/masterpass');
 var VERSION = "3.10.0";
+var errors = _dereq_('./shared/errors');
+var sharedErrors = _dereq_('../lib/errors');
+var Promise = _dereq_('../lib/promise');
+var wrapPromise = _dereq_('../lib/wrap-promise');
 
 /**
  * @static
  * @function create
  * @param {object} options Creation options:
  * @param {Client} options.client A {@link Client} instance.
- * @param {callback} callback The second argument, `data`, is the {@link PayPal} instance.
+ * @param {callback} [callback] The second argument, `data`, is the {@link Masterpass} instance. If no callback is passed in, the create function returns a promise that resolves the {@link Masterpass} instance.
  * @example
- * // We recomend creating your PayPal button with button.js
- * // For an example, see http://codepen.io/braintree/pen/LNKJWa
- * var paypalButton = document.querySelector('.paypal-button');
- *
- * braintree.client.create({
- *   authorization: CLIENT_AUTHORIZATION
- * }, function (clientErr, clientInstance) {
- *   if (clientErr) {
- *     console.error('Error creating client:', clientErr);
+ * braintree.masterpass.create({
+ *   client: clientInstance
+ * }, function (createErr, masterpassInstance) {
+ *   if (createErr) {
+ *     if (createErr.code === 'MASTERPASS_BROWSER_NOT_SUPPORTED') {
+ *       console.error('This browser is not supported.');
+ *     } else {
+ *       console.error('Error!', createErr);
+ *     }
  *     return;
  *   }
- *
- *   braintree.paypal.create({
- *     client: clientInstance
- *   }, function (paypalErr, paypalInstance) {
- *     if (paypalErr) {
- *       console.error('Error creating PayPal:', paypalErr);
- *       return;
- *     }
- *
- *     paypalButton.removeAttribute('disabled');
- *
- *     // When the button is clicked, attempt to tokenize.
- *     paypalButton.addEventListener('click', function (event) {
- *       // Because tokenization opens a popup, this has to be called as a result of
- *       // customer action, like clicking a button. You cannot call this at any time.
- *       paypalInstance.tokenize({
- *         flow: 'vault'
- *         // For more tokenization options, see the full PayPal tokenization documentation
- *         // http://braintree.github.io/braintree-web/current/PayPal.html#tokenize
- *       }, function (tokenizeErr, payload) {
- *         if (tokenizeErr) {
- *           if (tokenizeErr.type !== 'CUSTOMER') {
- *             console.error('Error tokenizing:', tokenizeErr);
- *           }
- *           return;
- *         }
- *
- *         // Tokenization succeeded
- *         paypalButton.setAttribute('disabled', true);
- *         console.log('Got a nonce! You should submit this to your server.');
- *         console.log(payload.nonce);
- *       });
- *     }, false);
- *   });
  * });
- * @returns {void}
+ * @returns {Promise|void} Resolves with the Masterpass instance.
  */
-function create(options, callback) {
-  var config, pp, clientVersion;
+function create(options) {
+  return Promise.resolve().then(function () {
+    var masterpassInstance, clientVersion, configuration;
 
-  throwIfNoCallback(callback, 'create');
+    if (options.client == null) {
+      throw new BraintreeError({
+        type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
+        code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
+        message: 'options.client is required when instantiating Masterpass.'
+      });
+    }
 
-  callback = deferred(callback);
+    clientVersion = options.client.getConfiguration().analyticsMetadata.sdkVersion;
+    if (clientVersion !== VERSION) {
+      throw new BraintreeError({
+        type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
+        code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
+        message: 'Client (version ' + clientVersion + ') and Masterpass (version ' + VERSION + ') components must be from the same SDK version.'
+      });
+    }
 
-  if (options.client == null) {
-    callback(new BraintreeError({
-      type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
-      code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
-      message: 'options.client is required when instantiating PayPal.'
-    }));
-    return;
-  }
+    if (!isSupported()) {
+      throw new BraintreeError(errors.MASTERPASS_BROWSER_NOT_SUPPORTED);
+    }
 
-  config = options.client.getConfiguration();
-  clientVersion = config.analyticsMetadata.sdkVersion;
+    configuration = options.client.getConfiguration().gatewayConfiguration;
+    if (!configuration.masterpass) {
+      throw new BraintreeError(errors.MASTERPASS_NOT_ENABLED);
+    }
 
-  if (clientVersion !== VERSION) {
-    callback(new BraintreeError({
-      type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
-      code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
-      message: 'Client (version ' + clientVersion + ') and PayPal (version ' + VERSION + ') components must be from the same SDK version.'
-    }));
-    return;
-  }
+    masterpassInstance = new Masterpass(options);
 
-  if (config.gatewayConfiguration.paypalEnabled !== true) {
-    callback(new BraintreeError(errors.PAYPAL_NOT_ENABLED));
-    return;
-  }
-
-  if (!isSupported()) {
-    callback(new BraintreeError(errors.PAYPAL_BROWSER_NOT_SUPPORTED));
-    return;
-  }
-
-  analytics.sendEvent(options.client, 'paypal.initialized');
-
-  pp = new PayPal(options);
-  pp._initialize(function () {
-    callback(null, pp);
+    return masterpassInstance._initialize();
   });
 }
 
 /**
  * @static
  * @function isSupported
- * @description Returns true if PayPal [supports this browser](/current/#browser-support-webviews).
+ * @description Returns true if Masterpass supports this browser.
  * @example
- * if (braintree.paypal.isSupported()) {
- *   // Add PayPal button to the page
+ * if (braintree.masterpass.isSupported()) {
+ *   // Add Masterpass button to the page
  * } else {
- *   // Hide PayPal payment option
+ *   // Hide Masterpass payment option
  * }
- * @returns {Boolean} Returns true if PayPal supports this browser.
+ * @returns {Boolean} Returns true if Masterpass supports this browser.
  */
 function isSupported() {
   return Boolean(global.popupBridge || browserDetection.supportsPopups());
 }
 
 module.exports = {
-  create: create,
+  create: wrapPromise(create),
   isSupported: isSupported,
   /**
    * @description The current version of the SDK, i.e. `{@pkg version}`.
@@ -2223,69 +2128,72 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../lib/analytics":7,"../lib/braintree-error":9,"../lib/browser-detection":10,"../lib/deferred":18,"../lib/errors":20,"../lib/throw-if-no-callback":36,"./external/paypal":39,"./shared/errors":42}],41:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":10,"../lib/browser-detection":11,"../lib/errors":21,"../lib/promise":37,"../lib/wrap-promise":39,"./external/masterpass":40,"./shared/errors":43}],42:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
-  LANDING_FRAME_NAME: 'braintreepaypallanding',
-  FLOW_ENDPOINTS: {
-    checkout: 'create_payment_resource',
-    vault: 'setup_billing_agreement'
-  }
+  LANDING_FRAME_NAME: 'braintreemasterpasslanding',
+  POPUP_WIDTH: 450,
+  POPUP_HEIGHT: 660,
+  REQUIRED_OPTIONS_FOR_TOKENIZE: [
+    'subtotal',
+    'currencyCode'
+  ]
 };
 
-},{}],42:[function(_dereq_,module,exports){
+},{}],43:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../lib/braintree-error');
 
 module.exports = {
-  PAYPAL_NOT_ENABLED: {
-    type: BraintreeError.types.MERCHANT,
-    code: 'PAYPAL_NOT_ENABLED',
-    message: 'PayPal is not enabled for this merchant.'
-  },
-  PAYPAL_TOKENIZATION_REQUEST_ACTIVE: {
-    type: BraintreeError.types.MERCHANT,
-    code: 'PAYPAL_TOKENIZATION_REQUEST_ACTIVE',
-    message: 'Another tokenization request is active.'
-  },
-  PAYPAL_ACCOUNT_TOKENIZATION_FAILED: {
-    type: BraintreeError.types.NETWORK,
-    code: 'PAYPAL_ACCOUNT_TOKENIZATION_FAILED',
-    message: 'Could not tokenize user\'s PayPal account.'
-  },
-  PAYPAL_FLOW_FAILED: {
-    type: BraintreeError.types.NETWORK,
-    code: 'PAYPAL_FLOW_FAILED',
-    message: 'Could not initialize PayPal flow.'
-  },
-  PAYPAL_FLOW_OPTION_REQUIRED: {
-    type: BraintreeError.types.MERCHANT,
-    code: 'PAYPAL_FLOW_OPTION_REQUIRED',
-    message: 'PayPal flow property is invalid or missing.'
-  },
-  PAYPAL_BROWSER_NOT_SUPPORTED: {
+  MASTERPASS_BROWSER_NOT_SUPPORTED: {
     type: BraintreeError.types.CUSTOMER,
-    code: 'PAYPAL_BROWSER_NOT_SUPPORTED',
+    code: 'MASTERPASS_BROWSER_NOT_SUPPORTED',
     message: 'Browser is not supported.'
   },
-  PAYPAL_POPUP_OPEN_FAILED: {
+  MASTERPASS_NOT_ENABLED: {
     type: BraintreeError.types.MERCHANT,
-    code: 'PAYPAL_POPUP_OPEN_FAILED',
-    message: 'PayPal popup failed to open, make sure to tokenize in response to a user action.'
+    code: 'MASTERPASS_NOT_ENABLED',
+    message: 'Masterpass is not enabled for this merchant.'
   },
-  PAYPAL_POPUP_CLOSED: {
+  MASTERPASS_TOKENIZE_MISSING_REQUIRED_OPTION: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'MASTERPASS_TOKENIZE_MISSING_REQUIRED_OPTION',
+    message: 'Missing required option for tokenize.'
+  },
+  MASTERPASS_TOKENIZATION_ALREADY_IN_PROGRESS: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'MASTERPASS_TOKENIZATION_ALREADY_IN_PROGRESS',
+    message: 'Masterpass tokenization is already in progress.'
+  },
+  MASTERPASS_ACCOUNT_TOKENIZATION_FAILED: {
+    type: BraintreeError.types.NETWORK,
+    code: 'MASTERPASS_ACCOUNT_TOKENIZATION_FAILED',
+    message: 'Could not tokenize user\'s Masterpass account.'
+  },
+  MASTERPASS_POPUP_OPEN_FAILED: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'MASTERPASS_POPUP_OPEN_FAILED',
+    message: 'Masterpass popup failed to open. Make sure to tokenize in response to a user action, such as a click.'
+  },
+  MASTERPASS_POPUP_CLOSED: {
     type: BraintreeError.types.CUSTOMER,
-    code: 'PAYPAL_POPUP_CLOSED',
-    message: 'Customer closed PayPal popup before authorizing.'
+    code: 'MASTERPASS_POPUP_CLOSED',
+    message: 'Customer closed Masterpass popup before authorizing.'
   },
-  PAYPAL_INVALID_PAYMENT_OPTION: {
+  MASTERPASS_INVALID_PAYMENT_OPTION: {
     type: BraintreeError.types.MERCHANT,
-    code: 'PAYPAL_INVALID_PAYMENT_OPTION',
-    message: 'PayPal payment options are invalid.'
+    code: 'MASTERPASS_INVALID_PAYMENT_OPTION',
+    message: 'Masterpass payment options are invalid.'
+  },
+  MASTERPASS_FLOW_FAILED: {
+    type: BraintreeError.types.NETWORK,
+    code: 'MASTERPASS_FLOW_FAILED',
+    message: 'Could not initialize Masterpass flow.'
   }
 };
 
-},{"../../lib/braintree-error":9}]},{},[40])(40)
+
+},{"../../lib/braintree-error":10}]},{},[41])(41)
 });

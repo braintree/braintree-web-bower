@@ -554,7 +554,7 @@ function attributeValidationError(attribute, value) {
       code: errors.HOSTED_FIELDS_ATTRIBUTE_NOT_SUPPORTED.code,
       message: 'The "' + attribute + '" attribute is not supported in Hosted Fields.'
     });
-  } else if (!_isValid(attribute, value)) {
+  } else if (value != null && !_isValid(attribute, value)) {
     err = new BraintreeError({
       type: errors.HOSTED_FIELDS_ATTRIBUTE_VALUE_NOT_ALLOWED.type,
       code: errors.HOSTED_FIELDS_ATTRIBUTE_VALUE_NOT_ALLOWED.code,
@@ -612,7 +612,7 @@ var EventEmitter = _dereq_('../../lib/event-emitter');
 var injectFrame = _dereq_('./inject-frame');
 var analytics = _dereq_('../../lib/analytics');
 var whitelistedFields = constants.whitelistedFields;
-var VERSION = "3.9.0";
+var VERSION = "3.10.0";
 var methods = _dereq_('../../lib/methods');
 var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
 var deferred = _dereq_('../../lib/deferred');
@@ -1291,6 +1291,37 @@ HostedFields.prototype.setAttribute = function (options, callback) {
   }
 };
 
+HostedFields.prototype.removeAttribute = function (options, callback) {
+  var attributeErr, err;
+
+  if (!whitelistedFields.hasOwnProperty(options.field)) {
+    err = new BraintreeError({
+      type: errors.HOSTED_FIELDS_FIELD_INVALID.type,
+      code: errors.HOSTED_FIELDS_FIELD_INVALID.code,
+      message: '"' + options.field + '" is not a valid field. You must use a valid field option when removing an attribute.'
+    });
+  } else if (!this._fields.hasOwnProperty(options.field)) {
+    err = new BraintreeError({
+      type: errors.HOSTED_FIELDS_FIELD_NOT_PRESENT.type,
+      code: errors.HOSTED_FIELDS_FIELD_NOT_PRESENT.code,
+      message: 'Cannot remove attribute for "' + options.field + '" field because it is not part of the current Hosted Fields options.'
+    });
+  } else {
+    attributeErr = attributeValidationError(options.attribute);
+
+    if (attributeErr) {
+      err = attributeErr;
+    } else {
+      this._bus.emit(events.REMOVE_ATTRIBUTE, options.field, options.attribute);
+    }
+  }
+
+  if (typeof callback === 'function') {
+    callback = deferred(callback);
+    callback(err);
+  }
+};
+
 /**
  * @deprecated since version 3.8.0. Use {@link HostedFields#setAttribute|setAttribute} instead.
  *
@@ -1393,7 +1424,7 @@ module.exports = function injectFrame(frame, container) {
 var HostedFields = _dereq_('./external/hosted-fields');
 var deferred = _dereq_('../lib/deferred');
 var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
-var VERSION = "3.9.0";
+var VERSION = "3.10.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -1424,6 +1455,7 @@ var VERSION = "3.9.0";
  *
  * Supported CSS properties are:
  * `color`
+ * `direction`
  * `font-family`
  * `font-size-adjust`
  * `font-size`
@@ -1490,6 +1522,32 @@ var VERSION = "3.9.0";
  *     }
  *   }
  * }, callback);
+ * @example <caption>Right to Left Language Support</caption>
+ * braintree.hostedFields.create({
+ *   client: clientInstance,
+ *   styles: {
+ *     'input': {
+ *       // other styles
+ *       direction: 'rtl'
+ *     },
+ *   },
+ *   fields: {
+ *     number: {
+ *       selector: '#card-number',
+ *       // Credit card formatting is not currently supported
+ *       // with RTL languages, so we need to turn it off for the number input
+ *       formatInput: false
+ *     },
+ *     cvv: {
+ *       selector: '#cvv',
+ *       placeholder: '•••'
+ *     },
+ *     expirationDate: {
+ *       selector: '#expiration-date',
+ *       type: 'month'
+ *     }
+ *   }
+ * }, callback);
  */
 function create(options, callback) {
   var integration;
@@ -1523,7 +1581,7 @@ module.exports = {
 /* eslint-disable no-reserved-keys */
 
 var enumerate = _dereq_('../../lib/enumerate');
-var VERSION = "3.9.0";
+var VERSION = "3.10.0";
 
 var constants = {
   VERSION: VERSION,
@@ -1563,6 +1621,7 @@ var constants = {
     '-webkit-tap-highlight-color',
     '-webkit-transition',
     'color',
+    'direction',
     'font',
     'font-family',
     'font-size',
@@ -1627,6 +1686,7 @@ constants.events = enumerate([
   'ADD_CLASS',
   'REMOVE_CLASS',
   'SET_ATTRIBUTE',
+  'REMOVE_ATTRIBUTE',
   'CLEAR_FIELD'
 ], 'hosted-fields:');
 
@@ -2113,7 +2173,7 @@ module.exports = {
 },{}],23:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.9.0";
+var VERSION = "3.10.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -2154,6 +2214,8 @@ var apiUrls = {
   production: 'https://api.braintreegateway.com:443',
   sandbox: 'https://api.sandbox.braintreegateway.com:443'
 };
+
+// endRemoveIf(production)
 
 function _isTokenizationKey(str) {
   return /^[a-zA-Z0-9]+_[a-zA-Z0-9]+_[a-zA-Z0-9_]+$/.test(str);
@@ -2338,6 +2400,8 @@ var legalHosts = {
   'braintreegateway.com': 1,
   'braintree-api.com': 1
 };
+
+// endRemoveIf(production)
 
 function stripSubdomains(domain) {
   return domain.split('.').slice(-2).join('.');

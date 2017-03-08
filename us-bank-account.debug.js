@@ -166,7 +166,7 @@ module.exports = function (obj) {
 },{}],5:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.9.0";
+var VERSION = "3.10.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -207,6 +207,8 @@ var apiUrls = {
   production: 'https://api.braintreegateway.com:443',
   sandbox: 'https://api.sandbox.braintreegateway.com:443'
 };
+
+// endRemoveIf(production)
 
 function _isTokenizationKey(str) {
   return /^[a-zA-Z0-9]+_[a-zA-Z0-9]+_[a-zA-Z0-9_]+$/.test(str);
@@ -398,7 +400,7 @@ module.exports = function (callback, functionName) {
 
 module.exports = {
   REQUIRED_BANK_DETAILS: ['routingNumber', 'accountNumber', 'accountType', 'accountHolderName', 'billingAddress'],
-  PLAID_LINK_JS: 'https://cdn.plaid.com/link/stable/link-initialize.js'
+  PLAID_LINK_JS: 'https://cdn.plaid.com/link/v2/stable/link-initialize.js'
 };
 
 },{}],17:[function(_dereq_,module,exports){
@@ -464,7 +466,7 @@ var errors = _dereq_('./errors');
 var USBankAccount = _dereq_('./us-bank-account');
 var deferred = _dereq_('../lib/deferred');
 var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
-var VERSION = "3.9.0";
+var VERSION = "3.10.0";
 var sharedErrors = _dereq_('../lib/errors');
 
 /**
@@ -558,7 +560,7 @@ function USBankAccount(options) {
 
   this._isTokenizingBankLogin = false;
 
-  analytics.sendEvent(this._client, 'web.usbankaccount.initialized');
+  analytics.sendEvent(this._client, 'usbankaccount.initialized');
 }
 
 /**
@@ -711,12 +713,12 @@ USBankAccount.prototype._tokenizeBankDetails = function (options, callback) {
 
     if (err) {
       error = errorFrom(err, status);
-      analytics.sendEvent(client, 'web.usbankaccount.bankdetails.tokenization.failed');
+      analytics.sendEvent(client, 'usbankaccount.bankdetails.tokenization.failed');
       callback(error);
       return;
     }
 
-    analytics.sendEvent(client, 'web.usbankaccount.bankdetails.tokenization.succeeded');
+    analytics.sendEvent(client, 'usbankaccount.bankdetails.tokenization.succeeded');
 
     callback(null, formatTokenizeResponse(response));
   });
@@ -764,7 +766,7 @@ USBankAccount.prototype._tokenizeBankLogin = function (options, callback) {
       onExit: function () {
         self._isTokenizingBankLogin = false;
 
-        analytics.sendEvent(client, 'web.usbankaccount.banklogin.tokenization.closed.by-user');
+        analytics.sendEvent(client, 'usbankaccount.banklogin.tokenization.closed.by-user');
 
         callback(new BraintreeError(errors.US_BANK_ACCOUNT_LOGIN_CLOSED));
       },
@@ -788,20 +790,20 @@ USBankAccount.prototype._tokenizeBankLogin = function (options, callback) {
 
           if (tokenizeErr) {
             error = errorFrom(tokenizeErr, status);
-            analytics.sendEvent(client, 'web.usbankaccount.banklogin.tokenization.failed');
+            analytics.sendEvent(client, 'usbankaccount.banklogin.tokenization.failed');
 
             callback(error);
             return;
           }
 
-          analytics.sendEvent(client, 'web.usbankaccount.banklogin.tokenization.succeeded');
+          analytics.sendEvent(client, 'usbankaccount.banklogin.tokenization.succeeded');
 
           callback(null, formatTokenizeResponse(response));
         });
       }
     }).open();
 
-    analytics.sendEvent(client, 'web.usbankaccount.banklogin.tokenization.started');
+    analytics.sendEvent(client, 'usbankaccount.banklogin.tokenization.started');
   });
 };
 

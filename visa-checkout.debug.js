@@ -146,7 +146,7 @@ module.exports = BraintreeError;
 },{"./enumerate":7}],4:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.9.0";
+var VERSION = "3.10.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -169,6 +169,8 @@ var apiUrls = {
   production: 'https://api.braintreegateway.com:443',
   sandbox: 'https://api.sandbox.braintreegateway.com:443'
 };
+
+// endRemoveIf(production)
 
 function _isTokenizationKey(str) {
   return /^[a-zA-Z0-9]+_[a-zA-Z0-9]+_[a-zA-Z0-9_]+$/.test(str);
@@ -372,7 +374,7 @@ var analytics = _dereq_('../lib/analytics');
 var deferred = _dereq_('../lib/deferred');
 var sharedErrors = _dereq_('../lib/errors');
 var errors = _dereq_('./errors');
-var VERSION = "3.9.0";
+var VERSION = "3.10.0";
 var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 
 /**
@@ -414,7 +416,7 @@ function create(options, callback) {
     return;
   }
 
-  analytics.sendEvent(options.client, 'web.visacheckout.initialized');
+  analytics.sendEvent(options.client, 'visacheckout.initialized');
 
   callback(null, new VisaCheckout(options));
 }
@@ -611,10 +613,10 @@ VisaCheckout.prototype.tokenize = function (payment, callback) {
           originalError: err
         }
       }));
-      analytics.sendEvent(this._client, 'web.visacheckout.tokenize.failed');
+      analytics.sendEvent(this._client, 'visacheckout.tokenize.failed');
     } else {
       callback(null, response.visaCheckoutCards[0]);
-      analytics.sendEvent(this._client, 'web.visacheckout.tokenize.succeeded');
+      analytics.sendEvent(this._client, 'visacheckout.tokenize.succeeded');
     }
   }.bind(this));
 };

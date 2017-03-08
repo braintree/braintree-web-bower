@@ -482,7 +482,7 @@ module.exports = {
 },{}],6:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.9.0";
+var VERSION = "3.10.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -527,6 +527,8 @@ var apiUrls = {
   production: 'https://api.braintreegateway.com:443',
   sandbox: 'https://api.sandbox.braintreegateway.com:443'
 };
+
+// endRemoveIf(production)
 
 function _isTokenizationKey(str) {
   return /^[a-zA-Z0-9]+_[a-zA-Z0-9]+_[a-zA-Z0-9_]+$/.test(str);
@@ -748,6 +750,11 @@ module.exports = {
     code: 'PAYPAL_NOT_ENABLED',
     message: 'PayPal is not enabled for this merchant.'
   },
+  PAYPAL_SANDBOX_ACCOUNT_NOT_LINKED: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'PAYPAL_SANDBOX_ACCOUNT_NOT_LINKED',
+    message: 'No linked PayPal Sandbox account. Sign into the Braintree gateway to configure your account.'
+  },
   PAYPAL_TOKENIZATION_REQUEST_ACTIVE: {
     type: BraintreeError.types.MERCHANT,
     code: 'PAYPAL_TOKENIZATION_REQUEST_ACTIVE',
@@ -797,7 +804,10 @@ module.exports = {
 
 },{"../lib/braintree-error":4}],19:[function(_dereq_,module,exports){
 'use strict';
-/** @module braintree-web/paypal-checkout */
+/**
+ * @module braintree-web/paypal-checkout
+ * @description A component to integrate with the [PayPal Checkout.js library](https://github.com/paypal/paypal-checkout).
+ */
 
 var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
@@ -807,7 +817,7 @@ var wrapPromise = _dereq_('../lib/wrap-promise');
 var PayPalCheckout = _dereq_('./paypal-checkout');
 var sharedErrors = _dereq_('../lib/errors');
 var browserDetection = _dereq_('../lib/browser-detection');
-var VERSION = "3.9.0";
+var VERSION = "3.10.0";
 
 /**
  * @static
@@ -816,6 +826,11 @@ var VERSION = "3.9.0";
  * @param {Client} options.client A {@link Client} instance.
  * @param {callback} [callback] The second argument, `data`, is the {@link PayPalCheckout} instance.
  * @example
+ * // Be sure to have checkout.js loaded on your page.
+ * // You can use the paypal-checkout package on npm
+ * // with a build tool or use a script hosted by PayPal:
+ * // <script src="https://www.paypalobjects.com/api/checkout.js" data-version-4 log-level="warn"></script>
+ *
  * braintree.paypalCheckout.create({
  *   client: clientInstance
  * }, function (createErr, paypalCheckoutInstance) {
@@ -842,8 +857,6 @@ var VERSION = "3.9.0";
  *     onAuthorize: function (data, actions) {
  *       return paypalCheckoutInstance.tokenizePayment(data).then(function (payload) {
  *         // Submit payload.nonce to your server
- *       }).catch(function (err) {
- *         // handle error
  *       });
  *     },
  *
@@ -859,44 +872,63 @@ var VERSION = "3.9.0";
  * @returns {Promise|void} Returns the PayPalCheckout instance.
  */
 function create(options) {
-  return new Promise(function (resolve) {
-    var config, clientVersion;
+  var config, clientVersion;
 
-    if (options.client == null) {
-      throw new BraintreeError({
-        type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
-        code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
-        message: 'options.client is required when instantiating PayPal Checkout.'
-      });
-    }
+  if (options.client == null) {
+    return Promise.reject(new BraintreeError({
+      type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
+      code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
+      message: 'options.client is required when instantiating PayPal Checkout.'
+    }));
+  }
 
-    config = options.client.getConfiguration();
-    clientVersion = config.analyticsMetadata.sdkVersion;
+  config = options.client.getConfiguration();
+  clientVersion = config.analyticsMetadata.sdkVersion;
 
-    if (clientVersion !== VERSION) {
-      throw new BraintreeError({
-        type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
-        code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
-        message: 'Client (version ' + clientVersion + ') and PayPal Checkout (version ' + VERSION + ') components must be from the same SDK version.'
-      });
-    }
+  if (clientVersion !== VERSION) {
+    return Promise.reject(new BraintreeError({
+      type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
+      code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
+      message: 'Client (version ' + clientVersion + ') and PayPal Checkout (version ' + VERSION + ') components must be from the same SDK version.'
+    }));
+  }
 
-    if (!config.gatewayConfiguration.paypalEnabled) {
-      throw new BraintreeError(errors.PAYPAL_NOT_ENABLED);
-    }
+  if (!config.gatewayConfiguration.paypalEnabled) {
+    return Promise.reject(new BraintreeError(errors.PAYPAL_NOT_ENABLED));
+  }
 
-    if (!browserDetection.supportsPopups()) {
-      throw new BraintreeError(errors.PAYPAL_BROWSER_NOT_SUPPORTED);
-    }
+  if (!config.gatewayConfiguration.paypal.clientId) {
+    return Promise.reject(new BraintreeError(errors.PAYPAL_SANDBOX_ACCOUNT_NOT_LINKED));
+  }
 
-    analytics.sendEvent(options.client, 'paypal-checkout.initialized');
+  if (!isSupported()) {
+    return Promise.reject(new BraintreeError(errors.PAYPAL_BROWSER_NOT_SUPPORTED));
+  }
 
-    resolve(new PayPalCheckout(options));
-  });
+  analytics.sendEvent(options.client, 'paypal-checkout.initialized');
+
+  return Promise.resolve(new PayPalCheckout(options));
+}
+
+/**
+ * @static
+ * @function isSupported
+ * @description Returns true if PayPal Checkout [supports this browser](/current/#browser-support-webviews).
+ * @example
+ * if (braintree.paypalCheckout.isSupported()) {
+ *   // Add PayPal button to the page
+ * } else {
+ *   // Hide PayPal payment option
+ * }
+ * @returns {Boolean} Returns true if PayPal Checkout supports this browser.
+ */
+function isSupported() {
+  return Boolean(browserDetection.supportsPopups());
 }
 
 module.exports = {
   create: wrapPromise(create),
+  isSupported: isSupported,
   /**
    * @description The current version of the SDK, i.e. `{@pkg version}`.
    * @type {string}
@@ -1029,6 +1061,9 @@ function PayPalCheckout(options) {
  * @param {string} [options.shippingAddressOverride.recipientName] Recipient's name.
  * @param {boolean} [options.shippingAddressEditable=true] Set to false to disable user editing of the shipping address.
  * @param {string} [options.billingAgreementDescription] Use this option to set the description of the preapproved payment agreement visible to customers in their PayPal profile during Vault flows. Max 255 characters.
+ * @param {string} [options.landingPageType=login] Use this option to specify the PayPal page to display when a user lands on the PayPal site to complete the payment.
+ * * `login` - A PayPal account login page is used.
+ * * `billing` - A non-PayPal account landing page is used.
  * @param {callback} [callback] The second argument is a PayPal `paymentId` or `billingToken` string, depending on whether `options.flow` is `checkout` or `vault`. This is also what is resolved by the promise if no callback is provided.
  * @example
  * // this paypal object is created by checkout.js
@@ -1051,7 +1086,7 @@ function PayPalCheckout(options) {
 PayPalCheckout.prototype.createPayment = wrapPromise(function (options) {
   var self = this; // eslint-disable-line no-invalid-this
 
-  return new Promise(function (resolve) {
+  return new Promise(function (resolve, reject) {
     var endpoint;
     var client = self._client;
 
@@ -1075,20 +1110,20 @@ PayPalCheckout.prototype.createPayment = wrapPromise(function (options) {
 
       if (err) {
         if (status === 422) {
-          throw new BraintreeError({
+          reject(new BraintreeError({
             type: errors.PAYPAL_INVALID_PAYMENT_OPTION.type,
             code: errors.PAYPAL_INVALID_PAYMENT_OPTION.code,
             message: errors.PAYPAL_INVALID_PAYMENT_OPTION.message,
             details: {
               originalError: err
             }
-          });
+          }));
         } else {
-          throw convertToBraintreeError(err, {
+          reject(convertToBraintreeError(err, {
             type: errors.PAYPAL_FLOW_FAILED.type,
             code: errors.PAYPAL_FLOW_FAILED.code,
             message: errors.PAYPAL_FLOW_FAILED.message
-          });
+          }));
         }
       } else {
         if (options.flow === 'checkout') {
@@ -1131,7 +1166,7 @@ PayPalCheckout.prototype.createPayment = wrapPromise(function (options) {
 PayPalCheckout.prototype.tokenizePayment = wrapPromise(function (tokenizeOptions) {
   var self = this; // eslint-disable-line no-invalid-this
 
-  return new Promise(function (resolve) {
+  return new Promise(function (resolve, reject) {
     var payload;
     var client = self._client;
     var options = {
@@ -1155,11 +1190,11 @@ PayPalCheckout.prototype.tokenizePayment = wrapPromise(function (tokenizeOptions
       if (err) {
         analytics.sendEvent(client, 'paypal-checkout.tokenization.failed');
 
-        throw convertToBraintreeError(err, {
+        reject(convertToBraintreeError(err, {
           type: errors.PAYPAL_ACCOUNT_TOKENIZATION_FAILED.type,
           code: errors.PAYPAL_ACCOUNT_TOKENIZATION_FAILED.code,
           message: errors.PAYPAL_ACCOUNT_TOKENIZATION_FAILED.message
-        });
+        }));
       } else {
         payload = self._formatTokenizePayload(response);
 
@@ -1186,7 +1221,8 @@ PayPalCheckout.prototype._formatPaymentResourceData = function (options) {
       brandName: options.displayName || gatewayConfiguration.paypal.displayName,
       localeCode: options.locale,
       noShipping: (!options.enableShippingAddress).toString(),
-      addressOverride: options.shippingAddressEditable === false
+      addressOverride: options.shippingAddressEditable === false,
+      landingPageType: options.landingPageType
     }
   };
 

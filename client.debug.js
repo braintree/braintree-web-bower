@@ -239,8 +239,10 @@
 var request = _dereq_('./request');
 var isWhitelistedDomain = _dereq_('../lib/is-whitelisted-domain');
 var BraintreeError = _dereq_('../lib/braintree-error');
+var convertToBraintreeError = _dereq_('../lib/convert-to-braintree-error');
 var addMetadata = _dereq_('../lib/add-metadata');
-var deferred = _dereq_('../lib/deferred');
+var Promise = _dereq_('../lib/promise');
+var assign = _dereq_('../lib/assign').assign;
 var constants = _dereq_('./constants');
 var errors = _dereq_('./errors');
 var sharedErrors = _dereq_('../lib/errors');
@@ -323,12 +325,13 @@ function Client(configuration) {
 /**
  * Used by other modules to formulate all network requests to the Braintree gateway. It is also capable of being used directly from your own form to tokenize credit card information. However, be sure to satisfy PCI compliance if you use direct card tokenization.
  * @public
+ * @function
  * @param {object} options Request options:
  * @param {string} options.method HTTP method, e.g. "get" or "post".
  * @param {string} options.endpoint Endpoint path, e.g. "payment_methods".
  * @param {object} options.data Data to send with the request.
  * @param {number} [options.timeout=60000] Set a timeout (in milliseconds) for the request.
- * @param {callback} callback The second argument, <code>data</code>, is the returned server data.
+ * @param {callback} [callback] The second argument, <code>data</code>, is the returned server data.
  * @example
  * <caption>Direct Credit Card Tokenization</caption>
  * var createClient = require('braintree-web/client').create;
@@ -365,92 +368,120 @@ function Client(configuration) {
  *     console.log('Got nonce:', response.creditCards[0].nonce);
  *   });
  * });
- * @returns {void}
+ * @returns {Promise|void} Returns a promise that resolves with the request response if no callback is provided.
  */
 Client.prototype.request = function (options, callback) {
-  var optionName, api, baseUrl, requestOptions;
+  var self = this; // eslint-disable-line no-invalid-this
+  var requestPromise = new Promise(function (resolve, reject) {
+    var optionName, api, baseUrl, requestOptions;
 
-  if (!options.method) {
-    optionName = 'options.method';
-  } else if (!options.endpoint) {
-    optionName = 'options.endpoint';
-  }
-
-  if (optionName) {
-    callback = deferred(callback);
-    callback(new BraintreeError({
-      type: errors.CLIENT_OPTION_REQUIRED.type,
-      code: errors.CLIENT_OPTION_REQUIRED.code,
-      message: optionName + ' is required when making a request.'
-    }));
-    return;
-  }
-
-  if ('api' in options) {
-    api = options.api;
-  } else {
-    api = 'clientApi';
-  }
-
-  requestOptions = {
-    method: options.method,
-    timeout: options.timeout
-  };
-
-  if (api === 'clientApi') {
-    baseUrl = this._clientApiBaseUrl;
-
-    requestOptions.data = addMetadata(this._configuration, options.data);
-  } else if (api === 'braintreeApi') {
-    if (!this._braintreeApi) {
-      callback(new BraintreeError(sharedErrors.BRAINTREE_API_ACCESS_RESTRICTED));
-      return;
+    if (!options.method) {
+      optionName = 'options.method';
+    } else if (!options.endpoint) {
+      optionName = 'options.endpoint';
     }
 
-    baseUrl = this._braintreeApi.baseUrl;
+    if (optionName) {
+      throw new BraintreeError({
+        type: errors.CLIENT_OPTION_REQUIRED.type,
+        code: errors.CLIENT_OPTION_REQUIRED.code,
+        message: optionName + ' is required when making a request.'
+      });
+    }
 
-    requestOptions.data = options.data;
-
-    requestOptions.headers = {
-      'Braintree-Version': constants.BRAINTREE_API_VERSION_HEADER,
-      Authorization: 'Bearer ' + this._braintreeApi.accessToken
-    };
-  } else {
-    callback(new BraintreeError({
-      type: errors.CLIENT_OPTION_INVALID.type,
-      code: errors.CLIENT_OPTION_INVALID.code,
-      message: 'options.api is invalid.'
-    }));
-    return;
-  }
-
-  requestOptions.url = baseUrl + options.endpoint;
-
-  this._request(requestOptions, this._bindRequestCallback(callback));
-};
-
-Client.prototype._bindRequestCallback = function (callback) {
-  return function (err, data, status) {
-    if (status === -1) {
-      callback(new BraintreeError(errors.CLIENT_REQUEST_TIMEOUT), null, status);
-    } else if (status === 403) {
-      callback(new BraintreeError(errors.CLIENT_AUTHORIZATION_INSUFFICIENT), null, status);
-    } else if (status === 429) {
-      callback(new BraintreeError(errors.CLIENT_RATE_LIMITED), null, status);
-    } else if (status >= 500) {
-      callback(new BraintreeError(errors.CLIENT_GATEWAY_NETWORK), null, status);
-    } else if (status < 200 || status >= 400) {
-      callback(new BraintreeError({
-        type: errors.CLIENT_REQUEST_ERROR.type,
-        code: errors.CLIENT_REQUEST_ERROR.code,
-        message: errors.CLIENT_REQUEST_ERROR.message,
-        details: {originalError: err}
-      }), null, status);
+    if ('api' in options) {
+      api = options.api;
     } else {
-      callback(null, data, status);
+      api = 'clientApi';
     }
-  };
+
+    requestOptions = {
+      method: options.method,
+      timeout: options.timeout
+    };
+
+    if (api === 'clientApi') {
+      baseUrl = self._clientApiBaseUrl;
+
+      requestOptions.data = addMetadata(self._configuration, options.data);
+    } else if (api === 'braintreeApi') {
+      if (!self._braintreeApi) {
+        throw new BraintreeError(sharedErrors.BRAINTREE_API_ACCESS_RESTRICTED);
+      }
+
+      baseUrl = self._braintreeApi.baseUrl;
+
+      requestOptions.data = options.data;
+
+      requestOptions.headers = {
+        'Braintree-Version': constants.BRAINTREE_API_VERSION_HEADER,
+        Authorization: 'Bearer ' + self._braintreeApi.accessToken
+      };
+    } else {
+      throw new BraintreeError({
+        type: errors.CLIENT_OPTION_INVALID.type,
+        code: errors.CLIENT_OPTION_INVALID.code,
+        message: 'options.api is invalid.'
+      });
+    }
+
+    requestOptions.url = baseUrl + options.endpoint;
+
+    self._request(requestOptions, function (err, data, status) {
+      var resolvedData;
+      var requestError = formatRequestError(status, err);
+
+      if (requestError) {
+        reject(requestError);
+        return;
+      }
+
+      resolvedData = assign({_httpStatus: status}, data);
+
+      resolve(resolvedData);
+    });
+  });
+
+  if (typeof callback === 'function') {
+    requestPromise.then(function (response) {
+      callback(null, response, response._httpStatus);
+    }).catch(function (err) {
+      var status = err && err.details && err.details.httpStatus;
+
+      callback(err, null, status);
+    });
+    return;
+  }
+
+  return requestPromise; // eslint-disable-line consistent-return
 };
+
+function formatRequestError(status, err) { // eslint-disable-line consistent-return
+  var requestError;
+
+  if (status === -1) {
+    requestError = new BraintreeError(errors.CLIENT_REQUEST_TIMEOUT);
+  } else if (status === 403) {
+    requestError = new BraintreeError(errors.CLIENT_AUTHORIZATION_INSUFFICIENT);
+  } else if (status === 429) {
+    requestError = new BraintreeError(errors.CLIENT_RATE_LIMITED);
+  } else if (status >= 500) {
+    requestError = new BraintreeError(errors.CLIENT_GATEWAY_NETWORK);
+  } else if (status < 200 || status >= 400) {
+    requestError = convertToBraintreeError(err, {
+      type: errors.CLIENT_REQUEST_ERROR.type,
+      code: errors.CLIENT_REQUEST_ERROR.code,
+      message: errors.CLIENT_REQUEST_ERROR.message
+    });
+  }
+
+  if (requestError) {
+    requestError.details = requestError.details || {};
+    requestError.details.httpStatus = status;
+
+    return requestError;
+  }
+}
 
 Client.prototype.toJSON = function () {
   return this.getConfiguration();
@@ -458,7 +489,7 @@ Client.prototype.toJSON = function () {
 
 module.exports = Client;
 
-},{"../lib/add-metadata":14,"../lib/braintree-error":15,"../lib/deferred":18,"../lib/errors":20,"../lib/is-whitelisted-domain":21,"./constants":3,"./errors":4,"./request":9}],3:[function(_dereq_,module,exports){
+},{"../lib/add-metadata":14,"../lib/assign":15,"../lib/braintree-error":16,"../lib/convert-to-braintree-error":18,"../lib/errors":22,"../lib/is-whitelisted-domain":23,"../lib/promise":28,"./constants":3,"./errors":4,"./request":9}],3:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -520,91 +551,95 @@ module.exports = {
   }
 };
 
-},{"../lib/braintree-error":15}],5:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":16}],5:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
+var Promise = _dereq_('../lib/promise');
+var wrapPromise = _dereq_('../lib/wrap-promise');
 var request = _dereq_('./request');
 var uuid = _dereq_('../lib/uuid');
 var constants = _dereq_('../lib/constants');
 var createAuthorizationData = _dereq_('../lib/create-authorization-data');
 var errors = _dereq_('./errors');
 
-function getConfiguration(options, callback) {
-  var configuration, authData, attrs, configUrl;
-  var sessionId = uuid();
-  var analyticsMetadata = {
-    merchantAppId: global.location.host,
-    platform: constants.PLATFORM,
-    sdkVersion: constants.VERSION,
-    source: constants.SOURCE,
-    integration: constants.INTEGRATION,
-    integrationType: constants.INTEGRATION,
-    sessionId: sessionId
-  };
-
-  try {
-    authData = createAuthorizationData(options.authorization);
-  } catch (err) {
-    callback(new BraintreeError(errors.CLIENT_INVALID_AUTHORIZATION));
-    return;
-  }
-  attrs = authData.attrs;
-  configUrl = authData.configUrl;
-
-  attrs._meta = analyticsMetadata;
-  attrs.braintreeLibraryVersion = constants.BRAINTREE_LIBRARY_VERSION;
-  attrs.configVersion = '3';
-
-  request({
-    url: configUrl,
-    method: 'GET',
-    data: attrs
-  }, function (err, response, status) {
-    var errorTemplate;
-
-    if (err) {
-      if (status === 403) {
-        errorTemplate = errors.CLIENT_AUTHORIZATION_INSUFFICIENT;
-      } else {
-        errorTemplate = errors.CLIENT_GATEWAY_NETWORK;
-      }
-
-      callback(new BraintreeError({
-        type: errorTemplate.type,
-        code: errorTemplate.code,
-        message: errorTemplate.message,
-        details: {
-          originalError: err
-        }
-      }));
-      return;
-    }
-
-    configuration = {
-      authorization: options.authorization,
-      authorizationType: attrs.tokenizationKey ? 'TOKENIZATION_KEY' : 'CLIENT_TOKEN',
-      analyticsMetadata: analyticsMetadata,
-      gatewayConfiguration: response
+function getConfiguration(options) {
+  return new Promise(function (resolve, reject) {
+    var configuration, authData, attrs, configUrl;
+    var sessionId = uuid();
+    var analyticsMetadata = {
+      merchantAppId: global.location.host,
+      platform: constants.PLATFORM,
+      sdkVersion: constants.VERSION,
+      source: constants.SOURCE,
+      integration: constants.INTEGRATION,
+      integrationType: constants.INTEGRATION,
+      sessionId: sessionId
     };
 
-    callback(null, configuration);
+    try {
+      authData = createAuthorizationData(options.authorization);
+    } catch (err) {
+      reject(new BraintreeError(errors.CLIENT_INVALID_AUTHORIZATION));
+      return;
+    }
+    attrs = authData.attrs;
+    configUrl = authData.configUrl;
+
+    attrs._meta = analyticsMetadata;
+    attrs.braintreeLibraryVersion = constants.BRAINTREE_LIBRARY_VERSION;
+    attrs.configVersion = '3';
+
+    request({
+      url: configUrl,
+      method: 'GET',
+      data: attrs
+    }, function (err, response, status) {
+      var errorTemplate;
+
+      if (err) {
+        if (status === 403) {
+          errorTemplate = errors.CLIENT_AUTHORIZATION_INSUFFICIENT;
+        } else {
+          errorTemplate = errors.CLIENT_GATEWAY_NETWORK;
+        }
+
+        reject(new BraintreeError({
+          type: errorTemplate.type,
+          code: errorTemplate.code,
+          message: errorTemplate.message,
+          details: {
+            originalError: err
+          }
+        }));
+        return;
+      }
+
+      configuration = {
+        authorization: options.authorization,
+        authorizationType: attrs.tokenizationKey ? 'TOKENIZATION_KEY' : 'CLIENT_TOKEN',
+        analyticsMetadata: analyticsMetadata,
+        gatewayConfiguration: response
+      };
+
+      resolve(configuration);
+    });
   });
 }
 
 module.exports = {
-  getConfiguration: getConfiguration
+  getConfiguration: wrapPromise(getConfiguration)
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../lib/braintree-error":15,"../lib/constants":16,"../lib/create-authorization-data":17,"../lib/uuid":28,"./errors":4,"./request":9}],6:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":16,"../lib/constants":17,"../lib/create-authorization-data":19,"../lib/promise":28,"../lib/uuid":30,"../lib/wrap-promise":31,"./errors":4,"./request":9}],6:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Client = _dereq_('./client');
 var getConfiguration = _dereq_('./get-configuration').getConfiguration;
-var VERSION = "3.9.0";
+var VERSION = "3.10.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('../lib/wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -629,34 +664,20 @@ var sharedErrors = _dereq_('../lib/errors');
  * @static
  */
 function create(options) {
-  return new Promise(function (resolve) {
-    if (!options.authorization) {
-      throw new BraintreeError({
-        type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
-        code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
-        message: 'options.authorization is required when instantiating a client.'
-      });
+  if (!options.authorization) {
+    return Promise.reject(new BraintreeError({
+      type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
+      code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
+      message: 'options.authorization is required when instantiating a client.'
+    }));
+  }
+
+  return getConfiguration(options).then(function (configuration) {
+    if (options.debug) {
+      configuration.isDebug = true;
     }
 
-    getConfiguration(options, function (err, configuration) {
-      var client;
-
-      if (err) {
-        throw err;
-      }
-
-      if (options.debug) {
-        configuration.isDebug = true;
-      }
-
-      try {
-        client = new Client(configuration);
-      } catch (clientCreationError) {
-        throw clientCreationError;
-      }
-
-      resolve(client);
-    });
+    return new Client(configuration);
   });
 }
 
@@ -669,11 +690,12 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/braintree-error":15,"../lib/errors":20,"../lib/promise":26,"../lib/wrap-promise":29,"./client":2,"./get-configuration":5}],7:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":16,"../lib/errors":22,"../lib/promise":28,"../lib/wrap-promise":31,"./client":2,"./get-configuration":5}],7:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
 var querystring = _dereq_('../../lib/querystring');
+var assign = _dereq_('../../lib/assign').assign;
 var prepBody = _dereq_('./prep-body');
 var parseBody = _dereq_('./parse-body');
 var isXHRAvailable = global.XMLHttpRequest && 'withCredentials' in new global.XMLHttpRequest();
@@ -688,7 +710,9 @@ function request(options, cb) {
   var url = options.url;
   var body = options.data;
   var timeout = options.timeout;
-  var headers = options.headers || {};
+  var headers = assign({
+    'Content-Type': 'application/json'
+  }, options.headers);
   var req = getRequestObject();
   var callback = cb;
 
@@ -711,6 +735,10 @@ function request(options, cb) {
       }
     };
   } else {
+    if (options.headers) {
+      url = querystring.queryify(url, headers);
+    }
+
     req.onload = function () {
       callback(null, parseBody(req.responseText), req.status);
     };
@@ -733,17 +761,6 @@ function request(options, cb) {
   req.timeout = timeout;
 
   if (isXHRAvailable) {
-    req.setRequestHeader('Content-Type', 'application/json');
-
-    // TODO: Make this work in IE9.
-    //
-    // To do this, we'll change these URL and headers...
-    // /my/endpoint
-    // Content-Type: text/plain
-    // Authorization: Bearer abc123
-    //
-    // ...to this URL:
-    // /my/endpoint?content_type=text%2Fplain&authorization:Bearer+abc123
     Object.keys(headers).forEach(function (headerKey) {
       req.setRequestHeader(headerKey, headers[headerKey]);
     });
@@ -759,7 +776,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../lib/querystring":27,"./parse-body":12,"./prep-body":13}],8:[function(_dereq_,module,exports){
+},{"../../lib/assign":15,"../../lib/querystring":29,"./parse-body":12,"./prep-body":13}],8:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -799,7 +816,7 @@ module.exports = function (options, cb) {
   }
 };
 
-},{"../../lib/once":23,"./ajax-driver":7,"./get-user-agent":8,"./is-http":10,"./jsonp-driver":11}],10:[function(_dereq_,module,exports){
+},{"../../lib/once":25,"./ajax-driver":7,"./get-user-agent":8,"./is-http":10,"./jsonp-driver":11}],10:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -920,7 +937,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../lib/querystring":27,"../../lib/uuid":28}],12:[function(_dereq_,module,exports){
+},{"../../lib/querystring":29,"../../lib/uuid":30}],12:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (body) {
@@ -980,7 +997,32 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":16,"./create-authorization-data":17,"./json-clone":22}],15:[function(_dereq_,module,exports){
+},{"./constants":17,"./create-authorization-data":19,"./json-clone":24}],15:[function(_dereq_,module,exports){
+'use strict';
+
+var assignNormalized = typeof Object.assign === 'function' ? Object.assign : assignPolyfill;
+
+function assignPolyfill(destination) {
+  var i, source, key;
+
+  for (i = 1; i < arguments.length; i++) {
+    source = arguments[i];
+    for (key in source) {
+      if (source.hasOwnProperty(key)) {
+        destination[key] = source[key];
+      }
+    }
+  }
+
+  return destination;
+}
+
+module.exports = {
+  assign: assignNormalized,
+  _assign: assignPolyfill
+};
+
+},{}],16:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -1057,10 +1099,10 @@ BraintreeError.types = enumerate([
 
 module.exports = BraintreeError;
 
-},{"./enumerate":19}],16:[function(_dereq_,module,exports){
+},{"./enumerate":21}],17:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.9.0";
+var VERSION = "3.10.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -1074,7 +1116,29 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],17:[function(_dereq_,module,exports){
+},{}],18:[function(_dereq_,module,exports){
+'use strict';
+
+var BraintreeError = _dereq_('./braintree-error');
+
+function convertToBraintreeError(originalErr, btErrorObject) {
+  if (originalErr instanceof BraintreeError) {
+    return originalErr;
+  }
+
+  return new BraintreeError({
+    type: btErrorObject.type,
+    code: btErrorObject.code,
+    message: btErrorObject.message,
+    details: {
+      originalError: originalErr
+    }
+  });
+}
+
+module.exports = convertToBraintreeError;
+
+},{"./braintree-error":16}],19:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/polyfill').atob;
@@ -1083,6 +1147,8 @@ var apiUrls = {
   production: 'https://api.braintreegateway.com:443',
   sandbox: 'https://api.sandbox.braintreegateway.com:443'
 };
+
+// endRemoveIf(production)
 
 function _isTokenizationKey(str) {
   return /^[a-zA-Z0-9]+_[a-zA-Z0-9]+_[a-zA-Z0-9_]+$/.test(str);
@@ -1121,7 +1187,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":24}],18:[function(_dereq_,module,exports){
+},{"../lib/polyfill":26}],20:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (fn) {
@@ -1135,7 +1201,7 @@ module.exports = function (fn) {
   };
 };
 
-},{}],19:[function(_dereq_,module,exports){
+},{}],21:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -1149,7 +1215,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],20:[function(_dereq_,module,exports){
+},{}],22:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -1182,7 +1248,7 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":15}],21:[function(_dereq_,module,exports){
+},{"./braintree-error":16}],23:[function(_dereq_,module,exports){
 'use strict';
 
 var parser;
@@ -1192,6 +1258,8 @@ var legalHosts = {
   'braintreegateway.com': 1,
   'braintree-api.com': 1
 };
+
+// endRemoveIf(production)
 
 function stripSubdomains(domain) {
   return domain.split('.').slice(-2).join('.');
@@ -1215,14 +1283,14 @@ function isWhitelistedDomain(url) {
 
 module.exports = isWhitelistedDomain;
 
-},{}],22:[function(_dereq_,module,exports){
+},{}],24:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],23:[function(_dereq_,module,exports){
+},{}],25:[function(_dereq_,module,exports){
 'use strict';
 
 function once(fn) {
@@ -1238,7 +1306,7 @@ function once(fn) {
 
 module.exports = once;
 
-},{}],24:[function(_dereq_,module,exports){
+},{}],26:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1277,7 +1345,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],25:[function(_dereq_,module,exports){
+},{}],27:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (promise, callback) { // eslint-disable-line consistent-return
@@ -1294,7 +1362,7 @@ module.exports = function (promise, callback) { // eslint-disable-line consisten
   }
 };
 
-},{}],26:[function(_dereq_,module,exports){
+},{}],28:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1303,7 +1371,7 @@ var Promise = global.Promise || _dereq_('promise-polyfill');
 module.exports = Promise;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":1}],27:[function(_dereq_,module,exports){
+},{"promise-polyfill":1}],29:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1394,7 +1462,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],28:[function(_dereq_,module,exports){
+},{}],30:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {
@@ -1408,7 +1476,7 @@ function uuid() {
 
 module.exports = uuid;
 
-},{}],29:[function(_dereq_,module,exports){
+},{}],31:[function(_dereq_,module,exports){
 'use strict';
 
 var deferred = _dereq_('./deferred');
@@ -1431,5 +1499,5 @@ function wrapPromise(fn) {
 
 module.exports = wrapPromise;
 
-},{"./deferred":18,"./once":23,"./promise-or-callback":25}]},{},[6])(6)
+},{"./deferred":20,"./once":25,"./promise-or-callback":27}]},{},[6])(6)
 });
