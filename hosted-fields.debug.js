@@ -539,6 +539,315 @@ module.exports = function setAttributes(element, attributes) {
 };
 
 },{}],7:[function(_dereq_,module,exports){
+(function (root) {
+
+  // Store setTimeout reference so promise-polyfill will be unaffected by
+  // other code modifying setTimeout (like sinon.useFakeTimers())
+  var setTimeoutFunc = setTimeout;
+
+  function noop() {}
+  
+  // Polyfill for Function.prototype.bind
+  function bind(fn, thisArg) {
+    return function () {
+      fn.apply(thisArg, arguments);
+    };
+  }
+
+  function Promise(fn) {
+    if (typeof this !== 'object') throw new TypeError('Promises must be constructed via new');
+    if (typeof fn !== 'function') throw new TypeError('not a function');
+    this._state = 0;
+    this._handled = false;
+    this._value = undefined;
+    this._deferreds = [];
+
+    doResolve(fn, this);
+  }
+
+  function handle(self, deferred) {
+    while (self._state === 3) {
+      self = self._value;
+    }
+    if (self._state === 0) {
+      self._deferreds.push(deferred);
+      return;
+    }
+    self._handled = true;
+    Promise._immediateFn(function () {
+      var cb = self._state === 1 ? deferred.onFulfilled : deferred.onRejected;
+      if (cb === null) {
+        (self._state === 1 ? resolve : reject)(deferred.promise, self._value);
+        return;
+      }
+      var ret;
+      try {
+        ret = cb(self._value);
+      } catch (e) {
+        reject(deferred.promise, e);
+        return;
+      }
+      resolve(deferred.promise, ret);
+    });
+  }
+
+  function resolve(self, newValue) {
+    try {
+      // Promise Resolution Procedure: https://github.com/promises-aplus/promises-spec#the-promise-resolution-procedure
+      if (newValue === self) throw new TypeError('A promise cannot be resolved with itself.');
+      if (newValue && (typeof newValue === 'object' || typeof newValue === 'function')) {
+        var then = newValue.then;
+        if (newValue instanceof Promise) {
+          self._state = 3;
+          self._value = newValue;
+          finale(self);
+          return;
+        } else if (typeof then === 'function') {
+          doResolve(bind(then, newValue), self);
+          return;
+        }
+      }
+      self._state = 1;
+      self._value = newValue;
+      finale(self);
+    } catch (e) {
+      reject(self, e);
+    }
+  }
+
+  function reject(self, newValue) {
+    self._state = 2;
+    self._value = newValue;
+    finale(self);
+  }
+
+  function finale(self) {
+    if (self._state === 2 && self._deferreds.length === 0) {
+      Promise._immediateFn(function() {
+        if (!self._handled) {
+          Promise._unhandledRejectionFn(self._value);
+        }
+      });
+    }
+
+    for (var i = 0, len = self._deferreds.length; i < len; i++) {
+      handle(self, self._deferreds[i]);
+    }
+    self._deferreds = null;
+  }
+
+  function Handler(onFulfilled, onRejected, promise) {
+    this.onFulfilled = typeof onFulfilled === 'function' ? onFulfilled : null;
+    this.onRejected = typeof onRejected === 'function' ? onRejected : null;
+    this.promise = promise;
+  }
+
+  /**
+   * Take a potentially misbehaving resolver function and make sure
+   * onFulfilled and onRejected are only called once.
+   *
+   * Makes no guarantees about asynchrony.
+   */
+  function doResolve(fn, self) {
+    var done = false;
+    try {
+      fn(function (value) {
+        if (done) return;
+        done = true;
+        resolve(self, value);
+      }, function (reason) {
+        if (done) return;
+        done = true;
+        reject(self, reason);
+      });
+    } catch (ex) {
+      if (done) return;
+      done = true;
+      reject(self, ex);
+    }
+  }
+
+  Promise.prototype['catch'] = function (onRejected) {
+    return this.then(null, onRejected);
+  };
+
+  Promise.prototype.then = function (onFulfilled, onRejected) {
+    var prom = new (this.constructor)(noop);
+
+    handle(this, new Handler(onFulfilled, onRejected, prom));
+    return prom;
+  };
+
+  Promise.all = function (arr) {
+    var args = Array.prototype.slice.call(arr);
+
+    return new Promise(function (resolve, reject) {
+      if (args.length === 0) return resolve([]);
+      var remaining = args.length;
+
+      function res(i, val) {
+        try {
+          if (val && (typeof val === 'object' || typeof val === 'function')) {
+            var then = val.then;
+            if (typeof then === 'function') {
+              then.call(val, function (val) {
+                res(i, val);
+              }, reject);
+              return;
+            }
+          }
+          args[i] = val;
+          if (--remaining === 0) {
+            resolve(args);
+          }
+        } catch (ex) {
+          reject(ex);
+        }
+      }
+
+      for (var i = 0; i < args.length; i++) {
+        res(i, args[i]);
+      }
+    });
+  };
+
+  Promise.resolve = function (value) {
+    if (value && typeof value === 'object' && value.constructor === Promise) {
+      return value;
+    }
+
+    return new Promise(function (resolve) {
+      resolve(value);
+    });
+  };
+
+  Promise.reject = function (value) {
+    return new Promise(function (resolve, reject) {
+      reject(value);
+    });
+  };
+
+  Promise.race = function (values) {
+    return new Promise(function (resolve, reject) {
+      for (var i = 0, len = values.length; i < len; i++) {
+        values[i].then(resolve, reject);
+      }
+    });
+  };
+
+  // Use polyfill for setImmediate for performance gains
+  Promise._immediateFn = (typeof setImmediate === 'function' && function (fn) { setImmediate(fn); }) ||
+    function (fn) {
+      setTimeoutFunc(fn, 0);
+    };
+
+  Promise._unhandledRejectionFn = function _unhandledRejectionFn(err) {
+    if (typeof console !== 'undefined' && console) {
+      console.warn('Possible Unhandled Promise Rejection:', err); // eslint-disable-line no-console
+    }
+  };
+
+  /**
+   * Set the immediate function to execute callbacks
+   * @param fn {function} Function to execute
+   * @deprecated
+   */
+  Promise._setImmediateFn = function _setImmediateFn(fn) {
+    Promise._immediateFn = fn;
+  };
+
+  /**
+   * Change the function to execute on unhandled rejection
+   * @param {function} fn Function to execute on unhandled rejection
+   * @deprecated
+   */
+  Promise._setUnhandledRejectionFn = function _setUnhandledRejectionFn(fn) {
+    Promise._unhandledRejectionFn = fn;
+  };
+  
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = Promise;
+  } else if (!root.Promise) {
+    root.Promise = Promise;
+  }
+
+})(this);
+
+},{}],8:[function(_dereq_,module,exports){
+'use strict';
+
+function deferred(fn) {
+  return function () {
+    // IE9 doesn't support passing arguments to setTimeout so we have to emulate it.
+    var args = arguments;
+
+    setTimeout(function () {
+      fn.apply(null, args);
+    }, 1);
+  };
+}
+
+module.exports = deferred;
+
+},{}],9:[function(_dereq_,module,exports){
+'use strict';
+
+function once(fn) {
+  var called = false;
+
+  return function () {
+    if (!called) {
+      called = true;
+      fn.apply(null, arguments);
+    }
+  };
+}
+
+module.exports = once;
+
+},{}],10:[function(_dereq_,module,exports){
+'use strict';
+
+function promiseOrCallback(promise, callback) { // eslint-disable-line consistent-return
+  if (callback) {
+    promise
+      .then(function (data) {
+        callback(null, data);
+      })
+      .catch(function (err) {
+        callback(err);
+      });
+  } else {
+    return promise;
+  }
+}
+
+module.exports = promiseOrCallback;
+
+},{}],11:[function(_dereq_,module,exports){
+'use strict';
+
+var deferred = _dereq_('./lib/deferred');
+var once = _dereq_('./lib/once');
+var promiseOrCallback = _dereq_('./lib/promise-or-callback');
+
+function wrapPromise(fn) {
+  return function () {
+    var callback;
+    var args = Array.prototype.slice.call(arguments);
+    var lastArg = args[args.length - 1];
+
+    if (typeof lastArg === 'function') {
+      callback = args.pop();
+      callback = once(deferred(callback));
+    }
+    return promiseOrCallback(fn.apply(this, args), callback); // eslint-disable-line no-invalid-this
+  };
+}
+
+module.exports = wrapPromise;
+
+},{"./lib/deferred":8,"./lib/once":9,"./lib/promise-or-callback":10}],12:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../lib/braintree-error');
@@ -577,7 +886,7 @@ function _isValid(attribute, value) {
 
 module.exports = attributeValidationError;
 
-},{"../../lib/braintree-error":18,"../shared/constants":12,"../shared/errors":13}],8:[function(_dereq_,module,exports){
+},{"../../lib/braintree-error":23,"../shared/constants":17,"../shared/errors":18}],13:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('../shared/constants');
@@ -591,7 +900,7 @@ module.exports = function composeUrl(assetsUrl, componentId, isDebug) {
     componentId;
 };
 
-},{"../../lib/use-min":38,"../shared/constants":12}],9:[function(_dereq_,module,exports){
+},{"../../lib/use-min":43,"../shared/constants":17}],14:[function(_dereq_,module,exports){
 'use strict';
 
 var Destructor = _dereq_('../../lib/destructor');
@@ -605,20 +914,21 @@ var errors = _dereq_('../shared/errors');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var uuid = _dereq_('../../lib/uuid');
 var findParentTags = _dereq_('../shared/find-parent-tags');
-var throwIfNoCallback = _dereq_('../../lib/throw-if-no-callback');
 var isIos = _dereq_('../../lib/is-ios');
 var events = constants.events;
 var EventEmitter = _dereq_('../../lib/event-emitter');
 var injectFrame = _dereq_('./inject-frame');
 var analytics = _dereq_('../../lib/analytics');
 var whitelistedFields = constants.whitelistedFields;
-var VERSION = "3.10.0";
+var VERSION = "3.11.0";
 var methods = _dereq_('../../lib/methods');
 var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
 var deferred = _dereq_('../../lib/deferred');
 var sharedErrors = _dereq_('../../lib/errors');
 var getCardTypes = _dereq_('credit-card-type');
 var attributeValidationError = _dereq_('./attribute-validation-error');
+var Promise = _dereq_('../../lib/promise');
+var wrapPromise = _dereq_('wrap-promise');
 
 /**
  * @typedef {object} HostedFields~tokenizePayload
@@ -1048,9 +1358,10 @@ HostedFields.prototype._setupLabelFocus = function (type, container) {
 };
 
 /**
- * Cleanly tear down anything set up by {@link module:braintree-web/hosted-fields.create|create}
+ * Cleanly remove anything set up by {@link module:braintree-web/hosted-fields.create|create}.
  * @public
- * @param {callback} [callback] Callback executed on completion, containing an error if one occurred. No data is returned if teardown completes successfully.
+ * @function
+ * @param {callback} [callback] Called on completion, containing an error if one occurred. No data is returned if teardown completes successfully. If no callback is provided, `teardown` returns a promise.
  * @example
  * hostedFieldsInstance.teardown(function (teardownErr) {
  *   if (teardownErr) {
@@ -1059,28 +1370,32 @@ HostedFields.prototype._setupLabelFocus = function (type, container) {
  *     console.info('Hosted Fields has been torn down!');
  *   }
  * });
- * @returns {void}
+ * @returns {Promise|void} If no callback is provided, returns a promise that resolves when the teardown is complete.
  */
-HostedFields.prototype.teardown = function (callback) {
-  var client = this._client;
+HostedFields.prototype.teardown = wrapPromise(function () {
+  var self = this; // eslint-disable-line no-invalid-this
 
-  this._destructor.teardown(function (err) {
-    analytics.sendEvent(client, 'custom.hosted-fields.teardown-completed');
+  return new Promise(function (resolve, reject) {
+    self._destructor.teardown(function (err) {
+      analytics.sendEvent(self._client, 'custom.hosted-fields.teardown-completed');
 
-    if (typeof callback === 'function') {
-      callback = deferred(callback);
-      callback(err);
-    }
+      if (err) {
+        reject(err);
+      } else {
+        resolve();
+      }
+    });
   });
-};
+});
 
 /**
  * Tokenizes fields and returns a nonce payload.
  * @public
+ * @function
  * @param {object} [options] All tokenization options for the Hosted Fields component.
  * @param {boolean} [options.vault=false] When true, will vault the tokenized card. Cards will only be vaulted when using a client created with a client token that includes a customer ID.
  * @param {string} [options.billingAddress.postalCode] When supplied, this postal code will be tokenized along with the contents of the fields. If a postal code is provided as part of the Hosted Fields configuration, the value of the field will be tokenized and this value will be ignored.
- * @param {callback} callback The second argument, <code>data</code>, is a {@link HostedFields~tokenizePayload|tokenizePayload}
+ * @param {callback} [callback] The second argument, <code>data</code>, is a {@link HostedFields~tokenizePayload|tokenizePayload}. If no callback is provided, `tokenize` returns a function that resolves with a {@link HostedFields~tokenizePayload|tokenizePayload}.
  * @example <caption>Tokenize a card</caption>
  * hostedFieldsInstance.tokenize(function (tokenizeErr, payload) {
  *   if (tokenizeErr) {
@@ -1128,18 +1443,26 @@ HostedFields.prototype.teardown = function (callback) {
  * });
  * @returns {void}
  */
-HostedFields.prototype.tokenize = function (options, callback) {
-  if (!callback) {
-    callback = options;
+HostedFields.prototype.tokenize = wrapPromise(function (options) {
+  var self = this; // eslint-disable-line no-invalid-this
+
+  if (!options) {
     options = {};
   }
 
-  throwIfNoCallback(callback, 'tokenize');
+  return new Promise(function (resolve, reject) {
+    self._bus.emit(events.TOKENIZATION_REQUEST, options, function (response) {
+      var err = response[0];
+      var payload = response[1];
 
-  this._bus.emit(events.TOKENIZATION_REQUEST, options, function (response) {
-    callback.apply(null, response);
+      if (err) {
+        reject(err);
+      } else {
+        resolve(payload);
+      }
+    });
   });
-};
+});
 
 /**
  * Add a class to a {@link module:braintree-web/hosted-fields~field field}. Useful for updating field styles when events occur elsewhere in your checkout.
@@ -1291,6 +1614,27 @@ HostedFields.prototype.setAttribute = function (options, callback) {
   }
 };
 
+/**
+ * Removes a supported attribute from a {@link module:braintree-web/hosted-fields~field field}.
+ *
+ * @public
+ * @param {object} options The options for the attribute you wish to remove.
+ * @param {string} options.field The field from which you wish to remove an attribute. Must be a valid {@link module:braintree-web/hosted-fields~fieldOptions fieldOption}.
+ * @param {string} options.attribute The name of the attribute you wish to remove from the field.
+ * @param {callback} [callback] Callback executed on completion, containing an error if one occurred. No data is returned if the attribute is removed successfully.
+ *
+ * @example <caption>Remove the placeholder attribute of a field</caption>
+ * hostedFieldsInstance.removeAttribute({
+ *   field: 'number',
+ *   attribute: 'placeholder'
+ * }, function (attributeErr) {
+ *   if (attributeErr) {
+ *     console.error(attributeErr);
+ *   }
+ * });
+ *
+ * @returns {void}
+ */
 HostedFields.prototype.removeAttribute = function (options, callback) {
   var attributeErr, err;
 
@@ -1400,7 +1744,7 @@ HostedFields.prototype.getState = function () {
 
 module.exports = HostedFields;
 
-},{"../../lib/analytics":16,"../../lib/braintree-error":18,"../../lib/bus":21,"../../lib/classlist":22,"../../lib/constants":23,"../../lib/convert-methods-to-error":24,"../../lib/deferred":26,"../../lib/destructor":27,"../../lib/errors":29,"../../lib/event-emitter":30,"../../lib/is-ios":31,"../../lib/methods":34,"../../lib/throw-if-no-callback":37,"../../lib/uuid":39,"../shared/constants":12,"../shared/errors":13,"../shared/find-parent-tags":14,"./attribute-validation-error":7,"./compose-url":8,"./inject-frame":10,"credit-card-type":1,"iframer":3}],10:[function(_dereq_,module,exports){
+},{"../../lib/analytics":21,"../../lib/braintree-error":23,"../../lib/bus":26,"../../lib/classlist":27,"../../lib/constants":28,"../../lib/convert-methods-to-error":29,"../../lib/deferred":31,"../../lib/destructor":32,"../../lib/errors":34,"../../lib/event-emitter":35,"../../lib/is-ios":36,"../../lib/methods":39,"../../lib/promise":42,"../../lib/uuid":44,"../shared/constants":17,"../shared/errors":18,"../shared/find-parent-tags":19,"./attribute-validation-error":12,"./compose-url":13,"./inject-frame":15,"credit-card-type":1,"iframer":3,"wrap-promise":11}],15:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function injectFrame(frame, container) {
@@ -1417,14 +1761,14 @@ module.exports = function injectFrame(frame, container) {
   return [frame, clearboth];
 };
 
-},{}],11:[function(_dereq_,module,exports){
+},{}],16:[function(_dereq_,module,exports){
 'use strict';
 /** @module braintree-web/hosted-fields */
 
 var HostedFields = _dereq_('./external/hosted-fields');
-var deferred = _dereq_('../lib/deferred');
-var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
-var VERSION = "3.10.0";
+var wrapPromise = _dereq_('wrap-promise');
+var Promise = _dereq_('../lib/promise');
+var VERSION = "3.11.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -1491,7 +1835,7 @@ var VERSION = "3.10.0";
  * @param {Client} options.client A {@link Client} instance.
  * @param {fieldOptions} options.fields A {@link module:braintree-web/hosted-fields~fieldOptions set of options for each field}.
  * @param {styleOptions} options.styles {@link module:braintree-web/hosted-fields~styleOptions Styles} applied to each field.
- * @param {callback} callback The second argument, `data`, is the {@link HostedFields} instance.
+ * @param {callback} [callback] The second argument, `data`, is the {@link HostedFields} instance. If no callback is provided, `create` returns a promise that resolves with the {@link HostedFields} instance.
  * @returns {void}
  * @example
  * braintree.hostedFields.create({
@@ -1549,26 +1893,20 @@ var VERSION = "3.10.0";
  *   }
  * }, callback);
  */
-function create(options, callback) {
+function create(options) {
   var integration;
 
-  throwIfNoCallback(callback, 'create');
-
-  try {
+  return new Promise(function (resolve) {
     integration = new HostedFields(options);
-  } catch (err) {
-    callback = deferred(callback);
-    callback(err);
-    return;
-  }
 
-  integration.on('ready', function () {
-    callback(null, integration);
+    integration.on('ready', function () {
+      resolve(integration);
+    });
   });
 }
 
 module.exports = {
-  create: create,
+  create: wrapPromise(create),
   /**
    * @description The current version of the SDK, i.e. `{@pkg version}`.
    * @type {string}
@@ -1576,12 +1914,12 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/deferred":26,"../lib/throw-if-no-callback":37,"./external/hosted-fields":9}],12:[function(_dereq_,module,exports){
+},{"../lib/promise":42,"./external/hosted-fields":14,"wrap-promise":11}],17:[function(_dereq_,module,exports){
 'use strict';
 /* eslint-disable no-reserved-keys */
 
 var enumerate = _dereq_('../../lib/enumerate');
-var VERSION = "3.10.0";
+var VERSION = "3.11.0";
 
 var constants = {
   VERSION: VERSION,
@@ -1692,7 +2030,7 @@ constants.events = enumerate([
 
 module.exports = constants;
 
-},{"../../lib/enumerate":28}],13:[function(_dereq_,module,exports){
+},{"../../lib/enumerate":33}],18:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../lib/braintree-error');
@@ -1750,7 +2088,7 @@ module.exports = {
   }
 };
 
-},{"../../lib/braintree-error":18}],14:[function(_dereq_,module,exports){
+},{"../../lib/braintree-error":23}],19:[function(_dereq_,module,exports){
 'use strict';
 
 function findParentTags(element, tag) {
@@ -1770,7 +2108,7 @@ function findParentTags(element, tag) {
 
 module.exports = findParentTags;
 
-},{}],15:[function(_dereq_,module,exports){
+},{}],20:[function(_dereq_,module,exports){
 'use strict';
 
 var createAuthorizationData = _dereq_('./create-authorization-data');
@@ -1804,7 +2142,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":23,"./create-authorization-data":25,"./json-clone":33}],16:[function(_dereq_,module,exports){
+},{"./constants":28,"./create-authorization-data":30,"./json-clone":38}],21:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('./constants');
@@ -1838,7 +2176,7 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":15,"./constants":23}],17:[function(_dereq_,module,exports){
+},{"./add-metadata":20,"./constants":28}],22:[function(_dereq_,module,exports){
 'use strict';
 
 var once = _dereq_('./once');
@@ -1882,7 +2220,7 @@ module.exports = function (functions, cb) {
   }
 };
 
-},{"./once":35}],18:[function(_dereq_,module,exports){
+},{"./once":40}],23:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -1959,7 +2297,7 @@ BraintreeError.types = enumerate([
 
 module.exports = BraintreeError;
 
-},{"./enumerate":28}],19:[function(_dereq_,module,exports){
+},{"./enumerate":33}],24:[function(_dereq_,module,exports){
 'use strict';
 
 var isWhitelistedDomain = _dereq_('../is-whitelisted-domain');
@@ -1991,7 +2329,7 @@ module.exports = {
   checkOrigin: checkOrigin
 };
 
-},{"../is-whitelisted-domain":32}],20:[function(_dereq_,module,exports){
+},{"../is-whitelisted-domain":37}],25:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../enumerate');
@@ -2000,7 +2338,7 @@ module.exports = enumerate([
   'CONFIGURATION_REQUEST'
 ], 'bus:');
 
-},{"../enumerate":28}],21:[function(_dereq_,module,exports){
+},{"../enumerate":33}],26:[function(_dereq_,module,exports){
 'use strict';
 
 var bus = _dereq_('framebus');
@@ -2131,7 +2469,7 @@ BraintreeBus.events = events;
 
 module.exports = BraintreeBus;
 
-},{"../braintree-error":18,"./check-origin":19,"./events":20,"framebus":2}],22:[function(_dereq_,module,exports){
+},{"../braintree-error":23,"./check-origin":24,"./events":25,"framebus":2}],27:[function(_dereq_,module,exports){
 'use strict';
 
 function _classesOf(element) {
@@ -2170,10 +2508,10 @@ module.exports = {
   toggle: toggle
 };
 
-},{}],23:[function(_dereq_,module,exports){
+},{}],28:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.10.0";
+var VERSION = "3.11.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -2187,7 +2525,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],24:[function(_dereq_,module,exports){
+},{}],29:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -2205,7 +2543,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"./braintree-error":18,"./errors":29}],25:[function(_dereq_,module,exports){
+},{"./braintree-error":23,"./errors":34}],30:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/polyfill').atob;
@@ -2254,7 +2592,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":36}],26:[function(_dereq_,module,exports){
+},{"../lib/polyfill":41}],31:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (fn) {
@@ -2268,7 +2606,7 @@ module.exports = function (fn) {
   };
 };
 
-},{}],27:[function(_dereq_,module,exports){
+},{}],32:[function(_dereq_,module,exports){
 'use strict';
 
 var batchExecuteFunctions = _dereq_('./batch-execute-functions');
@@ -2305,7 +2643,7 @@ Destructor.prototype.teardown = function (callback) {
 
 module.exports = Destructor;
 
-},{"./batch-execute-functions":17}],28:[function(_dereq_,module,exports){
+},{"./batch-execute-functions":22}],33:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -2319,7 +2657,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],29:[function(_dereq_,module,exports){
+},{}],34:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -2352,7 +2690,7 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":18}],30:[function(_dereq_,module,exports){
+},{"./braintree-error":23}],35:[function(_dereq_,module,exports){
 'use strict';
 
 function EventEmitter() {
@@ -2382,7 +2720,7 @@ EventEmitter.prototype._emit = function (event) {
 
 module.exports = EventEmitter;
 
-},{}],31:[function(_dereq_,module,exports){
+},{}],36:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function isIos(userAgent) {
@@ -2390,7 +2728,7 @@ module.exports = function isIos(userAgent) {
   return /(iPad|iPhone|iPod)/i.test(userAgent);
 };
 
-},{}],32:[function(_dereq_,module,exports){
+},{}],37:[function(_dereq_,module,exports){
 'use strict';
 
 var parser;
@@ -2425,14 +2763,14 @@ function isWhitelistedDomain(url) {
 
 module.exports = isWhitelistedDomain;
 
-},{}],33:[function(_dereq_,module,exports){
+},{}],38:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],34:[function(_dereq_,module,exports){
+},{}],39:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -2441,23 +2779,9 @@ module.exports = function (obj) {
   });
 };
 
-},{}],35:[function(_dereq_,module,exports){
-'use strict';
-
-function once(fn) {
-  var called = false;
-
-  return function () {
-    if (!called) {
-      called = true;
-      fn.apply(null, arguments);
-    }
-  };
-}
-
-module.exports = once;
-
-},{}],36:[function(_dereq_,module,exports){
+},{}],40:[function(_dereq_,module,exports){
+arguments[4][9][0].apply(exports,arguments)
+},{"dup":9}],41:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -2496,23 +2820,16 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],37:[function(_dereq_,module,exports){
+},{}],42:[function(_dereq_,module,exports){
+(function (global){
 'use strict';
 
-var BraintreeError = _dereq_('./braintree-error');
-var sharedErrors = _dereq_('./errors');
+var Promise = global.Promise || _dereq_('promise-polyfill');
 
-module.exports = function (callback, functionName) {
-  if (typeof callback !== 'function') {
-    throw new BraintreeError({
-      type: sharedErrors.CALLBACK_REQUIRED.type,
-      code: sharedErrors.CALLBACK_REQUIRED.code,
-      message: functionName + ' must include a callback function.'
-    });
-  }
-};
+module.exports = Promise;
 
-},{"./braintree-error":18,"./errors":29}],38:[function(_dereq_,module,exports){
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"promise-polyfill":7}],43:[function(_dereq_,module,exports){
 'use strict';
 
 function useMin(isDebug) {
@@ -2521,7 +2838,7 @@ function useMin(isDebug) {
 
 module.exports = useMin;
 
-},{}],39:[function(_dereq_,module,exports){
+},{}],44:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {
@@ -2535,5 +2852,5 @@ function uuid() {
 
 module.exports = uuid;
 
-},{}]},{},[11])(11)
+},{}]},{},[16])(16)
 });

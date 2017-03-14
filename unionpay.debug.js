@@ -667,7 +667,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":8,"./check-origin":9,"./events":10,"framebus":1}],12:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.10.0";
+var VERSION = "3.11.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -952,7 +952,7 @@ var deferred = _dereq_('../lib/deferred');
 var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 var errors = _dereq_('./shared/errors');
 var sharedErrors = _dereq_('../lib/errors');
-var VERSION = "3.10.0";
+var VERSION = "3.11.0";
 
 /**
 * @static
@@ -1113,7 +1113,7 @@ var errors = _dereq_('./errors');
 var events = constants.events;
 var iFramer = _dereq_('iframer');
 var methods = _dereq_('../../lib/methods');
-var VERSION = "3.10.0";
+var VERSION = "3.11.0";
 var uuid = _dereq_('../../lib/uuid');
 var throwIfNoCallback = _dereq_('../../lib/throw-if-no-callback');
 
@@ -1584,17 +1584,11 @@ UnionPay.prototype.tokenize = function (options, callback) {
 };
 
 /**
- * Cleanly tear down anything set up by {@link module:braintree-web/unionpay.create|create}. This only needs to be called when using UnionPay with Hosted Fields.
+ * Cleanly remove anything set up by {@link module:braintree-web/unionpay.create|create}. This only needs to be called when using UnionPay with Hosted Fields.
  * @public
- * @param {callback} [callback] Called once teardown is complete. No data is returned if teardown completes successfully.
+ * @param {callback} [callback] Called on completion.
  * @example
- * unionpayInstance.teardown(function (teardownErr) {
- *   if (teardownErr) {
- *     console.error('Could not tear down UnionPay.');
- *   } else {
- *     console.log('UnionPay has been torn down.');
- *   }
- * });
+ * unionpayInstance.teardown();
  * @returns {void}
  */
 UnionPay.prototype.teardown = function (callback) {

@@ -166,7 +166,7 @@ module.exports = function (obj) {
 },{}],5:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.10.0";
+var VERSION = "3.11.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -466,7 +466,7 @@ var errors = _dereq_('./errors');
 var USBankAccount = _dereq_('./us-bank-account');
 var deferred = _dereq_('../lib/deferred');
 var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
-var VERSION = "3.10.0";
+var VERSION = "3.11.0";
 var sharedErrors = _dereq_('../lib/errors');
 
 /**
@@ -889,6 +889,12 @@ function addLoadListeners(script, callback) {
  * Cleanly tear down anything set up by {@link module:braintree-web/us-bank-account.create|create}.
  * @public
  * @param {callback} [callback] Called once teardown is complete. No data is returned if teardown completes successfully.
+ * @example
+ * usBankAccountInstance.teardown();
+ * @example <caption>With callback</caption>
+ * usBankAccountInstance.teardown(function () {
+ *   // teardown is complete
+ * });
  * @returns {void}
  */
 USBankAccount.prototype.teardown = function (callback) {

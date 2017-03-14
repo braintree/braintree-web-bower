@@ -768,7 +768,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":8,"./check-origin":10,"./events":11,"framebus":1}],13:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.10.0";
+var VERSION = "3.11.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -1054,7 +1054,7 @@ var deferred = _dereq_('../../lib/deferred');
 var errors = _dereq_('../shared/errors');
 var throwIfNoCallback = _dereq_('../../lib/throw-if-no-callback');
 var events = _dereq_('../shared/events');
-var VERSION = "3.10.0";
+var VERSION = "3.11.0";
 var iFramer = _dereq_('iframer');
 
 var IFRAME_HEIGHT = 400;
@@ -1333,9 +1333,15 @@ ThreeDSecure.prototype._formatAuthResponse = function (paymentMethod, threeDSecu
 };
 
 /**
- * Cleanly tear down anything set up by {@link module:braintree-web/three-d-secure.create|create}
+ * Cleanly remove anything set up by {@link module:braintree-web/three-d-secure.create|create}.
  * @public
- * @param {errback} [callback] Called once teardown is complete. No data is returned if teardown completes successfully.
+ * @param {callback} [callback] Called on completion.
+ * @example
+ * threeDSecure.teardown();
+ * @example <caption>With callback</caption>
+ * threeDSecure.teardown(function () {
+ *   // teardown is complete
+ * });
  * @returns {void}
  */
 ThreeDSecure.prototype.teardown = function (callback) {
@@ -1377,7 +1383,7 @@ var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 var deferred = _dereq_('../lib/deferred');
 var errors = _dereq_('./shared/errors');
 var sharedErrors = _dereq_('../lib/errors');
-var VERSION = "3.10.0";
+var VERSION = "3.11.0";
 
 /**
  * @static

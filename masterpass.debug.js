@@ -585,6 +585,80 @@ module.exports = function setAttributes(element, attributes) {
 },{}],7:[function(_dereq_,module,exports){
 'use strict';
 
+function deferred(fn) {
+  return function () {
+    // IE9 doesn't support passing arguments to setTimeout so we have to emulate it.
+    var args = arguments;
+
+    setTimeout(function () {
+      fn.apply(null, args);
+    }, 1);
+  };
+}
+
+module.exports = deferred;
+
+},{}],8:[function(_dereq_,module,exports){
+'use strict';
+
+function once(fn) {
+  var called = false;
+
+  return function () {
+    if (!called) {
+      called = true;
+      fn.apply(null, arguments);
+    }
+  };
+}
+
+module.exports = once;
+
+},{}],9:[function(_dereq_,module,exports){
+'use strict';
+
+function promiseOrCallback(promise, callback) { // eslint-disable-line consistent-return
+  if (callback) {
+    promise
+      .then(function (data) {
+        callback(null, data);
+      })
+      .catch(function (err) {
+        callback(err);
+      });
+  } else {
+    return promise;
+  }
+}
+
+module.exports = promiseOrCallback;
+
+},{}],10:[function(_dereq_,module,exports){
+'use strict';
+
+var deferred = _dereq_('./lib/deferred');
+var once = _dereq_('./lib/once');
+var promiseOrCallback = _dereq_('./lib/promise-or-callback');
+
+function wrapPromise(fn) {
+  return function () {
+    var callback;
+    var args = Array.prototype.slice.call(arguments);
+    var lastArg = args[args.length - 1];
+
+    if (typeof lastArg === 'function') {
+      callback = args.pop();
+      callback = once(deferred(callback));
+    }
+    return promiseOrCallback(fn.apply(this, args), callback); // eslint-disable-line no-invalid-this
+  };
+}
+
+module.exports = wrapPromise;
+
+},{"./lib/deferred":7,"./lib/once":8,"./lib/promise-or-callback":9}],11:[function(_dereq_,module,exports){
+'use strict';
+
 var createAuthorizationData = _dereq_('./create-authorization-data');
 var jsonClone = _dereq_('./json-clone');
 var constants = _dereq_('./constants');
@@ -616,7 +690,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":15,"./create-authorization-data":18,"./json-clone":32}],8:[function(_dereq_,module,exports){
+},{"./constants":19,"./create-authorization-data":22,"./json-clone":35}],12:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('./constants');
@@ -650,7 +724,7 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":7,"./constants":15}],9:[function(_dereq_,module,exports){
+},{"./add-metadata":11,"./constants":19}],13:[function(_dereq_,module,exports){
 'use strict';
 
 var assignNormalized = typeof Object.assign === 'function' ? Object.assign : assignPolyfill;
@@ -675,7 +749,7 @@ module.exports = {
   _assign: assignPolyfill
 };
 
-},{}],10:[function(_dereq_,module,exports){
+},{}],14:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -752,7 +826,7 @@ BraintreeError.types = enumerate([
 
 module.exports = BraintreeError;
 
-},{"./enumerate":20}],11:[function(_dereq_,module,exports){
+},{"./enumerate":23}],15:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -853,7 +927,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],12:[function(_dereq_,module,exports){
+},{}],16:[function(_dereq_,module,exports){
 'use strict';
 
 var isWhitelistedDomain = _dereq_('../is-whitelisted-domain');
@@ -885,7 +959,7 @@ module.exports = {
   checkOrigin: checkOrigin
 };
 
-},{"../is-whitelisted-domain":31}],13:[function(_dereq_,module,exports){
+},{"../is-whitelisted-domain":34}],17:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../enumerate');
@@ -894,7 +968,7 @@ module.exports = enumerate([
   'CONFIGURATION_REQUEST'
 ], 'bus:');
 
-},{"../enumerate":20}],14:[function(_dereq_,module,exports){
+},{"../enumerate":23}],18:[function(_dereq_,module,exports){
 'use strict';
 
 var bus = _dereq_('framebus');
@@ -1025,10 +1099,10 @@ BraintreeBus.events = events;
 
 module.exports = BraintreeBus;
 
-},{"../braintree-error":10,"./check-origin":12,"./events":13,"framebus":1}],15:[function(_dereq_,module,exports){
+},{"../braintree-error":14,"./check-origin":16,"./events":17,"framebus":1}],19:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.10.0";
+var VERSION = "3.11.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -1042,7 +1116,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],16:[function(_dereq_,module,exports){
+},{}],20:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -1060,7 +1134,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"./braintree-error":10,"./errors":21}],17:[function(_dereq_,module,exports){
+},{"./braintree-error":14,"./errors":24}],21:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -1082,7 +1156,7 @@ function convertToBraintreeError(originalErr, btErrorObject) {
 
 module.exports = convertToBraintreeError;
 
-},{"./braintree-error":10}],18:[function(_dereq_,module,exports){
+},{"./braintree-error":14}],22:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/polyfill').atob;
@@ -1131,21 +1205,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":35}],19:[function(_dereq_,module,exports){
-'use strict';
-
-module.exports = function (fn) {
-  return function () {
-    // IE9 doesn't support passing arguments to setTimeout so we have to emulate it.
-    var args = arguments;
-
-    setTimeout(function () {
-      fn.apply(null, args);
-    }, 1);
-  };
-};
-
-},{}],20:[function(_dereq_,module,exports){
+},{"../lib/polyfill":37}],23:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -1159,7 +1219,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],21:[function(_dereq_,module,exports){
+},{}],24:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -1192,7 +1252,7 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":10}],22:[function(_dereq_,module,exports){
+},{"./braintree-error":14}],25:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1418,7 +1478,7 @@ FrameService.prototype._pollForPopupClose = function () {
 module.exports = FrameService;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../assign":9,"../../braintree-error":10,"../../bus":14,"../../uuid":38,"../shared/constants":28,"../shared/errors":29,"../shared/events":30,"./popup":25,"iframer":2}],23:[function(_dereq_,module,exports){
+},{"../../assign":13,"../../braintree-error":14,"../../bus":18,"../../uuid":39,"../shared/constants":31,"../shared/errors":32,"../shared/events":33,"./popup":28,"iframer":2}],26:[function(_dereq_,module,exports){
 'use strict';
 
 var FrameService = _dereq_('./frame-service');
@@ -1433,7 +1493,7 @@ module.exports = {
   }
 };
 
-},{"./frame-service":22}],24:[function(_dereq_,module,exports){
+},{"./frame-service":25}],27:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('../../shared/constants');
@@ -1452,14 +1512,14 @@ module.exports = function composePopupOptions(options) {
   ].join(',');
 };
 
-},{"../../shared/constants":28,"./position":27}],25:[function(_dereq_,module,exports){
+},{"../../shared/constants":31,"./position":30}],28:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   open: _dereq_('./open')
 };
 
-},{"./open":26}],26:[function(_dereq_,module,exports){
+},{"./open":29}],29:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1477,7 +1537,7 @@ module.exports = function openPopup(options) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./compose-options":24}],27:[function(_dereq_,module,exports){
+},{"./compose-options":27}],30:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1506,7 +1566,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],28:[function(_dereq_,module,exports){
+},{}],31:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -1519,7 +1579,7 @@ module.exports = {
   POPUP_CLOSE_TIMEOUT: 100
 };
 
-},{}],29:[function(_dereq_,module,exports){
+},{}],32:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../braintree-error');
@@ -1537,7 +1597,7 @@ module.exports = {
   }
 };
 
-},{"../../braintree-error":10}],30:[function(_dereq_,module,exports){
+},{"../../braintree-error":14}],33:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../../enumerate');
@@ -1547,7 +1607,7 @@ module.exports = enumerate([
   'DISPATCH_FRAME_REPORT'
 ], 'frameService:');
 
-},{"../../enumerate":20}],31:[function(_dereq_,module,exports){
+},{"../../enumerate":23}],34:[function(_dereq_,module,exports){
 'use strict';
 
 var parser;
@@ -1582,14 +1642,14 @@ function isWhitelistedDomain(url) {
 
 module.exports = isWhitelistedDomain;
 
-},{}],32:[function(_dereq_,module,exports){
+},{}],35:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],33:[function(_dereq_,module,exports){
+},{}],36:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -1598,23 +1658,7 @@ module.exports = function (obj) {
   });
 };
 
-},{}],34:[function(_dereq_,module,exports){
-'use strict';
-
-function once(fn) {
-  var called = false;
-
-  return function () {
-    if (!called) {
-      called = true;
-      fn.apply(null, arguments);
-    }
-  };
-}
-
-module.exports = once;
-
-},{}],35:[function(_dereq_,module,exports){
+},{}],37:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1653,24 +1697,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],36:[function(_dereq_,module,exports){
-'use strict';
-
-module.exports = function (promise, callback) { // eslint-disable-line consistent-return
-  if (callback) {
-    promise
-      .then(function (data) {
-        callback(null, data);
-      })
-      .catch(function (err) {
-        callback(err);
-      });
-  } else {
-    return promise;
-  }
-};
-
-},{}],37:[function(_dereq_,module,exports){
+},{}],38:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1679,7 +1706,7 @@ var Promise = global.Promise || _dereq_('promise-polyfill');
 module.exports = Promise;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":6}],38:[function(_dereq_,module,exports){
+},{"promise-polyfill":6}],39:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {
@@ -1693,30 +1720,7 @@ function uuid() {
 
 module.exports = uuid;
 
-},{}],39:[function(_dereq_,module,exports){
-'use strict';
-
-var deferred = _dereq_('./deferred');
-var once = _dereq_('./once');
-var promiseOrCallback = _dereq_('./promise-or-callback');
-
-function wrapPromise(fn) {
-  return function () {
-    var callback;
-    var args = Array.prototype.slice.call(arguments);
-    var lastArg = args[args.length - 1];
-
-    if (typeof lastArg === 'function') {
-      callback = args.pop();
-      callback = once(deferred(callback));
-    }
-    return promiseOrCallback(fn.apply(this, args), callback); // eslint-disable-line no-invalid-this
-  };
-}
-
-module.exports = wrapPromise;
-
-},{"./deferred":19,"./once":34,"./promise-or-callback":36}],40:[function(_dereq_,module,exports){
+},{}],40:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1724,9 +1728,9 @@ var Promise = _dereq_('../../lib/promise');
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var errors = _dereq_('../shared/errors');
-var VERSION = "3.10.0";
+var VERSION = "3.11.0";
 var methods = _dereq_('../../lib/methods');
-var wrapPromise = _dereq_('../../lib/wrap-promise');
+var wrapPromise = _dereq_('wrap-promise');
 var analytics = _dereq_('../../lib/analytics');
 var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
 var convertToBraintreeError = _dereq_('../../lib/convert-to-braintree-error');
@@ -1807,6 +1811,7 @@ Masterpass.prototype._initialize = function () {
  * @param {object} options All options for initiating the Masterpass payment flow.
  * @param {string} options.currencyCode The currency code to process the payment.
  * @param {string} options.subtotal The amount to authorize for the transaction.
+ * @param {object} options.config All configuration parameters accepted by Masterpass lightbox, except `function` data type. These options will override the values set by Braintree server. Please see {@link Masterpass Lightbox Parameters|https://developer.mastercard.com/page/masterpass-lightbox-parameters} for more information.
  * @param {callback} [callback] The second argument, <code>data</code>, is a {@link Masterpass~tokenizePayload|tokenizePayload}. If no callback is provided, the method will return a Promise that resolves with a {@link Masterpass~tokenizePayload|tokenizePayload}.
  * @returns {Promise|void}
  * @example
@@ -1874,27 +1879,41 @@ Masterpass.prototype._navigateFrameToLoadingPage = function (options, reject) {
         callbackUrl: this._callbackUrl
       }
     }
-  }, function (err, response, status) {
-    var redirectUrl = this._assetsUrl + '/html/masterpass-loading-frame' + (this._isDebug ? '' : '.min') + '.html';
+  }).then(function (response) {
+    var redirectUrl = this._assetsUrl + '/html/masterpass-loading-frame' + (this._isDebug ? '' : '.min') + '.html?';
     var gatewayConfiguration = this._client.getConfiguration().gatewayConfiguration;
+    var config = options.config || {};
+    var queryParams;
 
-    if (err) {
-      this._closeWindow();
+    queryParams = {
+      environment: gatewayConfiguration.environment,
+      requestToken: response.requestToken,
+      callbackUrl: this._callbackUrl,
+      merchantCheckoutId: gatewayConfiguration.masterpass.merchantCheckoutId,
+      allowedCardTypes: gatewayConfiguration.masterpass.supportedNetworks
+    };
 
-      if (status === 422) {
-        reject(convertToBraintreeError(err, errors.MASTERPASS_INVALID_PAYMENT_OPTION));
-      } else {
-        reject(convertToBraintreeError(err, errors.MASTERPASS_FLOW_FAILED));
+    Object.keys(config).forEach(function (key) {
+      if (typeof config[key] !== 'function') {
+        queryParams[key] = config[key];
       }
-      return;
-    }
+    });
 
-    redirectUrl += '?environment=' + gatewayConfiguration.environment;
-    redirectUrl += '&requestToken=' + response.requestToken;
-    redirectUrl += '&callbackUrl=' + this._callbackUrl;
-    redirectUrl += '&merchantCheckoutId=' + gatewayConfiguration.masterpass.merchantCheckoutId;
-    redirectUrl += '&allowedCardTypes=' + gatewayConfiguration.masterpass.supportedNetworks;
+    redirectUrl += Object.keys(queryParams).map(function (key) {
+      return key + '=' + queryParams[key];
+    }).join('&');
+
     this._frameService.redirect(redirectUrl);
+  }.bind(this)).catch(function (err) {
+    var status = err.details && err.details.httpStatus;
+
+    this._closeWindow();
+
+    if (status === 422) {
+      reject(convertToBraintreeError(err, errors.MASTERPASS_INVALID_PAYMENT_OPTION));
+    } else {
+      reject(convertToBraintreeError(err, errors.MASTERPASS_FLOW_FAILED));
+    }
   }.bind(this));
 };
 
@@ -1915,7 +1934,7 @@ Masterpass.prototype._createFrameOpenHandler = function (resolve, reject) {
         return;
       }
 
-      self._tokenizeMasterpass(payload.queryItems, resolve, reject);
+      self._tokenizeMasterpass(payload.queryItems).then(resolve).catch(reject);
     };
   }
 
@@ -1941,48 +1960,47 @@ Masterpass.prototype._createFrameOpenHandler = function (resolve, reject) {
       return;
     }
 
-    self._tokenizeMasterpass(payload, resolve, reject);
+    self._tokenizeMasterpass(payload).then(resolve).catch(reject);
   };
 };
 
-Masterpass.prototype._tokenizeMasterpass = function (payload, resolve, reject) {
+Masterpass.prototype._tokenizeMasterpass = function (payload) {
   var self = this;
 
-  if (payload.mpstatus === 'success') {
-    self._client.request({
-      endpoint: 'payment_methods/masterpass_cards',
-      method: 'post',
-      data: {
-        masterpassCard: {
-          checkoutResourceUrl: payload.checkout_resource_url,
-          requestToken: payload.oauth_token,
-          verifierToken: payload.oauth_verifier
-        }
-      }
-    }, function (tokenizeErr, response) {
-      self._closeWindow();
-      if (tokenizeErr) {
-        if (global.popupBridge) {
-          analytics.sendEvent(self._client, 'masterpass.tokenization.failed-popupbridge');
-        } else {
-          analytics.sendEvent(self._client, 'masterpass.tokenization.failed');
-        }
-        reject(convertToBraintreeError(tokenizeErr, errors.MASTERPASS_ACCOUNT_TOKENIZATION_FAILED));
-        return;
-      }
-
-      if (global.popupBridge) {
-        analytics.sendEvent(self._client, 'masterpass.tokenization.success-popupbridge');
-      } else {
-        analytics.sendEvent(self._client, 'masterpass.tokenization.success');
-      }
-      resolve(response.masterpassCards[0]);
-    });
-  } else {
+  if (payload.mpstatus !== 'success') {
     analytics.sendEvent(self._client, 'masterpass.tokenization.closed.by-user');
     self._closeWindow();
-    reject(new BraintreeError(errors.MASTERPASS_POPUP_CLOSED));
+    return Promise.reject(new BraintreeError(errors.MASTERPASS_POPUP_CLOSED));
   }
+
+  return self._client.request({
+    endpoint: 'payment_methods/masterpass_cards',
+    method: 'post',
+    data: {
+      masterpassCard: {
+        checkoutResourceUrl: payload.checkout_resource_url,
+        requestToken: payload.oauth_token,
+        verifierToken: payload.oauth_verifier
+      }
+    }
+  }).then(function (response) {
+    self._closeWindow();
+    if (global.popupBridge) {
+      analytics.sendEvent(self._client, 'masterpass.tokenization.success-popupbridge');
+    } else {
+      analytics.sendEvent(self._client, 'masterpass.tokenization.success');
+    }
+    return response.masterpassCards[0];
+  }).catch(function (tokenizeErr) {
+    self._closeWindow();
+    if (global.popupBridge) {
+      analytics.sendEvent(self._client, 'masterpass.tokenization.failed-popupbridge');
+    } else {
+      analytics.sendEvent(self._client, 'masterpass.tokenization.failed');
+    }
+
+    return Promise.reject(convertToBraintreeError(tokenizeErr, errors.MASTERPASS_ACCOUNT_TOKENIZATION_FAILED));
+  });
 };
 
 Masterpass.prototype._closeWindow = function () {
@@ -1994,7 +2012,13 @@ Masterpass.prototype._closeWindow = function () {
  * Cleanly tear down anything set up by {@link module:braintree-web/masterpass.create|create}.
  * @public
  * @function
- * @param {callback} [callback] Called once teardown is complete. No data is returned if teardown completes successfully.
+ * @param {callback} [callback] Called on completion. If no callback is provided, `teardown` returns a promise.
+ * @example
+ * masterpassInstance.teardown();
+ * @example <caption>With callback</caption>
+ * masterpassInstance.teardown(function () {
+ *   // teardown is complete
+ * });
  * @returns {Promise|void}
  */
 Masterpass.prototype.teardown = wrapPromise(function () {
@@ -2028,7 +2052,7 @@ function hasMissingOption(options) {
 module.exports = Masterpass;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../lib/analytics":8,"../../lib/braintree-error":10,"../../lib/constants":15,"../../lib/convert-methods-to-error":16,"../../lib/convert-to-braintree-error":17,"../../lib/frame-service/external":23,"../../lib/methods":33,"../../lib/promise":37,"../../lib/wrap-promise":39,"../shared/constants":42,"../shared/errors":43}],41:[function(_dereq_,module,exports){
+},{"../../lib/analytics":12,"../../lib/braintree-error":14,"../../lib/constants":19,"../../lib/convert-methods-to-error":20,"../../lib/convert-to-braintree-error":21,"../../lib/frame-service/external":26,"../../lib/methods":36,"../../lib/promise":38,"../shared/constants":42,"../shared/errors":43,"wrap-promise":10}],41:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 /** @module braintree-web/masterpass
@@ -2038,11 +2062,11 @@ module.exports = Masterpass;
 var BraintreeError = _dereq_('../lib/braintree-error');
 var browserDetection = _dereq_('../lib/browser-detection');
 var Masterpass = _dereq_('./external/masterpass');
-var VERSION = "3.10.0";
+var VERSION = "3.11.0";
 var errors = _dereq_('./shared/errors');
 var sharedErrors = _dereq_('../lib/errors');
 var Promise = _dereq_('../lib/promise');
-var wrapPromise = _dereq_('../lib/wrap-promise');
+var wrapPromise = _dereq_('wrap-promise');
 
 /**
  * @static
@@ -2128,7 +2152,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../lib/braintree-error":10,"../lib/browser-detection":11,"../lib/errors":21,"../lib/promise":37,"../lib/wrap-promise":39,"./external/masterpass":40,"./shared/errors":43}],42:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":14,"../lib/browser-detection":15,"../lib/errors":24,"../lib/promise":38,"./external/masterpass":40,"./shared/errors":43,"wrap-promise":10}],42:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -2195,5 +2219,5 @@ module.exports = {
 };
 
 
-},{"../../lib/braintree-error":10}]},{},[41])(41)
+},{"../../lib/braintree-error":14}]},{},[41])(41)
 });

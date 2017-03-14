@@ -236,6 +236,80 @@
 },{}],2:[function(_dereq_,module,exports){
 'use strict';
 
+function deferred(fn) {
+  return function () {
+    // IE9 doesn't support passing arguments to setTimeout so we have to emulate it.
+    var args = arguments;
+
+    setTimeout(function () {
+      fn.apply(null, args);
+    }, 1);
+  };
+}
+
+module.exports = deferred;
+
+},{}],3:[function(_dereq_,module,exports){
+'use strict';
+
+function once(fn) {
+  var called = false;
+
+  return function () {
+    if (!called) {
+      called = true;
+      fn.apply(null, arguments);
+    }
+  };
+}
+
+module.exports = once;
+
+},{}],4:[function(_dereq_,module,exports){
+'use strict';
+
+function promiseOrCallback(promise, callback) { // eslint-disable-line consistent-return
+  if (callback) {
+    promise
+      .then(function (data) {
+        callback(null, data);
+      })
+      .catch(function (err) {
+        callback(err);
+      });
+  } else {
+    return promise;
+  }
+}
+
+module.exports = promiseOrCallback;
+
+},{}],5:[function(_dereq_,module,exports){
+'use strict';
+
+var deferred = _dereq_('./lib/deferred');
+var once = _dereq_('./lib/once');
+var promiseOrCallback = _dereq_('./lib/promise-or-callback');
+
+function wrapPromise(fn) {
+  return function () {
+    var callback;
+    var args = Array.prototype.slice.call(arguments);
+    var lastArg = args[args.length - 1];
+
+    if (typeof lastArg === 'function') {
+      callback = args.pop();
+      callback = once(deferred(callback));
+    }
+    return promiseOrCallback(fn.apply(this, args), callback); // eslint-disable-line no-invalid-this
+  };
+}
+
+module.exports = wrapPromise;
+
+},{"./lib/deferred":2,"./lib/once":3,"./lib/promise-or-callback":4}],6:[function(_dereq_,module,exports){
+'use strict';
+
 var createAuthorizationData = _dereq_('./create-authorization-data');
 var jsonClone = _dereq_('./json-clone');
 var constants = _dereq_('./constants');
@@ -267,7 +341,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":6,"./create-authorization-data":8,"./json-clone":12}],3:[function(_dereq_,module,exports){
+},{"./constants":9,"./create-authorization-data":11,"./json-clone":14}],7:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('./constants');
@@ -301,7 +375,7 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":2,"./constants":6}],4:[function(_dereq_,module,exports){
+},{"./add-metadata":6,"./constants":9}],8:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -378,111 +452,10 @@ BraintreeError.types = enumerate([
 
 module.exports = BraintreeError;
 
-},{"./enumerate":10}],5:[function(_dereq_,module,exports){
-(function (global){
+},{"./enumerate":12}],9:[function(_dereq_,module,exports){
 'use strict';
 
-var MINIMUM_SUPPORTED_CHROME_IOS_VERSION = 48;
-
-function isOperaMini(ua) {
-  ua = ua || global.navigator.userAgent;
-  return ua.indexOf('Opera Mini') > -1;
-}
-
-function isAndroidFirefox(ua) {
-  ua = ua || global.navigator.userAgent;
-  return isAndroid(ua) && ua.indexOf('Firefox') > -1;
-}
-
-function getIEVersion(ua) {
-  ua = ua || global.navigator.userAgent;
-
-  if (ua.indexOf('MSIE') !== -1) {
-    return parseInt(ua.replace(/.*MSIE ([0-9]+)\..*/, '$1'), 10);
-  } else if (/Trident.*rv:11/.test(ua)) {
-    return 11;
-  }
-
-  return null;
-}
-
-function isHTTPS(protocol) {
-  protocol = protocol || global.location.protocol;
-  return protocol === 'https:';
-}
-
-function isIos(ua) {
-  ua = ua || global.navigator.userAgent;
-  return /iPhone|iPod|iPad/.test(ua);
-}
-
-function isAndroid(ua) {
-  ua = ua || global.navigator.userAgent;
-  return /Android/.test(ua);
-}
-
-function isUnsupportedIosChrome(ua) {
-  var match, version;
-
-  ua = ua || global.navigator.userAgent;
-  match = ua.match(/CriOS\/(\d+)\./);
-
-  if (!match) {
-    return false;
-  }
-
-  version = parseInt(match[1], 10);
-
-  return version < MINIMUM_SUPPORTED_CHROME_IOS_VERSION;
-}
-
-function supportsPopups(ua) {
-  ua = ua || global.navigator.userAgent;
-  return !(isIosWebview(ua) || isAndroidWebview(ua) || isOperaMini(ua) || isUnsupportedIosChrome(ua));
-}
-
-// The Google Search iOS app is technically a webview and doesn't support popups.
-function isGoogleSearchApp(ua) {
-  return /\bGSA\b/.test(ua);
-}
-
-function isIosWebview(ua) {
-  ua = ua || global.navigator.userAgent;
-  if (isIos(ua)) {
-    if (isGoogleSearchApp(ua)) {
-      return true;
-    }
-    return /.+AppleWebKit(?!.*Safari)/.test(ua);
-  }
-  return false;
-}
-
-function isAndroidWebview(ua) {
-  var androidWebviewRegExp = /Version\/[\d\.]+/;
-
-  ua = ua || global.navigator.userAgent;
-  if (isAndroid(ua)) {
-    return androidWebviewRegExp.test(ua) && !isOperaMini(ua);
-  }
-  return false;
-}
-
-module.exports = {
-  isOperaMini: isOperaMini,
-  isAndroidFirefox: isAndroidFirefox,
-  getIEVersion: getIEVersion,
-  isHTTPS: isHTTPS,
-  isIos: isIos,
-  isAndroid: isAndroid,
-  isUnsupportedIosChrome: isUnsupportedIosChrome,
-  supportsPopups: supportsPopups
-};
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],6:[function(_dereq_,module,exports){
-'use strict';
-
-var VERSION = "3.10.0";
+var VERSION = "3.11.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -496,7 +469,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],7:[function(_dereq_,module,exports){
+},{}],10:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -518,7 +491,7 @@ function convertToBraintreeError(originalErr, btErrorObject) {
 
 module.exports = convertToBraintreeError;
 
-},{"./braintree-error":4}],8:[function(_dereq_,module,exports){
+},{"./braintree-error":8}],11:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/polyfill').atob;
@@ -567,21 +540,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":14}],9:[function(_dereq_,module,exports){
-'use strict';
-
-module.exports = function (fn) {
-  return function () {
-    // IE9 doesn't support passing arguments to setTimeout so we have to emulate it.
-    var args = arguments;
-
-    setTimeout(function () {
-      fn.apply(null, args);
-    }, 1);
-  };
-};
-
-},{}],10:[function(_dereq_,module,exports){
+},{"../lib/polyfill":15}],12:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -595,7 +554,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],11:[function(_dereq_,module,exports){
+},{}],13:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -628,30 +587,14 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":4}],12:[function(_dereq_,module,exports){
+},{"./braintree-error":8}],14:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],13:[function(_dereq_,module,exports){
-'use strict';
-
-function once(fn) {
-  var called = false;
-
-  return function () {
-    if (!called) {
-      called = true;
-      fn.apply(null, arguments);
-    }
-  };
-}
-
-module.exports = once;
-
-},{}],14:[function(_dereq_,module,exports){
+},{}],15:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -690,23 +633,6 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],15:[function(_dereq_,module,exports){
-'use strict';
-
-module.exports = function (promise, callback) { // eslint-disable-line consistent-return
-  if (callback) {
-    promise
-      .then(function (data) {
-        callback(null, data);
-      })
-      .catch(function (err) {
-        callback(err);
-      });
-  } else {
-    return promise;
-  }
-};
-
 },{}],16:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
@@ -717,29 +643,6 @@ module.exports = Promise;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"promise-polyfill":1}],17:[function(_dereq_,module,exports){
-'use strict';
-
-var deferred = _dereq_('./deferred');
-var once = _dereq_('./once');
-var promiseOrCallback = _dereq_('./promise-or-callback');
-
-function wrapPromise(fn) {
-  return function () {
-    var callback;
-    var args = Array.prototype.slice.call(arguments);
-    var lastArg = args[args.length - 1];
-
-    if (typeof lastArg === 'function') {
-      callback = args.pop();
-      callback = once(deferred(callback));
-    }
-    return promiseOrCallback(fn.apply(this, args), callback); // eslint-disable-line no-invalid-this
-  };
-}
-
-module.exports = wrapPromise;
-
-},{"./deferred":9,"./once":13,"./promise-or-callback":15}],18:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -753,7 +656,7 @@ module.exports = {
   PAYPAL_SANDBOX_ACCOUNT_NOT_LINKED: {
     type: BraintreeError.types.MERCHANT,
     code: 'PAYPAL_SANDBOX_ACCOUNT_NOT_LINKED',
-    message: 'No linked PayPal Sandbox account. Sign into the Braintree gateway to configure your account.'
+    message: 'A linked PayPal Sandbox account is required to use PayPal Checkout in Sandbox. Please reach out to our support team at support@braintreepayments.com if you would like this enabled.'
   },
   PAYPAL_TOKENIZATION_REQUEST_ACTIVE: {
     type: BraintreeError.types.MERCHANT,
@@ -774,11 +677,6 @@ module.exports = {
     type: BraintreeError.types.MERCHANT,
     code: 'PAYPAL_FLOW_OPTION_REQUIRED',
     message: 'PayPal flow property is invalid or missing.'
-  },
-  PAYPAL_BROWSER_NOT_SUPPORTED: {
-    type: BraintreeError.types.CUSTOMER,
-    code: 'PAYPAL_BROWSER_NOT_SUPPORTED',
-    message: 'Browser is not supported.'
   },
   PAYPAL_POPUP_OPEN_FAILED: {
     type: BraintreeError.types.MERCHANT,
@@ -802,7 +700,7 @@ module.exports = {
   }
 };
 
-},{"../lib/braintree-error":4}],19:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":8}],18:[function(_dereq_,module,exports){
 'use strict';
 /**
  * @module braintree-web/paypal-checkout
@@ -813,11 +711,10 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./errors');
 var Promise = _dereq_('../lib/promise');
-var wrapPromise = _dereq_('../lib/wrap-promise');
+var wrapPromise = _dereq_('wrap-promise');
 var PayPalCheckout = _dereq_('./paypal-checkout');
 var sharedErrors = _dereq_('../lib/errors');
-var browserDetection = _dereq_('../lib/browser-detection');
-var VERSION = "3.10.0";
+var VERSION = "3.11.0";
 
 /**
  * @static
@@ -835,11 +732,7 @@ var VERSION = "3.10.0";
  *   client: clientInstance
  * }, function (createErr, paypalCheckoutInstance) {
  *   if (createErr) {
- *     if (createErr.code === 'PAYPAL_BROWSER_NOT_SUPPORTED') {
- *       console.error('This browser is not supported.');
- *     } else {
- *       console.error('Error!', createErr);
- *     }
+ *     console.error('Error!', createErr);
  *     return;
  *   }
  *
@@ -901,10 +794,6 @@ function create(options) {
     return Promise.reject(new BraintreeError(errors.PAYPAL_SANDBOX_ACCOUNT_NOT_LINKED));
   }
 
-  if (!isSupported()) {
-    return Promise.reject(new BraintreeError(errors.PAYPAL_BROWSER_NOT_SUPPORTED));
-  }
-
   analytics.sendEvent(options.client, 'paypal-checkout.initialized');
 
   return Promise.resolve(new PayPalCheckout(options));
@@ -914,6 +803,7 @@ function create(options) {
  * @static
  * @function isSupported
  * @description Returns true if PayPal Checkout [supports this browser](/current/#browser-support-webviews).
+ * @deprecated Previously, this method checked for Popup support in the brower. Checkout.js now falls back to a modal if popups are not supported.
  * @example
  * if (braintree.paypalCheckout.isSupported()) {
  *   // Add PayPal button to the page
@@ -923,7 +813,7 @@ function create(options) {
  * @returns {Boolean} Returns true if PayPal Checkout supports this browser.
  */
 function isSupported() {
-  return Boolean(browserDetection.supportsPopups());
+  return true;
 }
 
 module.exports = {
@@ -936,12 +826,12 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/analytics":3,"../lib/braintree-error":4,"../lib/browser-detection":5,"../lib/errors":11,"../lib/promise":16,"../lib/wrap-promise":17,"./errors":18,"./paypal-checkout":20}],20:[function(_dereq_,module,exports){
+},{"../lib/analytics":7,"../lib/braintree-error":8,"../lib/errors":13,"../lib/promise":16,"./errors":17,"./paypal-checkout":19,"wrap-promise":5}],19:[function(_dereq_,module,exports){
 'use strict';
 
 var analytics = _dereq_('../lib/analytics');
 var Promise = _dereq_('../lib/promise');
-var wrapPromise = _dereq_('../lib/wrap-promise');
+var wrapPromise = _dereq_('wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../lib/convert-to-braintree-error');
 var errors = _dereq_('./errors');
@@ -1013,12 +903,6 @@ function PayPalCheckout(options) {
  * * `authorize` - Submits the transaction for authorization but not settlement.
  * * `sale` - Payment will be immediately submitted for settlement upon creating a transaction.
  * @param {boolean} [options.offerCredit=false] Offers the customer PayPal Credit if they qualify. Checkout flows only.
- * @param {string} [options.useraction]
- * Changes the call-to-action in the PayPal flow. By default the final button will show the localized
- * word for "Continue" and implies that the final amount billed is not yet known.
- *
- * Setting this option to `commit` changes the button text to "Pay Now" and page text will convey to
- * the user that billing will take place immediately.
  * @param {string|number} [options.amount] The amount of the transaction. Required when using the Checkout flow.
  * @param {string} [options.currency] The currency code of the amount, such as 'USD'. Required when using the Checkout flow.
  * @param {string} [options.displayName] The merchant name displayed inside of the PayPal lightbox; defaults to the company name on your Braintree account
@@ -1170,7 +1054,8 @@ PayPalCheckout.prototype.tokenizePayment = wrapPromise(function (tokenizeOptions
     var payload;
     var client = self._client;
     var options = {
-      flow: tokenizeOptions.billingToken ? 'vault' : 'checkout'
+      flow: tokenizeOptions.billingToken ? 'vault' : 'checkout',
+      intent: tokenizeOptions.intent
     };
     var params = {
       // The paymentToken provided by Checkout.js v4 is the ECToken
@@ -1274,6 +1159,10 @@ PayPalCheckout.prototype._formatTokenizeData = function (options, params) {
     data.paypalAccount.paymentToken = params.paymentId;
     data.paypalAccount.payerId = params.payerId;
     data.paypalAccount.unilateral = gatewayConfiguration.paypal.unvettedMerchant;
+
+    if (options.intent) {
+      data.paypalAccount.intent = options.intent;
+    }
   }
 
   return data;
@@ -1306,7 +1195,7 @@ PayPalCheckout.prototype._formatTokenizePayload = function (response) {
 
 module.exports = PayPalCheckout;
 
-},{"../lib/analytics":3,"../lib/braintree-error":4,"../lib/convert-to-braintree-error":7,"../lib/promise":16,"../lib/wrap-promise":17,"../paypal/shared/constants":21,"./errors":18}],21:[function(_dereq_,module,exports){
+},{"../lib/analytics":7,"../lib/braintree-error":8,"../lib/convert-to-braintree-error":10,"../lib/promise":16,"../paypal/shared/constants":20,"./errors":17,"wrap-promise":5}],20:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -1317,5 +1206,5 @@ module.exports = {
   }
 };
 
-},{}]},{},[19])(19)
+},{}]},{},[18])(18)
 });

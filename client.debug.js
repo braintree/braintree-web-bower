@@ -236,6 +236,80 @@
 },{}],2:[function(_dereq_,module,exports){
 'use strict';
 
+function deferred(fn) {
+  return function () {
+    // IE9 doesn't support passing arguments to setTimeout so we have to emulate it.
+    var args = arguments;
+
+    setTimeout(function () {
+      fn.apply(null, args);
+    }, 1);
+  };
+}
+
+module.exports = deferred;
+
+},{}],3:[function(_dereq_,module,exports){
+'use strict';
+
+function once(fn) {
+  var called = false;
+
+  return function () {
+    if (!called) {
+      called = true;
+      fn.apply(null, arguments);
+    }
+  };
+}
+
+module.exports = once;
+
+},{}],4:[function(_dereq_,module,exports){
+'use strict';
+
+function promiseOrCallback(promise, callback) { // eslint-disable-line consistent-return
+  if (callback) {
+    promise
+      .then(function (data) {
+        callback(null, data);
+      })
+      .catch(function (err) {
+        callback(err);
+      });
+  } else {
+    return promise;
+  }
+}
+
+module.exports = promiseOrCallback;
+
+},{}],5:[function(_dereq_,module,exports){
+'use strict';
+
+var deferred = _dereq_('./lib/deferred');
+var once = _dereq_('./lib/once');
+var promiseOrCallback = _dereq_('./lib/promise-or-callback');
+
+function wrapPromise(fn) {
+  return function () {
+    var callback;
+    var args = Array.prototype.slice.call(arguments);
+    var lastArg = args[args.length - 1];
+
+    if (typeof lastArg === 'function') {
+      callback = args.pop();
+      callback = once(deferred(callback));
+    }
+    return promiseOrCallback(fn.apply(this, args), callback); // eslint-disable-line no-invalid-this
+  };
+}
+
+module.exports = wrapPromise;
+
+},{"./lib/deferred":2,"./lib/once":3,"./lib/promise-or-callback":4}],6:[function(_dereq_,module,exports){
+'use strict';
+
 var request = _dereq_('./request');
 var isWhitelistedDomain = _dereq_('../lib/is-whitelisted-domain');
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -489,14 +563,14 @@ Client.prototype.toJSON = function () {
 
 module.exports = Client;
 
-},{"../lib/add-metadata":14,"../lib/assign":15,"../lib/braintree-error":16,"../lib/convert-to-braintree-error":18,"../lib/errors":22,"../lib/is-whitelisted-domain":23,"../lib/promise":28,"./constants":3,"./errors":4,"./request":9}],3:[function(_dereq_,module,exports){
+},{"../lib/add-metadata":18,"../lib/assign":19,"../lib/braintree-error":20,"../lib/convert-to-braintree-error":22,"../lib/errors":25,"../lib/is-whitelisted-domain":26,"../lib/promise":30,"./constants":7,"./errors":8,"./request":13}],7:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   BRAINTREE_API_VERSION_HEADER: '2016-10-07'
 };
 
-},{}],4:[function(_dereq_,module,exports){
+},{}],8:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -551,13 +625,13 @@ module.exports = {
   }
 };
 
-},{"../lib/braintree-error":16}],5:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":20}],9:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var wrapPromise = _dereq_('../lib/wrap-promise');
+var wrapPromise = _dereq_('wrap-promise');
 var request = _dereq_('./request');
 var uuid = _dereq_('../lib/uuid');
 var constants = _dereq_('../lib/constants');
@@ -633,15 +707,15 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../lib/braintree-error":16,"../lib/constants":17,"../lib/create-authorization-data":19,"../lib/promise":28,"../lib/uuid":30,"../lib/wrap-promise":31,"./errors":4,"./request":9}],6:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":20,"../lib/constants":21,"../lib/create-authorization-data":23,"../lib/promise":30,"../lib/uuid":32,"./errors":8,"./request":13,"wrap-promise":5}],10:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Client = _dereq_('./client');
 var getConfiguration = _dereq_('./get-configuration').getConfiguration;
-var VERSION = "3.10.0";
+var VERSION = "3.11.0";
 var Promise = _dereq_('../lib/promise');
-var wrapPromise = _dereq_('../lib/wrap-promise');
+var wrapPromise = _dereq_('wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
 
 /** @module braintree-web/client */
@@ -690,7 +764,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/braintree-error":16,"../lib/errors":22,"../lib/promise":28,"../lib/wrap-promise":31,"./client":2,"./get-configuration":5}],7:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":20,"../lib/errors":25,"../lib/promise":30,"./client":6,"./get-configuration":9,"wrap-promise":5}],11:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -776,7 +850,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../lib/assign":15,"../../lib/querystring":29,"./parse-body":12,"./prep-body":13}],8:[function(_dereq_,module,exports){
+},{"../../lib/assign":19,"../../lib/querystring":31,"./parse-body":16,"./prep-body":17}],12:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -785,7 +859,7 @@ module.exports = function getUserAgent() {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],9:[function(_dereq_,module,exports){
+},{}],13:[function(_dereq_,module,exports){
 'use strict';
 
 var ajaxIsAvaliable;
@@ -816,7 +890,7 @@ module.exports = function (options, cb) {
   }
 };
 
-},{"../../lib/once":25,"./ajax-driver":7,"./get-user-agent":8,"./is-http":10,"./jsonp-driver":11}],10:[function(_dereq_,module,exports){
+},{"../../lib/once":28,"./ajax-driver":11,"./get-user-agent":12,"./is-http":14,"./jsonp-driver":15}],14:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -825,7 +899,7 @@ module.exports = function () {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],11:[function(_dereq_,module,exports){
+},{}],15:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -937,7 +1011,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../lib/querystring":29,"../../lib/uuid":30}],12:[function(_dereq_,module,exports){
+},{"../../lib/querystring":31,"../../lib/uuid":32}],16:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (body) {
@@ -948,7 +1022,7 @@ module.exports = function (body) {
   return body;
 };
 
-},{}],13:[function(_dereq_,module,exports){
+},{}],17:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (method, body) {
@@ -963,7 +1037,7 @@ module.exports = function (method, body) {
   return body;
 };
 
-},{}],14:[function(_dereq_,module,exports){
+},{}],18:[function(_dereq_,module,exports){
 'use strict';
 
 var createAuthorizationData = _dereq_('./create-authorization-data');
@@ -997,7 +1071,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":17,"./create-authorization-data":19,"./json-clone":24}],15:[function(_dereq_,module,exports){
+},{"./constants":21,"./create-authorization-data":23,"./json-clone":27}],19:[function(_dereq_,module,exports){
 'use strict';
 
 var assignNormalized = typeof Object.assign === 'function' ? Object.assign : assignPolyfill;
@@ -1022,7 +1096,7 @@ module.exports = {
   _assign: assignPolyfill
 };
 
-},{}],16:[function(_dereq_,module,exports){
+},{}],20:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -1099,10 +1173,10 @@ BraintreeError.types = enumerate([
 
 module.exports = BraintreeError;
 
-},{"./enumerate":21}],17:[function(_dereq_,module,exports){
+},{"./enumerate":24}],21:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.10.0";
+var VERSION = "3.11.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -1116,7 +1190,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],18:[function(_dereq_,module,exports){
+},{}],22:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -1138,7 +1212,7 @@ function convertToBraintreeError(originalErr, btErrorObject) {
 
 module.exports = convertToBraintreeError;
 
-},{"./braintree-error":16}],19:[function(_dereq_,module,exports){
+},{"./braintree-error":20}],23:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/polyfill').atob;
@@ -1187,21 +1261,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":26}],20:[function(_dereq_,module,exports){
-'use strict';
-
-module.exports = function (fn) {
-  return function () {
-    // IE9 doesn't support passing arguments to setTimeout so we have to emulate it.
-    var args = arguments;
-
-    setTimeout(function () {
-      fn.apply(null, args);
-    }, 1);
-  };
-};
-
-},{}],21:[function(_dereq_,module,exports){
+},{"../lib/polyfill":29}],24:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -1215,7 +1275,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],22:[function(_dereq_,module,exports){
+},{}],25:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -1248,7 +1308,7 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":16}],23:[function(_dereq_,module,exports){
+},{"./braintree-error":20}],26:[function(_dereq_,module,exports){
 'use strict';
 
 var parser;
@@ -1283,30 +1343,16 @@ function isWhitelistedDomain(url) {
 
 module.exports = isWhitelistedDomain;
 
-},{}],24:[function(_dereq_,module,exports){
+},{}],27:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],25:[function(_dereq_,module,exports){
-'use strict';
-
-function once(fn) {
-  var called = false;
-
-  return function () {
-    if (!called) {
-      called = true;
-      fn.apply(null, arguments);
-    }
-  };
-}
-
-module.exports = once;
-
-},{}],26:[function(_dereq_,module,exports){
+},{}],28:[function(_dereq_,module,exports){
+arguments[4][3][0].apply(exports,arguments)
+},{"dup":3}],29:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1345,24 +1391,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],27:[function(_dereq_,module,exports){
-'use strict';
-
-module.exports = function (promise, callback) { // eslint-disable-line consistent-return
-  if (callback) {
-    promise
-      .then(function (data) {
-        callback(null, data);
-      })
-      .catch(function (err) {
-        callback(err);
-      });
-  } else {
-    return promise;
-  }
-};
-
-},{}],28:[function(_dereq_,module,exports){
+},{}],30:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1371,7 +1400,7 @@ var Promise = global.Promise || _dereq_('promise-polyfill');
 module.exports = Promise;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":1}],29:[function(_dereq_,module,exports){
+},{"promise-polyfill":1}],31:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1462,7 +1491,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],30:[function(_dereq_,module,exports){
+},{}],32:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {
@@ -1476,28 +1505,5 @@ function uuid() {
 
 module.exports = uuid;
 
-},{}],31:[function(_dereq_,module,exports){
-'use strict';
-
-var deferred = _dereq_('./deferred');
-var once = _dereq_('./once');
-var promiseOrCallback = _dereq_('./promise-or-callback');
-
-function wrapPromise(fn) {
-  return function () {
-    var callback;
-    var args = Array.prototype.slice.call(arguments);
-    var lastArg = args[args.length - 1];
-
-    if (typeof lastArg === 'function') {
-      callback = args.pop();
-      callback = once(deferred(callback));
-    }
-    return promiseOrCallback(fn.apply(this, args), callback); // eslint-disable-line no-invalid-this
-  };
-}
-
-module.exports = wrapPromise;
-
-},{"./deferred":20,"./once":25,"./promise-or-callback":27}]},{},[6])(6)
+},{}]},{},[10])(10)
 });

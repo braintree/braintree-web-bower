@@ -171,7 +171,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var AmericanExpress = _dereq_('./american-express');
 var deferred = _dereq_('../lib/deferred');
 var sharedErrors = _dereq_('../lib/errors');
-var VERSION = "3.10.0";
+var VERSION = "3.11.0";
 var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 
 /**

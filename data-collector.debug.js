@@ -236,6 +236,80 @@
 },{}],2:[function(_dereq_,module,exports){
 'use strict';
 
+function deferred(fn) {
+  return function () {
+    // IE9 doesn't support passing arguments to setTimeout so we have to emulate it.
+    var args = arguments;
+
+    setTimeout(function () {
+      fn.apply(null, args);
+    }, 1);
+  };
+}
+
+module.exports = deferred;
+
+},{}],3:[function(_dereq_,module,exports){
+'use strict';
+
+function once(fn) {
+  var called = false;
+
+  return function () {
+    if (!called) {
+      called = true;
+      fn.apply(null, arguments);
+    }
+  };
+}
+
+module.exports = once;
+
+},{}],4:[function(_dereq_,module,exports){
+'use strict';
+
+function promiseOrCallback(promise, callback) { // eslint-disable-line consistent-return
+  if (callback) {
+    promise
+      .then(function (data) {
+        callback(null, data);
+      })
+      .catch(function (err) {
+        callback(err);
+      });
+  } else {
+    return promise;
+  }
+}
+
+module.exports = promiseOrCallback;
+
+},{}],5:[function(_dereq_,module,exports){
+'use strict';
+
+var deferred = _dereq_('./lib/deferred');
+var once = _dereq_('./lib/once');
+var promiseOrCallback = _dereq_('./lib/promise-or-callback');
+
+function wrapPromise(fn) {
+  return function () {
+    var callback;
+    var args = Array.prototype.slice.call(arguments);
+    var lastArg = args[args.length - 1];
+
+    if (typeof lastArg === 'function') {
+      callback = args.pop();
+      callback = once(deferred(callback));
+    }
+    return promiseOrCallback(fn.apply(this, args), callback); // eslint-disable-line no-invalid-this
+  };
+}
+
+module.exports = wrapPromise;
+
+},{"./lib/deferred":2,"./lib/once":3,"./lib/promise-or-callback":4}],6:[function(_dereq_,module,exports){
+'use strict';
+
 var BraintreeError = _dereq_('../lib/braintree-error');
 
 module.exports = {
@@ -255,7 +329,7 @@ module.exports = {
   }
 };
 
-},{"../lib/braintree-error":7}],3:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":11}],7:[function(_dereq_,module,exports){
 'use strict';
 
 function setup() {
@@ -358,7 +432,7 @@ module.exports = {
   setup: setup
 };
 
-},{}],4:[function(_dereq_,module,exports){
+},{}],8:[function(_dereq_,module,exports){
 'use strict';
 /** @module braintree-web/data-collector */
 
@@ -367,9 +441,9 @@ var fraudnet = _dereq_('./fraudnet');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var methods = _dereq_('../lib/methods');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
-var VERSION = "3.10.0";
+var VERSION = "3.11.0";
 var Promise = _dereq_('../lib/promise');
-var wrapPromise = _dereq_('../lib/wrap-promise');
+var wrapPromise = _dereq_('wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
 var errors = _dereq_('./errors');
 
@@ -393,12 +467,16 @@ var errors = _dereq_('./errors');
  * @memberof DataCollector
  * @name teardown
  * @function
- * @description Cleanly remove all event handlers and DOM nodes that were added.
- * @param {callback} [callback] Called once teardown is complete. No data is returned if teardown completes successfully.
+ * @description Cleanly remove anything set up by {@link module:braintree-web/data-collector.create|create}.
+ * @param {callback} [callback] Called on completion. If no callback is provided, `teardown` returns a promise.
  * @instance
  * @example
  * dataCollectorInstance.teardown();
- * @returns {Promise|void} Returns a promise that resolves when the teardown is complete if no callback is provided.
+ * @example <caption>With callback</caption>
+ * dataCollectorInstance.teardown(function () {
+ *   // teardown is complete
+ * });
+ * @returns {Promise|void} If no callback is provided, returns a promise that resolves when the teardown is complete.
  */
 
 /**
@@ -525,7 +603,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/braintree-error":7,"../lib/convert-methods-to-error":9,"../lib/errors":12,"../lib/methods":13,"../lib/promise":16,"../lib/wrap-promise":17,"./errors":2,"./fraudnet":3,"./kount":5}],5:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":11,"../lib/convert-methods-to-error":13,"../lib/errors":15,"../lib/methods":16,"../lib/promise":17,"./errors":6,"./fraudnet":7,"./kount":9,"wrap-promise":5}],9:[function(_dereq_,module,exports){
 'use strict';
 
 var sjcl = _dereq_('./vendor/sjcl');
@@ -628,7 +706,7 @@ module.exports = {
   environmentUrls: environmentUrls
 };
 
-},{"../lib/camel-case-to-snake-case":8,"./vendor/sjcl":6}],6:[function(_dereq_,module,exports){
+},{"../lib/camel-case-to-snake-case":12,"./vendor/sjcl":10}],10:[function(_dereq_,module,exports){
 "use strict";var sjcl={cipher:{},hash:{},keyexchange:{},mode:{},misc:{},codec:{},exception:{corrupt:function(a){this.toString=function(){return"CORRUPT: "+this.message};this.message=a},invalid:function(a){this.toString=function(){return"INVALID: "+this.message};this.message=a},bug:function(a){this.toString=function(){return"BUG: "+this.message};this.message=a},notReady:function(a){this.toString=function(){return"NOT READY: "+this.message};this.message=a}}};
 sjcl.cipher.aes=function(a){this.l[0][0][0]||this.G();var b,c,d,e,f=this.l[0][4],g=this.l[1];b=a.length;var k=1;if(4!==b&&6!==b&&8!==b)throw new sjcl.exception.invalid("invalid aes key size");this.b=[d=a.slice(0),e=[]];for(a=b;a<4*b+28;a++){c=d[a-1];if(0===a%b||8===b&&4===a%b)c=f[c>>>24]<<24^f[c>>16&255]<<16^f[c>>8&255]<<8^f[c&255],0===a%b&&(c=c<<8^c>>>24^k<<24,k=k<<1^283*(k>>7));d[a]=d[a-b]^c}for(b=0;a;b++,a--)c=d[b&3?a:a-4],e[b]=4>=a||4>b?c:g[0][f[c>>>24]]^g[1][f[c>>16&255]]^g[2][f[c>>8&255]]^g[3][f[c&
 255]]};
@@ -660,7 +738,7 @@ function B(a,b){return function(){b.apply(a,arguments)}}sjcl.random=new sjcl.prn
 a:try{var D,E,F,G;if(G="undefined"!==typeof module&&module.exports){var H;try{H=_dereq_("crypto")}catch(a){H=null}G=E=H}if(G&&E.randomBytes)D=E.randomBytes(128),D=new Uint32Array((new Uint8Array(D)).buffer),sjcl.random.addEntropy(D,1024,"crypto['randomBytes']");else if("undefined"!==typeof window&&"undefined"!==typeof Uint32Array){F=new Uint32Array(32);if(window.crypto&&window.crypto.getRandomValues)window.crypto.getRandomValues(F);else if(window.msCrypto&&window.msCrypto.getRandomValues)window.msCrypto.getRandomValues(F);
 else break a;sjcl.random.addEntropy(F,1024,"crypto['getRandomValues']")}}catch(a){"undefined"!==typeof window&&window.console&&(console.log("There was an error collecting entropy from the browser:"),console.log(a))}"undefined"!==typeof module&&module.exports&&(module.exports=sjcl);"function"===typeof define&&define([],function(){return sjcl});
 
-},{"crypto":undefined}],7:[function(_dereq_,module,exports){
+},{"crypto":undefined}],11:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -737,7 +815,7 @@ BraintreeError.types = enumerate([
 
 module.exports = BraintreeError;
 
-},{"./enumerate":11}],8:[function(_dereq_,module,exports){
+},{"./enumerate":14}],12:[function(_dereq_,module,exports){
 'use strict';
 
 // Taken from https://github.com/sindresorhus/decamelize/blob/95980ab6fb44c40eaca7792bdf93aff7c210c805/index.js
@@ -757,7 +835,7 @@ module.exports = function (obj) {
   }, {});
 };
 
-},{}],9:[function(_dereq_,module,exports){
+},{}],13:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -775,21 +853,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"./braintree-error":7,"./errors":12}],10:[function(_dereq_,module,exports){
-'use strict';
-
-module.exports = function (fn) {
-  return function () {
-    // IE9 doesn't support passing arguments to setTimeout so we have to emulate it.
-    var args = arguments;
-
-    setTimeout(function () {
-      fn.apply(null, args);
-    }, 1);
-  };
-};
-
-},{}],11:[function(_dereq_,module,exports){
+},{"./braintree-error":11,"./errors":15}],14:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -803,7 +867,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],12:[function(_dereq_,module,exports){
+},{}],15:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -836,7 +900,7 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":7}],13:[function(_dereq_,module,exports){
+},{"./braintree-error":11}],16:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -845,40 +909,7 @@ module.exports = function (obj) {
   });
 };
 
-},{}],14:[function(_dereq_,module,exports){
-'use strict';
-
-function once(fn) {
-  var called = false;
-
-  return function () {
-    if (!called) {
-      called = true;
-      fn.apply(null, arguments);
-    }
-  };
-}
-
-module.exports = once;
-
-},{}],15:[function(_dereq_,module,exports){
-'use strict';
-
-module.exports = function (promise, callback) { // eslint-disable-line consistent-return
-  if (callback) {
-    promise
-      .then(function (data) {
-        callback(null, data);
-      })
-      .catch(function (err) {
-        callback(err);
-      });
-  } else {
-    return promise;
-  }
-};
-
-},{}],16:[function(_dereq_,module,exports){
+},{}],17:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -887,28 +918,5 @@ var Promise = global.Promise || _dereq_('promise-polyfill');
 module.exports = Promise;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":1}],17:[function(_dereq_,module,exports){
-'use strict';
-
-var deferred = _dereq_('./deferred');
-var once = _dereq_('./once');
-var promiseOrCallback = _dereq_('./promise-or-callback');
-
-function wrapPromise(fn) {
-  return function () {
-    var callback;
-    var args = Array.prototype.slice.call(arguments);
-    var lastArg = args[args.length - 1];
-
-    if (typeof lastArg === 'function') {
-      callback = args.pop();
-      callback = once(deferred(callback));
-    }
-    return promiseOrCallback(fn.apply(this, args), callback); // eslint-disable-line no-invalid-this
-  };
-}
-
-module.exports = wrapPromise;
-
-},{"./deferred":10,"./once":14,"./promise-or-callback":15}]},{},[4])(4)
+},{"promise-polyfill":1}]},{},[8])(8)
 });
