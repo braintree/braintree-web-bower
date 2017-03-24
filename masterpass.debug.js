@@ -1102,7 +1102,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":14,"./check-origin":16,"./events":17,"framebus":1}],19:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.11.0";
+var VERSION = "3.11.1";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -1728,7 +1728,7 @@ var Promise = _dereq_('../../lib/promise');
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var errors = _dereq_('../shared/errors');
-var VERSION = "3.11.0";
+var VERSION = "3.11.1";
 var methods = _dereq_('../../lib/methods');
 var wrapPromise = _dereq_('wrap-promise');
 var analytics = _dereq_('../../lib/analytics');
@@ -2062,7 +2062,7 @@ module.exports = Masterpass;
 var BraintreeError = _dereq_('../lib/braintree-error');
 var browserDetection = _dereq_('../lib/browser-detection');
 var Masterpass = _dereq_('./external/masterpass');
-var VERSION = "3.11.0";
+var VERSION = "3.11.1";
 var errors = _dereq_('./shared/errors');
 var sharedErrors = _dereq_('../lib/errors');
 var Promise = _dereq_('../lib/promise');

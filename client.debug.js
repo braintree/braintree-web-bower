@@ -316,6 +316,8 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../lib/convert-to-braintree-error');
 var addMetadata = _dereq_('../lib/add-metadata');
 var Promise = _dereq_('../lib/promise');
+var once = _dereq_('../lib/once');
+var deferred = _dereq_('../lib/deferred');
 var assign = _dereq_('../lib/assign').assign;
 var constants = _dereq_('./constants');
 var errors = _dereq_('./errors');
@@ -517,6 +519,8 @@ Client.prototype.request = function (options, callback) {
   });
 
   if (typeof callback === 'function') {
+    callback = once(deferred(callback));
+
     requestPromise.then(function (response) {
       callback(null, response, response._httpStatus);
     }).catch(function (err) {
@@ -563,7 +567,7 @@ Client.prototype.toJSON = function () {
 
 module.exports = Client;
 
-},{"../lib/add-metadata":18,"../lib/assign":19,"../lib/braintree-error":20,"../lib/convert-to-braintree-error":22,"../lib/errors":25,"../lib/is-whitelisted-domain":26,"../lib/promise":30,"./constants":7,"./errors":8,"./request":13}],7:[function(_dereq_,module,exports){
+},{"../lib/add-metadata":18,"../lib/assign":19,"../lib/braintree-error":20,"../lib/convert-to-braintree-error":22,"../lib/deferred":24,"../lib/errors":26,"../lib/is-whitelisted-domain":27,"../lib/once":29,"../lib/promise":31,"./constants":7,"./errors":8,"./request":13}],7:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -707,13 +711,13 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../lib/braintree-error":20,"../lib/constants":21,"../lib/create-authorization-data":23,"../lib/promise":30,"../lib/uuid":32,"./errors":8,"./request":13,"wrap-promise":5}],10:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":20,"../lib/constants":21,"../lib/create-authorization-data":23,"../lib/promise":31,"../lib/uuid":33,"./errors":8,"./request":13,"wrap-promise":5}],10:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Client = _dereq_('./client');
 var getConfiguration = _dereq_('./get-configuration').getConfiguration;
-var VERSION = "3.11.0";
+var VERSION = "3.11.1";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -764,7 +768,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/braintree-error":20,"../lib/errors":25,"../lib/promise":30,"./client":6,"./get-configuration":9,"wrap-promise":5}],11:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":20,"../lib/errors":26,"../lib/promise":31,"./client":6,"./get-configuration":9,"wrap-promise":5}],11:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -850,7 +854,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../lib/assign":19,"../../lib/querystring":31,"./parse-body":16,"./prep-body":17}],12:[function(_dereq_,module,exports){
+},{"../../lib/assign":19,"../../lib/querystring":32,"./parse-body":16,"./prep-body":17}],12:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -890,7 +894,7 @@ module.exports = function (options, cb) {
   }
 };
 
-},{"../../lib/once":28,"./ajax-driver":11,"./get-user-agent":12,"./is-http":14,"./jsonp-driver":15}],14:[function(_dereq_,module,exports){
+},{"../../lib/once":29,"./ajax-driver":11,"./get-user-agent":12,"./is-http":14,"./jsonp-driver":15}],14:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1011,7 +1015,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../lib/querystring":31,"../../lib/uuid":32}],16:[function(_dereq_,module,exports){
+},{"../../lib/querystring":32,"../../lib/uuid":33}],16:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (body) {
@@ -1071,7 +1075,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":21,"./create-authorization-data":23,"./json-clone":27}],19:[function(_dereq_,module,exports){
+},{"./constants":21,"./create-authorization-data":23,"./json-clone":28}],19:[function(_dereq_,module,exports){
 'use strict';
 
 var assignNormalized = typeof Object.assign === 'function' ? Object.assign : assignPolyfill;
@@ -1173,10 +1177,10 @@ BraintreeError.types = enumerate([
 
 module.exports = BraintreeError;
 
-},{"./enumerate":24}],21:[function(_dereq_,module,exports){
+},{"./enumerate":25}],21:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.11.0";
+var VERSION = "3.11.1";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -1261,7 +1265,21 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":29}],24:[function(_dereq_,module,exports){
+},{"../lib/polyfill":30}],24:[function(_dereq_,module,exports){
+'use strict';
+
+module.exports = function (fn) {
+  return function () {
+    // IE9 doesn't support passing arguments to setTimeout so we have to emulate it.
+    var args = arguments;
+
+    setTimeout(function () {
+      fn.apply(null, args);
+    }, 1);
+  };
+};
+
+},{}],25:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -1275,7 +1293,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],25:[function(_dereq_,module,exports){
+},{}],26:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -1308,7 +1326,7 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":20}],26:[function(_dereq_,module,exports){
+},{"./braintree-error":20}],27:[function(_dereq_,module,exports){
 'use strict';
 
 var parser;
@@ -1343,16 +1361,16 @@ function isWhitelistedDomain(url) {
 
 module.exports = isWhitelistedDomain;
 
-},{}],27:[function(_dereq_,module,exports){
+},{}],28:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],28:[function(_dereq_,module,exports){
+},{}],29:[function(_dereq_,module,exports){
 arguments[4][3][0].apply(exports,arguments)
-},{"dup":3}],29:[function(_dereq_,module,exports){
+},{"dup":3}],30:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1391,7 +1409,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],30:[function(_dereq_,module,exports){
+},{}],31:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1400,7 +1418,7 @@ var Promise = global.Promise || _dereq_('promise-polyfill');
 module.exports = Promise;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":1}],31:[function(_dereq_,module,exports){
+},{"promise-polyfill":1}],32:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1491,7 +1509,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],32:[function(_dereq_,module,exports){
+},{}],33:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {

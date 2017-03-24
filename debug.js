@@ -1020,7 +1020,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var AmericanExpress = _dereq_('./american-express');
 var deferred = _dereq_('../lib/deferred');
 var sharedErrors = _dereq_('../lib/errors');
-var VERSION = "3.11.0";
+var VERSION = "3.11.1";
 var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 
 /**
@@ -1413,7 +1413,7 @@ var deferred = _dereq_('../lib/deferred');
 var sharedErrors = _dereq_('../lib/errors');
 var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 var errors = _dereq_('./errors');
-var VERSION = "3.11.0";
+var VERSION = "3.11.1";
 
 /**
  * @static
@@ -1477,6 +1477,8 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../lib/convert-to-braintree-error');
 var addMetadata = _dereq_('../lib/add-metadata');
 var Promise = _dereq_('../lib/promise');
+var once = _dereq_('../lib/once');
+var deferred = _dereq_('../lib/deferred');
 var assign = _dereq_('../lib/assign').assign;
 var constants = _dereq_('./constants');
 var errors = _dereq_('./errors');
@@ -1678,6 +1680,8 @@ Client.prototype.request = function (options, callback) {
   });
 
   if (typeof callback === 'function') {
+    callback = once(deferred(callback));
+
     requestPromise.then(function (response) {
       callback(null, response, response._httpStatus);
     }).catch(function (err) {
@@ -1724,7 +1728,7 @@ Client.prototype.toJSON = function () {
 
 module.exports = Client;
 
-},{"../lib/add-metadata":44,"../lib/assign":46,"../lib/braintree-error":48,"../lib/convert-to-braintree-error":57,"../lib/errors":62,"../lib/is-whitelisted-domain":74,"../lib/promise":79,"./constants":19,"./errors":20,"./request":25}],19:[function(_dereq_,module,exports){
+},{"../lib/add-metadata":44,"../lib/assign":46,"../lib/braintree-error":48,"../lib/convert-to-braintree-error":57,"../lib/deferred":59,"../lib/errors":62,"../lib/is-whitelisted-domain":74,"../lib/once":77,"../lib/promise":79,"./constants":19,"./errors":20,"./request":25}],19:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -1874,7 +1878,7 @@ module.exports = {
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Client = _dereq_('./client');
 var getConfiguration = _dereq_('./get-configuration').getConfiguration;
-var VERSION = "3.11.0";
+var VERSION = "3.11.1";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -2332,7 +2336,7 @@ var fraudnet = _dereq_('./fraudnet');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var methods = _dereq_('../lib/methods');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
-var VERSION = "3.11.0";
+var VERSION = "3.11.1";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -2702,7 +2706,7 @@ var EventEmitter = _dereq_('../../lib/event-emitter');
 var injectFrame = _dereq_('./inject-frame');
 var analytics = _dereq_('../../lib/analytics');
 var whitelistedFields = constants.whitelistedFields;
-var VERSION = "3.11.0";
+var VERSION = "3.11.1";
 var methods = _dereq_('../../lib/methods');
 var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
 var deferred = _dereq_('../../lib/deferred');
@@ -3550,7 +3554,7 @@ module.exports = function injectFrame(frame, container) {
 var HostedFields = _dereq_('./external/hosted-fields');
 var wrapPromise = _dereq_('wrap-promise');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.11.0";
+var VERSION = "3.11.1";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -3701,7 +3705,7 @@ module.exports = {
 /* eslint-disable no-reserved-keys */
 
 var enumerate = _dereq_('../../lib/enumerate');
-var VERSION = "3.11.0";
+var VERSION = "3.11.1";
 
 var constants = {
   VERSION: VERSION,
@@ -3942,7 +3946,7 @@ var threeDSecure = _dereq_('./three-d-secure');
 var usBankAccount = _dereq_('./us-bank-account');
 var visaCheckout = _dereq_('./visa-checkout');
 var masterpass = _dereq_('./masterpass');
-var VERSION = "3.11.0";
+var VERSION = "3.11.1";
 
 module.exports = {
   /** @type {module:braintree-web/client} */
@@ -4527,7 +4531,7 @@ module.exports = {
 },{}],55:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.11.0";
+var VERSION = "3.11.1";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -5360,7 +5364,7 @@ var Promise = _dereq_('../../lib/promise');
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var errors = _dereq_('../shared/errors');
-var VERSION = "3.11.0";
+var VERSION = "3.11.1";
 var methods = _dereq_('../../lib/methods');
 var wrapPromise = _dereq_('wrap-promise');
 var analytics = _dereq_('../../lib/analytics');
@@ -5694,7 +5698,7 @@ module.exports = Masterpass;
 var BraintreeError = _dereq_('../lib/braintree-error');
 var browserDetection = _dereq_('../lib/browser-detection');
 var Masterpass = _dereq_('./external/masterpass');
-var VERSION = "3.11.0";
+var VERSION = "3.11.1";
 var errors = _dereq_('./shared/errors');
 var sharedErrors = _dereq_('../lib/errors');
 var Promise = _dereq_('../lib/promise');
@@ -5901,11 +5905,6 @@ module.exports = {
     type: BraintreeError.types.MERCHANT,
     code: 'PAYPAL_INVALID_PAYMENT_OPTION',
     message: 'PayPal payment options are invalid.'
-  },
-  PAYPAL_VAULTING_WITH_TOKENIZATION_KEY: {
-    type: BraintreeError.types.MERCHANT,
-    code: 'PAYPAL_VAULTING_WITH_TOKENIZATION_KEY',
-    message: 'Vaulting directly from the client when using a Tokenization Key is forbidden. To vault, store the transaction in the vault (https://developers.braintreepayments.com/reference/request/transaction/sale/#storing-in-vault) or use a Client Token (https://developers.braintreepayments.com/guides/authorization/client-token)'
   }
 };
 
@@ -5923,7 +5922,7 @@ var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('wrap-promise');
 var PayPalCheckout = _dereq_('./paypal-checkout');
 var sharedErrors = _dereq_('../lib/errors');
-var VERSION = "3.11.0";
+var VERSION = "3.11.1";
 
 /**
  * @static
@@ -6353,14 +6352,10 @@ PayPalCheckout.prototype._formatTokenizeData = function (options, params) {
     paypalAccount: {
       correlationId: params.billingToken || params.ecToken,
       options: {
-        validate: options.flow === 'vault'
+        validate: options.flow === 'vault' && !isTokenizationKey
       }
     }
   };
-
-  if (isTokenizationKey && data.paypalAccount.options.validate) {
-    throw new BraintreeError(errors.PAYPAL_VAULTING_WITH_TOKENIZATION_KEY);
-  }
 
   if (params.billingToken) {
     data.paypalAccount.billingAgreementToken = params.billingToken;
@@ -6413,7 +6408,7 @@ var BraintreeError = _dereq_('../../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../../lib/convert-to-braintree-error');
 var useMin = _dereq_('../../lib/use-min');
 var once = _dereq_('../../lib/once');
-var VERSION = "3.11.0";
+var VERSION = "3.11.1";
 var constants = _dereq_('../shared/constants');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
@@ -6952,7 +6947,7 @@ var errors = _dereq_('./shared/errors');
 var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 var PayPal = _dereq_('./external/paypal');
 var sharedErrors = _dereq_('../lib/errors');
-var VERSION = "3.11.0";
+var VERSION = "3.11.1";
 
 /**
  * @static
@@ -7161,7 +7156,7 @@ var deferred = _dereq_('../../lib/deferred');
 var errors = _dereq_('../shared/errors');
 var throwIfNoCallback = _dereq_('../../lib/throw-if-no-callback');
 var events = _dereq_('../shared/events');
-var VERSION = "3.11.0";
+var VERSION = "3.11.1";
 var iFramer = _dereq_('iframer');
 
 var IFRAME_HEIGHT = 400;
@@ -7490,7 +7485,7 @@ var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 var deferred = _dereq_('../lib/deferred');
 var errors = _dereq_('./shared/errors');
 var sharedErrors = _dereq_('../lib/errors');
-var VERSION = "3.11.0";
+var VERSION = "3.11.1";
 
 /**
  * @static
@@ -7632,7 +7627,7 @@ var deferred = _dereq_('../lib/deferred');
 var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 var errors = _dereq_('./shared/errors');
 var sharedErrors = _dereq_('../lib/errors');
-var VERSION = "3.11.0";
+var VERSION = "3.11.1";
 
 /**
 * @static
@@ -7793,7 +7788,7 @@ var errors = _dereq_('./errors');
 var events = constants.events;
 var iFramer = _dereq_('iframer');
 var methods = _dereq_('../../lib/methods');
-var VERSION = "3.11.0";
+var VERSION = "3.11.1";
 var uuid = _dereq_('../../lib/uuid');
 var throwIfNoCallback = _dereq_('../../lib/throw-if-no-callback');
 
@@ -8390,7 +8385,7 @@ var errors = _dereq_('./errors');
 var USBankAccount = _dereq_('./us-bank-account');
 var deferred = _dereq_('../lib/deferred');
 var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
-var VERSION = "3.11.0";
+var VERSION = "3.11.1";
 var sharedErrors = _dereq_('../lib/errors');
 
 /**
@@ -8847,7 +8842,7 @@ module.exports = USBankAccount;
 var BraintreeError = _dereq_('../lib/braintree-error');
 var VaultManager = _dereq_('./vault-manager');
 var sharedErrors = _dereq_('../lib/errors');
-var VERSION = "3.11.0";
+var VERSION = "3.11.1";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('wrap-promise');
 
@@ -9012,7 +9007,7 @@ var analytics = _dereq_('../lib/analytics');
 var deferred = _dereq_('../lib/deferred');
 var sharedErrors = _dereq_('../lib/errors');
 var errors = _dereq_('./errors');
-var VERSION = "3.11.0";
+var VERSION = "3.11.1";
 var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 
 /**

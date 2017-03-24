@@ -455,7 +455,7 @@ module.exports = BraintreeError;
 },{"./enumerate":12}],9:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.11.0";
+var VERSION = "3.11.1";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -692,11 +692,6 @@ module.exports = {
     type: BraintreeError.types.MERCHANT,
     code: 'PAYPAL_INVALID_PAYMENT_OPTION',
     message: 'PayPal payment options are invalid.'
-  },
-  PAYPAL_VAULTING_WITH_TOKENIZATION_KEY: {
-    type: BraintreeError.types.MERCHANT,
-    code: 'PAYPAL_VAULTING_WITH_TOKENIZATION_KEY',
-    message: 'Vaulting directly from the client when using a Tokenization Key is forbidden. To vault, store the transaction in the vault (https://developers.braintreepayments.com/reference/request/transaction/sale/#storing-in-vault) or use a Client Token (https://developers.braintreepayments.com/guides/authorization/client-token)'
   }
 };
 
@@ -714,7 +709,7 @@ var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('wrap-promise');
 var PayPalCheckout = _dereq_('./paypal-checkout');
 var sharedErrors = _dereq_('../lib/errors');
-var VERSION = "3.11.0";
+var VERSION = "3.11.1";
 
 /**
  * @static
@@ -1144,14 +1139,10 @@ PayPalCheckout.prototype._formatTokenizeData = function (options, params) {
     paypalAccount: {
       correlationId: params.billingToken || params.ecToken,
       options: {
-        validate: options.flow === 'vault'
+        validate: options.flow === 'vault' && !isTokenizationKey
       }
     }
   };
-
-  if (isTokenizationKey && data.paypalAccount.options.validate) {
-    throw new BraintreeError(errors.PAYPAL_VAULTING_WITH_TOKENIZATION_KEY);
-  }
 
   if (params.billingToken) {
     data.paypalAccount.billingAgreementToken = params.billingToken;

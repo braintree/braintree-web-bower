@@ -166,7 +166,7 @@ module.exports = function (obj) {
 },{}],5:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.11.0";
+var VERSION = "3.11.1";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -466,7 +466,7 @@ var errors = _dereq_('./errors');
 var USBankAccount = _dereq_('./us-bank-account');
 var deferred = _dereq_('../lib/deferred');
 var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
-var VERSION = "3.11.0";
+var VERSION = "3.11.1";
 var sharedErrors = _dereq_('../lib/errors');
 
 /**
