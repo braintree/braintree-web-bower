@@ -914,13 +914,13 @@ var errors = _dereq_('../shared/errors');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var uuid = _dereq_('../../lib/uuid');
 var findParentTags = _dereq_('../shared/find-parent-tags');
-var isIos = _dereq_('../../lib/is-ios');
+var isIos = _dereq_('../../lib/browser-detection').isIos;
 var events = constants.events;
 var EventEmitter = _dereq_('../../lib/event-emitter');
 var injectFrame = _dereq_('./inject-frame');
 var analytics = _dereq_('../../lib/analytics');
 var whitelistedFields = constants.whitelistedFields;
-var VERSION = "3.11.1";
+var VERSION = "3.12.0";
 var methods = _dereq_('../../lib/methods');
 var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
 var deferred = _dereq_('../../lib/deferred');
@@ -1744,7 +1744,7 @@ HostedFields.prototype.getState = function () {
 
 module.exports = HostedFields;
 
-},{"../../lib/analytics":21,"../../lib/braintree-error":23,"../../lib/bus":26,"../../lib/classlist":27,"../../lib/constants":28,"../../lib/convert-methods-to-error":29,"../../lib/deferred":31,"../../lib/destructor":32,"../../lib/errors":34,"../../lib/event-emitter":35,"../../lib/is-ios":36,"../../lib/methods":39,"../../lib/promise":42,"../../lib/uuid":44,"../shared/constants":17,"../shared/errors":18,"../shared/find-parent-tags":19,"./attribute-validation-error":12,"./compose-url":13,"./inject-frame":15,"credit-card-type":1,"iframer":3,"wrap-promise":11}],15:[function(_dereq_,module,exports){
+},{"../../lib/analytics":21,"../../lib/braintree-error":23,"../../lib/browser-detection":24,"../../lib/bus":27,"../../lib/classlist":28,"../../lib/constants":29,"../../lib/convert-methods-to-error":30,"../../lib/deferred":32,"../../lib/destructor":33,"../../lib/errors":35,"../../lib/event-emitter":36,"../../lib/methods":39,"../../lib/promise":42,"../../lib/uuid":44,"../shared/constants":17,"../shared/errors":18,"../shared/find-parent-tags":19,"./attribute-validation-error":12,"./compose-url":13,"./inject-frame":15,"credit-card-type":1,"iframer":3,"wrap-promise":11}],15:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function injectFrame(frame, container) {
@@ -1768,7 +1768,7 @@ module.exports = function injectFrame(frame, container) {
 var HostedFields = _dereq_('./external/hosted-fields');
 var wrapPromise = _dereq_('wrap-promise');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.11.1";
+var VERSION = "3.12.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -1777,7 +1777,7 @@ var VERSION = "3.11.1";
  * @property {string} [placeholder] Will be used as the `placeholder` attribute of the input. If `placeholder` is not natively supported by the browser, it will be polyfilled.
  * @property {string} [type] Will be used as the `type` attribute of the input. To mask `cvv` input, for instance, `type: "password"` can be used.
  * @property {boolean} [formatInput=true] Enable or disable automatic formatting on this field.
- * @property {object|boolean} [select] If truthy, this field becomes a `<select>` dropdown list. This can only be used for `expirationMonth` and `expirationYear` fields.
+ * @property {object|boolean} [select] If truthy, this field becomes a `<select>` dropdown list. This can only be used for `expirationMonth` and `expirationYear` fields. If you do not use a `placeholder` property for the field, the current month/year will be the default selected value.
  * @property {string[]} [select.options] An array of 12 strings, one per month. This can only be used for the `expirationMonth` field. For example, the array can look like `['01 - January', '02 - February', ...]`.
  */
 
@@ -1798,6 +1798,7 @@ var VERSION = "3.11.1";
  * These are the CSS properties that Hosted Fields supports. Any other CSS should be specified on your page and outside of any Braintree configuration. Trying to set unsupported properties will fail and put a warning in the console.
  *
  * Supported CSS properties are:
+ * `appearance`
  * `color`
  * `direction`
  * `font-family`
@@ -1819,9 +1820,11 @@ var VERSION = "3.11.1";
  * `outline`
  * `text-shadow`
  * `transition`
+ * `-moz-appearance`
  * `-moz-osx-font-smoothing`
  * `-moz-tap-highlight-color`
  * `-moz-transition`
+ * `-webkit-appearance`
  * `-webkit-font-smoothing`
  * `-webkit-tap-highlight-color`
  * `-webkit-transition`
@@ -1919,7 +1922,7 @@ module.exports = {
 /* eslint-disable no-reserved-keys */
 
 var enumerate = _dereq_('../../lib/enumerate');
-var VERSION = "3.11.1";
+var VERSION = "3.12.0";
 
 var constants = {
   VERSION: VERSION,
@@ -1952,12 +1955,15 @@ var constants = {
     'float': 'left'
   },
   whitelistedStyles: [
+    '-moz-appearance',
     '-moz-osx-font-smoothing',
     '-moz-tap-highlight-color',
     '-moz-transition',
+    '-webkit-appearance',
     '-webkit-font-smoothing',
     '-webkit-tap-highlight-color',
     '-webkit-transition',
+    'appearance',
     'color',
     'direction',
     'font',
@@ -2030,7 +2036,7 @@ constants.events = enumerate([
 
 module.exports = constants;
 
-},{"../../lib/enumerate":33}],18:[function(_dereq_,module,exports){
+},{"../../lib/enumerate":34}],18:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../lib/braintree-error');
@@ -2142,7 +2148,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":28,"./create-authorization-data":30,"./json-clone":38}],21:[function(_dereq_,module,exports){
+},{"./constants":29,"./create-authorization-data":31,"./json-clone":38}],21:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('./constants');
@@ -2176,7 +2182,7 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":20,"./constants":28}],22:[function(_dereq_,module,exports){
+},{"./add-metadata":20,"./constants":29}],22:[function(_dereq_,module,exports){
 'use strict';
 
 var once = _dereq_('./once');
@@ -2297,7 +2303,114 @@ BraintreeError.types = enumerate([
 
 module.exports = BraintreeError;
 
-},{"./enumerate":33}],24:[function(_dereq_,module,exports){
+},{"./enumerate":34}],24:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+
+var MINIMUM_SUPPORTED_CHROME_IOS_VERSION = 48;
+
+function isOperaMini(ua) {
+  ua = ua || global.navigator.userAgent;
+  return ua.indexOf('Opera Mini') > -1;
+}
+
+function isAndroidFirefox(ua) {
+  ua = ua || global.navigator.userAgent;
+  return isAndroid(ua) && ua.indexOf('Firefox') > -1;
+}
+
+function getIEVersion(ua) {
+  ua = ua || global.navigator.userAgent;
+
+  if (ua.indexOf('MSIE') !== -1) {
+    return parseInt(ua.replace(/.*MSIE ([0-9]+)\..*/, '$1'), 10);
+  } else if (/Trident.*rv:11/.test(ua)) {
+    return 11;
+  }
+
+  return null;
+}
+
+function isIe9(ua) {
+  ua = ua || navigator.userAgent;
+  return ua.indexOf('MSIE 9') !== -1;
+}
+
+function isHTTPS(protocol) {
+  protocol = protocol || global.location.protocol;
+  return protocol === 'https:';
+}
+
+function isIos(ua) {
+  ua = ua || global.navigator.userAgent;
+  return /iPhone|iPod|iPad/i.test(ua);
+}
+
+function isAndroid(ua) {
+  ua = ua || global.navigator.userAgent;
+  return /Android/.test(ua);
+}
+
+function isUnsupportedIosChrome(ua) {
+  var match, version;
+
+  ua = ua || global.navigator.userAgent;
+  match = ua.match(/CriOS\/(\d+)\./);
+
+  if (!match) {
+    return false;
+  }
+
+  version = parseInt(match[1], 10);
+
+  return version < MINIMUM_SUPPORTED_CHROME_IOS_VERSION;
+}
+
+function supportsPopups(ua) {
+  ua = ua || global.navigator.userAgent;
+  return !(isIosWebview(ua) || isAndroidWebview(ua) || isOperaMini(ua) || isUnsupportedIosChrome(ua));
+}
+
+// The Google Search iOS app is technically a webview and doesn't support popups.
+function isGoogleSearchApp(ua) {
+  return /\bGSA\b/.test(ua);
+}
+
+function isIosWebview(ua) {
+  ua = ua || global.navigator.userAgent;
+  if (isIos(ua)) {
+    if (isGoogleSearchApp(ua)) {
+      return true;
+    }
+    return /.+AppleWebKit(?!.*Safari)/.test(ua);
+  }
+  return false;
+}
+
+function isAndroidWebview(ua) {
+  var androidWebviewRegExp = /Version\/[\d\.]+/;
+
+  ua = ua || global.navigator.userAgent;
+  if (isAndroid(ua)) {
+    return androidWebviewRegExp.test(ua) && !isOperaMini(ua);
+  }
+  return false;
+}
+
+module.exports = {
+  isOperaMini: isOperaMini,
+  isAndroidFirefox: isAndroidFirefox,
+  getIEVersion: getIEVersion,
+  isIe9: isIe9,
+  isHTTPS: isHTTPS,
+  isIos: isIos,
+  isAndroid: isAndroid,
+  isUnsupportedIosChrome: isUnsupportedIosChrome,
+  supportsPopups: supportsPopups
+};
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],25:[function(_dereq_,module,exports){
 'use strict';
 
 var isWhitelistedDomain = _dereq_('../is-whitelisted-domain');
@@ -2329,7 +2442,7 @@ module.exports = {
   checkOrigin: checkOrigin
 };
 
-},{"../is-whitelisted-domain":37}],25:[function(_dereq_,module,exports){
+},{"../is-whitelisted-domain":37}],26:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../enumerate');
@@ -2338,7 +2451,7 @@ module.exports = enumerate([
   'CONFIGURATION_REQUEST'
 ], 'bus:');
 
-},{"../enumerate":33}],26:[function(_dereq_,module,exports){
+},{"../enumerate":34}],27:[function(_dereq_,module,exports){
 'use strict';
 
 var bus = _dereq_('framebus');
@@ -2469,7 +2582,7 @@ BraintreeBus.events = events;
 
 module.exports = BraintreeBus;
 
-},{"../braintree-error":23,"./check-origin":24,"./events":25,"framebus":2}],27:[function(_dereq_,module,exports){
+},{"../braintree-error":23,"./check-origin":25,"./events":26,"framebus":2}],28:[function(_dereq_,module,exports){
 'use strict';
 
 function _classesOf(element) {
@@ -2508,10 +2621,10 @@ module.exports = {
   toggle: toggle
 };
 
-},{}],28:[function(_dereq_,module,exports){
+},{}],29:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.11.1";
+var VERSION = "3.12.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -2525,7 +2638,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],29:[function(_dereq_,module,exports){
+},{}],30:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -2543,7 +2656,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"./braintree-error":23,"./errors":34}],30:[function(_dereq_,module,exports){
+},{"./braintree-error":23,"./errors":35}],31:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/polyfill').atob;
@@ -2592,7 +2705,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":41}],31:[function(_dereq_,module,exports){
+},{"../lib/polyfill":41}],32:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (fn) {
@@ -2606,7 +2719,7 @@ module.exports = function (fn) {
   };
 };
 
-},{}],32:[function(_dereq_,module,exports){
+},{}],33:[function(_dereq_,module,exports){
 'use strict';
 
 var batchExecuteFunctions = _dereq_('./batch-execute-functions');
@@ -2643,7 +2756,7 @@ Destructor.prototype.teardown = function (callback) {
 
 module.exports = Destructor;
 
-},{"./batch-execute-functions":22}],33:[function(_dereq_,module,exports){
+},{"./batch-execute-functions":22}],34:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -2657,7 +2770,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],34:[function(_dereq_,module,exports){
+},{}],35:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -2690,7 +2803,7 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":23}],35:[function(_dereq_,module,exports){
+},{"./braintree-error":23}],36:[function(_dereq_,module,exports){
 'use strict';
 
 function EventEmitter() {
@@ -2719,14 +2832,6 @@ EventEmitter.prototype._emit = function (event) {
 };
 
 module.exports = EventEmitter;
-
-},{}],36:[function(_dereq_,module,exports){
-'use strict';
-
-module.exports = function isIos(userAgent) {
-  userAgent = userAgent || navigator.userAgent;
-  return /(iPad|iPhone|iPod)/i.test(userAgent);
-};
 
 },{}],37:[function(_dereq_,module,exports){
 'use strict';
@@ -2815,7 +2920,9 @@ function atob(base64String) {
 }
 
 module.exports = {
-  atob: atobNormalized,
+  atob: function (base64String) {
+    return atobNormalized.call(global, base64String);
+  },
   _atob: atob
 };
 

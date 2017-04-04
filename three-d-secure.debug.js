@@ -520,6 +520,11 @@ function getIEVersion(ua) {
   return null;
 }
 
+function isIe9(ua) {
+  ua = ua || navigator.userAgent;
+  return ua.indexOf('MSIE 9') !== -1;
+}
+
 function isHTTPS(protocol) {
   protocol = protocol || global.location.protocol;
   return protocol === 'https:';
@@ -527,7 +532,7 @@ function isHTTPS(protocol) {
 
 function isIos(ua) {
   ua = ua || global.navigator.userAgent;
-  return /iPhone|iPod|iPad/.test(ua);
+  return /iPhone|iPod|iPad/i.test(ua);
 }
 
 function isAndroid(ua) {
@@ -585,6 +590,7 @@ module.exports = {
   isOperaMini: isOperaMini,
   isAndroidFirefox: isAndroidFirefox,
   getIEVersion: getIEVersion,
+  isIe9: isIe9,
   isHTTPS: isHTTPS,
   isIos: isIos,
   isAndroid: isAndroid,
@@ -768,7 +774,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":8,"./check-origin":10,"./events":11,"framebus":1}],13:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.11.1";
+var VERSION = "3.12.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -995,7 +1001,9 @@ function atob(base64String) {
 }
 
 module.exports = {
-  atob: atobNormalized,
+  atob: function (base64String) {
+    return atobNormalized.call(global, base64String);
+  },
   _atob: atob
 };
 
@@ -1054,7 +1062,7 @@ var deferred = _dereq_('../../lib/deferred');
 var errors = _dereq_('../shared/errors');
 var throwIfNoCallback = _dereq_('../../lib/throw-if-no-callback');
 var events = _dereq_('../shared/events');
-var VERSION = "3.11.1";
+var VERSION = "3.12.0";
 var iFramer = _dereq_('iframer');
 
 var IFRAME_HEIGHT = 400;
@@ -1383,7 +1391,7 @@ var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 var deferred = _dereq_('../lib/deferred');
 var errors = _dereq_('./shared/errors');
 var sharedErrors = _dereq_('../lib/errors');
-var VERSION = "3.11.1";
+var VERSION = "3.12.0";
 
 /**
  * @static

@@ -690,7 +690,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":19,"./create-authorization-data":22,"./json-clone":35}],12:[function(_dereq_,module,exports){
+},{"./constants":19,"./create-authorization-data":22,"./json-clone":36}],12:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('./constants');
@@ -854,6 +854,11 @@ function getIEVersion(ua) {
   return null;
 }
 
+function isIe9(ua) {
+  ua = ua || navigator.userAgent;
+  return ua.indexOf('MSIE 9') !== -1;
+}
+
 function isHTTPS(protocol) {
   protocol = protocol || global.location.protocol;
   return protocol === 'https:';
@@ -861,7 +866,7 @@ function isHTTPS(protocol) {
 
 function isIos(ua) {
   ua = ua || global.navigator.userAgent;
-  return /iPhone|iPod|iPad/.test(ua);
+  return /iPhone|iPod|iPad/i.test(ua);
 }
 
 function isAndroid(ua) {
@@ -919,6 +924,7 @@ module.exports = {
   isOperaMini: isOperaMini,
   isAndroidFirefox: isAndroidFirefox,
   getIEVersion: getIEVersion,
+  isIe9: isIe9,
   isHTTPS: isHTTPS,
   isIos: isIos,
   isAndroid: isAndroid,
@@ -959,7 +965,7 @@ module.exports = {
   checkOrigin: checkOrigin
 };
 
-},{"../is-whitelisted-domain":34}],17:[function(_dereq_,module,exports){
+},{"../is-whitelisted-domain":35}],17:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../enumerate');
@@ -1102,7 +1108,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":14,"./check-origin":16,"./events":17,"framebus":1}],19:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.11.1";
+var VERSION = "3.12.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -1205,7 +1211,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":37}],23:[function(_dereq_,module,exports){
+},{"../lib/polyfill":38}],23:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -1256,7 +1262,9 @@ module.exports = {
 (function (global){
 'use strict';
 
-var popup = _dereq_('./popup');
+var Popup = _dereq_('./strategies/popup');
+var PopupBridge = _dereq_('./strategies/popup-bridge');
+var Modal = _dereq_('./strategies/modal');
 var Bus = _dereq_('../../bus');
 var events = _dereq_('../shared/events');
 var errors = _dereq_('../shared/errors');
@@ -1264,7 +1272,7 @@ var constants = _dereq_('../shared/constants');
 var uuid = _dereq_('../../uuid');
 var iFramer = _dereq_('iframer');
 var BraintreeError = _dereq_('../../braintree-error');
-var assign = _dereq_('../../assign').assign;
+var browserDetection = _dereq_('../../browser-detection');
 
 var REQUIRED_CONFIG_KEYS = [
   'name',
@@ -1342,6 +1350,7 @@ FrameService.prototype._setBusEvents = function () {
     if (this._onCompleteCallback) {
       this._onCompleteCallback.call(null, res.err, res.payload);
     }
+    this._frame.close();
 
     this._onCompleteCallback = null;
 
@@ -1355,34 +1364,17 @@ FrameService.prototype._setBusEvents = function () {
   }.bind(this));
 };
 
-FrameService.prototype._initializePopupBridge = function (callback) {
-  global.popupBridge.onComplete = function (err, payload) {
-    var popupDismissed = !payload && !err;
-
-    if (err || popupDismissed) {
-      // User clicked "Done" button of browser view
-      callback(new BraintreeError(errors.FRAME_SERVICE_FRAME_CLOSED));
-      return;
-    }
-    // User completed popup flow (includes success and cancel cases)
-    callback(null, payload);
-  };
-};
-
-FrameService.prototype._openPopupBridge = function (options) {
-  var popupOptions = assign({}, this._options, options);
-
-  popup.open(popupOptions);
-};
-
 FrameService.prototype.open = function (callback) {
-  if (global.popupBridge) {
-    // Popup Bridge does not need to open a frame until the landing frame redirects to PayPal
-    this._initializePopupBridge(callback);
+  this._frame = this._getFrameForEnvironment();
+  this._frame.initialize(callback);
+
+  if (this._frame instanceof PopupBridge) {
     return;
   }
+
   this._onCompleteCallback = callback;
-  this._frame = popup.open(this._options);
+  this._frame.open();
+
   if (this.isFrameClosed()) {
     this._cleanupFrame();
     if (callback) {
@@ -1394,14 +1386,8 @@ FrameService.prototype.open = function (callback) {
 };
 
 FrameService.prototype.redirect = function (url) {
-  if (global.popupBridge) {
-    this._openPopupBridge({
-      openFrameUrl: url
-    });
-    return;
-  }
   if (this._frame && !this.isFrameClosed()) {
-    this._frame.location.href = url;
+    this._frame.redirect(url);
   }
 };
 
@@ -1475,10 +1461,23 @@ FrameService.prototype._pollForPopupClose = function () {
   return this._popupInterval;
 };
 
+FrameService.prototype._getFrameForEnvironment = function () {
+  var usePopup = browserDetection.supportsPopups();
+  var popupBridgeExists = Boolean(global.popupBridge);
+
+  if (usePopup) {
+    return new Popup(this._options);
+  } else if (popupBridgeExists) {
+    return new PopupBridge(this._options);
+  }
+
+  return new Modal(this._options);
+};
+
 module.exports = FrameService;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../assign":13,"../../braintree-error":14,"../../bus":18,"../../uuid":39,"../shared/constants":31,"../shared/errors":32,"../shared/events":33,"./popup":28,"iframer":2}],26:[function(_dereq_,module,exports){
+},{"../../braintree-error":14,"../../browser-detection":15,"../../bus":18,"../../uuid":40,"../shared/constants":32,"../shared/errors":33,"../shared/events":34,"./strategies/modal":27,"./strategies/popup":30,"./strategies/popup-bridge":28,"iframer":2}],26:[function(_dereq_,module,exports){
 'use strict';
 
 var FrameService = _dereq_('./frame-service');
@@ -1496,7 +1495,129 @@ module.exports = {
 },{"./frame-service":25}],27:[function(_dereq_,module,exports){
 'use strict';
 
-var constants = _dereq_('../../shared/constants');
+var iFramer = _dereq_('iframer');
+var assign = _dereq_('../../../assign').assign;
+var browserDetection = _dereq_('../../../browser-detection');
+
+var ELEMENT_STYLES = {
+  position: 'fixed',
+  top: 0,
+  left: 0,
+  bottom: 0,
+  padding: 0,
+  margin: 0,
+  border: 0,
+  outline: 'none',
+  zIndex: 20001,
+  background: '#FFFFFF'
+};
+
+function noop() {}
+
+function Modal(options) {
+  this.closed = null;
+  this._frame = null;
+  this._options = options || {};
+  this._container = this._options.container || document.body;
+}
+
+Modal.prototype.initialize = noop;
+
+Modal.prototype.open = function () {
+  var iframerConfig = {
+    src: this._options.openFrameUrl,
+    name: this._options.name,
+    scrolling: 'yes',
+    height: '100%',
+    width: '100%',
+    style: assign({}, ELEMENT_STYLES)
+  };
+
+  if (browserDetection.isIos()) {
+    iframerConfig.style.position = 'absolute';
+
+    this._el = document.createElement('div');
+    this._frame = iFramer(iframerConfig);
+    this._el.appendChild(this._frame);
+  } else {
+    this._el = this._frame = iFramer(iframerConfig);
+  }
+  this.closed = false;
+
+  this._container.appendChild(this._el);
+};
+
+Modal.prototype.focus = noop;
+
+Modal.prototype.close = function () {
+  this._container.removeChild(this._el);
+  this._frame = null;
+  this.closed = true;
+};
+
+Modal.prototype.redirect = function (redirectUrl) {
+  this._frame.src = redirectUrl;
+};
+
+module.exports = Modal;
+
+},{"../../../assign":13,"../../../browser-detection":15,"iframer":2}],28:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+
+var BraintreeError = _dereq_('../../../braintree-error');
+var errors = _dereq_('../../shared/errors');
+
+function noop() {}
+
+function PopupBridge(options) {
+  this.closed = null;
+  this._options = options;
+}
+
+PopupBridge.prototype.initialize = function (callback) {
+  var self = this;
+
+  global.popupBridge.onComplete = function (err, payload) {
+    var popupDismissed = !payload && !err;
+
+    self.closed = true;
+
+    if (err || popupDismissed) {
+      // User clicked "Done" button of browser view
+      callback(new BraintreeError(errors.FRAME_SERVICE_FRAME_CLOSED));
+      return;
+    }
+    // User completed popup flow (includes success and cancel cases)
+    callback(null, payload);
+  };
+};
+
+PopupBridge.prototype.open = function (options) {
+  var url;
+
+  options = options || {};
+  url = options.openFrameUrl || this._options.openFrameUrl;
+
+  this.closed = false;
+  global.popupBridge.open(url);
+};
+
+PopupBridge.prototype.focus = noop;
+
+PopupBridge.prototype.close = noop;
+
+PopupBridge.prototype.redirect = function (redirectUrl) {
+  this.open({openFrameUrl: redirectUrl});
+};
+
+module.exports = PopupBridge;
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"../../../braintree-error":14,"../../shared/errors":33}],29:[function(_dereq_,module,exports){
+'use strict';
+
+var constants = _dereq_('../../../shared/constants');
 var position = _dereq_('./position');
 
 module.exports = function composePopupOptions(options) {
@@ -1512,32 +1633,54 @@ module.exports = function composePopupOptions(options) {
   ].join(',');
 };
 
-},{"../../shared/constants":31,"./position":30}],28:[function(_dereq_,module,exports){
-'use strict';
-
-module.exports = {
-  open: _dereq_('./open')
-};
-
-},{"./open":29}],29:[function(_dereq_,module,exports){
+},{"../../../shared/constants":32,"./position":31}],30:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
 var composeOptions = _dereq_('./compose-options');
 
-module.exports = function openPopup(options) {
-  if (global.popupBridge) {
-    return global.popupBridge.open(options.openFrameUrl);
-  }
-  return global.open(
-    options.openFrameUrl,
-    options.name,
-    composeOptions(options)
+function noop() {}
+
+function Popup(options) {
+  this.closed = null;
+  this._frame = null;
+  this._options = options || {};
+
+  this.open();
+}
+
+Popup.prototype.initialize = noop;
+
+Popup.prototype.open = function () {
+  this._frame = global.open(
+    this._options.openFrameUrl,
+    this._options.name,
+    composeOptions(this._options)
   );
+  this.closed = false;
 };
 
+Popup.prototype.focus = function () {
+  this._frame.focus();
+};
+
+Popup.prototype.close = function () {
+  if (this.closed) {
+    return;
+  }
+
+  this.closed = true;
+  this._frame.close();
+};
+
+Popup.prototype.redirect = function (redirectUrl) {
+  this._frame.location.href = redirectUrl;
+};
+
+module.exports = Popup;
+
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./compose-options":27}],30:[function(_dereq_,module,exports){
+},{"./compose-options":29}],31:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1566,7 +1709,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],31:[function(_dereq_,module,exports){
+},{}],32:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -1579,7 +1722,7 @@ module.exports = {
   POPUP_CLOSE_TIMEOUT: 100
 };
 
-},{}],32:[function(_dereq_,module,exports){
+},{}],33:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../braintree-error');
@@ -1597,7 +1740,7 @@ module.exports = {
   }
 };
 
-},{"../../braintree-error":14}],33:[function(_dereq_,module,exports){
+},{"../../braintree-error":14}],34:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../../enumerate');
@@ -1607,7 +1750,7 @@ module.exports = enumerate([
   'DISPATCH_FRAME_REPORT'
 ], 'frameService:');
 
-},{"../../enumerate":23}],34:[function(_dereq_,module,exports){
+},{"../../enumerate":23}],35:[function(_dereq_,module,exports){
 'use strict';
 
 var parser;
@@ -1642,14 +1785,14 @@ function isWhitelistedDomain(url) {
 
 module.exports = isWhitelistedDomain;
 
-},{}],35:[function(_dereq_,module,exports){
+},{}],36:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],36:[function(_dereq_,module,exports){
+},{}],37:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -1658,7 +1801,7 @@ module.exports = function (obj) {
   });
 };
 
-},{}],37:[function(_dereq_,module,exports){
+},{}],38:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1692,12 +1835,14 @@ function atob(base64String) {
 }
 
 module.exports = {
-  atob: atobNormalized,
+  atob: function (base64String) {
+    return atobNormalized.call(global, base64String);
+  },
   _atob: atob
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],38:[function(_dereq_,module,exports){
+},{}],39:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1706,7 +1851,7 @@ var Promise = global.Promise || _dereq_('promise-polyfill');
 module.exports = Promise;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":6}],39:[function(_dereq_,module,exports){
+},{"promise-polyfill":6}],40:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {
@@ -1720,7 +1865,7 @@ function uuid() {
 
 module.exports = uuid;
 
-},{}],40:[function(_dereq_,module,exports){
+},{}],41:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1728,7 +1873,7 @@ var Promise = _dereq_('../../lib/promise');
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var errors = _dereq_('../shared/errors');
-var VERSION = "3.11.1";
+var VERSION = "3.12.0";
 var methods = _dereq_('../../lib/methods');
 var wrapPromise = _dereq_('wrap-promise');
 var analytics = _dereq_('../../lib/analytics');
@@ -1850,15 +1995,15 @@ Masterpass.prototype._initialize = function () {
 Masterpass.prototype.tokenize = wrapPromise(function (options) {
   var self = this; // eslint-disable-line no-invalid-this
 
+  if (!options || hasMissingOption(options)) {
+    return Promise.reject(new BraintreeError(errors.MASTERPASS_TOKENIZE_MISSING_REQUIRED_OPTION));
+  }
+
+  if (self._authInProgress) {
+    return Promise.reject(new BraintreeError(errors.MASTERPASS_TOKENIZATION_ALREADY_IN_PROGRESS));
+  }
+
   return new Promise(function (resolve, reject) {
-    if (!options || hasMissingOption(options)) {
-      throw new BraintreeError(errors.MASTERPASS_TOKENIZE_MISSING_REQUIRED_OPTION);
-    }
-
-    if (self._authInProgress) {
-      throw new BraintreeError(errors.MASTERPASS_TOKENIZATION_ALREADY_IN_PROGRESS);
-    }
-
     self._navigateFrameToLoadingPage(options, reject);
     // This MUST happen after _navigateFrameToLoadingPage for Metro browsers to work.
     self._frameService.open(self._createFrameOpenHandler(resolve, reject));
@@ -2052,7 +2197,7 @@ function hasMissingOption(options) {
 module.exports = Masterpass;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../lib/analytics":12,"../../lib/braintree-error":14,"../../lib/constants":19,"../../lib/convert-methods-to-error":20,"../../lib/convert-to-braintree-error":21,"../../lib/frame-service/external":26,"../../lib/methods":36,"../../lib/promise":38,"../shared/constants":42,"../shared/errors":43,"wrap-promise":10}],41:[function(_dereq_,module,exports){
+},{"../../lib/analytics":12,"../../lib/braintree-error":14,"../../lib/constants":19,"../../lib/convert-methods-to-error":20,"../../lib/convert-to-braintree-error":21,"../../lib/frame-service/external":26,"../../lib/methods":37,"../../lib/promise":39,"../shared/constants":43,"../shared/errors":44,"wrap-promise":10}],42:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 /** @module braintree-web/masterpass
@@ -2062,7 +2207,7 @@ module.exports = Masterpass;
 var BraintreeError = _dereq_('../lib/braintree-error');
 var browserDetection = _dereq_('../lib/browser-detection');
 var Masterpass = _dereq_('./external/masterpass');
-var VERSION = "3.11.1";
+var VERSION = "3.12.0";
 var errors = _dereq_('./shared/errors');
 var sharedErrors = _dereq_('../lib/errors');
 var Promise = _dereq_('../lib/promise');
@@ -2090,39 +2235,37 @@ var wrapPromise = _dereq_('wrap-promise');
  * @returns {Promise|void} Resolves with the Masterpass instance.
  */
 function create(options) {
-  return Promise.resolve().then(function () {
-    var masterpassInstance, clientVersion, configuration;
+  var masterpassInstance, clientVersion, configuration;
 
-    if (options.client == null) {
-      throw new BraintreeError({
-        type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
-        code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
-        message: 'options.client is required when instantiating Masterpass.'
-      });
-    }
+  if (options.client == null) {
+    return Promise.reject(new BraintreeError({
+      type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
+      code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
+      message: 'options.client is required when instantiating Masterpass.'
+    }));
+  }
 
-    clientVersion = options.client.getConfiguration().analyticsMetadata.sdkVersion;
-    if (clientVersion !== VERSION) {
-      throw new BraintreeError({
-        type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
-        code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
-        message: 'Client (version ' + clientVersion + ') and Masterpass (version ' + VERSION + ') components must be from the same SDK version.'
-      });
-    }
+  clientVersion = options.client.getConfiguration().analyticsMetadata.sdkVersion;
+  if (clientVersion !== VERSION) {
+    return Promise.reject(new BraintreeError({
+      type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
+      code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
+      message: 'Client (version ' + clientVersion + ') and Masterpass (version ' + VERSION + ') components must be from the same SDK version.'
+    }));
+  }
 
-    if (!isSupported()) {
-      throw new BraintreeError(errors.MASTERPASS_BROWSER_NOT_SUPPORTED);
-    }
+  if (!isSupported()) {
+    return Promise.reject(new BraintreeError(errors.MASTERPASS_BROWSER_NOT_SUPPORTED));
+  }
 
-    configuration = options.client.getConfiguration().gatewayConfiguration;
-    if (!configuration.masterpass) {
-      throw new BraintreeError(errors.MASTERPASS_NOT_ENABLED);
-    }
+  configuration = options.client.getConfiguration().gatewayConfiguration;
+  if (!configuration.masterpass) {
+    return Promise.reject(new BraintreeError(errors.MASTERPASS_NOT_ENABLED));
+  }
 
-    masterpassInstance = new Masterpass(options);
+  masterpassInstance = new Masterpass(options);
 
-    return masterpassInstance._initialize();
-  });
+  return masterpassInstance._initialize();
 }
 
 /**
@@ -2152,7 +2295,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../lib/braintree-error":14,"../lib/browser-detection":15,"../lib/errors":24,"../lib/promise":38,"./external/masterpass":40,"./shared/errors":43,"wrap-promise":10}],42:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":14,"../lib/browser-detection":15,"../lib/errors":24,"../lib/promise":39,"./external/masterpass":41,"./shared/errors":44,"wrap-promise":10}],43:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -2165,7 +2308,7 @@ module.exports = {
   ]
 };
 
-},{}],43:[function(_dereq_,module,exports){
+},{}],44:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../lib/braintree-error');
@@ -2219,5 +2362,5 @@ module.exports = {
 };
 
 
-},{"../../lib/braintree-error":14}]},{},[41])(41)
+},{"../../lib/braintree-error":14}]},{},[42])(42)
 });

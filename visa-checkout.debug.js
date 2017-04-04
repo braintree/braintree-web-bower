@@ -146,7 +146,7 @@ module.exports = BraintreeError;
 },{"./enumerate":7}],4:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.11.1";
+var VERSION = "3.12.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -311,7 +311,9 @@ function atob(base64String) {
 }
 
 module.exports = {
-  atob: atobNormalized,
+  atob: function (base64String) {
+    return atobNormalized.call(global, base64String);
+  },
   _atob: atob
 };
 
@@ -374,7 +376,7 @@ var analytics = _dereq_('../lib/analytics');
 var deferred = _dereq_('../lib/deferred');
 var sharedErrors = _dereq_('../lib/errors');
 var errors = _dereq_('./errors');
-var VERSION = "3.11.1";
+var VERSION = "3.12.0";
 var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 
 /**
@@ -457,6 +459,7 @@ var cardTypeTransformMap = {
  * @property {string} postalCode The customer's postal code.
  * @property {string} region The customer's region.
  * @property {string} streetAddress The customer's street address.
+ * @property {string} phoneNumber The customer's phone number.
  */
 
 /**
