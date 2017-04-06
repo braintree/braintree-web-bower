@@ -1108,7 +1108,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":14,"./check-origin":16,"./events":17,"framebus":1}],19:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.12.0";
+var VERSION = "3.12.1";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -1439,7 +1439,7 @@ FrameService.prototype.teardown = function () {
 };
 
 FrameService.prototype.isFrameClosed = function () {
-  return this._frame == null || this._frame.closed;
+  return this._frame == null || this._frame.isClosed();
 };
 
 FrameService.prototype._cleanupFrame = function () {
@@ -1515,7 +1515,7 @@ var ELEMENT_STYLES = {
 function noop() {}
 
 function Modal(options) {
-  this.closed = null;
+  this._closed = null;
   this._frame = null;
   this._options = options || {};
   this._container = this._options.container || document.body;
@@ -1542,7 +1542,7 @@ Modal.prototype.open = function () {
   } else {
     this._el = this._frame = iFramer(iframerConfig);
   }
-  this.closed = false;
+  this._closed = false;
 
   this._container.appendChild(this._el);
 };
@@ -1552,7 +1552,11 @@ Modal.prototype.focus = noop;
 Modal.prototype.close = function () {
   this._container.removeChild(this._el);
   this._frame = null;
-  this.closed = true;
+  this._closed = true;
+};
+
+Modal.prototype.isClosed = function () {
+  return Boolean(this._closed);
 };
 
 Modal.prototype.redirect = function (redirectUrl) {
@@ -1571,7 +1575,7 @@ var errors = _dereq_('../../shared/errors');
 function noop() {}
 
 function PopupBridge(options) {
-  this.closed = null;
+  this._closed = null;
   this._options = options;
 }
 
@@ -1581,7 +1585,7 @@ PopupBridge.prototype.initialize = function (callback) {
   global.popupBridge.onComplete = function (err, payload) {
     var popupDismissed = !payload && !err;
 
-    self.closed = true;
+    self._closed = true;
 
     if (err || popupDismissed) {
       // User clicked "Done" button of browser view
@@ -1599,13 +1603,17 @@ PopupBridge.prototype.open = function (options) {
   options = options || {};
   url = options.openFrameUrl || this._options.openFrameUrl;
 
-  this.closed = false;
+  this._closed = false;
   global.popupBridge.open(url);
 };
 
 PopupBridge.prototype.focus = noop;
 
 PopupBridge.prototype.close = noop;
+
+PopupBridge.prototype.isClosed = function () {
+  return Boolean(this._closed);
+};
 
 PopupBridge.prototype.redirect = function (redirectUrl) {
   this.open({openFrameUrl: redirectUrl});
@@ -1642,7 +1650,6 @@ var composeOptions = _dereq_('./compose-options');
 function noop() {}
 
 function Popup(options) {
-  this.closed = null;
   this._frame = null;
   this._options = options || {};
 
@@ -1657,7 +1664,6 @@ Popup.prototype.open = function () {
     this._options.name,
     composeOptions(this._options)
   );
-  this.closed = false;
 };
 
 Popup.prototype.focus = function () {
@@ -1665,12 +1671,11 @@ Popup.prototype.focus = function () {
 };
 
 Popup.prototype.close = function () {
-  if (this.closed) {
-    return;
-  }
-
-  this.closed = true;
   this._frame.close();
+};
+
+Popup.prototype.isClosed = function () {
+  return this._frame && Boolean(this._frame.closed);
 };
 
 Popup.prototype.redirect = function (redirectUrl) {
@@ -1873,7 +1878,7 @@ var Promise = _dereq_('../../lib/promise');
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var errors = _dereq_('../shared/errors');
-var VERSION = "3.12.0";
+var VERSION = "3.12.1";
 var methods = _dereq_('../../lib/methods');
 var wrapPromise = _dereq_('wrap-promise');
 var analytics = _dereq_('../../lib/analytics');
@@ -2207,7 +2212,7 @@ module.exports = Masterpass;
 var BraintreeError = _dereq_('../lib/braintree-error');
 var browserDetection = _dereq_('../lib/browser-detection');
 var Masterpass = _dereq_('./external/masterpass');
-var VERSION = "3.12.0";
+var VERSION = "3.12.1";
 var errors = _dereq_('./shared/errors');
 var sharedErrors = _dereq_('../lib/errors');
 var Promise = _dereq_('../lib/promise');
