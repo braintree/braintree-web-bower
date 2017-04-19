@@ -1,18 +1,25 @@
 CHANGELOG
 =========
 
+## 2.32.0
+
+* PayPal
+  * Add support for `INR` currency in Checkout with PayPal flow
+  * Add support for India (`IN`) in Checkout with PayPal flow
+  * Fix iframe scrolling issues in iOS devices
+
 ## 2.31.0
 
 * PayPal
- * Support PayPal popups in Chrome for iOS 9+
- * Adds support for additional locale codes:
-    - `id_ID`
-    - `ko_KR`
-    - `pt_PT`
-    - `ru_RU`
-    - `th_TH`
-    - `zh_CN`
-    - `zh_TW`
+  * Support PayPal popups in Chrome for iOS 9+
+  * Adds support for additional locale codes:
+     - `id_ID`
+     - `ko_KR`
+     - `pt_PT`
+     - `ru_RU`
+     - `th_TH`
+     - `zh_CN`
+     - `zh_TW`
 * Hosted Fields
   * Support Visa card numbers that are 18 or 19 digits
   * Fix bug where some versions of IE could not render Hosted Fields inputs because of window.top being undefined
