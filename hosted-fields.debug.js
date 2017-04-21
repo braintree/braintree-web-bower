@@ -1,4 +1,14 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}(g.braintree || (g.braintree = {})).hostedFields = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+
+module.exports = function isIos(ua) {
+  ua = ua || global.navigator.userAgent;
+  return /iPhone|iPod|iPad/i.test(ua);
+};
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],2:[function(_dereq_,module,exports){
 'use strict';
 
 var types = {};
@@ -189,7 +199,7 @@ creditCardType.types = {
 
 module.exports = creditCardType;
 
-},{}],2:[function(_dereq_,module,exports){
+},{}],3:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 (function (root, factory) {
@@ -467,7 +477,7 @@ module.exports = creditCardType;
 });
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],3:[function(_dereq_,module,exports){
+},{}],4:[function(_dereq_,module,exports){
 'use strict';
 
 var setAttributes = _dereq_('./lib/set-attributes');
@@ -492,7 +502,7 @@ module.exports = function createFrame(options) {
   return iframe;
 };
 
-},{"./lib/assign":4,"./lib/default-attributes":5,"./lib/set-attributes":6}],4:[function(_dereq_,module,exports){
+},{"./lib/assign":5,"./lib/default-attributes":6,"./lib/set-attributes":7}],5:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function assign(target) {
@@ -509,7 +519,7 @@ module.exports = function assign(target) {
   return target;
 }
 
-},{}],5:[function(_dereq_,module,exports){
+},{}],6:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -519,7 +529,7 @@ module.exports = {
   scrolling: 'no'
 };
 
-},{}],6:[function(_dereq_,module,exports){
+},{}],7:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function setAttributes(element, attributes) {
@@ -538,7 +548,7 @@ module.exports = function setAttributes(element, attributes) {
   }
 };
 
-},{}],7:[function(_dereq_,module,exports){
+},{}],8:[function(_dereq_,module,exports){
 (function (root) {
 
   // Store setTimeout reference so promise-polyfill will be unaffected by
@@ -773,7 +783,7 @@ module.exports = function setAttributes(element, attributes) {
 
 })(this);
 
-},{}],8:[function(_dereq_,module,exports){
+},{}],9:[function(_dereq_,module,exports){
 'use strict';
 
 function deferred(fn) {
@@ -789,7 +799,7 @@ function deferred(fn) {
 
 module.exports = deferred;
 
-},{}],9:[function(_dereq_,module,exports){
+},{}],10:[function(_dereq_,module,exports){
 'use strict';
 
 function once(fn) {
@@ -805,7 +815,7 @@ function once(fn) {
 
 module.exports = once;
 
-},{}],10:[function(_dereq_,module,exports){
+},{}],11:[function(_dereq_,module,exports){
 'use strict';
 
 function promiseOrCallback(promise, callback) { // eslint-disable-line consistent-return
@@ -824,7 +834,7 @@ function promiseOrCallback(promise, callback) { // eslint-disable-line consisten
 
 module.exports = promiseOrCallback;
 
-},{}],11:[function(_dereq_,module,exports){
+},{}],12:[function(_dereq_,module,exports){
 'use strict';
 
 var deferred = _dereq_('./lib/deferred');
@@ -847,7 +857,7 @@ function wrapPromise(fn) {
 
 module.exports = wrapPromise;
 
-},{"./lib/deferred":8,"./lib/once":9,"./lib/promise-or-callback":10}],12:[function(_dereq_,module,exports){
+},{"./lib/deferred":9,"./lib/once":10,"./lib/promise-or-callback":11}],13:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../lib/braintree-error');
@@ -886,7 +896,7 @@ function _isValid(attribute, value) {
 
 module.exports = attributeValidationError;
 
-},{"../../lib/braintree-error":23,"../shared/constants":17,"../shared/errors":18}],13:[function(_dereq_,module,exports){
+},{"../../lib/braintree-error":24,"../shared/constants":18,"../shared/errors":19}],14:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('../shared/constants');
@@ -900,7 +910,7 @@ module.exports = function composeUrl(assetsUrl, componentId, isDebug) {
     componentId;
 };
 
-},{"../../lib/use-min":43,"../shared/constants":17}],14:[function(_dereq_,module,exports){
+},{"../../lib/use-min":43,"../shared/constants":18}],15:[function(_dereq_,module,exports){
 'use strict';
 
 var Destructor = _dereq_('../../lib/destructor');
@@ -914,13 +924,13 @@ var errors = _dereq_('../shared/errors');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var uuid = _dereq_('../../lib/uuid');
 var findParentTags = _dereq_('../shared/find-parent-tags');
-var isIos = _dereq_('../../lib/browser-detection').isIos;
+var isIos = _dereq_('browser-detection/is-ios');
 var events = constants.events;
 var EventEmitter = _dereq_('../../lib/event-emitter');
 var injectFrame = _dereq_('./inject-frame');
 var analytics = _dereq_('../../lib/analytics');
 var whitelistedFields = constants.whitelistedFields;
-var VERSION = "3.12.1";
+var VERSION = "3.13.0";
 var methods = _dereq_('../../lib/methods');
 var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
 var deferred = _dereq_('../../lib/deferred');
@@ -1257,6 +1267,17 @@ function HostedFields(options) {
       });
     }
 
+    if (field.maxlength && typeof field.maxlength !== 'number') {
+      throw new BraintreeError({
+        type: errors.HOSTED_FIELDS_FIELD_PROPERTY_INVALID.type,
+        code: errors.HOSTED_FIELDS_FIELD_PROPERTY_INVALID.code,
+        message: 'The value for maxlength must be a number.',
+        details: {
+          fieldKey: key
+        }
+      });
+    }
+
     frame = iFramer({
       type: key,
       name: 'braintree-hosted-field-' + key,
@@ -1408,6 +1429,19 @@ HostedFields.prototype.teardown = wrapPromise(function () {
  *         break;
  *       case 'HOSTED_FIELDS_FAILED_TOKENIZATION':
  *         console.error('Tokenization failed server side. Is the card valid?');
+ *         break;
+ *       case 'HOSTED_FIELDS_TOKENIZATION_FAIL_ON_DUPLICATE':
+ *         // will only get here if you generate a client token with a customer ID
+ *         // with the fail on duplicate payment method option. See:
+ *         // https://developers.braintreepayments.com/reference/request/client-token/generate/#options.fail_on_duplicate_payment_method
+ *         console.error('This payment method already exists in your vault.');
+ *         break;
+ *       case 'HOSTED_FIELDS_TOKENIZATION_CVV_VERIFICATION_FAILED':
+ *         // will only get here if you generate a client token with a customer ID
+ *         // with the verify card option or if you have credit card verification
+ *         // turned on in your Braintree Gateway. See
+ *         // https://developers.braintreepayments.com/reference/request/client-token/generate/#options.verify_card
+ *         console.error('CVV did not pass verification');
  *         break;
  *       case 'HOSTED_FIELDS_TOKENIZATION_NETWORK_ERROR':
  *         console.error('Network error occurred when tokenizing.');
@@ -1687,7 +1721,7 @@ HostedFields.prototype.setPlaceholder = function (field, placeholder, callback) 
 /**
  * Clear the value of a {@link module:braintree-web/hosted-fields~field field}.
  * @public
- * @param {string} field The field whose placeholder you wish to clear. Must be a valid {@link module:braintree-web/hosted-fields~fieldOptions fieldOption}.
+ * @param {string} field The field you wish to clear. Must be a valid {@link module:braintree-web/hosted-fields~fieldOptions fieldOption}.
  * @param {callback} [callback] Callback executed on completion, containing an error if one occurred. No data is returned if the field cleared successfully.
  * @returns {void}
  * @example
@@ -1728,6 +1762,52 @@ HostedFields.prototype.clear = function (field, callback) {
 };
 
 /**
+ * Programmatically focus a {@link module:braintree-web/hosted-fields~field field}.
+ * @public
+ * @param {string} field The field you want to focus. Must be a valid {@link module:braintree-web/hosted-fields~fieldOptions fieldOption}.
+ * @param {callback} [callback] Callback executed on completion, containing an error if one occurred. No data is returned if the field focused successfully.
+ * @returns {void}
+ * @example
+ * hostedFieldsInstance.focus('number', function (focusErr) {
+ *   if (focusErr) {
+ *     console.error(focusErr);
+ *   }
+ * });
+ * @example <caption>Using an event listener</caption>
+ * myElement.addEventListener('click', function (e) {
+ *   // Note: In Firefox, the focus method can be suppressed
+ *   // if the element has a tabindex property or the element
+ *   // is an anchor link with an href property.
+ *   e.preventDefault();
+ *   hostedFieldsInstance.focus('number');
+ * });
+ */
+HostedFields.prototype.focus = function (field, callback) {
+  var err;
+
+  if (!whitelistedFields.hasOwnProperty(field)) {
+    err = new BraintreeError({
+      type: errors.HOSTED_FIELDS_FIELD_INVALID.type,
+      code: errors.HOSTED_FIELDS_FIELD_INVALID.code,
+      message: '"' + field + '" is not a valid field. You must use a valid field option when focusing a field.'
+    });
+  } else if (!this._fields.hasOwnProperty(field)) {
+    err = new BraintreeError({
+      type: errors.HOSTED_FIELDS_FIELD_NOT_PRESENT.type,
+      code: errors.HOSTED_FIELDS_FIELD_NOT_PRESENT.code,
+      message: 'Cannot focus "' + field + '" field because it is not part of the current Hosted Fields options.'
+    });
+  } else {
+    this._bus.emit(events.FOCUS_FIELD, field);
+  }
+
+  if (typeof callback === 'function') {
+    callback = deferred(callback);
+    callback(err);
+  }
+};
+
+/**
  * Returns an {@link HostedFields~stateObject|object} that includes the state of all fields and possible card types.
  * @public
  * @returns {object} {@link HostedFields~stateObject|stateObject}
@@ -1744,7 +1824,7 @@ HostedFields.prototype.getState = function () {
 
 module.exports = HostedFields;
 
-},{"../../lib/analytics":21,"../../lib/braintree-error":23,"../../lib/browser-detection":24,"../../lib/bus":27,"../../lib/classlist":28,"../../lib/constants":29,"../../lib/convert-methods-to-error":30,"../../lib/deferred":32,"../../lib/destructor":33,"../../lib/errors":35,"../../lib/event-emitter":36,"../../lib/methods":39,"../../lib/promise":42,"../../lib/uuid":44,"../shared/constants":17,"../shared/errors":18,"../shared/find-parent-tags":19,"./attribute-validation-error":12,"./compose-url":13,"./inject-frame":15,"credit-card-type":1,"iframer":3,"wrap-promise":11}],15:[function(_dereq_,module,exports){
+},{"../../lib/analytics":22,"../../lib/braintree-error":24,"../../lib/bus":27,"../../lib/classlist":28,"../../lib/constants":29,"../../lib/convert-methods-to-error":30,"../../lib/deferred":32,"../../lib/destructor":33,"../../lib/errors":35,"../../lib/event-emitter":36,"../../lib/methods":39,"../../lib/promise":42,"../../lib/uuid":44,"../shared/constants":18,"../shared/errors":19,"../shared/find-parent-tags":20,"./attribute-validation-error":13,"./compose-url":14,"./inject-frame":16,"browser-detection/is-ios":1,"credit-card-type":2,"iframer":4,"wrap-promise":12}],16:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function injectFrame(frame, container) {
@@ -1761,14 +1841,14 @@ module.exports = function injectFrame(frame, container) {
   return [frame, clearboth];
 };
 
-},{}],16:[function(_dereq_,module,exports){
+},{}],17:[function(_dereq_,module,exports){
 'use strict';
 /** @module braintree-web/hosted-fields */
 
 var HostedFields = _dereq_('./external/hosted-fields');
 var wrapPromise = _dereq_('wrap-promise');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.12.1";
+var VERSION = "3.13.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -1779,6 +1859,7 @@ var VERSION = "3.12.1";
  * @property {boolean} [formatInput=true] Enable or disable automatic formatting on this field.
  * @property {object|boolean} [select] If truthy, this field becomes a `<select>` dropdown list. This can only be used for `expirationMonth` and `expirationYear` fields. If you do not use a `placeholder` property for the field, the current month/year will be the default selected value.
  * @property {string[]} [select.options] An array of 12 strings, one per month. This can only be used for the `expirationMonth` field. For example, the array can look like `['01 - January', '02 - February', ...]`.
+ * @property {number} [maxlength] Will be used as the `maxlength` attribute of the input if it is less than the default. The primary use cases for the `maxlength` option are: limiting the length of the CVV input for CVV-only verifications when the card type is known and limiting the length of the postal code input when cards are coming from a known region. This option applies only to CVV and postal code fields.
  */
 
 /**
@@ -1917,12 +1998,13 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/promise":42,"./external/hosted-fields":14,"wrap-promise":11}],17:[function(_dereq_,module,exports){
+},{"../lib/promise":42,"./external/hosted-fields":15,"wrap-promise":12}],18:[function(_dereq_,module,exports){
 'use strict';
 /* eslint-disable no-reserved-keys */
 
 var enumerate = _dereq_('../../lib/enumerate');
-var VERSION = "3.12.1";
+var errors = _dereq_('./errors');
+var VERSION = "3.13.0";
 
 var constants = {
   VERSION: VERSION,
@@ -1953,6 +2035,10 @@ var constants = {
     width: '100%',
     height: '100%',
     'float': 'left'
+  },
+  tokenizationErrorCodes: {
+    81724: errors.HOSTED_FIELDS_TOKENIZATION_FAIL_ON_DUPLICATE,
+    81736: errors.HOSTED_FIELDS_TOKENIZATION_CVV_VERIFICATION_FAILED
   },
   whitelistedStyles: [
     '-moz-appearance',
@@ -2031,12 +2117,13 @@ constants.events = enumerate([
   'REMOVE_CLASS',
   'SET_ATTRIBUTE',
   'REMOVE_ATTRIBUTE',
-  'CLEAR_FIELD'
+  'CLEAR_FIELD',
+  'FOCUS_FIELD'
 ], 'hosted-fields:');
 
 module.exports = constants;
 
-},{"../../lib/enumerate":34}],18:[function(_dereq_,module,exports){
+},{"../../lib/enumerate":34,"./errors":19}],19:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../lib/braintree-error');
@@ -2069,6 +2156,16 @@ module.exports = {
     code: 'HOSTED_FIELDS_TOKENIZATION_NETWORK_ERROR',
     message: 'A tokenization network error occurred.'
   },
+  HOSTED_FIELDS_TOKENIZATION_FAIL_ON_DUPLICATE: {
+    type: BraintreeError.types.CUSTOMER,
+    code: 'HOSTED_FIELDS_TOKENIZATION_FAIL_ON_DUPLICATE',
+    message: 'This credit card already exists in the merchant\'s vault.'
+  },
+  HOSTED_FIELDS_TOKENIZATION_CVV_VERIFICATION_FAILED: {
+    type: BraintreeError.types.CUSTOMER,
+    code: 'HOSTED_FIELDS_TOKENIZATION_CVV_VERIFICATION_FAILED',
+    message: 'CVV verification failed during tokenization.'
+  },
   HOSTED_FIELDS_FAILED_TOKENIZATION: {
     type: BraintreeError.types.CUSTOMER,
     code: 'HOSTED_FIELDS_FAILED_TOKENIZATION',
@@ -2091,10 +2188,14 @@ module.exports = {
   HOSTED_FIELDS_ATTRIBUTE_VALUE_NOT_ALLOWED: {
     type: BraintreeError.types.MERCHANT,
     code: 'HOSTED_FIELDS_ATTRIBUTE_VALUE_NOT_ALLOWED'
+  },
+  HOSTED_FIELDS_FIELD_PROPERTY_INVALID: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'HOSTED_FIELDS_FIELD_PROPERTY_INVALID'
   }
 };
 
-},{"../../lib/braintree-error":23}],19:[function(_dereq_,module,exports){
+},{"../../lib/braintree-error":24}],20:[function(_dereq_,module,exports){
 'use strict';
 
 function findParentTags(element, tag) {
@@ -2114,7 +2215,7 @@ function findParentTags(element, tag) {
 
 module.exports = findParentTags;
 
-},{}],20:[function(_dereq_,module,exports){
+},{}],21:[function(_dereq_,module,exports){
 'use strict';
 
 var createAuthorizationData = _dereq_('./create-authorization-data');
@@ -2148,7 +2249,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":29,"./create-authorization-data":31,"./json-clone":38}],21:[function(_dereq_,module,exports){
+},{"./constants":29,"./create-authorization-data":31,"./json-clone":38}],22:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('./constants');
@@ -2182,7 +2283,7 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":20,"./constants":29}],22:[function(_dereq_,module,exports){
+},{"./add-metadata":21,"./constants":29}],23:[function(_dereq_,module,exports){
 'use strict';
 
 var once = _dereq_('./once');
@@ -2226,7 +2327,7 @@ module.exports = function (functions, cb) {
   }
 };
 
-},{"./once":40}],23:[function(_dereq_,module,exports){
+},{"./once":40}],24:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -2301,116 +2402,17 @@ BraintreeError.types = enumerate([
   'UNKNOWN'
 ]);
 
-module.exports = BraintreeError;
-
-},{"./enumerate":34}],24:[function(_dereq_,module,exports){
-(function (global){
-'use strict';
-
-var MINIMUM_SUPPORTED_CHROME_IOS_VERSION = 48;
-
-function isOperaMini(ua) {
-  ua = ua || global.navigator.userAgent;
-  return ua.indexOf('Opera Mini') > -1;
-}
-
-function isAndroidFirefox(ua) {
-  ua = ua || global.navigator.userAgent;
-  return isAndroid(ua) && ua.indexOf('Firefox') > -1;
-}
-
-function getIEVersion(ua) {
-  ua = ua || global.navigator.userAgent;
-
-  if (ua.indexOf('MSIE') !== -1) {
-    return parseInt(ua.replace(/.*MSIE ([0-9]+)\..*/, '$1'), 10);
-  } else if (/Trident.*rv:11/.test(ua)) {
-    return 11;
+BraintreeError.findRootError = function (err) {
+  if (err instanceof BraintreeError && err.details && err.details.originalError) {
+    return BraintreeError.findRootError(err.details.originalError);
   }
 
-  return null;
-}
-
-function isIe9(ua) {
-  ua = ua || navigator.userAgent;
-  return ua.indexOf('MSIE 9') !== -1;
-}
-
-function isHTTPS(protocol) {
-  protocol = protocol || global.location.protocol;
-  return protocol === 'https:';
-}
-
-function isIos(ua) {
-  ua = ua || global.navigator.userAgent;
-  return /iPhone|iPod|iPad/i.test(ua);
-}
-
-function isAndroid(ua) {
-  ua = ua || global.navigator.userAgent;
-  return /Android/.test(ua);
-}
-
-function isUnsupportedIosChrome(ua) {
-  var match, version;
-
-  ua = ua || global.navigator.userAgent;
-  match = ua.match(/CriOS\/(\d+)\./);
-
-  if (!match) {
-    return false;
-  }
-
-  version = parseInt(match[1], 10);
-
-  return version < MINIMUM_SUPPORTED_CHROME_IOS_VERSION;
-}
-
-function supportsPopups(ua) {
-  ua = ua || global.navigator.userAgent;
-  return !(isIosWebview(ua) || isAndroidWebview(ua) || isOperaMini(ua) || isUnsupportedIosChrome(ua));
-}
-
-// The Google Search iOS app is technically a webview and doesn't support popups.
-function isGoogleSearchApp(ua) {
-  return /\bGSA\b/.test(ua);
-}
-
-function isIosWebview(ua) {
-  ua = ua || global.navigator.userAgent;
-  if (isIos(ua)) {
-    if (isGoogleSearchApp(ua)) {
-      return true;
-    }
-    return /.+AppleWebKit(?!.*Safari)/.test(ua);
-  }
-  return false;
-}
-
-function isAndroidWebview(ua) {
-  var androidWebviewRegExp = /Version\/[\d\.]+/;
-
-  ua = ua || global.navigator.userAgent;
-  if (isAndroid(ua)) {
-    return androidWebviewRegExp.test(ua) && !isOperaMini(ua);
-  }
-  return false;
-}
-
-module.exports = {
-  isOperaMini: isOperaMini,
-  isAndroidFirefox: isAndroidFirefox,
-  getIEVersion: getIEVersion,
-  isIe9: isIe9,
-  isHTTPS: isHTTPS,
-  isIos: isIos,
-  isAndroid: isAndroid,
-  isUnsupportedIosChrome: isUnsupportedIosChrome,
-  supportsPopups: supportsPopups
+  return err;
 };
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],25:[function(_dereq_,module,exports){
+module.exports = BraintreeError;
+
+},{"./enumerate":34}],25:[function(_dereq_,module,exports){
 'use strict';
 
 var isWhitelistedDomain = _dereq_('../is-whitelisted-domain');
@@ -2582,7 +2584,7 @@ BraintreeBus.events = events;
 
 module.exports = BraintreeBus;
 
-},{"../braintree-error":23,"./check-origin":25,"./events":26,"framebus":2}],28:[function(_dereq_,module,exports){
+},{"../braintree-error":24,"./check-origin":25,"./events":26,"framebus":3}],28:[function(_dereq_,module,exports){
 'use strict';
 
 function _classesOf(element) {
@@ -2624,7 +2626,7 @@ module.exports = {
 },{}],29:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.12.1";
+var VERSION = "3.13.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -2656,7 +2658,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"./braintree-error":23,"./errors":35}],31:[function(_dereq_,module,exports){
+},{"./braintree-error":24,"./errors":35}],31:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/polyfill').atob;
@@ -2756,7 +2758,7 @@ Destructor.prototype.teardown = function (callback) {
 
 module.exports = Destructor;
 
-},{"./batch-execute-functions":22}],34:[function(_dereq_,module,exports){
+},{"./batch-execute-functions":23}],34:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -2803,7 +2805,7 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":23}],36:[function(_dereq_,module,exports){
+},{"./braintree-error":24}],36:[function(_dereq_,module,exports){
 'use strict';
 
 function EventEmitter() {
@@ -2885,8 +2887,8 @@ module.exports = function (obj) {
 };
 
 },{}],40:[function(_dereq_,module,exports){
-arguments[4][9][0].apply(exports,arguments)
-},{"dup":9}],41:[function(_dereq_,module,exports){
+arguments[4][10][0].apply(exports,arguments)
+},{"dup":10}],41:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -2936,7 +2938,7 @@ var Promise = global.Promise || _dereq_('promise-polyfill');
 module.exports = Promise;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":7}],43:[function(_dereq_,module,exports){
+},{"promise-polyfill":8}],43:[function(_dereq_,module,exports){
 'use strict';
 
 function useMin(isDebug) {
@@ -2959,5 +2961,5 @@ function uuid() {
 
 module.exports = uuid;
 
-},{}]},{},[16])(16)
+},{}]},{},[17])(17)
 });

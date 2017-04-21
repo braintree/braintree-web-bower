@@ -381,7 +381,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":13,"./create-authorization-data":15,"./json-clone":20}],7:[function(_dereq_,module,exports){
+},{"./constants":12,"./create-authorization-data":14,"./json-clone":20}],7:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('./constants');
@@ -415,7 +415,7 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":6,"./constants":13}],8:[function(_dereq_,module,exports){
+},{"./add-metadata":6,"./constants":12}],8:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -490,116 +490,17 @@ BraintreeError.types = enumerate([
   'UNKNOWN'
 ]);
 
-module.exports = BraintreeError;
-
-},{"./enumerate":17}],9:[function(_dereq_,module,exports){
-(function (global){
-'use strict';
-
-var MINIMUM_SUPPORTED_CHROME_IOS_VERSION = 48;
-
-function isOperaMini(ua) {
-  ua = ua || global.navigator.userAgent;
-  return ua.indexOf('Opera Mini') > -1;
-}
-
-function isAndroidFirefox(ua) {
-  ua = ua || global.navigator.userAgent;
-  return isAndroid(ua) && ua.indexOf('Firefox') > -1;
-}
-
-function getIEVersion(ua) {
-  ua = ua || global.navigator.userAgent;
-
-  if (ua.indexOf('MSIE') !== -1) {
-    return parseInt(ua.replace(/.*MSIE ([0-9]+)\..*/, '$1'), 10);
-  } else if (/Trident.*rv:11/.test(ua)) {
-    return 11;
+BraintreeError.findRootError = function (err) {
+  if (err instanceof BraintreeError && err.details && err.details.originalError) {
+    return BraintreeError.findRootError(err.details.originalError);
   }
 
-  return null;
-}
-
-function isIe9(ua) {
-  ua = ua || navigator.userAgent;
-  return ua.indexOf('MSIE 9') !== -1;
-}
-
-function isHTTPS(protocol) {
-  protocol = protocol || global.location.protocol;
-  return protocol === 'https:';
-}
-
-function isIos(ua) {
-  ua = ua || global.navigator.userAgent;
-  return /iPhone|iPod|iPad/i.test(ua);
-}
-
-function isAndroid(ua) {
-  ua = ua || global.navigator.userAgent;
-  return /Android/.test(ua);
-}
-
-function isUnsupportedIosChrome(ua) {
-  var match, version;
-
-  ua = ua || global.navigator.userAgent;
-  match = ua.match(/CriOS\/(\d+)\./);
-
-  if (!match) {
-    return false;
-  }
-
-  version = parseInt(match[1], 10);
-
-  return version < MINIMUM_SUPPORTED_CHROME_IOS_VERSION;
-}
-
-function supportsPopups(ua) {
-  ua = ua || global.navigator.userAgent;
-  return !(isIosWebview(ua) || isAndroidWebview(ua) || isOperaMini(ua) || isUnsupportedIosChrome(ua));
-}
-
-// The Google Search iOS app is technically a webview and doesn't support popups.
-function isGoogleSearchApp(ua) {
-  return /\bGSA\b/.test(ua);
-}
-
-function isIosWebview(ua) {
-  ua = ua || global.navigator.userAgent;
-  if (isIos(ua)) {
-    if (isGoogleSearchApp(ua)) {
-      return true;
-    }
-    return /.+AppleWebKit(?!.*Safari)/.test(ua);
-  }
-  return false;
-}
-
-function isAndroidWebview(ua) {
-  var androidWebviewRegExp = /Version\/[\d\.]+/;
-
-  ua = ua || global.navigator.userAgent;
-  if (isAndroid(ua)) {
-    return androidWebviewRegExp.test(ua) && !isOperaMini(ua);
-  }
-  return false;
-}
-
-module.exports = {
-  isOperaMini: isOperaMini,
-  isAndroidFirefox: isAndroidFirefox,
-  getIEVersion: getIEVersion,
-  isIe9: isIe9,
-  isHTTPS: isHTTPS,
-  isIos: isIos,
-  isAndroid: isAndroid,
-  isUnsupportedIosChrome: isUnsupportedIosChrome,
-  supportsPopups: supportsPopups
+  return err;
 };
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],10:[function(_dereq_,module,exports){
+module.exports = BraintreeError;
+
+},{"./enumerate":16}],9:[function(_dereq_,module,exports){
 'use strict';
 
 var isWhitelistedDomain = _dereq_('../is-whitelisted-domain');
@@ -631,7 +532,7 @@ module.exports = {
   checkOrigin: checkOrigin
 };
 
-},{"../is-whitelisted-domain":19}],11:[function(_dereq_,module,exports){
+},{"../is-whitelisted-domain":19}],10:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../enumerate');
@@ -640,7 +541,7 @@ module.exports = enumerate([
   'CONFIGURATION_REQUEST'
 ], 'bus:');
 
-},{"../enumerate":17}],12:[function(_dereq_,module,exports){
+},{"../enumerate":16}],11:[function(_dereq_,module,exports){
 'use strict';
 
 var bus = _dereq_('framebus');
@@ -771,10 +672,10 @@ BraintreeBus.events = events;
 
 module.exports = BraintreeBus;
 
-},{"../braintree-error":8,"./check-origin":10,"./events":11,"framebus":1}],13:[function(_dereq_,module,exports){
+},{"../braintree-error":8,"./check-origin":9,"./events":10,"framebus":1}],12:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.12.1";
+var VERSION = "3.13.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -788,7 +689,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],14:[function(_dereq_,module,exports){
+},{}],13:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -806,7 +707,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"./braintree-error":8,"./errors":18}],15:[function(_dereq_,module,exports){
+},{"./braintree-error":8,"./errors":17}],14:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/polyfill').atob;
@@ -855,7 +756,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":22}],16:[function(_dereq_,module,exports){
+},{"../lib/polyfill":22}],15:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (fn) {
@@ -869,7 +770,7 @@ module.exports = function (fn) {
   };
 };
 
-},{}],17:[function(_dereq_,module,exports){
+},{}],16:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -883,7 +784,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],18:[function(_dereq_,module,exports){
+},{}],17:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -916,7 +817,21 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":8}],19:[function(_dereq_,module,exports){
+},{"./braintree-error":8}],18:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+
+function isHTTPS(protocol) {
+  protocol = protocol || global.location.protocol;
+  return protocol === 'https:';
+}
+
+module.exports = {
+  isHTTPS: isHTTPS
+};
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],19:[function(_dereq_,module,exports){
 'use strict';
 
 var parser;
@@ -1024,7 +939,7 @@ module.exports = function (callback, functionName) {
   }
 };
 
-},{"./braintree-error":8,"./errors":18}],24:[function(_dereq_,module,exports){
+},{"./braintree-error":8,"./errors":17}],24:[function(_dereq_,module,exports){
 'use strict';
 
 function useMin(isDebug) {
@@ -1062,7 +977,7 @@ var deferred = _dereq_('../../lib/deferred');
 var errors = _dereq_('../shared/errors');
 var throwIfNoCallback = _dereq_('../../lib/throw-if-no-callback');
 var events = _dereq_('../shared/events');
-var VERSION = "3.12.1";
+var VERSION = "3.13.0";
 var iFramer = _dereq_('iframer');
 
 var IFRAME_HEIGHT = 400;
@@ -1379,19 +1294,19 @@ ThreeDSecure.prototype.teardown = function (callback) {
 
 module.exports = ThreeDSecure;
 
-},{"../../lib/analytics":7,"../../lib/braintree-error":8,"../../lib/bus":12,"../../lib/convert-methods-to-error":14,"../../lib/deferred":16,"../../lib/methods":21,"../../lib/throw-if-no-callback":23,"../../lib/use-min":24,"../../lib/uuid":25,"../shared/constants":28,"../shared/errors":29,"../shared/events":30,"iframer":2}],27:[function(_dereq_,module,exports){
+},{"../../lib/analytics":7,"../../lib/braintree-error":8,"../../lib/bus":11,"../../lib/convert-methods-to-error":13,"../../lib/deferred":15,"../../lib/methods":21,"../../lib/throw-if-no-callback":23,"../../lib/use-min":24,"../../lib/uuid":25,"../shared/constants":28,"../shared/errors":29,"../shared/events":30,"iframer":2}],27:[function(_dereq_,module,exports){
 'use strict';
 /** @module braintree-web/three-d-secure */
 
 var ThreeDSecure = _dereq_('./external/three-d-secure');
-var browserDetection = _dereq_('../lib/browser-detection');
+var isHTTPS = _dereq_('../lib/is-https').isHTTPS;
 var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
 var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 var deferred = _dereq_('../lib/deferred');
 var errors = _dereq_('./shared/errors');
 var sharedErrors = _dereq_('../lib/errors');
-var VERSION = "3.12.1";
+var VERSION = "3.13.0";
 
 /**
  * @static
@@ -1436,7 +1351,7 @@ function create(options, callback) {
 
   isProduction = config.gatewayConfiguration.environment === 'production';
 
-  if (isProduction && !browserDetection.isHTTPS()) {
+  if (isProduction && !isHTTPS()) {
     error = errors.THREEDS_HTTPS_REQUIRED;
   }
 
@@ -1466,7 +1381,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/analytics":7,"../lib/braintree-error":8,"../lib/browser-detection":9,"../lib/deferred":16,"../lib/errors":18,"../lib/throw-if-no-callback":23,"./external/three-d-secure":26,"./shared/errors":29}],28:[function(_dereq_,module,exports){
+},{"../lib/analytics":7,"../lib/braintree-error":8,"../lib/deferred":15,"../lib/errors":17,"../lib/is-https":18,"../lib/throw-if-no-callback":23,"./external/three-d-secure":26,"./shared/errors":29}],28:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -1519,5 +1434,5 @@ module.exports = enumerate([
   'AUTHENTICATION_COMPLETE'
 ], 'threedsecure:');
 
-},{"../../lib/enumerate":17}]},{},[27])(27)
+},{"../../lib/enumerate":16}]},{},[27])(27)
 });

@@ -398,7 +398,7 @@ function _createThirdPartyBlock() {
     doc = iframe.contentWindow.document;
   } catch (e) {
     dom = document.domain;
-    iframe.src = 'javascript:var d=document.open();d.domain="' + dom + '";void(0);'; // eslint-disable-line
+    iframe.src = 'javascript:var d=document.open();d.domain="' + dom + '";void(0);'; // eslint-disable-line no-script-url
     doc = iframe.contentWindow.document;
   }
 
@@ -441,7 +441,7 @@ var fraudnet = _dereq_('./fraudnet');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var methods = _dereq_('../lib/methods');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
-var VERSION = "3.12.1";
+var VERSION = "3.13.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -812,6 +812,14 @@ BraintreeError.types = enumerate([
   'INTERNAL',
   'UNKNOWN'
 ]);
+
+BraintreeError.findRootError = function (err) {
+  if (err instanceof BraintreeError && err.details && err.details.originalError) {
+    return BraintreeError.findRootError(err.details.originalError);
+  }
+
+  return err;
+};
 
 module.exports = BraintreeError;
 

@@ -571,7 +571,7 @@ module.exports = Client;
 'use strict';
 
 module.exports = {
-  BRAINTREE_API_VERSION_HEADER: '2016-10-07'
+  BRAINTREE_API_VERSION_HEADER: '2017-04-03'
 };
 
 },{}],8:[function(_dereq_,module,exports){
@@ -717,7 +717,7 @@ module.exports = {
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Client = _dereq_('./client');
 var getConfiguration = _dereq_('./get-configuration').getConfiguration;
-var VERSION = "3.12.1";
+var VERSION = "3.13.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -1175,12 +1175,20 @@ BraintreeError.types = enumerate([
   'UNKNOWN'
 ]);
 
+BraintreeError.findRootError = function (err) {
+  if (err instanceof BraintreeError && err.details && err.details.originalError) {
+    return BraintreeError.findRootError(err.details.originalError);
+  }
+
+  return err;
+};
+
 module.exports = BraintreeError;
 
 },{"./enumerate":25}],21:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.12.1";
+var VERSION = "3.13.0";
 var PLATFORM = 'web';
 
 module.exports = {

@@ -382,6 +382,14 @@ BraintreeError.types = enumerate([
   'UNKNOWN'
 ]);
 
+BraintreeError.findRootError = function (err) {
+  if (err instanceof BraintreeError && err.details && err.details.originalError) {
+    return BraintreeError.findRootError(err.details.originalError);
+  }
+
+  return err;
+};
+
 module.exports = BraintreeError;
 
 },{"./enumerate":7}],7:[function(_dereq_,module,exports){
@@ -450,7 +458,7 @@ module.exports = Promise;
 var BraintreeError = _dereq_('../lib/braintree-error');
 var VaultManager = _dereq_('./vault-manager');
 var sharedErrors = _dereq_('../lib/errors');
-var VERSION = "3.12.1";
+var VERSION = "3.13.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('wrap-promise');
 
