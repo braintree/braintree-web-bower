@@ -305,6 +305,39 @@ function wrapPromise(fn) {
   };
 }
 
+wrapPromise.wrapPrototype = function (target, options) {
+  var methods, ignoreMethods, includePrivateMethods;
+
+  options = options || {};
+  ignoreMethods = options.ignoreMethods || [];
+  includePrivateMethods = options.transformPrivateMethods === true;
+
+  methods = Object.getOwnPropertyNames(target.prototype).filter(function (method) {
+    var isNotPrivateMethod;
+    var isNonConstructorFunction = method !== 'constructor' &&
+      typeof target.prototype[method] === 'function';
+    var isNotAnIgnoredMethod = ignoreMethods.indexOf(method) === -1;
+
+    if (includePrivateMethods) {
+      isNotPrivateMethod = true;
+    } else {
+      isNotPrivateMethod = method.charAt(0) !== '_';
+    }
+
+    return isNonConstructorFunction &&
+      isNotPrivateMethod &&
+      isNotAnIgnoredMethod;
+  });
+
+  methods.forEach(function (method) {
+    var original = target.prototype[method];
+
+    target.prototype[method] = wrapPromise(original);
+  });
+
+  return target;
+};
+
 module.exports = wrapPromise;
 
 },{"./lib/deferred":2,"./lib/once":3,"./lib/promise-or-callback":4}],6:[function(_dereq_,module,exports){
@@ -401,7 +434,6 @@ function Client(configuration) {
 /**
  * Used by other modules to formulate all network requests to the Braintree gateway. It is also capable of being used directly from your own form to tokenize credit card information. However, be sure to satisfy PCI compliance if you use direct card tokenization.
  * @public
- * @function
  * @param {object} options Request options:
  * @param {string} options.method HTTP method, e.g. "get" or "post".
  * @param {string} options.endpoint Endpoint path, e.g. "payment_methods".
@@ -444,7 +476,7 @@ function Client(configuration) {
  *     console.log('Got nonce:', response.creditCards[0].nonce);
  *   });
  * });
- * @returns {Promise|void} Returns a promise that resolves with the request response if no callback is provided.
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  */
 Client.prototype.request = function (options, callback) {
   var self = this; // eslint-disable-line no-invalid-this
@@ -717,7 +749,7 @@ module.exports = {
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Client = _dereq_('./client');
 var getConfiguration = _dereq_('./get-configuration').getConfiguration;
-var VERSION = "3.13.0";
+var VERSION = "3.14.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -725,12 +757,12 @@ var sharedErrors = _dereq_('../lib/errors');
 /** @module braintree-web/client */
 
 /**
- * @function
+ * @function create
  * @description This function is the entry point for the <code>braintree.client</code> module. It is used for creating {@link Client} instances that service communication to Braintree servers.
  * @param {object} options Object containing all {@link Client} options:
  * @param {string} options.authorization A tokenizationKey or clientToken.
  * @param {callback} [callback] The second argument, <code>data</code>, is the {@link Client} instance.
- * @returns {Promise|void} Returns a promise that resolves the client instance if no callback is provided.
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  * @example
  * var createClient = require('braintree-web/client').create;
  *
@@ -1188,7 +1220,7 @@ module.exports = BraintreeError;
 },{"./enumerate":25}],21:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.13.0";
+var VERSION = "3.14.0";
 var PLATFORM = 'web';
 
 module.exports = {

@@ -348,6 +348,348 @@ module.exports = function setAttributes(element, attributes) {
 };
 
 },{}],6:[function(_dereq_,module,exports){
+(function (root) {
+
+  // Store setTimeout reference so promise-polyfill will be unaffected by
+  // other code modifying setTimeout (like sinon.useFakeTimers())
+  var setTimeoutFunc = setTimeout;
+
+  function noop() {}
+  
+  // Polyfill for Function.prototype.bind
+  function bind(fn, thisArg) {
+    return function () {
+      fn.apply(thisArg, arguments);
+    };
+  }
+
+  function Promise(fn) {
+    if (typeof this !== 'object') throw new TypeError('Promises must be constructed via new');
+    if (typeof fn !== 'function') throw new TypeError('not a function');
+    this._state = 0;
+    this._handled = false;
+    this._value = undefined;
+    this._deferreds = [];
+
+    doResolve(fn, this);
+  }
+
+  function handle(self, deferred) {
+    while (self._state === 3) {
+      self = self._value;
+    }
+    if (self._state === 0) {
+      self._deferreds.push(deferred);
+      return;
+    }
+    self._handled = true;
+    Promise._immediateFn(function () {
+      var cb = self._state === 1 ? deferred.onFulfilled : deferred.onRejected;
+      if (cb === null) {
+        (self._state === 1 ? resolve : reject)(deferred.promise, self._value);
+        return;
+      }
+      var ret;
+      try {
+        ret = cb(self._value);
+      } catch (e) {
+        reject(deferred.promise, e);
+        return;
+      }
+      resolve(deferred.promise, ret);
+    });
+  }
+
+  function resolve(self, newValue) {
+    try {
+      // Promise Resolution Procedure: https://github.com/promises-aplus/promises-spec#the-promise-resolution-procedure
+      if (newValue === self) throw new TypeError('A promise cannot be resolved with itself.');
+      if (newValue && (typeof newValue === 'object' || typeof newValue === 'function')) {
+        var then = newValue.then;
+        if (newValue instanceof Promise) {
+          self._state = 3;
+          self._value = newValue;
+          finale(self);
+          return;
+        } else if (typeof then === 'function') {
+          doResolve(bind(then, newValue), self);
+          return;
+        }
+      }
+      self._state = 1;
+      self._value = newValue;
+      finale(self);
+    } catch (e) {
+      reject(self, e);
+    }
+  }
+
+  function reject(self, newValue) {
+    self._state = 2;
+    self._value = newValue;
+    finale(self);
+  }
+
+  function finale(self) {
+    if (self._state === 2 && self._deferreds.length === 0) {
+      Promise._immediateFn(function() {
+        if (!self._handled) {
+          Promise._unhandledRejectionFn(self._value);
+        }
+      });
+    }
+
+    for (var i = 0, len = self._deferreds.length; i < len; i++) {
+      handle(self, self._deferreds[i]);
+    }
+    self._deferreds = null;
+  }
+
+  function Handler(onFulfilled, onRejected, promise) {
+    this.onFulfilled = typeof onFulfilled === 'function' ? onFulfilled : null;
+    this.onRejected = typeof onRejected === 'function' ? onRejected : null;
+    this.promise = promise;
+  }
+
+  /**
+   * Take a potentially misbehaving resolver function and make sure
+   * onFulfilled and onRejected are only called once.
+   *
+   * Makes no guarantees about asynchrony.
+   */
+  function doResolve(fn, self) {
+    var done = false;
+    try {
+      fn(function (value) {
+        if (done) return;
+        done = true;
+        resolve(self, value);
+      }, function (reason) {
+        if (done) return;
+        done = true;
+        reject(self, reason);
+      });
+    } catch (ex) {
+      if (done) return;
+      done = true;
+      reject(self, ex);
+    }
+  }
+
+  Promise.prototype['catch'] = function (onRejected) {
+    return this.then(null, onRejected);
+  };
+
+  Promise.prototype.then = function (onFulfilled, onRejected) {
+    var prom = new (this.constructor)(noop);
+
+    handle(this, new Handler(onFulfilled, onRejected, prom));
+    return prom;
+  };
+
+  Promise.all = function (arr) {
+    var args = Array.prototype.slice.call(arr);
+
+    return new Promise(function (resolve, reject) {
+      if (args.length === 0) return resolve([]);
+      var remaining = args.length;
+
+      function res(i, val) {
+        try {
+          if (val && (typeof val === 'object' || typeof val === 'function')) {
+            var then = val.then;
+            if (typeof then === 'function') {
+              then.call(val, function (val) {
+                res(i, val);
+              }, reject);
+              return;
+            }
+          }
+          args[i] = val;
+          if (--remaining === 0) {
+            resolve(args);
+          }
+        } catch (ex) {
+          reject(ex);
+        }
+      }
+
+      for (var i = 0; i < args.length; i++) {
+        res(i, args[i]);
+      }
+    });
+  };
+
+  Promise.resolve = function (value) {
+    if (value && typeof value === 'object' && value.constructor === Promise) {
+      return value;
+    }
+
+    return new Promise(function (resolve) {
+      resolve(value);
+    });
+  };
+
+  Promise.reject = function (value) {
+    return new Promise(function (resolve, reject) {
+      reject(value);
+    });
+  };
+
+  Promise.race = function (values) {
+    return new Promise(function (resolve, reject) {
+      for (var i = 0, len = values.length; i < len; i++) {
+        values[i].then(resolve, reject);
+      }
+    });
+  };
+
+  // Use polyfill for setImmediate for performance gains
+  Promise._immediateFn = (typeof setImmediate === 'function' && function (fn) { setImmediate(fn); }) ||
+    function (fn) {
+      setTimeoutFunc(fn, 0);
+    };
+
+  Promise._unhandledRejectionFn = function _unhandledRejectionFn(err) {
+    if (typeof console !== 'undefined' && console) {
+      console.warn('Possible Unhandled Promise Rejection:', err); // eslint-disable-line no-console
+    }
+  };
+
+  /**
+   * Set the immediate function to execute callbacks
+   * @param fn {function} Function to execute
+   * @deprecated
+   */
+  Promise._setImmediateFn = function _setImmediateFn(fn) {
+    Promise._immediateFn = fn;
+  };
+
+  /**
+   * Change the function to execute on unhandled rejection
+   * @param {function} fn Function to execute on unhandled rejection
+   * @deprecated
+   */
+  Promise._setUnhandledRejectionFn = function _setUnhandledRejectionFn(fn) {
+    Promise._unhandledRejectionFn = fn;
+  };
+  
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = Promise;
+  } else if (!root.Promise) {
+    root.Promise = Promise;
+  }
+
+})(this);
+
+},{}],7:[function(_dereq_,module,exports){
+'use strict';
+
+function deferred(fn) {
+  return function () {
+    // IE9 doesn't support passing arguments to setTimeout so we have to emulate it.
+    var args = arguments;
+
+    setTimeout(function () {
+      fn.apply(null, args);
+    }, 1);
+  };
+}
+
+module.exports = deferred;
+
+},{}],8:[function(_dereq_,module,exports){
+'use strict';
+
+function once(fn) {
+  var called = false;
+
+  return function () {
+    if (!called) {
+      called = true;
+      fn.apply(null, arguments);
+    }
+  };
+}
+
+module.exports = once;
+
+},{}],9:[function(_dereq_,module,exports){
+'use strict';
+
+function promiseOrCallback(promise, callback) { // eslint-disable-line consistent-return
+  if (callback) {
+    promise
+      .then(function (data) {
+        callback(null, data);
+      })
+      .catch(function (err) {
+        callback(err);
+      });
+  } else {
+    return promise;
+  }
+}
+
+module.exports = promiseOrCallback;
+
+},{}],10:[function(_dereq_,module,exports){
+'use strict';
+
+var deferred = _dereq_('./lib/deferred');
+var once = _dereq_('./lib/once');
+var promiseOrCallback = _dereq_('./lib/promise-or-callback');
+
+function wrapPromise(fn) {
+  return function () {
+    var callback;
+    var args = Array.prototype.slice.call(arguments);
+    var lastArg = args[args.length - 1];
+
+    if (typeof lastArg === 'function') {
+      callback = args.pop();
+      callback = once(deferred(callback));
+    }
+    return promiseOrCallback(fn.apply(this, args), callback); // eslint-disable-line no-invalid-this
+  };
+}
+
+wrapPromise.wrapPrototype = function (target, options) {
+  var methods, ignoreMethods, includePrivateMethods;
+
+  options = options || {};
+  ignoreMethods = options.ignoreMethods || [];
+  includePrivateMethods = options.transformPrivateMethods === true;
+
+  methods = Object.getOwnPropertyNames(target.prototype).filter(function (method) {
+    var isNotPrivateMethod;
+    var isNonConstructorFunction = method !== 'constructor' &&
+      typeof target.prototype[method] === 'function';
+    var isNotAnIgnoredMethod = ignoreMethods.indexOf(method) === -1;
+
+    if (includePrivateMethods) {
+      isNotPrivateMethod = true;
+    } else {
+      isNotPrivateMethod = method.charAt(0) !== '_';
+    }
+
+    return isNonConstructorFunction &&
+      isNotPrivateMethod &&
+      isNotAnIgnoredMethod;
+  });
+
+  methods.forEach(function (method) {
+    var original = target.prototype[method];
+
+    target.prototype[method] = wrapPromise(original);
+  });
+
+  return target;
+};
+
+module.exports = wrapPromise;
+
+},{"./lib/deferred":7,"./lib/once":8,"./lib/promise-or-callback":9}],11:[function(_dereq_,module,exports){
 'use strict';
 
 var createAuthorizationData = _dereq_('./create-authorization-data');
@@ -381,7 +723,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":12,"./create-authorization-data":14,"./json-clone":20}],7:[function(_dereq_,module,exports){
+},{"./constants":17,"./create-authorization-data":19,"./json-clone":25}],12:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('./constants');
@@ -415,7 +757,7 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":6,"./constants":12}],8:[function(_dereq_,module,exports){
+},{"./add-metadata":11,"./constants":17}],13:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -500,7 +842,7 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":16}],9:[function(_dereq_,module,exports){
+},{"./enumerate":21}],14:[function(_dereq_,module,exports){
 'use strict';
 
 var isWhitelistedDomain = _dereq_('../is-whitelisted-domain');
@@ -532,7 +874,7 @@ module.exports = {
   checkOrigin: checkOrigin
 };
 
-},{"../is-whitelisted-domain":19}],10:[function(_dereq_,module,exports){
+},{"../is-whitelisted-domain":24}],15:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../enumerate');
@@ -541,7 +883,7 @@ module.exports = enumerate([
   'CONFIGURATION_REQUEST'
 ], 'bus:');
 
-},{"../enumerate":16}],11:[function(_dereq_,module,exports){
+},{"../enumerate":21}],16:[function(_dereq_,module,exports){
 'use strict';
 
 var bus = _dereq_('framebus');
@@ -672,10 +1014,10 @@ BraintreeBus.events = events;
 
 module.exports = BraintreeBus;
 
-},{"../braintree-error":8,"./check-origin":9,"./events":10,"framebus":1}],12:[function(_dereq_,module,exports){
+},{"../braintree-error":13,"./check-origin":14,"./events":15,"framebus":1}],17:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.13.0";
+var VERSION = "3.14.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -689,7 +1031,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],13:[function(_dereq_,module,exports){
+},{}],18:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -707,7 +1049,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"./braintree-error":8,"./errors":17}],14:[function(_dereq_,module,exports){
+},{"./braintree-error":13,"./errors":22}],19:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/polyfill').atob;
@@ -756,7 +1098,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":22}],15:[function(_dereq_,module,exports){
+},{"../lib/polyfill":27}],20:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (fn) {
@@ -770,7 +1112,7 @@ module.exports = function (fn) {
   };
 };
 
-},{}],16:[function(_dereq_,module,exports){
+},{}],21:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -784,7 +1126,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],17:[function(_dereq_,module,exports){
+},{}],22:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -817,7 +1159,7 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":8}],18:[function(_dereq_,module,exports){
+},{"./braintree-error":13}],23:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -831,7 +1173,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],19:[function(_dereq_,module,exports){
+},{}],24:[function(_dereq_,module,exports){
 'use strict';
 
 var parser;
@@ -866,14 +1208,14 @@ function isWhitelistedDomain(url) {
 
 module.exports = isWhitelistedDomain;
 
-},{}],20:[function(_dereq_,module,exports){
+},{}],25:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],21:[function(_dereq_,module,exports){
+},{}],26:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -882,7 +1224,7 @@ module.exports = function (obj) {
   });
 };
 
-},{}],22:[function(_dereq_,module,exports){
+},{}],27:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -923,23 +1265,16 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],23:[function(_dereq_,module,exports){
+},{}],28:[function(_dereq_,module,exports){
+(function (global){
 'use strict';
 
-var BraintreeError = _dereq_('./braintree-error');
-var sharedErrors = _dereq_('./errors');
+var Promise = global.Promise || _dereq_('promise-polyfill');
 
-module.exports = function (callback, functionName) {
-  if (typeof callback !== 'function') {
-    throw new BraintreeError({
-      type: sharedErrors.CALLBACK_REQUIRED.type,
-      code: sharedErrors.CALLBACK_REQUIRED.code,
-      message: functionName + ' must include a callback function.'
-    });
-  }
-};
+module.exports = Promise;
 
-},{"./braintree-error":8,"./errors":17}],24:[function(_dereq_,module,exports){
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"promise-polyfill":6}],29:[function(_dereq_,module,exports){
 'use strict';
 
 function useMin(isDebug) {
@@ -948,7 +1283,7 @@ function useMin(isDebug) {
 
 module.exports = useMin;
 
-},{}],25:[function(_dereq_,module,exports){
+},{}],30:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {
@@ -962,7 +1297,7 @@ function uuid() {
 
 module.exports = uuid;
 
-},{}],26:[function(_dereq_,module,exports){
+},{}],31:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../lib/braintree-error');
@@ -975,10 +1310,11 @@ var Bus = _dereq_('../../lib/bus');
 var uuid = _dereq_('../../lib/uuid');
 var deferred = _dereq_('../../lib/deferred');
 var errors = _dereq_('../shared/errors');
-var throwIfNoCallback = _dereq_('../../lib/throw-if-no-callback');
 var events = _dereq_('../shared/events');
-var VERSION = "3.13.0";
+var VERSION = "3.14.0";
 var iFramer = _dereq_('iframer');
+var Promise = _dereq_('../../lib/promise');
+var wrapPromise = _dereq_('wrap-promise');
 
 var IFRAME_HEIGHT = 400;
 var IFRAME_WIDTH = 400;
@@ -1029,8 +1365,9 @@ function ThreeDSecure(options) {
  * @param {number} options.amount The amount of the transaction in the current merchant account's currency. For example, if you are running a transaction of $123.45 US dollars, `amount` would be 123.45.
  * @param {errback} options.addFrame This {@link ThreeDSecure~addFrameCallback|addFrameCallback} will be called when the bank frame needs to be added to your page.
  * @param {callback} options.removeFrame This {@link ThreeDSecure~removeFrameCallback|removeFrameCallback} will be called when the bank frame needs to be removed from your page.
- * @param {errback} callback The second argument, <code>data</code>, is a {@link ThreeDSecure~verifyPayload|verifyPayload}
- * @returns {void}
+ * @param {errback} [callback] The second argument, <code>data</code>, is a {@link ThreeDSecure~verifyPayload|verifyPayload}. If no callback is provided, it will return a promise that resolves {@link ThreeDSecure~verifyPayload|verifyPayload}.
+
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  * @example
  * <caption>Verifying an existing nonce with 3DS</caption>
  * var my3DSContainer;
@@ -1066,13 +1403,11 @@ function ThreeDSecure(options) {
  *   }
  * });
  */
-ThreeDSecure.prototype.verifyCard = function (options, callback) {
+ThreeDSecure.prototype.verifyCard = function (options) {
   var url, addFrame, removeFrame, error, errorOption;
-
-  throwIfNoCallback(callback, 'verifyCard');
+  var self = this;
 
   options = options || {};
-  callback = deferred(callback);
 
   if (this._verifyCardInProgress === true) {
     error = errors.THREEDS_AUTHENTICATION_IN_PROGRESS;
@@ -1095,8 +1430,7 @@ ThreeDSecure.prototype.verifyCard = function (options, callback) {
   }
 
   if (error) {
-    callback(new BraintreeError(error));
-    return;
+    return Promise.reject(new BraintreeError(error));
   }
 
   this._verifyCardInProgress = true;
@@ -1106,37 +1440,41 @@ ThreeDSecure.prototype.verifyCard = function (options, callback) {
 
   url = 'payment_methods/' + options.nonce + '/three_d_secure/lookup';
 
-  this._client.request({
+  return this._client.request({
     endpoint: url,
     method: 'post',
     data: {amount: options.amount}
-  }, function (err, response) {
-    if (err) {
-      this._verifyCardInProgress = false;
-      callback(err);
-      return;
-    }
+  }).then(function (response) {
+    self._lookupPaymentMethod = response.paymentMethod;
 
-    this._lookupPaymentMethod = response.paymentMethod;
-    this._verifyCardCallback = function () {
-      this._verifyCardInProgress = false;
+    return new Promise(function (resolve, reject) {
+      self._verifyCardCallback = function (verifyErr, payload) {
+        self._verifyCardInProgress = false;
 
-      callback.apply(null, arguments);
-    }.bind(this);
+        if (verifyErr) {
+          reject(verifyErr);
+        } else {
+          resolve(payload);
+        }
+      };
 
-    this._handleLookupResponse({
-      lookupResponse: response,
-      addFrame: addFrame,
-      removeFrame: removeFrame
+      self._handleLookupResponse({
+        lookupResponse: response,
+        addFrame: addFrame,
+        removeFrame: removeFrame
+      });
     });
-  }.bind(this));
+  }).catch(function (err) {
+    self._verifyCardInProgress = false;
+    return Promise.reject(err);
+  });
 };
 
 /**
  * Cancel the 3DS flow and return the verification payload if available.
  * @public
- * @param {errback} callback The second argument is a {@link ThreeDSecure~verifyPayload|verifyPayload}. If there is no verifyPayload (the initial lookup did not complete), an error will be returned.
- * @returns {void}
+ * @param {errback} [callback] The second argument is a {@link ThreeDSecure~verifyPayload|verifyPayload}. If there is no verifyPayload (the initial lookup did not complete), an error will be returned. If no callback is passed, `cancelVerifyCard` will return a promise.
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  * @example
  * threeDSecure.cancelVerifyCard(function (err, verifyPayload) {
  *   if (err) {
@@ -1150,18 +1488,14 @@ ThreeDSecure.prototype.verifyCard = function (options, callback) {
  *   verifyPayload.liabilityShiftPossible; // boolean
  * });
  */
-ThreeDSecure.prototype.cancelVerifyCard = function (callback) {
-  var error;
-
+ThreeDSecure.prototype.cancelVerifyCard = function () {
   this._verifyCardInProgress = false;
 
-  if (typeof callback === 'function') {
-    if (!this._lookupPaymentMethod) {
-      error = new BraintreeError(errors.THREEDS_NO_VERIFICATION_PAYLOAD);
-    }
-
-    callback(error, this._lookupPaymentMethod);
+  if (!this._lookupPaymentMethod) {
+    return Promise.reject(new BraintreeError(errors.THREEDS_NO_VERIFICATION_PAYLOAD));
   }
+
+  return Promise.resolve(this._lookupPaymentMethod);
 };
 
 ThreeDSecure.prototype._handleLookupResponse = function (options) {
@@ -1258,16 +1592,16 @@ ThreeDSecure.prototype._formatAuthResponse = function (paymentMethod, threeDSecu
 /**
  * Cleanly remove anything set up by {@link module:braintree-web/three-d-secure.create|create}.
  * @public
- * @param {callback} [callback] Called on completion.
+ * @param {callback} [callback] Called on completion. If no callback is passed, `teardown` will return a promise.
  * @example
  * threeDSecure.teardown();
  * @example <caption>With callback</caption>
  * threeDSecure.teardown(function () {
  *   // teardown is complete
  * });
- * @returns {void}
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  */
-ThreeDSecure.prototype.teardown = function (callback) {
+ThreeDSecure.prototype.teardown = function () {
   var iframeParent;
 
   convertMethodsToError(this, methods(ThreeDSecure.prototype));
@@ -1286,15 +1620,12 @@ ThreeDSecure.prototype.teardown = function (callback) {
     }
   }
 
-  if (typeof callback === 'function') {
-    callback = deferred(callback);
-    callback();
-  }
+  return Promise.resolve();
 };
 
-module.exports = ThreeDSecure;
+module.exports = wrapPromise.wrapPrototype(ThreeDSecure);
 
-},{"../../lib/analytics":7,"../../lib/braintree-error":8,"../../lib/bus":11,"../../lib/convert-methods-to-error":13,"../../lib/deferred":15,"../../lib/methods":21,"../../lib/throw-if-no-callback":23,"../../lib/use-min":24,"../../lib/uuid":25,"../shared/constants":28,"../shared/errors":29,"../shared/events":30,"iframer":2}],27:[function(_dereq_,module,exports){
+},{"../../lib/analytics":12,"../../lib/braintree-error":13,"../../lib/bus":16,"../../lib/convert-methods-to-error":18,"../../lib/deferred":20,"../../lib/methods":26,"../../lib/promise":28,"../../lib/use-min":29,"../../lib/uuid":30,"../shared/constants":33,"../shared/errors":34,"../shared/events":35,"iframer":2,"wrap-promise":10}],32:[function(_dereq_,module,exports){
 'use strict';
 /** @module braintree-web/three-d-secure */
 
@@ -1302,38 +1633,33 @@ var ThreeDSecure = _dereq_('./external/three-d-secure');
 var isHTTPS = _dereq_('../lib/is-https').isHTTPS;
 var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
-var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
-var deferred = _dereq_('../lib/deferred');
 var errors = _dereq_('./shared/errors');
 var sharedErrors = _dereq_('../lib/errors');
-var VERSION = "3.13.0";
+var VERSION = "3.14.0";
+var Promise = _dereq_('../lib/promise');
+var wrapPromise = _dereq_('wrap-promise');
 
 /**
  * @static
  * @function create
  * @param {object} options Creation options:
  * @param {Client} options.client A {@link Client} instance.
- * @param {callback} callback The second argument, `data`, is the {@link ThreeDSecure} instance.
- * @returns {void}
+ * @param {callback} [callback] The second argument, `data`, is the {@link ThreeDSecure} instance. If no callback is provided, it returns a promise that resolves the {@link ThreeDSecure} instance.
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  * @example
  * braintree.threeDSecure.create({
  *   client: client
  * }, callback);
  */
-function create(options, callback) {
-  var config, threeDSecure, error, clientVersion, isProduction;
-
-  throwIfNoCallback(callback, 'create');
-
-  callback = deferred(callback);
+function create(options) {
+  var config, error, clientVersion, isProduction;
 
   if (options.client == null) {
-    callback(new BraintreeError({
+    return Promise.reject(new BraintreeError({
       type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
       code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
       message: 'options.client is required when instantiating 3D Secure.'
     }));
-    return;
   }
 
   config = options.client.getConfiguration();
@@ -1356,24 +1682,16 @@ function create(options, callback) {
   }
 
   if (error) {
-    callback(new BraintreeError(error));
-    return;
+    return Promise.reject(new BraintreeError(error));
   }
 
   analytics.sendEvent(options.client, 'threedsecure.initialized');
 
-  try {
-    threeDSecure = new ThreeDSecure(options);
-  } catch (err) {
-    callback(err);
-    return;
-  }
-
-  callback(null, threeDSecure);
+  return Promise.resolve(new ThreeDSecure(options));
 }
 
 module.exports = {
-  create: create,
+  create: wrapPromise(create),
   /**
    * @description The current version of the SDK, i.e. `{@pkg version}`.
    * @type {string}
@@ -1381,14 +1699,14 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/analytics":7,"../lib/braintree-error":8,"../lib/deferred":15,"../lib/errors":17,"../lib/is-https":18,"../lib/throw-if-no-callback":23,"./external/three-d-secure":26,"./shared/errors":29}],28:[function(_dereq_,module,exports){
+},{"../lib/analytics":12,"../lib/braintree-error":13,"../lib/errors":22,"../lib/is-https":23,"../lib/promise":28,"./external/three-d-secure":31,"./shared/errors":34,"wrap-promise":10}],33:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   LANDING_FRAME_NAME: 'braintreethreedsecurelanding'
 };
 
-},{}],29:[function(_dereq_,module,exports){
+},{}],34:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../lib/braintree-error');
@@ -1425,7 +1743,7 @@ module.exports = {
   }
 };
 
-},{"../../lib/braintree-error":8}],30:[function(_dereq_,module,exports){
+},{"../../lib/braintree-error":13}],35:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../../lib/enumerate');
@@ -1434,5 +1752,5 @@ module.exports = enumerate([
   'AUTHENTICATION_COMPLETE'
 ], 'threedsecure:');
 
-},{"../../lib/enumerate":16}]},{},[27])(27)
+},{"../../lib/enumerate":21}]},{},[32])(32)
 });

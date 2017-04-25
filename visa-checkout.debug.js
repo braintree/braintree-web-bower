@@ -1,4 +1,346 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}(g.braintree || (g.braintree = {})).visaCheckout = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
+(function (root) {
+
+  // Store setTimeout reference so promise-polyfill will be unaffected by
+  // other code modifying setTimeout (like sinon.useFakeTimers())
+  var setTimeoutFunc = setTimeout;
+
+  function noop() {}
+  
+  // Polyfill for Function.prototype.bind
+  function bind(fn, thisArg) {
+    return function () {
+      fn.apply(thisArg, arguments);
+    };
+  }
+
+  function Promise(fn) {
+    if (typeof this !== 'object') throw new TypeError('Promises must be constructed via new');
+    if (typeof fn !== 'function') throw new TypeError('not a function');
+    this._state = 0;
+    this._handled = false;
+    this._value = undefined;
+    this._deferreds = [];
+
+    doResolve(fn, this);
+  }
+
+  function handle(self, deferred) {
+    while (self._state === 3) {
+      self = self._value;
+    }
+    if (self._state === 0) {
+      self._deferreds.push(deferred);
+      return;
+    }
+    self._handled = true;
+    Promise._immediateFn(function () {
+      var cb = self._state === 1 ? deferred.onFulfilled : deferred.onRejected;
+      if (cb === null) {
+        (self._state === 1 ? resolve : reject)(deferred.promise, self._value);
+        return;
+      }
+      var ret;
+      try {
+        ret = cb(self._value);
+      } catch (e) {
+        reject(deferred.promise, e);
+        return;
+      }
+      resolve(deferred.promise, ret);
+    });
+  }
+
+  function resolve(self, newValue) {
+    try {
+      // Promise Resolution Procedure: https://github.com/promises-aplus/promises-spec#the-promise-resolution-procedure
+      if (newValue === self) throw new TypeError('A promise cannot be resolved with itself.');
+      if (newValue && (typeof newValue === 'object' || typeof newValue === 'function')) {
+        var then = newValue.then;
+        if (newValue instanceof Promise) {
+          self._state = 3;
+          self._value = newValue;
+          finale(self);
+          return;
+        } else if (typeof then === 'function') {
+          doResolve(bind(then, newValue), self);
+          return;
+        }
+      }
+      self._state = 1;
+      self._value = newValue;
+      finale(self);
+    } catch (e) {
+      reject(self, e);
+    }
+  }
+
+  function reject(self, newValue) {
+    self._state = 2;
+    self._value = newValue;
+    finale(self);
+  }
+
+  function finale(self) {
+    if (self._state === 2 && self._deferreds.length === 0) {
+      Promise._immediateFn(function() {
+        if (!self._handled) {
+          Promise._unhandledRejectionFn(self._value);
+        }
+      });
+    }
+
+    for (var i = 0, len = self._deferreds.length; i < len; i++) {
+      handle(self, self._deferreds[i]);
+    }
+    self._deferreds = null;
+  }
+
+  function Handler(onFulfilled, onRejected, promise) {
+    this.onFulfilled = typeof onFulfilled === 'function' ? onFulfilled : null;
+    this.onRejected = typeof onRejected === 'function' ? onRejected : null;
+    this.promise = promise;
+  }
+
+  /**
+   * Take a potentially misbehaving resolver function and make sure
+   * onFulfilled and onRejected are only called once.
+   *
+   * Makes no guarantees about asynchrony.
+   */
+  function doResolve(fn, self) {
+    var done = false;
+    try {
+      fn(function (value) {
+        if (done) return;
+        done = true;
+        resolve(self, value);
+      }, function (reason) {
+        if (done) return;
+        done = true;
+        reject(self, reason);
+      });
+    } catch (ex) {
+      if (done) return;
+      done = true;
+      reject(self, ex);
+    }
+  }
+
+  Promise.prototype['catch'] = function (onRejected) {
+    return this.then(null, onRejected);
+  };
+
+  Promise.prototype.then = function (onFulfilled, onRejected) {
+    var prom = new (this.constructor)(noop);
+
+    handle(this, new Handler(onFulfilled, onRejected, prom));
+    return prom;
+  };
+
+  Promise.all = function (arr) {
+    var args = Array.prototype.slice.call(arr);
+
+    return new Promise(function (resolve, reject) {
+      if (args.length === 0) return resolve([]);
+      var remaining = args.length;
+
+      function res(i, val) {
+        try {
+          if (val && (typeof val === 'object' || typeof val === 'function')) {
+            var then = val.then;
+            if (typeof then === 'function') {
+              then.call(val, function (val) {
+                res(i, val);
+              }, reject);
+              return;
+            }
+          }
+          args[i] = val;
+          if (--remaining === 0) {
+            resolve(args);
+          }
+        } catch (ex) {
+          reject(ex);
+        }
+      }
+
+      for (var i = 0; i < args.length; i++) {
+        res(i, args[i]);
+      }
+    });
+  };
+
+  Promise.resolve = function (value) {
+    if (value && typeof value === 'object' && value.constructor === Promise) {
+      return value;
+    }
+
+    return new Promise(function (resolve) {
+      resolve(value);
+    });
+  };
+
+  Promise.reject = function (value) {
+    return new Promise(function (resolve, reject) {
+      reject(value);
+    });
+  };
+
+  Promise.race = function (values) {
+    return new Promise(function (resolve, reject) {
+      for (var i = 0, len = values.length; i < len; i++) {
+        values[i].then(resolve, reject);
+      }
+    });
+  };
+
+  // Use polyfill for setImmediate for performance gains
+  Promise._immediateFn = (typeof setImmediate === 'function' && function (fn) { setImmediate(fn); }) ||
+    function (fn) {
+      setTimeoutFunc(fn, 0);
+    };
+
+  Promise._unhandledRejectionFn = function _unhandledRejectionFn(err) {
+    if (typeof console !== 'undefined' && console) {
+      console.warn('Possible Unhandled Promise Rejection:', err); // eslint-disable-line no-console
+    }
+  };
+
+  /**
+   * Set the immediate function to execute callbacks
+   * @param fn {function} Function to execute
+   * @deprecated
+   */
+  Promise._setImmediateFn = function _setImmediateFn(fn) {
+    Promise._immediateFn = fn;
+  };
+
+  /**
+   * Change the function to execute on unhandled rejection
+   * @param {function} fn Function to execute on unhandled rejection
+   * @deprecated
+   */
+  Promise._setUnhandledRejectionFn = function _setUnhandledRejectionFn(fn) {
+    Promise._unhandledRejectionFn = fn;
+  };
+  
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = Promise;
+  } else if (!root.Promise) {
+    root.Promise = Promise;
+  }
+
+})(this);
+
+},{}],2:[function(_dereq_,module,exports){
+'use strict';
+
+function deferred(fn) {
+  return function () {
+    // IE9 doesn't support passing arguments to setTimeout so we have to emulate it.
+    var args = arguments;
+
+    setTimeout(function () {
+      fn.apply(null, args);
+    }, 1);
+  };
+}
+
+module.exports = deferred;
+
+},{}],3:[function(_dereq_,module,exports){
+'use strict';
+
+function once(fn) {
+  var called = false;
+
+  return function () {
+    if (!called) {
+      called = true;
+      fn.apply(null, arguments);
+    }
+  };
+}
+
+module.exports = once;
+
+},{}],4:[function(_dereq_,module,exports){
+'use strict';
+
+function promiseOrCallback(promise, callback) { // eslint-disable-line consistent-return
+  if (callback) {
+    promise
+      .then(function (data) {
+        callback(null, data);
+      })
+      .catch(function (err) {
+        callback(err);
+      });
+  } else {
+    return promise;
+  }
+}
+
+module.exports = promiseOrCallback;
+
+},{}],5:[function(_dereq_,module,exports){
+'use strict';
+
+var deferred = _dereq_('./lib/deferred');
+var once = _dereq_('./lib/once');
+var promiseOrCallback = _dereq_('./lib/promise-or-callback');
+
+function wrapPromise(fn) {
+  return function () {
+    var callback;
+    var args = Array.prototype.slice.call(arguments);
+    var lastArg = args[args.length - 1];
+
+    if (typeof lastArg === 'function') {
+      callback = args.pop();
+      callback = once(deferred(callback));
+    }
+    return promiseOrCallback(fn.apply(this, args), callback); // eslint-disable-line no-invalid-this
+  };
+}
+
+wrapPromise.wrapPrototype = function (target, options) {
+  var methods, ignoreMethods, includePrivateMethods;
+
+  options = options || {};
+  ignoreMethods = options.ignoreMethods || [];
+  includePrivateMethods = options.transformPrivateMethods === true;
+
+  methods = Object.getOwnPropertyNames(target.prototype).filter(function (method) {
+    var isNotPrivateMethod;
+    var isNonConstructorFunction = method !== 'constructor' &&
+      typeof target.prototype[method] === 'function';
+    var isNotAnIgnoredMethod = ignoreMethods.indexOf(method) === -1;
+
+    if (includePrivateMethods) {
+      isNotPrivateMethod = true;
+    } else {
+      isNotPrivateMethod = method.charAt(0) !== '_';
+    }
+
+    return isNonConstructorFunction &&
+      isNotPrivateMethod &&
+      isNotAnIgnoredMethod;
+  });
+
+  methods.forEach(function (method) {
+    var original = target.prototype[method];
+
+    target.prototype[method] = wrapPromise(original);
+  });
+
+  return target;
+};
+
+module.exports = wrapPromise;
+
+},{"./lib/deferred":2,"./lib/once":3,"./lib/promise-or-callback":4}],6:[function(_dereq_,module,exports){
 'use strict';
 
 var createAuthorizationData = _dereq_('./create-authorization-data');
@@ -32,7 +374,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":4,"./create-authorization-data":5,"./json-clone":9}],2:[function(_dereq_,module,exports){
+},{"./constants":9,"./create-authorization-data":10,"./json-clone":13}],7:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('./constants');
@@ -66,7 +408,7 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":1,"./constants":4}],3:[function(_dereq_,module,exports){
+},{"./add-metadata":6,"./constants":9}],8:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -151,10 +493,10 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":7}],4:[function(_dereq_,module,exports){
+},{"./enumerate":11}],9:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.13.0";
+var VERSION = "3.14.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -168,7 +510,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],5:[function(_dereq_,module,exports){
+},{}],10:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/polyfill').atob;
@@ -217,21 +559,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":10}],6:[function(_dereq_,module,exports){
-'use strict';
-
-module.exports = function (fn) {
-  return function () {
-    // IE9 doesn't support passing arguments to setTimeout so we have to emulate it.
-    var args = arguments;
-
-    setTimeout(function () {
-      fn.apply(null, args);
-    }, 1);
-  };
-};
-
-},{}],7:[function(_dereq_,module,exports){
+},{"../lib/polyfill":14}],11:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -245,7 +573,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],8:[function(_dereq_,module,exports){
+},{}],12:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -278,14 +606,14 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":3}],9:[function(_dereq_,module,exports){
+},{"./braintree-error":8}],13:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],10:[function(_dereq_,module,exports){
+},{}],14:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -326,23 +654,16 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],11:[function(_dereq_,module,exports){
+},{}],15:[function(_dereq_,module,exports){
+(function (global){
 'use strict';
 
-var BraintreeError = _dereq_('./braintree-error');
-var sharedErrors = _dereq_('./errors');
+var Promise = global.Promise || _dereq_('promise-polyfill');
 
-module.exports = function (callback, functionName) {
-  if (typeof callback !== 'function') {
-    throw new BraintreeError({
-      type: sharedErrors.CALLBACK_REQUIRED.type,
-      code: sharedErrors.CALLBACK_REQUIRED.code,
-      message: functionName + ' must include a callback function.'
-    });
-  }
-};
+module.exports = Promise;
 
-},{"./braintree-error":3,"./errors":8}],12:[function(_dereq_,module,exports){
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"promise-polyfill":1}],16:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -370,7 +691,7 @@ module.exports = {
   }
 };
 
-},{"../lib/braintree-error":3}],13:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":8}],17:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -381,58 +702,51 @@ module.exports = {
 var BraintreeError = _dereq_('../lib/braintree-error');
 var VisaCheckout = _dereq_('./visa-checkout');
 var analytics = _dereq_('../lib/analytics');
-var deferred = _dereq_('../lib/deferred');
 var sharedErrors = _dereq_('../lib/errors');
 var errors = _dereq_('./errors');
-var VERSION = "3.13.0";
-var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
+var VERSION = "3.14.0";
+var Promise = _dereq_('../lib/promise');
+var wrapPromise = _dereq_('wrap-promise');
 
 /**
  * @static
  * @function create
  * @param {object} options Creation options:
  * @param {Client} options.client A {@link Client} instance.
- * @param {callback} callback The second argument, `data`, is the {@link VisaCheckout} instance.
- * @returns {void}
+ * @param {callback} [callback] The second argument, `data`, is the {@link VisaCheckout} instance. If no callback is provided, `create` returns a promise that resolves with the {@link VisaCheckout} instance.
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  */
-function create(options, callback) {
+function create(options) {
   var clientVersion;
 
-  throwIfNoCallback(callback, 'create');
-
-  callback = deferred(callback);
-
   if (options.client == null) {
-    callback(new BraintreeError({
+    return Promise.reject(new BraintreeError({
       type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
       code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
       message: 'options.client is required when instantiating Visa Checkout.'
     }));
-    return;
   }
 
   clientVersion = options.client.getConfiguration().analyticsMetadata.sdkVersion;
   if (clientVersion !== VERSION) {
-    callback(new BraintreeError({
+    return Promise.reject(new BraintreeError({
       type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
       code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
       message: 'Client (version ' + clientVersion + ') and Visa Checkout (version ' + VERSION + ') components must be from the same SDK version.'
     }));
-    return;
   }
 
   if (!options.client.getConfiguration().gatewayConfiguration.visaCheckout) {
-    callback(new BraintreeError(errors.VISA_CHECKOUT_NOT_ENABLED));
-    return;
+    return Promise.reject(new BraintreeError(errors.VISA_CHECKOUT_NOT_ENABLED));
   }
 
   analytics.sendEvent(options.client, 'visacheckout.initialized');
 
-  callback(null, new VisaCheckout(options));
+  return Promise.resolve(new VisaCheckout(options));
 }
 
 module.exports = {
-  create: create,
+  create: wrapPromise(create),
   /**
    * @description The current version of the SDK, i.e. `{@pkg version}`.
    * @type {string}
@@ -440,15 +754,15 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/analytics":2,"../lib/braintree-error":3,"../lib/deferred":6,"../lib/errors":8,"../lib/throw-if-no-callback":11,"./errors":12,"./visa-checkout":14}],14:[function(_dereq_,module,exports){
+},{"../lib/analytics":7,"../lib/braintree-error":8,"../lib/errors":12,"../lib/promise":15,"./errors":16,"./visa-checkout":18,"wrap-promise":5}],18:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
-var deferred = _dereq_('../lib/deferred');
 var errors = _dereq_('./errors');
 var jsonClone = _dereq_('../lib/json-clone');
-var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
+var Promise = _dereq_('../lib/promise');
+var wrapPromise = _dereq_('wrap-promise');
 var cardTypeTransformMap = {
   Visa: 'VISA',
   MasterCard: 'MASTERCARD',
@@ -578,8 +892,8 @@ VisaCheckout.prototype.createInitOptions = function (options) {
  * @param {string} payment.callid Visa Checkout transaction ID associated with this payment.
  * @param {string} payment.encKey The encrypted key used to decrypt the payment data.
  * @param {string} payment.encPaymentData The encrypted payment data.
- * @param {callback} callback The second argument, <code>tokenizePayload</code> is a {@link VisaCheckout~tokenizePayload|tokenizePayload}.
- * @returns {void}
+ * @param {callback} [callback] The second argument, <code>tokenizePayload</code> is a {@link VisaCheckout~tokenizePayload|tokenizePayload}. If no callback is provided, `tokenize` returns a promise that resolves with the {@link VisaCheckout~tokenizePayload|tokenizePayload}.
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  * @example
  * V.on('payment.success', function (payment) {
  *   visaCheckoutInstance.tokenize(payment, function (err, tokenizePayload) {
@@ -591,17 +905,14 @@ VisaCheckout.prototype.createInitOptions = function (options) {
  *   });
  * });
  */
-VisaCheckout.prototype.tokenize = function (payment, callback) {
-  throwIfNoCallback(callback, 'tokenize');
-
-  callback = deferred(callback);
+VisaCheckout.prototype.tokenize = function (payment) {
+  var self = this;
 
   if (!payment.callid || !payment.encKey || !payment.encPaymentData) {
-    callback(new BraintreeError(errors.VISA_CHECKOUT_PAYMENT_REQUIRED));
-    return;
+    return Promise.reject(new BraintreeError(errors.VISA_CHECKOUT_PAYMENT_REQUIRED));
   }
 
-  this._client.request({
+  return this._client.request({
     method: 'post',
     endpoint: 'payment_methods/visa_checkout_cards',
     data: {
@@ -614,25 +925,23 @@ VisaCheckout.prototype.tokenize = function (payment, callback) {
         encryptedKey: payment.encKey
       }
     }
-  }, function (err, response) {
-    if (err) {
-      callback(new BraintreeError({
-        type: errors.VISA_CHECKOUT_TOKENIZATION.type,
-        code: errors.VISA_CHECKOUT_TOKENIZATION.code,
-        message: errors.VISA_CHECKOUT_TOKENIZATION.message,
-        details: {
-          originalError: err
-        }
-      }));
-      analytics.sendEvent(this._client, 'visacheckout.tokenize.failed');
-    } else {
-      callback(null, response.visaCheckoutCards[0]);
-      analytics.sendEvent(this._client, 'visacheckout.tokenize.succeeded');
-    }
-  }.bind(this));
+  }).then(function (response) {
+    analytics.sendEvent(self._client, 'visacheckout.tokenize.succeeded');
+    return response.visaCheckoutCards[0];
+  }).catch(function (err) {
+    analytics.sendEvent(self._client, 'visacheckout.tokenize.failed');
+    return Promise.reject(new BraintreeError({
+      type: errors.VISA_CHECKOUT_TOKENIZATION.type,
+      code: errors.VISA_CHECKOUT_TOKENIZATION.code,
+      message: errors.VISA_CHECKOUT_TOKENIZATION.message,
+      details: {
+        originalError: err
+      }
+    }));
+  });
 };
 
-module.exports = VisaCheckout;
+module.exports = wrapPromise.wrapPrototype(VisaCheckout);
 
-},{"../lib/analytics":2,"../lib/braintree-error":3,"../lib/deferred":6,"../lib/json-clone":9,"../lib/throw-if-no-callback":11,"./errors":12}]},{},[13])(13)
+},{"../lib/analytics":7,"../lib/braintree-error":8,"../lib/json-clone":13,"../lib/promise":15,"./errors":16,"wrap-promise":5}]},{},[17])(17)
 });

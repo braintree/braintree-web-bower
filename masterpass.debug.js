@@ -768,6 +768,39 @@ function wrapPromise(fn) {
   };
 }
 
+wrapPromise.wrapPrototype = function (target, options) {
+  var methods, ignoreMethods, includePrivateMethods;
+
+  options = options || {};
+  ignoreMethods = options.ignoreMethods || [];
+  includePrivateMethods = options.transformPrivateMethods === true;
+
+  methods = Object.getOwnPropertyNames(target.prototype).filter(function (method) {
+    var isNotPrivateMethod;
+    var isNonConstructorFunction = method !== 'constructor' &&
+      typeof target.prototype[method] === 'function';
+    var isNotAnIgnoredMethod = ignoreMethods.indexOf(method) === -1;
+
+    if (includePrivateMethods) {
+      isNotPrivateMethod = true;
+    } else {
+      isNotPrivateMethod = method.charAt(0) !== '_';
+    }
+
+    return isNonConstructorFunction &&
+      isNotPrivateMethod &&
+      isNotAnIgnoredMethod;
+  });
+
+  methods.forEach(function (method) {
+    var original = target.prototype[method];
+
+    target.prototype[method] = wrapPromise(original);
+  });
+
+  return target;
+};
+
 module.exports = wrapPromise;
 
 },{"./lib/deferred":13,"./lib/once":14,"./lib/promise-or-callback":15}],17:[function(_dereq_,module,exports){
@@ -1123,7 +1156,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":20,"./check-origin":21,"./events":22,"framebus":7}],24:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.13.0";
+var VERSION = "3.14.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -1893,7 +1926,7 @@ var Promise = _dereq_('../../lib/promise');
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var errors = _dereq_('../shared/errors');
-var VERSION = "3.13.0";
+var VERSION = "3.14.0";
 var methods = _dereq_('../../lib/methods');
 var wrapPromise = _dereq_('wrap-promise');
 var analytics = _dereq_('../../lib/analytics');
@@ -1972,13 +2005,12 @@ Masterpass.prototype._initialize = function () {
 /**
  * Launches the Masterpass flow and returns a nonce payload. Only one Masterpass flow should be active at a time. One way to achieve this is to disable your Masterpass button while the flow is open.
  * @public
- * @function
  * @param {object} options All options for initiating the Masterpass payment flow.
  * @param {string} options.currencyCode The currency code to process the payment.
  * @param {string} options.subtotal The amount to authorize for the transaction.
  * @param {object} options.config All configuration parameters accepted by Masterpass lightbox, except `function` data type. These options will override the values set by Braintree server. Please see {@link Masterpass Lightbox Parameters|https://developer.mastercard.com/page/masterpass-lightbox-parameters} for more information.
  * @param {callback} [callback] The second argument, <code>data</code>, is a {@link Masterpass~tokenizePayload|tokenizePayload}. If no callback is provided, the method will return a Promise that resolves with a {@link Masterpass~tokenizePayload|tokenizePayload}.
- * @returns {Promise|void}
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  * @example
  * button.addEventListener('click', function () {
  *   // Disable the button so that we don't attempt to open multiple popups.
@@ -2012,8 +2044,8 @@ Masterpass.prototype._initialize = function () {
  *   });
  * });
  */
-Masterpass.prototype.tokenize = wrapPromise(function (options) {
-  var self = this; // eslint-disable-line no-invalid-this
+Masterpass.prototype.tokenize = function (options) {
+  var self = this;
 
   if (!options || hasMissingOption(options)) {
     return Promise.reject(new BraintreeError(errors.MASTERPASS_TOKENIZE_MISSING_REQUIRED_OPTION));
@@ -2024,16 +2056,18 @@ Masterpass.prototype.tokenize = wrapPromise(function (options) {
   }
 
   return new Promise(function (resolve, reject) {
-    self._navigateFrameToLoadingPage(options, reject);
+    self._navigateFrameToLoadingPage(options).catch(reject);
     // This MUST happen after _navigateFrameToLoadingPage for Metro browsers to work.
     self._frameService.open(self._createFrameOpenHandler(resolve, reject));
   });
-});
+};
 
-Masterpass.prototype._navigateFrameToLoadingPage = function (options, reject) {
+Masterpass.prototype._navigateFrameToLoadingPage = function (options) {
+  var self = this;
+
   this._authInProgress = true;
 
-  this._client.request({
+  return this._client.request({
     method: 'post',
     endpoint: 'masterpass/request_token',
     data: {
@@ -2045,15 +2079,15 @@ Masterpass.prototype._navigateFrameToLoadingPage = function (options, reject) {
       }
     }
   }).then(function (response) {
-    var redirectUrl = this._assetsUrl + '/html/masterpass-loading-frame' + (this._isDebug ? '' : '.min') + '.html?';
-    var gatewayConfiguration = this._client.getConfiguration().gatewayConfiguration;
+    var redirectUrl = self._assetsUrl + '/html/masterpass-loading-frame' + (self._isDebug ? '' : '.min') + '.html?';
+    var gatewayConfiguration = self._client.getConfiguration().gatewayConfiguration;
     var config = options.config || {};
     var queryParams;
 
     queryParams = {
       environment: gatewayConfiguration.environment,
       requestToken: response.requestToken,
-      callbackUrl: this._callbackUrl,
+      callbackUrl: self._callbackUrl,
       merchantCheckoutId: gatewayConfiguration.masterpass.merchantCheckoutId,
       allowedCardTypes: gatewayConfiguration.masterpass.supportedNetworks
     };
@@ -2068,18 +2102,18 @@ Masterpass.prototype._navigateFrameToLoadingPage = function (options, reject) {
       return key + '=' + queryParams[key];
     }).join('&');
 
-    this._frameService.redirect(redirectUrl);
-  }.bind(this)).catch(function (err) {
+    self._frameService.redirect(redirectUrl);
+  }).catch(function (err) {
     var status = err.details && err.details.httpStatus;
 
-    this._closeWindow();
+    self._closeWindow();
 
     if (status === 422) {
-      reject(convertToBraintreeError(err, errors.MASTERPASS_INVALID_PAYMENT_OPTION));
-    } else {
-      reject(convertToBraintreeError(err, errors.MASTERPASS_FLOW_FAILED));
+      return Promise.reject(convertToBraintreeError(err, errors.MASTERPASS_INVALID_PAYMENT_OPTION));
     }
-  }.bind(this));
+
+    return Promise.reject(convertToBraintreeError(err, errors.MASTERPASS_FLOW_FAILED));
+  });
 };
 
 Masterpass.prototype._createFrameOpenHandler = function (resolve, reject) {
@@ -2176,7 +2210,6 @@ Masterpass.prototype._closeWindow = function () {
 /**
  * Cleanly tear down anything set up by {@link module:braintree-web/masterpass.create|create}.
  * @public
- * @function
  * @param {callback} [callback] Called on completion. If no callback is provided, `teardown` returns a promise.
  * @example
  * masterpassInstance.teardown();
@@ -2184,10 +2217,10 @@ Masterpass.prototype._closeWindow = function () {
  * masterpassInstance.teardown(function () {
  *   // teardown is complete
  * });
- * @returns {Promise|void}
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  */
-Masterpass.prototype.teardown = wrapPromise(function () {
-  var self = this; // eslint-disable-line no-invalid-this
+Masterpass.prototype.teardown = function () {
+  var self = this;
 
   return new Promise(function (resolve) {
     self._frameService.teardown();
@@ -2198,7 +2231,7 @@ Masterpass.prototype.teardown = wrapPromise(function () {
 
     resolve();
   });
-});
+};
 
 function hasMissingOption(options) {
   var i, option;
@@ -2214,7 +2247,7 @@ function hasMissingOption(options) {
   return false;
 }
 
-module.exports = Masterpass;
+module.exports = wrapPromise.wrapPrototype(Masterpass);
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"../../lib/analytics":18,"../../lib/braintree-error":20,"../../lib/constants":24,"../../lib/convert-methods-to-error":25,"../../lib/convert-to-braintree-error":26,"../../lib/frame-service/external":31,"../../lib/methods":42,"../../lib/promise":44,"../shared/constants":48,"../shared/errors":49,"wrap-promise":16}],47:[function(_dereq_,module,exports){
@@ -2227,7 +2260,7 @@ module.exports = Masterpass;
 var BraintreeError = _dereq_('../lib/braintree-error');
 var browserDetection = _dereq_('browser-detection');
 var Masterpass = _dereq_('./external/masterpass');
-var VERSION = "3.13.0";
+var VERSION = "3.14.0";
 var errors = _dereq_('./shared/errors');
 var sharedErrors = _dereq_('../lib/errors');
 var Promise = _dereq_('../lib/promise');
@@ -2252,7 +2285,7 @@ var wrapPromise = _dereq_('wrap-promise');
  *     return;
  *   }
  * });
- * @returns {Promise|void} Resolves with the Masterpass instance.
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  */
 function create(options) {
   var masterpassInstance, clientVersion, configuration;

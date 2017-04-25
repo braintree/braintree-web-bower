@@ -462,6 +462,348 @@ module.exports = function setAttributes(element, attributes) {
 };
 
 },{}],12:[function(_dereq_,module,exports){
+(function (root) {
+
+  // Store setTimeout reference so promise-polyfill will be unaffected by
+  // other code modifying setTimeout (like sinon.useFakeTimers())
+  var setTimeoutFunc = setTimeout;
+
+  function noop() {}
+  
+  // Polyfill for Function.prototype.bind
+  function bind(fn, thisArg) {
+    return function () {
+      fn.apply(thisArg, arguments);
+    };
+  }
+
+  function Promise(fn) {
+    if (typeof this !== 'object') throw new TypeError('Promises must be constructed via new');
+    if (typeof fn !== 'function') throw new TypeError('not a function');
+    this._state = 0;
+    this._handled = false;
+    this._value = undefined;
+    this._deferreds = [];
+
+    doResolve(fn, this);
+  }
+
+  function handle(self, deferred) {
+    while (self._state === 3) {
+      self = self._value;
+    }
+    if (self._state === 0) {
+      self._deferreds.push(deferred);
+      return;
+    }
+    self._handled = true;
+    Promise._immediateFn(function () {
+      var cb = self._state === 1 ? deferred.onFulfilled : deferred.onRejected;
+      if (cb === null) {
+        (self._state === 1 ? resolve : reject)(deferred.promise, self._value);
+        return;
+      }
+      var ret;
+      try {
+        ret = cb(self._value);
+      } catch (e) {
+        reject(deferred.promise, e);
+        return;
+      }
+      resolve(deferred.promise, ret);
+    });
+  }
+
+  function resolve(self, newValue) {
+    try {
+      // Promise Resolution Procedure: https://github.com/promises-aplus/promises-spec#the-promise-resolution-procedure
+      if (newValue === self) throw new TypeError('A promise cannot be resolved with itself.');
+      if (newValue && (typeof newValue === 'object' || typeof newValue === 'function')) {
+        var then = newValue.then;
+        if (newValue instanceof Promise) {
+          self._state = 3;
+          self._value = newValue;
+          finale(self);
+          return;
+        } else if (typeof then === 'function') {
+          doResolve(bind(then, newValue), self);
+          return;
+        }
+      }
+      self._state = 1;
+      self._value = newValue;
+      finale(self);
+    } catch (e) {
+      reject(self, e);
+    }
+  }
+
+  function reject(self, newValue) {
+    self._state = 2;
+    self._value = newValue;
+    finale(self);
+  }
+
+  function finale(self) {
+    if (self._state === 2 && self._deferreds.length === 0) {
+      Promise._immediateFn(function() {
+        if (!self._handled) {
+          Promise._unhandledRejectionFn(self._value);
+        }
+      });
+    }
+
+    for (var i = 0, len = self._deferreds.length; i < len; i++) {
+      handle(self, self._deferreds[i]);
+    }
+    self._deferreds = null;
+  }
+
+  function Handler(onFulfilled, onRejected, promise) {
+    this.onFulfilled = typeof onFulfilled === 'function' ? onFulfilled : null;
+    this.onRejected = typeof onRejected === 'function' ? onRejected : null;
+    this.promise = promise;
+  }
+
+  /**
+   * Take a potentially misbehaving resolver function and make sure
+   * onFulfilled and onRejected are only called once.
+   *
+   * Makes no guarantees about asynchrony.
+   */
+  function doResolve(fn, self) {
+    var done = false;
+    try {
+      fn(function (value) {
+        if (done) return;
+        done = true;
+        resolve(self, value);
+      }, function (reason) {
+        if (done) return;
+        done = true;
+        reject(self, reason);
+      });
+    } catch (ex) {
+      if (done) return;
+      done = true;
+      reject(self, ex);
+    }
+  }
+
+  Promise.prototype['catch'] = function (onRejected) {
+    return this.then(null, onRejected);
+  };
+
+  Promise.prototype.then = function (onFulfilled, onRejected) {
+    var prom = new (this.constructor)(noop);
+
+    handle(this, new Handler(onFulfilled, onRejected, prom));
+    return prom;
+  };
+
+  Promise.all = function (arr) {
+    var args = Array.prototype.slice.call(arr);
+
+    return new Promise(function (resolve, reject) {
+      if (args.length === 0) return resolve([]);
+      var remaining = args.length;
+
+      function res(i, val) {
+        try {
+          if (val && (typeof val === 'object' || typeof val === 'function')) {
+            var then = val.then;
+            if (typeof then === 'function') {
+              then.call(val, function (val) {
+                res(i, val);
+              }, reject);
+              return;
+            }
+          }
+          args[i] = val;
+          if (--remaining === 0) {
+            resolve(args);
+          }
+        } catch (ex) {
+          reject(ex);
+        }
+      }
+
+      for (var i = 0; i < args.length; i++) {
+        res(i, args[i]);
+      }
+    });
+  };
+
+  Promise.resolve = function (value) {
+    if (value && typeof value === 'object' && value.constructor === Promise) {
+      return value;
+    }
+
+    return new Promise(function (resolve) {
+      resolve(value);
+    });
+  };
+
+  Promise.reject = function (value) {
+    return new Promise(function (resolve, reject) {
+      reject(value);
+    });
+  };
+
+  Promise.race = function (values) {
+    return new Promise(function (resolve, reject) {
+      for (var i = 0, len = values.length; i < len; i++) {
+        values[i].then(resolve, reject);
+      }
+    });
+  };
+
+  // Use polyfill for setImmediate for performance gains
+  Promise._immediateFn = (typeof setImmediate === 'function' && function (fn) { setImmediate(fn); }) ||
+    function (fn) {
+      setTimeoutFunc(fn, 0);
+    };
+
+  Promise._unhandledRejectionFn = function _unhandledRejectionFn(err) {
+    if (typeof console !== 'undefined' && console) {
+      console.warn('Possible Unhandled Promise Rejection:', err); // eslint-disable-line no-console
+    }
+  };
+
+  /**
+   * Set the immediate function to execute callbacks
+   * @param fn {function} Function to execute
+   * @deprecated
+   */
+  Promise._setImmediateFn = function _setImmediateFn(fn) {
+    Promise._immediateFn = fn;
+  };
+
+  /**
+   * Change the function to execute on unhandled rejection
+   * @param {function} fn Function to execute on unhandled rejection
+   * @deprecated
+   */
+  Promise._setUnhandledRejectionFn = function _setUnhandledRejectionFn(fn) {
+    Promise._unhandledRejectionFn = fn;
+  };
+  
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = Promise;
+  } else if (!root.Promise) {
+    root.Promise = Promise;
+  }
+
+})(this);
+
+},{}],13:[function(_dereq_,module,exports){
+'use strict';
+
+function deferred(fn) {
+  return function () {
+    // IE9 doesn't support passing arguments to setTimeout so we have to emulate it.
+    var args = arguments;
+
+    setTimeout(function () {
+      fn.apply(null, args);
+    }, 1);
+  };
+}
+
+module.exports = deferred;
+
+},{}],14:[function(_dereq_,module,exports){
+'use strict';
+
+function once(fn) {
+  var called = false;
+
+  return function () {
+    if (!called) {
+      called = true;
+      fn.apply(null, arguments);
+    }
+  };
+}
+
+module.exports = once;
+
+},{}],15:[function(_dereq_,module,exports){
+'use strict';
+
+function promiseOrCallback(promise, callback) { // eslint-disable-line consistent-return
+  if (callback) {
+    promise
+      .then(function (data) {
+        callback(null, data);
+      })
+      .catch(function (err) {
+        callback(err);
+      });
+  } else {
+    return promise;
+  }
+}
+
+module.exports = promiseOrCallback;
+
+},{}],16:[function(_dereq_,module,exports){
+'use strict';
+
+var deferred = _dereq_('./lib/deferred');
+var once = _dereq_('./lib/once');
+var promiseOrCallback = _dereq_('./lib/promise-or-callback');
+
+function wrapPromise(fn) {
+  return function () {
+    var callback;
+    var args = Array.prototype.slice.call(arguments);
+    var lastArg = args[args.length - 1];
+
+    if (typeof lastArg === 'function') {
+      callback = args.pop();
+      callback = once(deferred(callback));
+    }
+    return promiseOrCallback(fn.apply(this, args), callback); // eslint-disable-line no-invalid-this
+  };
+}
+
+wrapPromise.wrapPrototype = function (target, options) {
+  var methods, ignoreMethods, includePrivateMethods;
+
+  options = options || {};
+  ignoreMethods = options.ignoreMethods || [];
+  includePrivateMethods = options.transformPrivateMethods === true;
+
+  methods = Object.getOwnPropertyNames(target.prototype).filter(function (method) {
+    var isNotPrivateMethod;
+    var isNonConstructorFunction = method !== 'constructor' &&
+      typeof target.prototype[method] === 'function';
+    var isNotAnIgnoredMethod = ignoreMethods.indexOf(method) === -1;
+
+    if (includePrivateMethods) {
+      isNotPrivateMethod = true;
+    } else {
+      isNotPrivateMethod = method.charAt(0) !== '_';
+    }
+
+    return isNonConstructorFunction &&
+      isNotPrivateMethod &&
+      isNotAnIgnoredMethod;
+  });
+
+  methods.forEach(function (method) {
+    var original = target.prototype[method];
+
+    target.prototype[method] = wrapPromise(original);
+  });
+
+  return target;
+};
+
+module.exports = wrapPromise;
+
+},{"./lib/deferred":13,"./lib/once":14,"./lib/promise-or-callback":15}],17:[function(_dereq_,module,exports){
 'use strict';
 
 var createAuthorizationData = _dereq_('./create-authorization-data');
@@ -495,7 +837,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":19,"./create-authorization-data":22,"./json-clone":37}],13:[function(_dereq_,module,exports){
+},{"./constants":24,"./create-authorization-data":27,"./json-clone":42}],18:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('./constants');
@@ -529,7 +871,7 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":12,"./constants":19}],14:[function(_dereq_,module,exports){
+},{"./add-metadata":17,"./constants":24}],19:[function(_dereq_,module,exports){
 'use strict';
 
 var assignNormalized = typeof Object.assign === 'function' ? Object.assign : assignPolyfill;
@@ -554,7 +896,7 @@ module.exports = {
   _assign: assignPolyfill
 };
 
-},{}],15:[function(_dereq_,module,exports){
+},{}],20:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -639,7 +981,7 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":24}],16:[function(_dereq_,module,exports){
+},{"./enumerate":29}],21:[function(_dereq_,module,exports){
 'use strict';
 
 var isWhitelistedDomain = _dereq_('../is-whitelisted-domain');
@@ -671,7 +1013,7 @@ module.exports = {
   checkOrigin: checkOrigin
 };
 
-},{"../is-whitelisted-domain":36}],17:[function(_dereq_,module,exports){
+},{"../is-whitelisted-domain":41}],22:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../enumerate');
@@ -680,7 +1022,7 @@ module.exports = enumerate([
   'CONFIGURATION_REQUEST'
 ], 'bus:');
 
-},{"../enumerate":24}],18:[function(_dereq_,module,exports){
+},{"../enumerate":29}],23:[function(_dereq_,module,exports){
 'use strict';
 
 var bus = _dereq_('framebus');
@@ -811,10 +1153,10 @@ BraintreeBus.events = events;
 
 module.exports = BraintreeBus;
 
-},{"../braintree-error":15,"./check-origin":16,"./events":17,"framebus":7}],19:[function(_dereq_,module,exports){
+},{"../braintree-error":20,"./check-origin":21,"./events":22,"framebus":7}],24:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.13.0";
+var VERSION = "3.14.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -828,7 +1170,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],20:[function(_dereq_,module,exports){
+},{}],25:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -846,7 +1188,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"./braintree-error":15,"./errors":25}],21:[function(_dereq_,module,exports){
+},{"./braintree-error":20,"./errors":30}],26:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -868,7 +1210,7 @@ function convertToBraintreeError(originalErr, btErrorObject) {
 
 module.exports = convertToBraintreeError;
 
-},{"./braintree-error":15}],22:[function(_dereq_,module,exports){
+},{"./braintree-error":20}],27:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/polyfill').atob;
@@ -917,7 +1259,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":40}],23:[function(_dereq_,module,exports){
+},{"../lib/polyfill":45}],28:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (fn) {
@@ -931,7 +1273,7 @@ module.exports = function (fn) {
   };
 };
 
-},{}],24:[function(_dereq_,module,exports){
+},{}],29:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -945,7 +1287,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],25:[function(_dereq_,module,exports){
+},{}],30:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -978,7 +1320,7 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":15}],26:[function(_dereq_,module,exports){
+},{"./braintree-error":20}],31:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1197,7 +1539,7 @@ FrameService.prototype._getFrameForEnvironment = function () {
 module.exports = FrameService;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../braintree-error":15,"../../bus":18,"../../uuid":44,"../shared/constants":33,"../shared/errors":34,"../shared/events":35,"./strategies/modal":28,"./strategies/popup":31,"./strategies/popup-bridge":29,"browser-detection":1,"iframer":8}],27:[function(_dereq_,module,exports){
+},{"../../braintree-error":20,"../../bus":23,"../../uuid":49,"../shared/constants":38,"../shared/errors":39,"../shared/events":40,"./strategies/modal":33,"./strategies/popup":36,"./strategies/popup-bridge":34,"browser-detection":1,"iframer":8}],32:[function(_dereq_,module,exports){
 'use strict';
 
 var FrameService = _dereq_('./frame-service');
@@ -1212,7 +1554,7 @@ module.exports = {
   }
 };
 
-},{"./frame-service":26}],28:[function(_dereq_,module,exports){
+},{"./frame-service":31}],33:[function(_dereq_,module,exports){
 'use strict';
 
 var iFramer = _dereq_('iframer');
@@ -1285,7 +1627,7 @@ Modal.prototype.redirect = function (redirectUrl) {
 
 module.exports = Modal;
 
-},{"../../../assign":14,"browser-detection":1,"iframer":8}],29:[function(_dereq_,module,exports){
+},{"../../../assign":19,"browser-detection":1,"iframer":8}],34:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1342,7 +1684,7 @@ PopupBridge.prototype.redirect = function (redirectUrl) {
 module.exports = PopupBridge;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../../braintree-error":15,"../../shared/errors":34}],30:[function(_dereq_,module,exports){
+},{"../../../braintree-error":20,"../../shared/errors":39}],35:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('../../../shared/constants');
@@ -1361,7 +1703,7 @@ module.exports = function composePopupOptions(options) {
   ].join(',');
 };
 
-},{"../../../shared/constants":33,"./position":32}],31:[function(_dereq_,module,exports){
+},{"../../../shared/constants":38,"./position":37}],36:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1405,7 +1747,7 @@ Popup.prototype.redirect = function (redirectUrl) {
 module.exports = Popup;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./compose-options":30}],32:[function(_dereq_,module,exports){
+},{"./compose-options":35}],37:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1434,7 +1776,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],33:[function(_dereq_,module,exports){
+},{}],38:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -1447,7 +1789,7 @@ module.exports = {
   POPUP_CLOSE_TIMEOUT: 100
 };
 
-},{}],34:[function(_dereq_,module,exports){
+},{}],39:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../braintree-error');
@@ -1465,7 +1807,7 @@ module.exports = {
   }
 };
 
-},{"../../braintree-error":15}],35:[function(_dereq_,module,exports){
+},{"../../braintree-error":20}],40:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../../enumerate');
@@ -1475,7 +1817,7 @@ module.exports = enumerate([
   'DISPATCH_FRAME_REPORT'
 ], 'frameService:');
 
-},{"../../enumerate":24}],36:[function(_dereq_,module,exports){
+},{"../../enumerate":29}],41:[function(_dereq_,module,exports){
 'use strict';
 
 var parser;
@@ -1510,14 +1852,14 @@ function isWhitelistedDomain(url) {
 
 module.exports = isWhitelistedDomain;
 
-},{}],37:[function(_dereq_,module,exports){
+},{}],42:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],38:[function(_dereq_,module,exports){
+},{}],43:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -1526,23 +1868,9 @@ module.exports = function (obj) {
   });
 };
 
-},{}],39:[function(_dereq_,module,exports){
-'use strict';
-
-function once(fn) {
-  var called = false;
-
-  return function () {
-    if (!called) {
-      called = true;
-      fn.apply(null, arguments);
-    }
-  };
-}
-
-module.exports = once;
-
-},{}],40:[function(_dereq_,module,exports){
+},{}],44:[function(_dereq_,module,exports){
+arguments[4][14][0].apply(exports,arguments)
+},{"dup":14}],45:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1583,7 +1911,16 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],41:[function(_dereq_,module,exports){
+},{}],46:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+
+var Promise = global.Promise || _dereq_('promise-polyfill');
+
+module.exports = Promise;
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"promise-polyfill":12}],47:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1674,23 +2011,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],42:[function(_dereq_,module,exports){
-'use strict';
-
-var BraintreeError = _dereq_('./braintree-error');
-var sharedErrors = _dereq_('./errors');
-
-module.exports = function (callback, functionName) {
-  if (typeof callback !== 'function') {
-    throw new BraintreeError({
-      type: sharedErrors.CALLBACK_REQUIRED.type,
-      code: sharedErrors.CALLBACK_REQUIRED.code,
-      message: functionName + ' must include a callback function.'
-    });
-  }
-};
-
-},{"./braintree-error":15,"./errors":25}],43:[function(_dereq_,module,exports){
+},{}],48:[function(_dereq_,module,exports){
 'use strict';
 
 function useMin(isDebug) {
@@ -1699,7 +2020,7 @@ function useMin(isDebug) {
 
 module.exports = useMin;
 
-},{}],44:[function(_dereq_,module,exports){
+},{}],49:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {
@@ -1713,7 +2034,7 @@ function uuid() {
 
 module.exports = uuid;
 
-},{}],45:[function(_dereq_,module,exports){
+},{}],50:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1722,16 +2043,17 @@ var BraintreeError = _dereq_('../../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../../lib/convert-to-braintree-error');
 var useMin = _dereq_('../../lib/use-min');
 var once = _dereq_('../../lib/once');
-var VERSION = "3.13.0";
+var VERSION = "3.14.0";
 var constants = _dereq_('../shared/constants');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
-var throwIfNoCallback = _dereq_('../../lib/throw-if-no-callback');
 var methods = _dereq_('../../lib/methods');
 var deferred = _dereq_('../../lib/deferred');
 var errors = _dereq_('../shared/errors');
 var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
 var querystring = _dereq_('../../lib/querystring');
+var Promise = _dereq_('../../lib/promise');
+var wrapPromise = _dereq_('wrap-promise');
 
 /**
  * @typedef {object} PayPal~tokenizePayload
@@ -1797,22 +2119,25 @@ function PayPal(options) {
   this._authorizationInProgress = false;
 }
 
-PayPal.prototype._initialize = function (callback) {
+PayPal.prototype._initialize = function () {
+  var self = this;
   var client = this._client;
   var failureTimeout = setTimeout(function () {
     analytics.sendEvent(client, 'paypal.load.timed-out');
   }, INTEGRATION_TIMEOUT_MS);
 
-  frameService.create({
-    name: constants.LANDING_FRAME_NAME,
-    dispatchFrameUrl: this._assetsUrl + '/html/dispatch-frame' + useMin(this._isDebug) + '.html',
-    openFrameUrl: this._loadingFrameUrl
-  }, function (service) {
-    this._frameService = service;
-    clearTimeout(failureTimeout);
-    analytics.sendEvent(client, 'paypal.load.succeeded');
-    callback();
-  }.bind(this));
+  return new Promise(function (resolve) {
+    frameService.create({
+      name: constants.LANDING_FRAME_NAME,
+      dispatchFrameUrl: self._assetsUrl + '/html/dispatch-frame' + useMin(self._isDebug) + '.html',
+      openFrameUrl: self._loadingFrameUrl
+    }, function (service) {
+      self._frameService = service;
+      clearTimeout(failureTimeout);
+      analytics.sendEvent(client, 'paypal.load.succeeded');
+      resolve(self);
+    });
+  });
 };
 
 /**
@@ -1824,7 +2149,7 @@ PayPal.prototype._initialize = function (callback) {
  * Checkout flows only.
  * * `authorize` - Submits the transaction for authorization but not settlement.
  * * `sale` - Payment will be immediately submitted for settlement upon creating a transaction.
- * @param {boolean} [options.offerCredit=false] Offers the customer PayPal Credit if they qualify. Checkout flows only.
+ * @param {boolean} [options.offerCredit=false] Offers the customer PayPal Credit if they qualify.
  * @param {string} [options.useraction]
  * Changes the call-to-action in the PayPal flow. By default the final button will show the localized
  * word for "Continue" and implies that the final amount billed is not yet known.
@@ -1948,124 +2273,145 @@ PayPal.prototype._initialize = function (callback) {
  *     }
  *   });
  * });
- * @returns {PayPal~tokenizeReturn} A handle to manage the PayPal checkout frame.
+ * @returns {Promise|PayPal~tokenizeReturn} A handle to manage the PayPal checkout frame. If no callback is provided, returns a promise.
  */
 PayPal.prototype.tokenize = function (options, callback) {
+  var self = this;
   var client = this._client;
+  var tokenizePromise, optionError;
 
-  throwIfNoCallback(callback, 'tokenize');
-
-  callback = once(deferred(callback));
+  if (callback) {
+    callback = once(deferred(callback));
+  }
 
   if (!options || !constants.FLOW_ENDPOINTS.hasOwnProperty(options.flow)) {
-    callback(new BraintreeError(errors.PAYPAL_FLOW_OPTION_REQUIRED));
-    return this._frameService.createNoopHandler();
-  }
+    optionError = new BraintreeError(errors.PAYPAL_FLOW_OPTION_REQUIRED);
 
-  if (this._authorizationInProgress) {
-    analytics.sendEvent(client, 'paypal.tokenization.error.already-opened');
-
-    callback(new BraintreeError(errors.PAYPAL_TOKENIZATION_REQUEST_ACTIVE));
-  } else {
-    this._authorizationInProgress = true;
-
-    if (!global.popupBridge) {
-      analytics.sendEvent(client, 'paypal.tokenization.opened');
+    if (callback) {
+      callback(optionError);
+      return this._frameService.createNoopHandler();
     }
 
-    if (options.offerCredit === true && options.flow === 'checkout') {
-      analytics.sendEvent(client, 'paypal.credit.offered');
-    }
-
-    this._navigateFrameToAuth(options, callback);
-    // This MUST happen after _navigateFrameToAuth for Metro browsers to work.
-    this._frameService.open(this._createFrameServiceCallback(options, callback));
+    return Promise.reject(optionError);
   }
 
-  return this._frameService.createHandler({
-    beforeClose: function () {
-      analytics.sendEvent(client, 'paypal.tokenization.closed.by-merchant');
+  tokenizePromise = new Promise(function (resolve, reject) {
+    if (self._authorizationInProgress) {
+      analytics.sendEvent(client, 'paypal.tokenization.error.already-opened');
+
+      reject(new BraintreeError(errors.PAYPAL_TOKENIZATION_REQUEST_ACTIVE));
+    } else {
+      self._authorizationInProgress = true;
+
+      if (!global.popupBridge) {
+        analytics.sendEvent(client, 'paypal.tokenization.opened');
+      }
+
+      if (options.offerCredit === true) {
+        analytics.sendEvent(client, 'paypal.credit.offered');
+      }
+
+      self._navigateFrameToAuth(options).catch(reject);
+      // self MUST happen after _navigateFrameToAuth for Metro browsers to work.
+      self._frameService.open(self._createFrameServiceCallback(options, resolve, reject));
     }
   });
+
+  if (callback) {
+    tokenizePromise.then(function (res) {
+      callback(null, res);
+    }).catch(callback);
+
+    return this._frameService.createHandler({
+      beforeClose: function () {
+        analytics.sendEvent(client, 'paypal.tokenization.closed.by-merchant');
+      }
+    });
+  }
+
+  return tokenizePromise;
 };
 
-PayPal.prototype._createFrameServiceCallback = function (options, callback) {
+PayPal.prototype._createFrameServiceCallback = function (options, resolve, reject) {
+  var self = this;
   var client = this._client;
 
   if (global.popupBridge) {
     return function (err, payload) {
       var cancelled = payload && payload.path && payload.path.substring(0, 7) === '/cancel';
 
-      this._authorizationInProgress = false;
+      self._authorizationInProgress = false;
 
       // `err` exists when the user clicks "Done" button of browser view
       if (err || cancelled) {
         analytics.sendEvent(client, 'paypal.tokenization.closed-popupbridge.by-user');
         // Call merchant's tokenize callback with an error
-        callback(new BraintreeError(errors.PAYPAL_POPUP_CLOSED));
+        reject(new BraintreeError(errors.PAYPAL_POPUP_CLOSED));
       } else if (payload) {
-        this._tokenizePayPal(options, payload.queryItems, callback);
+        self._tokenizePayPal(options, payload.queryItems).then(resolve).catch(reject);
       }
-    }.bind(this);
+    };
   }
 
   return function (err, params) {
-    this._authorizationInProgress = false;
+    self._authorizationInProgress = false;
 
     if (err) {
       if (err.code === 'FRAME_SERVICE_FRAME_CLOSED') {
         analytics.sendEvent(client, 'paypal.tokenization.closed.by-user');
-        callback(new BraintreeError(errors.PAYPAL_POPUP_CLOSED));
+        reject(new BraintreeError(errors.PAYPAL_POPUP_CLOSED));
       } else if (err.code === 'FRAME_SERVICE_FRAME_OPEN_FAILED') {
-        callback(new BraintreeError(errors.PAYPAL_POPUP_OPEN_FAILED));
+        reject(new BraintreeError(errors.PAYPAL_POPUP_OPEN_FAILED));
       }
     } else if (params) {
-      this._tokenizePayPal(options, params, callback);
+      self._tokenizePayPal(options, params).then(resolve).catch(reject);
     }
-  }.bind(this);
+  };
 };
 
-PayPal.prototype._tokenizePayPal = function (options, params, callback) {
-  var payload;
+PayPal.prototype._tokenizePayPal = function (options, params) {
+  var self = this;
   var client = this._client;
 
   if (!global.popupBridge) {
     this._frameService.redirect(this._loadingFrameUrl);
   }
 
-  client.request({
+  return client.request({
     endpoint: 'payment_methods/paypal_accounts',
     method: 'post',
     data: this._formatTokenizeData(options, params)
-  }, function (err, response) {
-    if (err) {
-      if (global.popupBridge) {
-        analytics.sendEvent(client, 'paypal.tokenization.failed-popupbridge');
-      } else {
-        analytics.sendEvent(client, 'paypal.tokenization.failed');
-      }
-      callback(convertToBraintreeError(err, {
-        type: errors.PAYPAL_ACCOUNT_TOKENIZATION_FAILED.type,
-        code: errors.PAYPAL_ACCOUNT_TOKENIZATION_FAILED.code,
-        message: errors.PAYPAL_ACCOUNT_TOKENIZATION_FAILED.message
-      }));
+  }).then(function (response) {
+    var payload = self._formatTokenizePayload(response);
+
+    if (global.popupBridge) {
+      analytics.sendEvent(client, 'paypal.tokenization.success-popupbridge');
     } else {
-      payload = this._formatTokenizePayload(response);
-
-      if (global.popupBridge) {
-        analytics.sendEvent(client, 'paypal.tokenization.success-popupbridge');
-      } else {
-        analytics.sendEvent(client, 'paypal.tokenization.success');
-      }
-
-      if (payload.creditFinancingOffered) {
-        analytics.sendEvent(client, 'paypal.credit.accepted');
-      }
-
-      callback(null, payload);
+      analytics.sendEvent(client, 'paypal.tokenization.success');
     }
-    this._frameService.close();
-  }.bind(this));
+
+    if (payload.creditFinancingOffered) {
+      analytics.sendEvent(client, 'paypal.credit.accepted');
+    }
+
+    self._frameService.close();
+
+    return payload;
+  }).catch(function (err) {
+    if (global.popupBridge) {
+      analytics.sendEvent(client, 'paypal.tokenization.failed-popupbridge');
+    } else {
+      analytics.sendEvent(client, 'paypal.tokenization.failed');
+    }
+
+    self._frameService.close();
+
+    return Promise.reject(convertToBraintreeError(err, {
+      type: errors.PAYPAL_ACCOUNT_TOKENIZATION_FAILED.type,
+      code: errors.PAYPAL_ACCOUNT_TOKENIZATION_FAILED.code,
+      message: errors.PAYPAL_ACCOUNT_TOKENIZATION_FAILED.message
+    }));
+  });
 };
 
 PayPal.prototype._formatTokenizePayload = function (response) {
@@ -2121,54 +2467,56 @@ PayPal.prototype._formatTokenizeData = function (options, params) {
   return data;
 };
 
-PayPal.prototype._navigateFrameToAuth = function (options, callback) {
+PayPal.prototype._navigateFrameToAuth = function (options) {
+  var self = this;
   var client = this._client;
   var endpoint = 'paypal_hermes/' + constants.FLOW_ENDPOINTS[options.flow];
 
-  client.request({
+  return client.request({
     endpoint: endpoint,
     method: 'post',
     data: this._formatPaymentResourceData(options)
-  }, function (err, response, status) {
+  }).then(function (response) {
     var redirectUrl;
 
-    if (err) {
-      if (status === 422) {
-        callback(new BraintreeError({
-          type: errors.PAYPAL_INVALID_PAYMENT_OPTION.type,
-          code: errors.PAYPAL_INVALID_PAYMENT_OPTION.code,
-          message: errors.PAYPAL_INVALID_PAYMENT_OPTION.message,
-          details: {
-            originalError: err
-          }
-        }));
-      } else {
-        callback(convertToBraintreeError(err, {
-          type: errors.PAYPAL_FLOW_FAILED.type,
-          code: errors.PAYPAL_FLOW_FAILED.code,
-          message: errors.PAYPAL_FLOW_FAILED.message
-        }));
-      }
-      this._frameService.close();
-      this._authorizationInProgress = false;
+    if (options.flow === 'checkout') {
+      redirectUrl = response.paymentResource.redirectUrl;
     } else {
-      if (options.flow === 'checkout') {
-        redirectUrl = response.paymentResource.redirectUrl;
-      } else {
-        redirectUrl = response.agreementSetup.approvalUrl;
-      }
-
-      if (options.useraction === 'commit') {
-        redirectUrl = querystring.queryify(redirectUrl, {useraction: 'commit'});
-      }
-
-      if (global.popupBridge) {
-        analytics.sendEvent(client, 'paypal.tokenization.opened-popupbridge');
-      }
-
-      this._frameService.redirect(redirectUrl);
+      redirectUrl = response.agreementSetup.approvalUrl;
     }
-  }.bind(this));
+
+    if (options.useraction === 'commit') {
+      redirectUrl = querystring.queryify(redirectUrl, {useraction: 'commit'});
+    }
+
+    if (global.popupBridge) {
+      analytics.sendEvent(client, 'paypal.tokenization.opened-popupbridge');
+    }
+
+    self._frameService.redirect(redirectUrl);
+  }).catch(function (err) {
+    var status = err.details && err.details.httpStatus;
+
+    self._frameService.close();
+    self._authorizationInProgress = false;
+
+    if (status === 422) {
+      return Promise.reject(new BraintreeError({
+        type: errors.PAYPAL_INVALID_PAYMENT_OPTION.type,
+        code: errors.PAYPAL_INVALID_PAYMENT_OPTION.code,
+        message: errors.PAYPAL_INVALID_PAYMENT_OPTION.message,
+        details: {
+          originalError: err
+        }
+      }));
+    }
+
+    return Promise.reject(convertToBraintreeError(err, {
+      type: errors.PAYPAL_FLOW_FAILED.type,
+      code: errors.PAYPAL_FLOW_FAILED.code,
+      message: errors.PAYPAL_FLOW_FAILED.message
+    }));
+  });
 };
 
 PayPal.prototype._formatPaymentResourceData = function (options) {
@@ -2178,6 +2526,7 @@ PayPal.prototype._formatPaymentResourceData = function (options) {
   var paymentResource = {
     returnUrl: gatewayConfiguration.paypal.assetsUrl + '/web/' + VERSION + '/html/paypal-redirect-frame' + useMin(this._isDebug) + '.html?channel=' + serviceId,
     cancelUrl: gatewayConfiguration.paypal.assetsUrl + '/web/' + VERSION + '/html/paypal-cancel-frame' + useMin(this._isDebug) + '.html?channel=' + serviceId,
+    offerPaypalCredit: options.offerCredit === true,
     experienceProfile: {
       brandName: options.displayName || gatewayConfiguration.paypal.displayName,
       localeCode: options.locale,
@@ -2195,7 +2544,6 @@ PayPal.prototype._formatPaymentResourceData = function (options) {
   if (options.flow === 'checkout') {
     paymentResource.amount = options.amount;
     paymentResource.currencyIsoCode = options.currency;
-    paymentResource.offerPaypalCredit = options.offerCredit === true;
 
     if (options.hasOwnProperty('intent')) {
       paymentResource.intent = options.intent;
@@ -2218,6 +2566,31 @@ PayPal.prototype._formatPaymentResourceData = function (options) {
 };
 
 /**
+ * Closes the PayPal window if it is open.
+ * @public
+ * @example
+ * paypalInstance.closeWindow();
+ * @returns {void}
+ */
+PayPal.prototype.closeWindow = function () {
+  if (this._authorizationInProgress) {
+    analytics.sendEvent(this._client, 'paypal.tokenize.closed.by-merchant');
+  }
+  this._frameService.close();
+};
+
+/**
+ * Focuses the PayPal window if it is open.
+ * @public
+ * @example
+ * paypalInstance.focusWindow();
+ * @returns {void}
+ */
+PayPal.prototype.focusWindow = function () {
+  this._frameService.focus();
+};
+
+/**
  * Cleanly remove anything set up by {@link module:braintree-web/paypal.create|create}.
  * @public
  * @param {callback} [callback] Called on completion.
@@ -2227,25 +2600,24 @@ PayPal.prototype._formatPaymentResourceData = function (options) {
  * paypalInstance.teardown(function () {
  *   // teardown is complete
  * });
- * @returns {void}
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  */
-PayPal.prototype.teardown = function (callback) {
-  this._frameService.teardown();
+PayPal.prototype.teardown = wrapPromise(function () {
+  var self = this; // eslint-disable-line no-invalid-this
 
-  convertMethodsToError(this, methods(PayPal.prototype));
+  self._frameService.teardown();
 
-  analytics.sendEvent(this._client, 'paypal.teardown-completed');
+  convertMethodsToError(self, methods(PayPal.prototype));
 
-  if (typeof callback === 'function') {
-    callback = deferred(callback);
-    callback();
-  }
-};
+  analytics.sendEvent(self._client, 'paypal.teardown-completed');
+
+  return Promise.resolve();
+});
 
 module.exports = PayPal;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../lib/analytics":13,"../../lib/braintree-error":15,"../../lib/constants":19,"../../lib/convert-methods-to-error":20,"../../lib/convert-to-braintree-error":21,"../../lib/deferred":23,"../../lib/frame-service/external":27,"../../lib/methods":38,"../../lib/once":39,"../../lib/querystring":41,"../../lib/throw-if-no-callback":42,"../../lib/use-min":43,"../shared/constants":47,"../shared/errors":48}],46:[function(_dereq_,module,exports){
+},{"../../lib/analytics":18,"../../lib/braintree-error":20,"../../lib/constants":24,"../../lib/convert-methods-to-error":25,"../../lib/convert-to-braintree-error":26,"../../lib/deferred":28,"../../lib/frame-service/external":32,"../../lib/methods":43,"../../lib/once":44,"../../lib/promise":46,"../../lib/querystring":47,"../../lib/use-min":48,"../shared/constants":52,"../shared/errors":53,"wrap-promise":16}],51:[function(_dereq_,module,exports){
 'use strict';
 /**
  * @module braintree-web/paypal
@@ -2254,12 +2626,12 @@ module.exports = PayPal;
 
 var analytics = _dereq_('../lib/analytics');
 var BraintreeError = _dereq_('../lib/braintree-error');
-var deferred = _dereq_('../lib/deferred');
 var errors = _dereq_('./shared/errors');
-var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 var PayPal = _dereq_('./external/paypal');
 var sharedErrors = _dereq_('../lib/errors');
-var VERSION = "3.13.0";
+var VERSION = "3.14.0";
+var wrapPromise = _dereq_('wrap-promise');
+var Promise = _dereq_('../lib/promise');
 
 /**
  * @static
@@ -2314,47 +2686,38 @@ var VERSION = "3.13.0";
  *     }, false);
  *   });
  * });
- * @returns {void}
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  */
-function create(options, callback) {
+function create(options) {
   var config, pp, clientVersion;
 
-  throwIfNoCallback(callback, 'create');
-
-  callback = deferred(callback);
-
   if (options.client == null) {
-    callback(new BraintreeError({
+    return Promise.reject(new BraintreeError({
       type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
       code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
       message: 'options.client is required when instantiating PayPal.'
     }));
-    return;
   }
 
   config = options.client.getConfiguration();
   clientVersion = config.analyticsMetadata.sdkVersion;
 
   if (clientVersion !== VERSION) {
-    callback(new BraintreeError({
+    return Promise.reject(new BraintreeError({
       type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
       code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
       message: 'Client (version ' + clientVersion + ') and PayPal (version ' + VERSION + ') components must be from the same SDK version.'
     }));
-    return;
   }
 
   if (config.gatewayConfiguration.paypalEnabled !== true) {
-    callback(new BraintreeError(errors.PAYPAL_NOT_ENABLED));
-    return;
+    return Promise.reject(new BraintreeError(errors.PAYPAL_NOT_ENABLED));
   }
 
   analytics.sendEvent(options.client, 'paypal.initialized');
 
   pp = new PayPal(options);
-  pp._initialize(function () {
-    callback(null, pp);
-  });
+  return pp._initialize();
 }
 
 /**
@@ -2374,7 +2737,7 @@ function isSupported() {
 }
 
 module.exports = {
-  create: create,
+  create: wrapPromise(create),
   isSupported: isSupported,
   /**
    * @description The current version of the SDK, i.e. `{@pkg version}`.
@@ -2383,7 +2746,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/analytics":13,"../lib/braintree-error":15,"../lib/deferred":23,"../lib/errors":25,"../lib/throw-if-no-callback":42,"./external/paypal":45,"./shared/errors":48}],47:[function(_dereq_,module,exports){
+},{"../lib/analytics":18,"../lib/braintree-error":20,"../lib/errors":30,"../lib/promise":46,"./external/paypal":50,"./shared/errors":53,"wrap-promise":16}],52:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -2394,7 +2757,7 @@ module.exports = {
   }
 };
 
-},{}],48:[function(_dereq_,module,exports){
+},{}],53:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../lib/braintree-error');
@@ -2447,5 +2810,5 @@ module.exports = {
   }
 };
 
-},{"../../lib/braintree-error":15}]},{},[46])(46)
+},{"../../lib/braintree-error":20}]},{},[51])(51)
 });

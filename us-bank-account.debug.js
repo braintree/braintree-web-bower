@@ -1,4 +1,346 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}(g.braintree || (g.braintree = {})).usBankAccount = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
+(function (root) {
+
+  // Store setTimeout reference so promise-polyfill will be unaffected by
+  // other code modifying setTimeout (like sinon.useFakeTimers())
+  var setTimeoutFunc = setTimeout;
+
+  function noop() {}
+  
+  // Polyfill for Function.prototype.bind
+  function bind(fn, thisArg) {
+    return function () {
+      fn.apply(thisArg, arguments);
+    };
+  }
+
+  function Promise(fn) {
+    if (typeof this !== 'object') throw new TypeError('Promises must be constructed via new');
+    if (typeof fn !== 'function') throw new TypeError('not a function');
+    this._state = 0;
+    this._handled = false;
+    this._value = undefined;
+    this._deferreds = [];
+
+    doResolve(fn, this);
+  }
+
+  function handle(self, deferred) {
+    while (self._state === 3) {
+      self = self._value;
+    }
+    if (self._state === 0) {
+      self._deferreds.push(deferred);
+      return;
+    }
+    self._handled = true;
+    Promise._immediateFn(function () {
+      var cb = self._state === 1 ? deferred.onFulfilled : deferred.onRejected;
+      if (cb === null) {
+        (self._state === 1 ? resolve : reject)(deferred.promise, self._value);
+        return;
+      }
+      var ret;
+      try {
+        ret = cb(self._value);
+      } catch (e) {
+        reject(deferred.promise, e);
+        return;
+      }
+      resolve(deferred.promise, ret);
+    });
+  }
+
+  function resolve(self, newValue) {
+    try {
+      // Promise Resolution Procedure: https://github.com/promises-aplus/promises-spec#the-promise-resolution-procedure
+      if (newValue === self) throw new TypeError('A promise cannot be resolved with itself.');
+      if (newValue && (typeof newValue === 'object' || typeof newValue === 'function')) {
+        var then = newValue.then;
+        if (newValue instanceof Promise) {
+          self._state = 3;
+          self._value = newValue;
+          finale(self);
+          return;
+        } else if (typeof then === 'function') {
+          doResolve(bind(then, newValue), self);
+          return;
+        }
+      }
+      self._state = 1;
+      self._value = newValue;
+      finale(self);
+    } catch (e) {
+      reject(self, e);
+    }
+  }
+
+  function reject(self, newValue) {
+    self._state = 2;
+    self._value = newValue;
+    finale(self);
+  }
+
+  function finale(self) {
+    if (self._state === 2 && self._deferreds.length === 0) {
+      Promise._immediateFn(function() {
+        if (!self._handled) {
+          Promise._unhandledRejectionFn(self._value);
+        }
+      });
+    }
+
+    for (var i = 0, len = self._deferreds.length; i < len; i++) {
+      handle(self, self._deferreds[i]);
+    }
+    self._deferreds = null;
+  }
+
+  function Handler(onFulfilled, onRejected, promise) {
+    this.onFulfilled = typeof onFulfilled === 'function' ? onFulfilled : null;
+    this.onRejected = typeof onRejected === 'function' ? onRejected : null;
+    this.promise = promise;
+  }
+
+  /**
+   * Take a potentially misbehaving resolver function and make sure
+   * onFulfilled and onRejected are only called once.
+   *
+   * Makes no guarantees about asynchrony.
+   */
+  function doResolve(fn, self) {
+    var done = false;
+    try {
+      fn(function (value) {
+        if (done) return;
+        done = true;
+        resolve(self, value);
+      }, function (reason) {
+        if (done) return;
+        done = true;
+        reject(self, reason);
+      });
+    } catch (ex) {
+      if (done) return;
+      done = true;
+      reject(self, ex);
+    }
+  }
+
+  Promise.prototype['catch'] = function (onRejected) {
+    return this.then(null, onRejected);
+  };
+
+  Promise.prototype.then = function (onFulfilled, onRejected) {
+    var prom = new (this.constructor)(noop);
+
+    handle(this, new Handler(onFulfilled, onRejected, prom));
+    return prom;
+  };
+
+  Promise.all = function (arr) {
+    var args = Array.prototype.slice.call(arr);
+
+    return new Promise(function (resolve, reject) {
+      if (args.length === 0) return resolve([]);
+      var remaining = args.length;
+
+      function res(i, val) {
+        try {
+          if (val && (typeof val === 'object' || typeof val === 'function')) {
+            var then = val.then;
+            if (typeof then === 'function') {
+              then.call(val, function (val) {
+                res(i, val);
+              }, reject);
+              return;
+            }
+          }
+          args[i] = val;
+          if (--remaining === 0) {
+            resolve(args);
+          }
+        } catch (ex) {
+          reject(ex);
+        }
+      }
+
+      for (var i = 0; i < args.length; i++) {
+        res(i, args[i]);
+      }
+    });
+  };
+
+  Promise.resolve = function (value) {
+    if (value && typeof value === 'object' && value.constructor === Promise) {
+      return value;
+    }
+
+    return new Promise(function (resolve) {
+      resolve(value);
+    });
+  };
+
+  Promise.reject = function (value) {
+    return new Promise(function (resolve, reject) {
+      reject(value);
+    });
+  };
+
+  Promise.race = function (values) {
+    return new Promise(function (resolve, reject) {
+      for (var i = 0, len = values.length; i < len; i++) {
+        values[i].then(resolve, reject);
+      }
+    });
+  };
+
+  // Use polyfill for setImmediate for performance gains
+  Promise._immediateFn = (typeof setImmediate === 'function' && function (fn) { setImmediate(fn); }) ||
+    function (fn) {
+      setTimeoutFunc(fn, 0);
+    };
+
+  Promise._unhandledRejectionFn = function _unhandledRejectionFn(err) {
+    if (typeof console !== 'undefined' && console) {
+      console.warn('Possible Unhandled Promise Rejection:', err); // eslint-disable-line no-console
+    }
+  };
+
+  /**
+   * Set the immediate function to execute callbacks
+   * @param fn {function} Function to execute
+   * @deprecated
+   */
+  Promise._setImmediateFn = function _setImmediateFn(fn) {
+    Promise._immediateFn = fn;
+  };
+
+  /**
+   * Change the function to execute on unhandled rejection
+   * @param {function} fn Function to execute on unhandled rejection
+   * @deprecated
+   */
+  Promise._setUnhandledRejectionFn = function _setUnhandledRejectionFn(fn) {
+    Promise._unhandledRejectionFn = fn;
+  };
+  
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = Promise;
+  } else if (!root.Promise) {
+    root.Promise = Promise;
+  }
+
+})(this);
+
+},{}],2:[function(_dereq_,module,exports){
+'use strict';
+
+function deferred(fn) {
+  return function () {
+    // IE9 doesn't support passing arguments to setTimeout so we have to emulate it.
+    var args = arguments;
+
+    setTimeout(function () {
+      fn.apply(null, args);
+    }, 1);
+  };
+}
+
+module.exports = deferred;
+
+},{}],3:[function(_dereq_,module,exports){
+'use strict';
+
+function once(fn) {
+  var called = false;
+
+  return function () {
+    if (!called) {
+      called = true;
+      fn.apply(null, arguments);
+    }
+  };
+}
+
+module.exports = once;
+
+},{}],4:[function(_dereq_,module,exports){
+'use strict';
+
+function promiseOrCallback(promise, callback) { // eslint-disable-line consistent-return
+  if (callback) {
+    promise
+      .then(function (data) {
+        callback(null, data);
+      })
+      .catch(function (err) {
+        callback(err);
+      });
+  } else {
+    return promise;
+  }
+}
+
+module.exports = promiseOrCallback;
+
+},{}],5:[function(_dereq_,module,exports){
+'use strict';
+
+var deferred = _dereq_('./lib/deferred');
+var once = _dereq_('./lib/once');
+var promiseOrCallback = _dereq_('./lib/promise-or-callback');
+
+function wrapPromise(fn) {
+  return function () {
+    var callback;
+    var args = Array.prototype.slice.call(arguments);
+    var lastArg = args[args.length - 1];
+
+    if (typeof lastArg === 'function') {
+      callback = args.pop();
+      callback = once(deferred(callback));
+    }
+    return promiseOrCallback(fn.apply(this, args), callback); // eslint-disable-line no-invalid-this
+  };
+}
+
+wrapPromise.wrapPrototype = function (target, options) {
+  var methods, ignoreMethods, includePrivateMethods;
+
+  options = options || {};
+  ignoreMethods = options.ignoreMethods || [];
+  includePrivateMethods = options.transformPrivateMethods === true;
+
+  methods = Object.getOwnPropertyNames(target.prototype).filter(function (method) {
+    var isNotPrivateMethod;
+    var isNonConstructorFunction = method !== 'constructor' &&
+      typeof target.prototype[method] === 'function';
+    var isNotAnIgnoredMethod = ignoreMethods.indexOf(method) === -1;
+
+    if (includePrivateMethods) {
+      isNotPrivateMethod = true;
+    } else {
+      isNotPrivateMethod = method.charAt(0) !== '_';
+    }
+
+    return isNonConstructorFunction &&
+      isNotPrivateMethod &&
+      isNotAnIgnoredMethod;
+  });
+
+  methods.forEach(function (method) {
+    var original = target.prototype[method];
+
+    target.prototype[method] = wrapPromise(original);
+  });
+
+  return target;
+};
+
+module.exports = wrapPromise;
+
+},{"./lib/deferred":2,"./lib/once":3,"./lib/promise-or-callback":4}],6:[function(_dereq_,module,exports){
 'use strict';
 
 var createAuthorizationData = _dereq_('./create-authorization-data');
@@ -32,7 +374,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":5,"./create-authorization-data":7,"./json-clone":11}],2:[function(_dereq_,module,exports){
+},{"./constants":10,"./create-authorization-data":12,"./json-clone":15}],7:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('./constants');
@@ -66,7 +408,7 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":1,"./constants":5}],3:[function(_dereq_,module,exports){
+},{"./add-metadata":6,"./constants":10}],8:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -151,7 +493,7 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":9}],4:[function(_dereq_,module,exports){
+},{"./enumerate":13}],9:[function(_dereq_,module,exports){
 'use strict';
 
 // Taken from https://github.com/sindresorhus/decamelize/blob/95980ab6fb44c40eaca7792bdf93aff7c210c805/index.js
@@ -171,10 +513,10 @@ module.exports = function (obj) {
   }, {});
 };
 
-},{}],5:[function(_dereq_,module,exports){
+},{}],10:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.13.0";
+var VERSION = "3.14.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -188,7 +530,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],6:[function(_dereq_,module,exports){
+},{}],11:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -206,7 +548,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"./braintree-error":3,"./errors":10}],7:[function(_dereq_,module,exports){
+},{"./braintree-error":8,"./errors":14}],12:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/polyfill').atob;
@@ -255,21 +597,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":14}],8:[function(_dereq_,module,exports){
-'use strict';
-
-module.exports = function (fn) {
-  return function () {
-    // IE9 doesn't support passing arguments to setTimeout so we have to emulate it.
-    var args = arguments;
-
-    setTimeout(function () {
-      fn.apply(null, args);
-    }, 1);
-  };
-};
-
-},{}],9:[function(_dereq_,module,exports){
+},{"../lib/polyfill":18}],13:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -283,7 +611,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],10:[function(_dereq_,module,exports){
+},{}],14:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -316,14 +644,14 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":3}],11:[function(_dereq_,module,exports){
+},{"./braintree-error":8}],15:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],12:[function(_dereq_,module,exports){
+},{}],16:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -332,23 +660,9 @@ module.exports = function (obj) {
   });
 };
 
-},{}],13:[function(_dereq_,module,exports){
-'use strict';
-
-function once(fn) {
-  var called = false;
-
-  return function () {
-    if (!called) {
-      called = true;
-      fn.apply(null, arguments);
-    }
-  };
-}
-
-module.exports = once;
-
-},{}],14:[function(_dereq_,module,exports){
+},{}],17:[function(_dereq_,module,exports){
+arguments[4][3][0].apply(exports,arguments)
+},{"dup":3}],18:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -389,30 +703,23 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],15:[function(_dereq_,module,exports){
+},{}],19:[function(_dereq_,module,exports){
+(function (global){
 'use strict';
 
-var BraintreeError = _dereq_('./braintree-error');
-var sharedErrors = _dereq_('./errors');
+var Promise = global.Promise || _dereq_('promise-polyfill');
 
-module.exports = function (callback, functionName) {
-  if (typeof callback !== 'function') {
-    throw new BraintreeError({
-      type: sharedErrors.CALLBACK_REQUIRED.type,
-      code: sharedErrors.CALLBACK_REQUIRED.code,
-      message: functionName + ' must include a callback function.'
-    });
-  }
-};
+module.exports = Promise;
 
-},{"./braintree-error":3,"./errors":10}],16:[function(_dereq_,module,exports){
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"promise-polyfill":1}],20:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   PLAID_LINK_JS: 'https://cdn.plaid.com/link/v2/stable/link-initialize.js'
 };
 
-},{}],17:[function(_dereq_,module,exports){
+},{}],21:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -463,7 +770,7 @@ module.exports = {
   }
 };
 
-},{"../lib/braintree-error":3}],18:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":8}],22:[function(_dereq_,module,exports){
 'use strict';
 /**
  * @module braintree-web/us-bank-account
@@ -473,62 +780,54 @@ module.exports = {
 var BraintreeError = _dereq_('../lib/braintree-error');
 var errors = _dereq_('./errors');
 var USBankAccount = _dereq_('./us-bank-account');
-var deferred = _dereq_('../lib/deferred');
-var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
-var VERSION = "3.13.0";
+var VERSION = "3.14.0";
 var sharedErrors = _dereq_('../lib/errors');
+var Promise = _dereq_('../lib/promise');
+var wrapPromise = _dereq_('wrap-promise');
 
 /**
  * @static
  * @function create
  * @param {object} options Creation options:
  * @param {Client} options.client A {@link Client} instance.
- * @param {callback} callback The second argument, `data`, is the {@link USBankAccount} instance.
- * @returns {void}
+ * @param {callback} [callback] The second argument, `data`, is the {@link USBankAccount} instance. If no callback is provided, `create` returns a promise that resolves with the {@link USBankAccount} instance.
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  */
-function create(options, callback) {
+function create(options) {
   var clientVersion, braintreeApi, usBankAccount;
 
-  throwIfNoCallback(callback, 'create');
-
-  callback = deferred(callback);
-
   if (options.client == null) {
-    callback(new BraintreeError({
+    return Promise.reject(new BraintreeError({
       type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
       code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
       message: 'options.client is required when instantiating US Bank Account.'
     }));
-    return;
   }
 
   clientVersion = options.client.getConfiguration().analyticsMetadata.sdkVersion;
   if (clientVersion !== VERSION) {
-    callback(new BraintreeError({
+    return Promise.reject(new BraintreeError({
       type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
       code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
       message: 'Client (version ' + clientVersion + ') and US Bank Account (version ' + VERSION + ') components must be from the same SDK version.'
     }));
-    return;
   }
 
   braintreeApi = options.client.getConfiguration().gatewayConfiguration.braintreeApi;
   if (!braintreeApi) {
-    callback(new BraintreeError(sharedErrors.BRAINTREE_API_ACCESS_RESTRICTED));
-    return;
+    return Promise.reject(new BraintreeError(sharedErrors.BRAINTREE_API_ACCESS_RESTRICTED));
   }
 
   usBankAccount = options.client.getConfiguration().gatewayConfiguration.usBankAccount;
   if (!usBankAccount) {
-    callback(new BraintreeError(errors.US_BANK_ACCOUNT_NOT_ENABLED));
-    return;
+    return Promise.reject(new BraintreeError(errors.US_BANK_ACCOUNT_NOT_ENABLED));
   }
 
-  callback(null, new USBankAccount(options));
+  return Promise.resolve(new USBankAccount(options));
 }
 
 module.exports = {
-  create: create,
+  create: wrapPromise(create),
   /**
    * @description The current version of the SDK, i.e. `{@pkg version}`.
    * @type {string}
@@ -536,7 +835,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/braintree-error":3,"../lib/deferred":8,"../lib/errors":10,"../lib/throw-if-no-callback":15,"./errors":17,"./us-bank-account":19}],19:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":8,"../lib/errors":14,"../lib/promise":19,"./errors":21,"./us-bank-account":23,"wrap-promise":5}],23:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -545,12 +844,12 @@ var constants = _dereq_('./constants');
 var errors = _dereq_('./errors');
 var sharedErrors = _dereq_('../lib/errors');
 var analytics = _dereq_('../lib/analytics');
-var deferred = _dereq_('../lib/deferred');
 var once = _dereq_('../lib/once');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
 var methods = _dereq_('../lib/methods');
-var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 var camelCaseToSnakeCase = _dereq_('../lib/camel-case-to-snake-case');
+var Promise = _dereq_('../lib/promise');
+var wrapPromise = _dereq_('wrap-promise');
 
 /**
  * @typedef {object} USBankAccount~tokenizePayload
@@ -603,8 +902,8 @@ function USBankAccount(options) {
  * @param {string} options.bankLogin.billingAddress.locality The locality for the customer's billing address. This is typically a city, such as `'San Francisco'`.
  * @param {string} options.bankLogin.billingAddress.region The region for the customer's billing address. This is typically a state, such as `'CA'`.
  * @param {string} options.bankLogin.billingAddress.postalCode The postal code for the customer's billing address. This is typically a ZIP code, such as `'94119'`.
- * @param {callback} callback The second argument, <code>data</code>, is a {@link USBankAccount~tokenizePayload|tokenizePayload}.
- * @returns {void}
+ * @param {callback} [callback] The second argument, <code>data</code>, is a {@link USBankAccount~tokenizePayload|tokenizePayload}. If no callback is provided, `tokenize` returns a promise that resolves with {@link USBankAccount~tokenizePayload|tokenizePayload}.
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  * @example
  * <caption>Tokenizing raw bank details</caption>
  * var routingNumberInput = document.querySelector('input[name="routing-number"]');
@@ -702,45 +1001,41 @@ function USBankAccount(options) {
  *   });
  * });
  */
-USBankAccount.prototype.tokenize = function (options, callback) {
-  throwIfNoCallback(callback, 'tokenize');
-
+USBankAccount.prototype.tokenize = function (options) {
   options = options || {};
-  callback = deferred(callback);
 
   if (!options.mandateText) {
-    callback(new BraintreeError({
+    return Promise.reject(new BraintreeError({
       type: errors.US_BANK_ACCOUNT_OPTION_REQUIRED.type,
       code: errors.US_BANK_ACCOUNT_OPTION_REQUIRED.code,
       message: 'mandateText property is required.'
     }));
-    return;
   }
 
   if (options.bankDetails && options.bankLogin) {
-    callback(new BraintreeError({
+    return Promise.reject(new BraintreeError({
       type: errors.US_BANK_ACCOUNT_MUTUALLY_EXCLUSIVE_OPTIONS.type,
       code: errors.US_BANK_ACCOUNT_MUTUALLY_EXCLUSIVE_OPTIONS.code,
       message: 'tokenize must be called with bankDetails or bankLogin, not both.'
     }));
   } else if (options.bankDetails) {
-    this._tokenizeBankDetails(options, callback);
+    return this._tokenizeBankDetails(options);
   } else if (options.bankLogin) {
-    this._tokenizeBankLogin(options, callback);
-  } else {
-    callback(new BraintreeError({
-      type: errors.US_BANK_ACCOUNT_OPTION_REQUIRED.type,
-      code: errors.US_BANK_ACCOUNT_OPTION_REQUIRED.code,
-      message: 'tokenize must be called with bankDetails or bankLogin.'
-    }));
+    return this._tokenizeBankLogin(options);
   }
+
+  return Promise.reject(new BraintreeError({
+    type: errors.US_BANK_ACCOUNT_OPTION_REQUIRED.type,
+    code: errors.US_BANK_ACCOUNT_OPTION_REQUIRED.code,
+    message: 'tokenize must be called with bankDetails or bankLogin.'
+  }));
 };
 
-USBankAccount.prototype._tokenizeBankDetails = function (options, callback) {
+USBankAccount.prototype._tokenizeBankDetails = function (options) {
   var client = this._client;
   var bankDetails = options.bankDetails;
 
-  client.request({
+  return client.request({
     method: 'POST',
     endpoint: 'tokens',
     api: 'braintreeApi',
@@ -758,23 +1053,20 @@ USBankAccount.prototype._tokenizeBankDetails = function (options, callback) {
         text: options.mandateText
       }
     })
-  }, function (err, response, status) {
-    var error;
-
-    if (err) {
-      error = errorFrom(err, status);
-      analytics.sendEvent(client, 'usbankaccount.bankdetails.tokenization.failed');
-      callback(error);
-      return;
-    }
-
+  }).then(function (response) {
     analytics.sendEvent(client, 'usbankaccount.bankdetails.tokenization.succeeded');
 
-    callback(null, formatTokenizeResponse(response));
+    return Promise.resolve(formatTokenizeResponse(response));
+  }).catch(function (err) {
+    var error = errorFrom(err);
+
+    analytics.sendEvent(client, 'usbankaccount.bankdetails.tokenization.failed');
+
+    return Promise.reject(error);
   });
 };
 
-USBankAccount.prototype._tokenizeBankLogin = function (options, callback) {
+USBankAccount.prototype._tokenizeBankLogin = function (options) {
   var self = this;
   var client = this._client;
   var gatewayConfiguration = client.getConfiguration().gatewayConfiguration;
@@ -782,88 +1074,87 @@ USBankAccount.prototype._tokenizeBankLogin = function (options, callback) {
   var plaidConfig = gatewayConfiguration.usBankAccount.plaid;
 
   if (!options.bankLogin.displayName) {
-    callback(new BraintreeError({
+    return Promise.reject(new BraintreeError({
       type: errors.US_BANK_ACCOUNT_OPTION_REQUIRED.type,
       code: errors.US_BANK_ACCOUNT_OPTION_REQUIRED.code,
       message: 'displayName property is required when using bankLogin.'
     }));
-    return;
   }
 
   if (!plaidConfig) {
-    callback(new BraintreeError(errors.US_BANK_ACCOUNT_BANK_LOGIN_NOT_ENABLED));
-    return;
+    return Promise.reject(new BraintreeError(errors.US_BANK_ACCOUNT_BANK_LOGIN_NOT_ENABLED));
   }
 
   if (this._isTokenizingBankLogin) {
-    callback(new BraintreeError(errors.US_BANK_ACCOUNT_LOGIN_REQUEST_ACTIVE));
-    return;
+    return Promise.reject(new BraintreeError(errors.US_BANK_ACCOUNT_LOGIN_REQUEST_ACTIVE));
   }
   this._isTokenizingBankLogin = true;
 
-  this._loadPlaid(function (plaidLoadErr, plaid) {
-    if (plaidLoadErr) {
-      callback(plaidLoadErr);
-      return;
-    }
+  return new Promise(function (resolve, reject) {
+    self._loadPlaid(function (plaidLoadErr, plaid) {
+      if (plaidLoadErr) {
+        reject(plaidLoadErr);
+        return;
+      }
 
-    plaid.create({
-      clientName: options.bankLogin.displayName,
-      env: isProduction ? 'production' : 'tartan',
-      key: isProduction ? plaidConfig.publicKey : 'test_key',
-      product: 'auth',
-      selectAccount: true,
-      onExit: function () {
-        self._isTokenizingBankLogin = false;
-
-        analytics.sendEvent(client, 'usbankaccount.banklogin.tokenization.closed.by-user');
-
-        callback(new BraintreeError(errors.US_BANK_ACCOUNT_LOGIN_CLOSED));
-      },
-      onSuccess: function (publicToken, metadata) {
-        client.request({
-          method: 'POST',
-          endpoint: 'tokens',
-          api: 'braintreeApi',
-          data: camelCaseToSnakeCase({
-            type: 'plaid_public_token',
-            publicToken: publicToken,
-            accountId: metadata.account_id,
-            achMandate: {
-              text: options.mandateText
-            },
-            ownershipType: options.bankLogin.ownershipType,
-            firstName: options.bankLogin.firstName,
-            lastName: options.bankLogin.lastName,
-            businessName: options.bankLogin.businessName,
-            billingAddress: camelCaseToSnakeCase(options.bankLogin.billingAddress || {})
-          })
-        }, function (tokenizeErr, response, status) {
-          var error;
-
+      plaid.create({
+        clientName: options.bankLogin.displayName,
+        env: isProduction ? 'production' : 'tartan',
+        key: isProduction ? plaidConfig.publicKey : 'test_key',
+        product: 'auth',
+        selectAccount: true,
+        onExit: function () {
           self._isTokenizingBankLogin = false;
 
-          if (tokenizeErr) {
-            error = errorFrom(tokenizeErr, status);
+          analytics.sendEvent(client, 'usbankaccount.banklogin.tokenization.closed.by-user');
+
+          reject(new BraintreeError(errors.US_BANK_ACCOUNT_LOGIN_CLOSED));
+        },
+        onSuccess: function (publicToken, metadata) {
+          client.request({
+            method: 'POST',
+            endpoint: 'tokens',
+            api: 'braintreeApi',
+            data: camelCaseToSnakeCase({
+              type: 'plaid_public_token',
+              publicToken: publicToken,
+              accountId: metadata.account_id,
+              achMandate: {
+                text: options.mandateText
+              },
+              ownershipType: options.bankLogin.ownershipType,
+              firstName: options.bankLogin.firstName,
+              lastName: options.bankLogin.lastName,
+              businessName: options.bankLogin.businessName,
+              billingAddress: camelCaseToSnakeCase(options.bankLogin.billingAddress || {})
+            })
+          }).then(function (response) {
+            self._isTokenizingBankLogin = false;
+
+            analytics.sendEvent(client, 'usbankaccount.banklogin.tokenization.succeeded');
+
+            resolve(formatTokenizeResponse(response));
+          }).catch(function (tokenizeErr) {
+            var error;
+
+            self._isTokenizingBankLogin = false;
+            error = errorFrom(tokenizeErr);
+
             analytics.sendEvent(client, 'usbankaccount.banklogin.tokenization.failed');
 
-            callback(error);
-            return;
-          }
+            reject(error);
+          });
+        }
+      }).open();
 
-          analytics.sendEvent(client, 'usbankaccount.banklogin.tokenization.succeeded');
-
-          callback(null, formatTokenizeResponse(response));
-        });
-      }
-    }).open();
-
-    analytics.sendEvent(client, 'usbankaccount.banklogin.tokenization.started');
+      analytics.sendEvent(client, 'usbankaccount.banklogin.tokenization.started');
+    });
   });
 };
 
-function errorFrom(err, status) {
+function errorFrom(err) {
   var error;
+  var status = err.details && err.details.httpStatus;
 
   if (status === 401) {
     error = new BraintreeError(sharedErrors.BRAINTREE_API_ACCESS_RESTRICTED);
@@ -950,23 +1241,20 @@ function addLoadListeners(script, callback) {
  * usBankAccountInstance.teardown(function () {
  *   // teardown is complete
  * });
- * @returns {void}
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  */
-USBankAccount.prototype.teardown = function (callback) {
+USBankAccount.prototype.teardown = function () {
   if (this._plaidScript) {
     document.body.removeChild(this._plaidScript);
   }
 
   convertMethodsToError(this, methods(USBankAccount.prototype));
 
-  if (callback) {
-    callback = deferred(callback);
-    callback();
-  }
+  return Promise.resolve();
 };
 
-module.exports = USBankAccount;
+module.exports = wrapPromise.wrapPrototype(USBankAccount);
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../lib/analytics":2,"../lib/braintree-error":3,"../lib/camel-case-to-snake-case":4,"../lib/convert-methods-to-error":6,"../lib/deferred":8,"../lib/errors":10,"../lib/methods":12,"../lib/once":13,"../lib/throw-if-no-callback":15,"./constants":16,"./errors":17}]},{},[18])(18)
+},{"../lib/analytics":7,"../lib/braintree-error":8,"../lib/camel-case-to-snake-case":9,"../lib/convert-methods-to-error":11,"../lib/errors":14,"../lib/methods":16,"../lib/once":17,"../lib/promise":19,"./constants":20,"./errors":21,"wrap-promise":5}]},{},[22])(22)
 });

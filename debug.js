@@ -959,16 +959,49 @@ function wrapPromise(fn) {
   };
 }
 
+wrapPromise.wrapPrototype = function (target, options) {
+  var methods, ignoreMethods, includePrivateMethods;
+
+  options = options || {};
+  ignoreMethods = options.ignoreMethods || [];
+  includePrivateMethods = options.transformPrivateMethods === true;
+
+  methods = Object.getOwnPropertyNames(target.prototype).filter(function (method) {
+    var isNotPrivateMethod;
+    var isNonConstructorFunction = method !== 'constructor' &&
+      typeof target.prototype[method] === 'function';
+    var isNotAnIgnoredMethod = ignoreMethods.indexOf(method) === -1;
+
+    if (includePrivateMethods) {
+      isNotPrivateMethod = true;
+    } else {
+      isNotPrivateMethod = method.charAt(0) !== '_';
+    }
+
+    return isNonConstructorFunction &&
+      isNotPrivateMethod &&
+      isNotAnIgnoredMethod;
+  });
+
+  methods.forEach(function (method) {
+    var original = target.prototype[method];
+
+    target.prototype[method] = wrapPromise(original);
+  });
+
+  return target;
+};
+
 module.exports = wrapPromise;
 
 },{"./lib/deferred":14,"./lib/once":15,"./lib/promise-or-callback":16}],18:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
-var deferred = _dereq_('../lib/deferred');
 var errors = _dereq_('./errors');
 var assign = _dereq_('../lib/assign').assign;
-var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
+var Promise = _dereq_('../lib/promise');
+var wrapPromise = _dereq_('wrap-promise');
 
 /**
  * @class
@@ -985,8 +1018,8 @@ function AmericanExpress(options) {
  * @public
  * @param {object} options Request options
  * @param {string} options.nonce An existing Braintree nonce.
- * @param {callback} callback The second argument, <code>data</code>, is the returned server data.
- * @returns {void}
+ * @param {callback} [callback] The second argument, <code>data</code>, is the returned server data. If no callback is provided, `getRewardsBalance` returns a promise that resolves with the server data.
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  * @example
  * var americanExpress = require('braintree-web/american-express');
  *
@@ -1002,21 +1035,16 @@ function AmericanExpress(options) {
  *   });
  * });
  */
-AmericanExpress.prototype.getRewardsBalance = function (options, callback) {
+AmericanExpress.prototype.getRewardsBalance = function (options) {
   var nonce = options.nonce;
   var data;
 
-  throwIfNoCallback(callback, 'getRewardsBalance');
-
-  callback = deferred(callback);
-
   if (!nonce) {
-    callback(new BraintreeError({
+    return Promise.reject(new BraintreeError({
       type: errors.AMEX_NONCE_REQUIRED.type,
       code: errors.AMEX_NONCE_REQUIRED.code,
       message: 'getRewardsBalance must be called with a nonce.'
     }));
-    return;
   }
 
   data = assign({
@@ -1026,23 +1054,19 @@ AmericanExpress.prototype.getRewardsBalance = function (options, callback) {
 
   delete data.nonce;
 
-  this._client.request({
+  return this._client.request({
     method: 'get',
     endpoint: 'payment_methods/amex_rewards_balance',
     data: data
-  }, function (err, response) {
-    if (err) {
-      callback(new BraintreeError({
-        type: errors.AMEX_NETWORK_ERROR.type,
-        code: errors.AMEX_NETWORK_ERROR.code,
-        message: 'A network error occurred when getting the American Express rewards balance.',
-        details: {
-          originalError: err
-        }
-      }));
-    } else {
-      callback(null, response);
-    }
+  }).catch(function (err) {
+    return Promise.reject(new BraintreeError({
+      type: errors.AMEX_NETWORK_ERROR.type,
+      code: errors.AMEX_NETWORK_ERROR.code,
+      message: 'A network error occurred when getting the American Express rewards balance.',
+      details: {
+        originalError: err
+      }
+    }));
   });
 };
 
@@ -1051,8 +1075,8 @@ AmericanExpress.prototype.getRewardsBalance = function (options, callback) {
  * @public
  * @param {object} options Request options
  * @param {string} options.nonce An existing nonce from American Express (note that this is <em>not</em> a nonce from Braintree).
- * @param {callback} callback The second argument, <code>data</code>, is the returned server data.
- * @returns {void}
+ * @param {callback} [callback] The second argument, <code>data</code>, is the returned server data. If no callback is provided, `getExpressCheckoutProfile` returns a promise that resolves with the server data.
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  * @example
  * var americanExpress = require('braintree-web/american-express');
  *
@@ -1068,46 +1092,37 @@ AmericanExpress.prototype.getRewardsBalance = function (options, callback) {
  *   });
  * });
  */
-AmericanExpress.prototype.getExpressCheckoutProfile = function (options, callback) {
-  throwIfNoCallback(callback, 'getExpressCheckoutProfile');
-
-  callback = deferred(callback);
-
+AmericanExpress.prototype.getExpressCheckoutProfile = function (options) {
   if (!options.nonce) {
-    callback(new BraintreeError({
+    return Promise.reject(new BraintreeError({
       type: errors.AMEX_NONCE_REQUIRED.type,
       code: errors.AMEX_NONCE_REQUIRED.code,
       message: 'getExpressCheckoutProfile must be called with a nonce.'
     }));
-    return;
   }
 
-  this._client.request({
+  return this._client.request({
     method: 'get',
     endpoint: 'payment_methods/amex_express_checkout_cards/' + options.nonce,
     data: {
       _meta: {source: 'american-express'},
       paymentMethodNonce: options.nonce
     }
-  }, function (err, response) {
-    if (err) {
-      callback(new BraintreeError({
-        type: errors.AMEX_NETWORK_ERROR.type,
-        code: errors.AMEX_NETWORK_ERROR.code,
-        message: 'A network error occurred when getting the American Express Checkout nonce profile.',
-        details: {
-          originalError: err
-        }
-      }));
-    } else {
-      callback(null, response);
-    }
+  }).catch(function (err) {
+    return Promise.reject(new BraintreeError({
+      type: errors.AMEX_NETWORK_ERROR.type,
+      code: errors.AMEX_NETWORK_ERROR.code,
+      message: 'A network error occurred when getting the American Express Checkout nonce profile.',
+      details: {
+        originalError: err
+      }
+    }));
   });
 };
 
-module.exports = AmericanExpress;
+module.exports = wrapPromise.wrapPrototype(AmericanExpress);
 
-},{"../lib/assign":52,"../lib/braintree-error":54,"../lib/deferred":64,"../lib/throw-if-no-callback":87,"./errors":19}],19:[function(_dereq_,module,exports){
+},{"../lib/assign":52,"../lib/braintree-error":54,"../lib/promise":85,"./errors":19,"wrap-promise":17}],19:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -1132,50 +1147,44 @@ module.exports = {
 
 var BraintreeError = _dereq_('../lib/braintree-error');
 var AmericanExpress = _dereq_('./american-express');
-var deferred = _dereq_('../lib/deferred');
 var sharedErrors = _dereq_('../lib/errors');
-var VERSION = "3.13.0";
-var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
+var VERSION = "3.14.0";
+var Promise = _dereq_('../lib/promise');
+var wrapPromise = _dereq_('wrap-promise');
 
 /**
  * @static
  * @function create
  * @param {object} options Creation options:
  * @param {Client} options.client A {@link Client} instance.
- * @param {callback} callback The second argument, `data`, is the {@link AmericanExpress} instance.
- * @returns {void}
+ * @param {callback} [callback] The second argument, `data`, is the {@link AmericanExpress} instance. If no callback is provided, `create` returns a promise that resolves with the {@link AmericanExpress} instance.
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  */
-function create(options, callback) {
+function create(options) {
   var clientVersion;
 
-  throwIfNoCallback(callback, 'create');
-
-  callback = deferred(callback);
-
   if (options.client == null) {
-    callback(new BraintreeError({
+    return Promise.reject(new BraintreeError({
       type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
       code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
       message: 'options.client is required when instantiating American Express.'
     }));
-    return;
   }
 
   clientVersion = options.client.getConfiguration().analyticsMetadata.sdkVersion;
   if (clientVersion !== VERSION) {
-    callback(new BraintreeError({
+    return Promise.reject(new BraintreeError({
       type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
       code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
       message: 'Client (version ' + clientVersion + ') and American Express (version ' + VERSION + ') components must be from the same SDK version.'
     }));
-    return;
   }
 
-  callback(null, new AmericanExpress(options));
+  return Promise.resolve(new AmericanExpress(options));
 }
 
 module.exports = {
-  create: create,
+  create: wrapPromise(create),
   /**
    * @description The current version of the SDK, i.e. `{@pkg version}`.
    * @type {string}
@@ -1183,15 +1192,15 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/braintree-error":54,"../lib/deferred":64,"../lib/errors":67,"../lib/throw-if-no-callback":87,"./american-express":18}],21:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":54,"../lib/errors":67,"../lib/promise":85,"./american-express":18,"wrap-promise":17}],21:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
-var deferred = _dereq_('../lib/deferred');
-var sharedErrors = _dereq_('../lib/errors');
 var errors = _dereq_('./errors');
+var Promise = _dereq_('../lib/promise');
+var wrapPromise = _dereq_('wrap-promise');
 
 /**
  * An Apple Pay Payment Authorization Event object.
@@ -1284,9 +1293,9 @@ ApplePay.prototype.createPaymentRequest = function (paymentRequest) {
  * @param {object} options Options
  * @param {string} options.validationURL The validationURL fram an `ApplePayValidateMerchantEvent`.
  * @param {string} options.displayName The canonical name for your store. Use a non-localized name. This parameter should be a UTF-8 string that is a maximum of 128 characters. The system may display this name to the user.
- * @param {callback} callback The second argument, <code>data</code>, is the Apple Pay merchant session object.
+ * @param {callback} [callback] The second argument, <code>data</code>, is the Apple Pay merchant session object. If no callback is provided, `performValidation` returns a promise.
  * Pass the merchant session to your Apple Pay session's `completeMerchantValidation` method.
- * @returns {void}
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  * @example
  * var applePay = require('braintree-web/apple-pay');
  *
@@ -1320,22 +1329,12 @@ ApplePay.prototype.createPaymentRequest = function (paymentRequest) {
  *   };
  * });
  */
-ApplePay.prototype.performValidation = function (options, callback) {
+ApplePay.prototype.performValidation = function (options) {
   var applePayWebSession;
-
-  if (typeof callback !== 'function') {
-    throw new BraintreeError({
-      type: sharedErrors.CALLBACK_REQUIRED.type,
-      code: sharedErrors.CALLBACK_REQUIRED.code,
-      message: 'performValidation requires a callback.'
-    });
-  }
-
-  callback = deferred(callback);
+  var self = this;
 
   if (!options || !options.validationURL) {
-    callback(new BraintreeError(errors.APPLE_PAY_VALIDATION_URL_REQUIRED));
-    return;
+    return Promise.reject(new BraintreeError(errors.APPLE_PAY_VALIDATION_URL_REQUIRED));
   }
 
   applePayWebSession = {
@@ -1348,40 +1347,39 @@ ApplePay.prototype.performValidation = function (options, callback) {
     applePayWebSession.displayName = options.displayName;
   }
 
-  this._client.request({
+  return this._client.request({
     method: 'post',
     endpoint: 'apple_pay_web/sessions',
     data: {
       _meta: {source: 'apple-pay'},
       applePayWebSession: applePayWebSession
     }
-  }, function (err, response) {
-    if (err) {
-      if (err.code === 'CLIENT_REQUEST_ERROR') {
-        callback(new BraintreeError({
-          type: errors.APPLE_PAY_MERCHANT_VALIDATION_FAILED.type,
-          code: errors.APPLE_PAY_MERCHANT_VALIDATION_FAILED.code,
-          message: errors.APPLE_PAY_MERCHANT_VALIDATION_FAILED.message,
-          details: {
-            originalError: err.details.originalError
-          }
-        }));
-      } else {
-        callback(new BraintreeError({
-          type: errors.APPLE_PAY_MERCHANT_VALIDATION_NETWORK.type,
-          code: errors.APPLE_PAY_MERCHANT_VALIDATION_NETWORK.code,
-          message: errors.APPLE_PAY_MERCHANT_VALIDATION_NETWORK.message,
-          details: {
-            originalError: err
-          }
-        }));
-      }
-      analytics.sendEvent(this._client, 'applepay.performValidation.failed');
-    } else {
-      callback(null, response);
-      analytics.sendEvent(this._client, 'applepay.performValidation.succeeded');
+  }).then(function (response) {
+    analytics.sendEvent(self._client, 'applepay.performValidation.succeeded');
+    return Promise.resolve(response);
+  }).catch(function (err) {
+    analytics.sendEvent(self._client, 'applepay.performValidation.failed');
+
+    if (err.code === 'CLIENT_REQUEST_ERROR') {
+      return Promise.reject(new BraintreeError({
+        type: errors.APPLE_PAY_MERCHANT_VALIDATION_FAILED.type,
+        code: errors.APPLE_PAY_MERCHANT_VALIDATION_FAILED.code,
+        message: errors.APPLE_PAY_MERCHANT_VALIDATION_FAILED.message,
+        details: {
+          originalError: err.details.originalError
+        }
+      }));
     }
-  }.bind(this));
+
+    return Promise.reject(new BraintreeError({
+      type: errors.APPLE_PAY_MERCHANT_VALIDATION_NETWORK.type,
+      code: errors.APPLE_PAY_MERCHANT_VALIDATION_NETWORK.code,
+      message: errors.APPLE_PAY_MERCHANT_VALIDATION_NETWORK.message,
+      details: {
+        originalError: err
+      }
+    }));
+  });
 };
 
 /**
@@ -1389,8 +1387,8 @@ ApplePay.prototype.performValidation = function (options, callback) {
  * @public
  * @param {object} options Options
  * @param {object} options.token The `payment.token` property of an {@link external:ApplePayPaymentAuthorizedEvent}.
- * @param {callback} callback The second argument, <code>data</code>, is the tokenized payload.
- * @returns {void}
+ * @param {callback} [callback] The second argument, <code>data</code>, is the tokenized payload. If no callback is provided, `tokenize` returns a promise that resolves with the tokenized payload.
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  * @example
  * var applePay = require('braintree-web/apple-pay');
  *
@@ -1425,23 +1423,14 @@ ApplePay.prototype.performValidation = function (options, callback) {
  *   // ...
  * });
  */
-ApplePay.prototype.tokenize = function (options, callback) {
-  if (typeof callback !== 'function') {
-    throw new BraintreeError({
-      type: sharedErrors.CALLBACK_REQUIRED.type,
-      code: sharedErrors.CALLBACK_REQUIRED.code,
-      message: 'tokenize requires a callback.'
-    });
-  }
-
-  callback = deferred(callback);
+ApplePay.prototype.tokenize = function (options) {
+  var self = this;
 
   if (!options.token) {
-    callback(new BraintreeError(errors.APPLE_PAY_PAYMENT_TOKEN_REQUIRED));
-    return;
+    return Promise.reject(new BraintreeError(errors.APPLE_PAY_PAYMENT_TOKEN_REQUIRED));
   }
 
-  this._client.request({
+  return this._client.request({
     method: 'post',
     endpoint: 'payment_methods/apple_payment_tokens',
     data: {
@@ -1453,28 +1442,27 @@ ApplePay.prototype.tokenize = function (options, callback) {
         paymentData: btoa(JSON.stringify(options.token.paymentData))
       })
     }
-  }, function (err, response) {
-    if (err) {
-      callback(new BraintreeError({
-        type: errors.APPLE_PAY_TOKENIZATION.type,
-        code: errors.APPLE_PAY_TOKENIZATION.code,
-        message: errors.APPLE_PAY_TOKENIZATION.message,
-        details: {
-          originalError: err
-        }
-      }));
-      analytics.sendEvent(this._client, 'applepay.tokenize.failed');
-    } else {
-      callback(null, response.applePayCards[0]);
-      analytics.sendEvent(this._client, 'applepay.tokenize.succeeded');
-    }
-  }.bind(this));
+  }).then(function (response) {
+    analytics.sendEvent(self._client, 'applepay.tokenize.succeeded');
+    return Promise.resolve(response.applePayCards[0]);
+  }).catch(function (err) {
+    analytics.sendEvent(self._client, 'applepay.tokenize.failed');
+
+    return Promise.reject(new BraintreeError({
+      type: errors.APPLE_PAY_TOKENIZATION.type,
+      code: errors.APPLE_PAY_TOKENIZATION.code,
+      message: errors.APPLE_PAY_TOKENIZATION.message,
+      details: {
+        originalError: err
+      }
+    }));
+  });
 };
 
-module.exports = ApplePay;
+module.exports = wrapPromise.wrapPrototype(ApplePay);
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../lib/analytics":51,"../lib/braintree-error":54,"../lib/deferred":64,"../lib/errors":67,"./errors":22}],22:[function(_dereq_,module,exports){
+},{"../lib/analytics":51,"../lib/braintree-error":54,"../lib/promise":85,"./errors":22,"wrap-promise":17}],22:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -1523,58 +1511,51 @@ module.exports = {
 var BraintreeError = _dereq_('../lib/braintree-error');
 var ApplePay = _dereq_('./apple-pay');
 var analytics = _dereq_('../lib/analytics');
-var deferred = _dereq_('../lib/deferred');
 var sharedErrors = _dereq_('../lib/errors');
-var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 var errors = _dereq_('./errors');
-var VERSION = "3.13.0";
+var VERSION = "3.14.0";
+var Promise = _dereq_('../lib/promise');
+var wrapPromise = _dereq_('wrap-promise');
 
 /**
  * @static
  * @function create
  * @param {object} options Creation options:
  * @param {Client} options.client A {@link Client} instance.
- * @param {callback} callback The second argument, `data`, is the {@link ApplePay} instance.
- * @returns {void}
+ * @param {callback} [callback] The second argument, `data`, is the {@link ApplePay} instance. If no callback is provided, `create` returns a promise that resolves with the {@link ApplePay} instance.
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  */
-function create(options, callback) {
+function create(options) {
   var clientVersion;
 
-  throwIfNoCallback(callback, 'create');
-
-  callback = deferred(callback);
-
   if (options.client == null) {
-    callback(new BraintreeError({
+    return Promise.reject(new BraintreeError({
       type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
       code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
       message: 'options.client is required when instantiating Apple Pay.'
     }));
-    return;
   }
 
   clientVersion = options.client.getConfiguration().analyticsMetadata.sdkVersion;
   if (clientVersion !== VERSION) {
-    callback(new BraintreeError({
+    return Promise.reject(new BraintreeError({
       type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
       code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
       message: 'Client (version ' + clientVersion + ') and Apple Pay (version ' + VERSION + ') components must be from the same SDK version.'
     }));
-    return;
   }
 
   if (!options.client.getConfiguration().gatewayConfiguration.applePayWeb) {
-    callback(new BraintreeError(errors.APPLE_PAY_NOT_ENABLED));
-    return;
+    return Promise.reject(new BraintreeError(errors.APPLE_PAY_NOT_ENABLED));
   }
 
   analytics.sendEvent(options.client, 'applepay.initialized');
 
-  callback(null, new ApplePay(options));
+  return Promise.resolve(new ApplePay(options));
 }
 
 module.exports = {
-  create: create,
+  create: wrapPromise(create),
   /**
    * @description The current version of the SDK, i.e. `{@pkg version}`.
    * @type {string}
@@ -1582,7 +1563,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/analytics":51,"../lib/braintree-error":54,"../lib/deferred":64,"../lib/errors":67,"../lib/throw-if-no-callback":87,"./apple-pay":21,"./errors":22}],24:[function(_dereq_,module,exports){
+},{"../lib/analytics":51,"../lib/braintree-error":54,"../lib/errors":67,"../lib/promise":85,"./apple-pay":21,"./errors":22,"wrap-promise":17}],24:[function(_dereq_,module,exports){
 'use strict';
 
 var request = _dereq_('./request');
@@ -1676,7 +1657,6 @@ function Client(configuration) {
 /**
  * Used by other modules to formulate all network requests to the Braintree gateway. It is also capable of being used directly from your own form to tokenize credit card information. However, be sure to satisfy PCI compliance if you use direct card tokenization.
  * @public
- * @function
  * @param {object} options Request options:
  * @param {string} options.method HTTP method, e.g. "get" or "post".
  * @param {string} options.endpoint Endpoint path, e.g. "payment_methods".
@@ -1719,7 +1699,7 @@ function Client(configuration) {
  *     console.log('Got nonce:', response.creditCards[0].nonce);
  *   });
  * });
- * @returns {Promise|void} Returns a promise that resolves with the request response if no callback is provided.
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  */
 Client.prototype.request = function (options, callback) {
   var self = this; // eslint-disable-line no-invalid-this
@@ -1986,13 +1966,13 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../lib/braintree-error":54,"../lib/constants":60,"../lib/create-authorization-data":63,"../lib/promise":85,"../lib/uuid":89,"./errors":26,"./request":31,"wrap-promise":17}],28:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":54,"../lib/constants":60,"../lib/create-authorization-data":63,"../lib/promise":85,"../lib/uuid":88,"./errors":26,"./request":31,"wrap-promise":17}],28:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Client = _dereq_('./client');
 var getConfiguration = _dereq_('./get-configuration').getConfiguration;
-var VERSION = "3.13.0";
+var VERSION = "3.14.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -2000,12 +1980,12 @@ var sharedErrors = _dereq_('../lib/errors');
 /** @module braintree-web/client */
 
 /**
- * @function
+ * @function create
  * @description This function is the entry point for the <code>braintree.client</code> module. It is used for creating {@link Client} instances that service communication to Braintree servers.
  * @param {object} options Object containing all {@link Client} options:
  * @param {string} options.authorization A tokenizationKey or clientToken.
  * @param {callback} [callback] The second argument, <code>data</code>, is the {@link Client} instance.
- * @returns {Promise|void} Returns a promise that resolves the client instance if no callback is provided.
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  * @example
  * var createClient = require('braintree-web/client').create;
  *
@@ -2290,7 +2270,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../lib/querystring":86,"../../lib/uuid":89}],34:[function(_dereq_,module,exports){
+},{"../../lib/querystring":86,"../../lib/uuid":88}],34:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (body) {
@@ -2450,7 +2430,7 @@ var fraudnet = _dereq_('./fraudnet');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var methods = _dereq_('../lib/methods');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
-var VERSION = "3.13.0";
+var VERSION = "3.14.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -2485,7 +2465,7 @@ var errors = _dereq_('./errors');
  * dataCollectorInstance.teardown(function () {
  *   // teardown is complete
  * });
- * @returns {Promise|void} If no callback is provided, returns a promise that resolves when the teardown is complete.
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  */
 
 /**
@@ -2800,7 +2780,7 @@ module.exports = function composeUrl(assetsUrl, componentId, isDebug) {
     componentId;
 };
 
-},{"../../lib/use-min":88,"../shared/constants":46}],43:[function(_dereq_,module,exports){
+},{"../../lib/use-min":87,"../shared/constants":46}],43:[function(_dereq_,module,exports){
 'use strict';
 
 var Destructor = _dereq_('../../lib/destructor');
@@ -2820,10 +2800,9 @@ var EventEmitter = _dereq_('../../lib/event-emitter');
 var injectFrame = _dereq_('./inject-frame');
 var analytics = _dereq_('../../lib/analytics');
 var whitelistedFields = constants.whitelistedFields;
-var VERSION = "3.13.0";
+var VERSION = "3.14.0";
 var methods = _dereq_('../../lib/methods');
 var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
-var deferred = _dereq_('../../lib/deferred');
 var sharedErrors = _dereq_('../../lib/errors');
 var getCardTypes = _dereq_('credit-card-type');
 var attributeValidationError = _dereq_('./attribute-validation-error');
@@ -3271,7 +3250,6 @@ HostedFields.prototype._setupLabelFocus = function (type, container) {
 /**
  * Cleanly remove anything set up by {@link module:braintree-web/hosted-fields.create|create}.
  * @public
- * @function
  * @param {callback} [callback] Called on completion, containing an error if one occurred. No data is returned if teardown completes successfully. If no callback is provided, `teardown` returns a promise.
  * @example
  * hostedFieldsInstance.teardown(function (teardownErr) {
@@ -3281,10 +3259,10 @@ HostedFields.prototype._setupLabelFocus = function (type, container) {
  *     console.info('Hosted Fields has been torn down!');
  *   }
  * });
- * @returns {Promise|void} If no callback is provided, returns a promise that resolves when the teardown is complete.
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  */
-HostedFields.prototype.teardown = wrapPromise(function () {
-  var self = this; // eslint-disable-line no-invalid-this
+HostedFields.prototype.teardown = function () {
+  var self = this;
 
   return new Promise(function (resolve, reject) {
     self._destructor.teardown(function (err) {
@@ -3297,12 +3275,11 @@ HostedFields.prototype.teardown = wrapPromise(function () {
       }
     });
   });
-});
+};
 
 /**
  * Tokenizes fields and returns a nonce payload.
  * @public
- * @function
  * @param {object} [options] All tokenization options for the Hosted Fields component.
  * @param {boolean} [options.vault=false] When true, will vault the tokenized card. Cards will only be vaulted when using a client created with a client token that includes a customer ID.
  * @param {string} [options.billingAddress.postalCode] When supplied, this postal code will be tokenized along with the contents of the fields. If a postal code is provided as part of the Hosted Fields configuration, the value of the field will be tokenized and this value will be ignored.
@@ -3365,10 +3342,10 @@ HostedFields.prototype.teardown = wrapPromise(function () {
  *     console.log('Got nonce:', payload.nonce);
  *   }
  * });
- * @returns {void}
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  */
-HostedFields.prototype.tokenize = wrapPromise(function (options) {
-  var self = this; // eslint-disable-line no-invalid-this
+HostedFields.prototype.tokenize = function (options) {
+  var self = this;
 
   if (!options) {
     options = {};
@@ -3386,7 +3363,7 @@ HostedFields.prototype.tokenize = wrapPromise(function (options) {
       }
     });
   });
-});
+};
 
 /**
  * Add a class to a {@link module:braintree-web/hosted-fields~field field}. Useful for updating field styles when events occur elsewhere in your checkout.
@@ -3401,9 +3378,9 @@ HostedFields.prototype.tokenize = wrapPromise(function (options) {
  *     console.error(addClassErr);
  *   }
  * });
- * @returns {void}
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  */
-HostedFields.prototype.addClass = function (field, classname, callback) {
+HostedFields.prototype.addClass = function (field, classname) {
   var err;
 
   if (!whitelistedFields.hasOwnProperty(field)) {
@@ -3422,10 +3399,11 @@ HostedFields.prototype.addClass = function (field, classname, callback) {
     this._bus.emit(events.ADD_CLASS, field, classname);
   }
 
-  if (typeof callback === 'function') {
-    callback = deferred(callback);
-    callback(err);
+  if (err) {
+    return Promise.reject(err);
   }
+
+  return Promise.resolve();
 };
 
 /**
@@ -3445,9 +3423,9 @@ HostedFields.prototype.addClass = function (field, classname, callback) {
  *   // some time later...
  *   hostedFieldsInstance.removeClass('number', 'custom-class');
  * });
- * @returns {void}
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  */
-HostedFields.prototype.removeClass = function (field, classname, callback) {
+HostedFields.prototype.removeClass = function (field, classname) {
   var err;
 
   if (!whitelistedFields.hasOwnProperty(field)) {
@@ -3466,10 +3444,11 @@ HostedFields.prototype.removeClass = function (field, classname, callback) {
     this._bus.emit(events.REMOVE_CLASS, field, classname);
   }
 
-  if (typeof callback === 'function') {
-    callback = deferred(callback);
-    callback(err);
+  if (err) {
+    return Promise.reject(err);
   }
+
+  return Promise.resolve();
 };
 
 /**
@@ -3505,9 +3484,9 @@ HostedFields.prototype.removeClass = function (field, classname, callback) {
  *   }
  * });
  *
- * @returns {void}
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  */
-HostedFields.prototype.setAttribute = function (options, callback) {
+HostedFields.prototype.setAttribute = function (options) {
   var attributeErr, err;
 
   if (!whitelistedFields.hasOwnProperty(options.field)) {
@@ -3532,10 +3511,11 @@ HostedFields.prototype.setAttribute = function (options, callback) {
     }
   }
 
-  if (typeof callback === 'function') {
-    callback = deferred(callback);
-    callback(err);
+  if (err) {
+    return Promise.reject(err);
   }
+
+  return Promise.resolve();
 };
 
 /**
@@ -3557,9 +3537,9 @@ HostedFields.prototype.setAttribute = function (options, callback) {
  *   }
  * });
  *
- * @returns {void}
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  */
-HostedFields.prototype.removeAttribute = function (options, callback) {
+HostedFields.prototype.removeAttribute = function (options) {
   var attributeErr, err;
 
   if (!whitelistedFields.hasOwnProperty(options.field)) {
@@ -3584,10 +3564,11 @@ HostedFields.prototype.removeAttribute = function (options, callback) {
     }
   }
 
-  if (typeof callback === 'function') {
-    callback = deferred(callback);
-    callback(err);
+  if (err) {
+    return Promise.reject(err);
   }
+
+  return Promise.resolve();
 };
 
 /**
@@ -3598,14 +3579,14 @@ HostedFields.prototype.removeAttribute = function (options, callback) {
  * @param {string} placeholder Will be used as the `placeholder` attribute of the input.
  * @param {callback} [callback] Callback executed on completion, containing an error if one occurred. No data is returned if the placeholder updated successfully.
  *
- * @returns {void}
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  */
-HostedFields.prototype.setPlaceholder = function (field, placeholder, callback) {
-  this.setAttribute({
+HostedFields.prototype.setPlaceholder = function (field, placeholder) {
+  return this.setAttribute({
     field: field,
     attribute: 'placeholder',
     value: placeholder
-  }, callback);
+  });
 };
 
 /**
@@ -3613,7 +3594,7 @@ HostedFields.prototype.setPlaceholder = function (field, placeholder, callback) 
  * @public
  * @param {string} field The field you wish to clear. Must be a valid {@link module:braintree-web/hosted-fields~fieldOptions fieldOption}.
  * @param {callback} [callback] Callback executed on completion, containing an error if one occurred. No data is returned if the field cleared successfully.
- * @returns {void}
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  * @example
  * hostedFieldsInstance.clear('number', function (clearErr) {
  *   if (clearErr) {
@@ -3626,7 +3607,7 @@ HostedFields.prototype.setPlaceholder = function (field, placeholder, callback) 
  * hostedFieldsInstance.clear('cvv');
  * hostedFieldsInstance.clear('expirationDate');
  */
-HostedFields.prototype.clear = function (field, callback) {
+HostedFields.prototype.clear = function (field) {
   var err;
 
   if (!whitelistedFields.hasOwnProperty(field)) {
@@ -3645,10 +3626,11 @@ HostedFields.prototype.clear = function (field, callback) {
     this._bus.emit(events.CLEAR_FIELD, field);
   }
 
-  if (typeof callback === 'function') {
-    callback = deferred(callback);
-    callback(err);
+  if (err) {
+    return Promise.reject(err);
   }
+
+  return Promise.resolve();
 };
 
 /**
@@ -3672,7 +3654,7 @@ HostedFields.prototype.clear = function (field, callback) {
  *   hostedFieldsInstance.focus('number');
  * });
  */
-HostedFields.prototype.focus = function (field, callback) {
+HostedFields.prototype.focus = function (field) {
   var err;
 
   if (!whitelistedFields.hasOwnProperty(field)) {
@@ -3688,13 +3670,14 @@ HostedFields.prototype.focus = function (field, callback) {
       message: 'Cannot focus "' + field + '" field because it is not part of the current Hosted Fields options.'
     });
   } else {
-    this._bus.emit(events.FOCUS_FIELD, field);
+    this._bus.emit(events.TRIGGER_INPUT_FOCUS, field);
   }
 
-  if (typeof callback === 'function') {
-    callback = deferred(callback);
-    callback(err);
+  if (err) {
+    return Promise.reject(err);
   }
+
+  return Promise.resolve();
 };
 
 /**
@@ -3712,9 +3695,9 @@ HostedFields.prototype.getState = function () {
   return this._state;
 };
 
-module.exports = HostedFields;
+module.exports = wrapPromise.wrapPrototype(HostedFields);
 
-},{"../../lib/analytics":51,"../../lib/braintree-error":54,"../../lib/bus":57,"../../lib/classlist":59,"../../lib/constants":60,"../../lib/convert-methods-to-error":61,"../../lib/deferred":64,"../../lib/destructor":65,"../../lib/errors":67,"../../lib/event-emitter":68,"../../lib/methods":82,"../../lib/promise":85,"../../lib/uuid":89,"../shared/constants":46,"../shared/errors":47,"../shared/find-parent-tags":48,"./attribute-validation-error":41,"./compose-url":42,"./inject-frame":44,"browser-detection/is-ios":5,"credit-card-type":7,"iframer":9,"wrap-promise":17}],44:[function(_dereq_,module,exports){
+},{"../../lib/analytics":51,"../../lib/braintree-error":54,"../../lib/bus":57,"../../lib/classlist":59,"../../lib/constants":60,"../../lib/convert-methods-to-error":61,"../../lib/destructor":65,"../../lib/errors":67,"../../lib/event-emitter":68,"../../lib/methods":82,"../../lib/promise":85,"../../lib/uuid":88,"../shared/constants":46,"../shared/errors":47,"../shared/find-parent-tags":48,"./attribute-validation-error":41,"./compose-url":42,"./inject-frame":44,"browser-detection/is-ios":5,"credit-card-type":7,"iframer":9,"wrap-promise":17}],44:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function injectFrame(frame, container) {
@@ -3738,7 +3721,7 @@ module.exports = function injectFrame(frame, container) {
 var HostedFields = _dereq_('./external/hosted-fields');
 var wrapPromise = _dereq_('wrap-promise');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.13.0";
+var VERSION = "3.14.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -3894,7 +3877,7 @@ module.exports = {
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.13.0";
+var VERSION = "3.14.0";
 
 var constants = {
   VERSION: VERSION,
@@ -4007,8 +3990,7 @@ constants.events = enumerate([
   'REMOVE_CLASS',
   'SET_ATTRIBUTE',
   'REMOVE_ATTRIBUTE',
-  'CLEAR_FIELD',
-  'FOCUS_FIELD'
+  'CLEAR_FIELD'
 ], 'hosted-fields:');
 
 module.exports = constants;
@@ -4157,7 +4139,7 @@ var threeDSecure = _dereq_('./three-d-secure');
 var usBankAccount = _dereq_('./us-bank-account');
 var visaCheckout = _dereq_('./visa-checkout');
 var masterpass = _dereq_('./masterpass');
-var VERSION = "3.13.0";
+var VERSION = "3.14.0";
 
 module.exports = {
   /** @type {module:braintree-web/client} */
@@ -4193,7 +4175,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"./american-express":20,"./apple-pay":23,"./client":28,"./data-collector":38,"./hosted-fields":45,"./masterpass":91,"./paypal":98,"./paypal-checkout":95,"./three-d-secure":102,"./unionpay":106,"./us-bank-account":112,"./vault-manager":114,"./visa-checkout":117}],50:[function(_dereq_,module,exports){
+},{"./american-express":20,"./apple-pay":23,"./client":28,"./data-collector":38,"./hosted-fields":45,"./masterpass":90,"./paypal":97,"./paypal-checkout":94,"./three-d-secure":101,"./unionpay":105,"./us-bank-account":111,"./vault-manager":113,"./visa-checkout":116}],50:[function(_dereq_,module,exports){
 'use strict';
 
 var createAuthorizationData = _dereq_('./create-authorization-data');
@@ -4649,7 +4631,7 @@ module.exports = {
 },{}],60:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.13.0";
+var VERSION = "3.14.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -5099,7 +5081,7 @@ FrameService.prototype._getFrameForEnvironment = function () {
 module.exports = FrameService;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../braintree-error":54,"../../bus":57,"../../uuid":89,"../shared/constants":76,"../shared/errors":77,"../shared/events":78,"./strategies/modal":71,"./strategies/popup":74,"./strategies/popup-bridge":72,"browser-detection":1,"iframer":9}],70:[function(_dereq_,module,exports){
+},{"../../braintree-error":54,"../../bus":57,"../../uuid":88,"../shared/constants":76,"../shared/errors":77,"../shared/events":78,"./strategies/modal":71,"./strategies/popup":74,"./strategies/popup-bridge":72,"browser-detection":1,"iframer":9}],70:[function(_dereq_,module,exports){
 'use strict';
 
 var FrameService = _dereq_('./frame-service');
@@ -5588,29 +5570,13 @@ module.exports = {
 },{}],87:[function(_dereq_,module,exports){
 'use strict';
 
-var BraintreeError = _dereq_('./braintree-error');
-var sharedErrors = _dereq_('./errors');
-
-module.exports = function (callback, functionName) {
-  if (typeof callback !== 'function') {
-    throw new BraintreeError({
-      type: sharedErrors.CALLBACK_REQUIRED.type,
-      code: sharedErrors.CALLBACK_REQUIRED.code,
-      message: functionName + ' must include a callback function.'
-    });
-  }
-};
-
-},{"./braintree-error":54,"./errors":67}],88:[function(_dereq_,module,exports){
-'use strict';
-
 function useMin(isDebug) {
   return isDebug ? '' : '.min';
 }
 
 module.exports = useMin;
 
-},{}],89:[function(_dereq_,module,exports){
+},{}],88:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {
@@ -5624,7 +5590,7 @@ function uuid() {
 
 module.exports = uuid;
 
-},{}],90:[function(_dereq_,module,exports){
+},{}],89:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -5632,7 +5598,7 @@ var Promise = _dereq_('../../lib/promise');
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var errors = _dereq_('../shared/errors');
-var VERSION = "3.13.0";
+var VERSION = "3.14.0";
 var methods = _dereq_('../../lib/methods');
 var wrapPromise = _dereq_('wrap-promise');
 var analytics = _dereq_('../../lib/analytics');
@@ -5711,13 +5677,12 @@ Masterpass.prototype._initialize = function () {
 /**
  * Launches the Masterpass flow and returns a nonce payload. Only one Masterpass flow should be active at a time. One way to achieve this is to disable your Masterpass button while the flow is open.
  * @public
- * @function
  * @param {object} options All options for initiating the Masterpass payment flow.
  * @param {string} options.currencyCode The currency code to process the payment.
  * @param {string} options.subtotal The amount to authorize for the transaction.
  * @param {object} options.config All configuration parameters accepted by Masterpass lightbox, except `function` data type. These options will override the values set by Braintree server. Please see {@link Masterpass Lightbox Parameters|https://developer.mastercard.com/page/masterpass-lightbox-parameters} for more information.
  * @param {callback} [callback] The second argument, <code>data</code>, is a {@link Masterpass~tokenizePayload|tokenizePayload}. If no callback is provided, the method will return a Promise that resolves with a {@link Masterpass~tokenizePayload|tokenizePayload}.
- * @returns {Promise|void}
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  * @example
  * button.addEventListener('click', function () {
  *   // Disable the button so that we don't attempt to open multiple popups.
@@ -5751,8 +5716,8 @@ Masterpass.prototype._initialize = function () {
  *   });
  * });
  */
-Masterpass.prototype.tokenize = wrapPromise(function (options) {
-  var self = this; // eslint-disable-line no-invalid-this
+Masterpass.prototype.tokenize = function (options) {
+  var self = this;
 
   if (!options || hasMissingOption(options)) {
     return Promise.reject(new BraintreeError(errors.MASTERPASS_TOKENIZE_MISSING_REQUIRED_OPTION));
@@ -5763,16 +5728,18 @@ Masterpass.prototype.tokenize = wrapPromise(function (options) {
   }
 
   return new Promise(function (resolve, reject) {
-    self._navigateFrameToLoadingPage(options, reject);
+    self._navigateFrameToLoadingPage(options).catch(reject);
     // This MUST happen after _navigateFrameToLoadingPage for Metro browsers to work.
     self._frameService.open(self._createFrameOpenHandler(resolve, reject));
   });
-});
+};
 
-Masterpass.prototype._navigateFrameToLoadingPage = function (options, reject) {
+Masterpass.prototype._navigateFrameToLoadingPage = function (options) {
+  var self = this;
+
   this._authInProgress = true;
 
-  this._client.request({
+  return this._client.request({
     method: 'post',
     endpoint: 'masterpass/request_token',
     data: {
@@ -5784,15 +5751,15 @@ Masterpass.prototype._navigateFrameToLoadingPage = function (options, reject) {
       }
     }
   }).then(function (response) {
-    var redirectUrl = this._assetsUrl + '/html/masterpass-loading-frame' + (this._isDebug ? '' : '.min') + '.html?';
-    var gatewayConfiguration = this._client.getConfiguration().gatewayConfiguration;
+    var redirectUrl = self._assetsUrl + '/html/masterpass-loading-frame' + (self._isDebug ? '' : '.min') + '.html?';
+    var gatewayConfiguration = self._client.getConfiguration().gatewayConfiguration;
     var config = options.config || {};
     var queryParams;
 
     queryParams = {
       environment: gatewayConfiguration.environment,
       requestToken: response.requestToken,
-      callbackUrl: this._callbackUrl,
+      callbackUrl: self._callbackUrl,
       merchantCheckoutId: gatewayConfiguration.masterpass.merchantCheckoutId,
       allowedCardTypes: gatewayConfiguration.masterpass.supportedNetworks
     };
@@ -5807,18 +5774,18 @@ Masterpass.prototype._navigateFrameToLoadingPage = function (options, reject) {
       return key + '=' + queryParams[key];
     }).join('&');
 
-    this._frameService.redirect(redirectUrl);
-  }.bind(this)).catch(function (err) {
+    self._frameService.redirect(redirectUrl);
+  }).catch(function (err) {
     var status = err.details && err.details.httpStatus;
 
-    this._closeWindow();
+    self._closeWindow();
 
     if (status === 422) {
-      reject(convertToBraintreeError(err, errors.MASTERPASS_INVALID_PAYMENT_OPTION));
-    } else {
-      reject(convertToBraintreeError(err, errors.MASTERPASS_FLOW_FAILED));
+      return Promise.reject(convertToBraintreeError(err, errors.MASTERPASS_INVALID_PAYMENT_OPTION));
     }
-  }.bind(this));
+
+    return Promise.reject(convertToBraintreeError(err, errors.MASTERPASS_FLOW_FAILED));
+  });
 };
 
 Masterpass.prototype._createFrameOpenHandler = function (resolve, reject) {
@@ -5915,7 +5882,6 @@ Masterpass.prototype._closeWindow = function () {
 /**
  * Cleanly tear down anything set up by {@link module:braintree-web/masterpass.create|create}.
  * @public
- * @function
  * @param {callback} [callback] Called on completion. If no callback is provided, `teardown` returns a promise.
  * @example
  * masterpassInstance.teardown();
@@ -5923,10 +5889,10 @@ Masterpass.prototype._closeWindow = function () {
  * masterpassInstance.teardown(function () {
  *   // teardown is complete
  * });
- * @returns {Promise|void}
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  */
-Masterpass.prototype.teardown = wrapPromise(function () {
-  var self = this; // eslint-disable-line no-invalid-this
+Masterpass.prototype.teardown = function () {
+  var self = this;
 
   return new Promise(function (resolve) {
     self._frameService.teardown();
@@ -5937,7 +5903,7 @@ Masterpass.prototype.teardown = wrapPromise(function () {
 
     resolve();
   });
-});
+};
 
 function hasMissingOption(options) {
   var i, option;
@@ -5953,10 +5919,10 @@ function hasMissingOption(options) {
   return false;
 }
 
-module.exports = Masterpass;
+module.exports = wrapPromise.wrapPrototype(Masterpass);
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../lib/analytics":51,"../../lib/braintree-error":54,"../../lib/constants":60,"../../lib/convert-methods-to-error":61,"../../lib/convert-to-braintree-error":62,"../../lib/frame-service/external":70,"../../lib/methods":82,"../../lib/promise":85,"../shared/constants":92,"../shared/errors":93,"wrap-promise":17}],91:[function(_dereq_,module,exports){
+},{"../../lib/analytics":51,"../../lib/braintree-error":54,"../../lib/constants":60,"../../lib/convert-methods-to-error":61,"../../lib/convert-to-braintree-error":62,"../../lib/frame-service/external":70,"../../lib/methods":82,"../../lib/promise":85,"../shared/constants":91,"../shared/errors":92,"wrap-promise":17}],90:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 /** @module braintree-web/masterpass
@@ -5966,7 +5932,7 @@ module.exports = Masterpass;
 var BraintreeError = _dereq_('../lib/braintree-error');
 var browserDetection = _dereq_('browser-detection');
 var Masterpass = _dereq_('./external/masterpass');
-var VERSION = "3.13.0";
+var VERSION = "3.14.0";
 var errors = _dereq_('./shared/errors');
 var sharedErrors = _dereq_('../lib/errors');
 var Promise = _dereq_('../lib/promise');
@@ -5991,7 +5957,7 @@ var wrapPromise = _dereq_('wrap-promise');
  *     return;
  *   }
  * });
- * @returns {Promise|void} Resolves with the Masterpass instance.
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  */
 function create(options) {
   var masterpassInstance, clientVersion, configuration;
@@ -6054,7 +6020,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../lib/braintree-error":54,"../lib/errors":67,"../lib/promise":85,"./external/masterpass":90,"./shared/errors":93,"browser-detection":1,"wrap-promise":17}],92:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":54,"../lib/errors":67,"../lib/promise":85,"./external/masterpass":89,"./shared/errors":92,"browser-detection":1,"wrap-promise":17}],91:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -6067,7 +6033,7 @@ module.exports = {
   ]
 };
 
-},{}],93:[function(_dereq_,module,exports){
+},{}],92:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../lib/braintree-error');
@@ -6121,7 +6087,7 @@ module.exports = {
 };
 
 
-},{"../../lib/braintree-error":54}],94:[function(_dereq_,module,exports){
+},{"../../lib/braintree-error":54}],93:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -6174,7 +6140,7 @@ module.exports = {
   }
 };
 
-},{"../lib/braintree-error":54}],95:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":54}],94:[function(_dereq_,module,exports){
 'use strict';
 /**
  * @module braintree-web/paypal-checkout
@@ -6188,7 +6154,7 @@ var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('wrap-promise');
 var PayPalCheckout = _dereq_('./paypal-checkout');
 var sharedErrors = _dereq_('../lib/errors');
-var VERSION = "3.13.0";
+var VERSION = "3.14.0";
 
 /**
  * @static
@@ -6236,7 +6202,7 @@ var VERSION = "3.13.0";
  *     }
  *   }, '#paypal-button'); // the PayPal button will be rendered in an html element with the id `paypal-button`
  * });
- * @returns {Promise|void} Returns the PayPalCheckout instance.
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  */
 function create(options) {
   var config, clientVersion;
@@ -6300,7 +6266,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/analytics":51,"../lib/braintree-error":54,"../lib/errors":67,"../lib/promise":85,"./errors":94,"./paypal-checkout":96,"wrap-promise":17}],96:[function(_dereq_,module,exports){
+},{"../lib/analytics":51,"../lib/braintree-error":54,"../lib/errors":67,"../lib/promise":85,"./errors":93,"./paypal-checkout":95,"wrap-promise":17}],95:[function(_dereq_,module,exports){
 'use strict';
 
 var analytics = _dereq_('../lib/analytics');
@@ -6369,14 +6335,13 @@ function PayPalCheckout(options) {
  * Creates a PayPal payment ID or billing token using the given options. This is meant to be passed to PayPal's checkout.js library.
  * When a {@link callback} is defined, the function returns undefined and invokes the callback with the id to be used with the checkout.js library. Otherwise, it returns a Promise that resolves with the id.
  * @public
- * @function
  * @param {object} options All options for the PayPalCheckout component.
  * @param {string} options.flow Set to 'checkout' for one-time payment flow, or 'vault' for Vault flow. If 'vault' is used with a client token generated with a customer ID, the PayPal account will be added to that customer as a saved payment method.
  * @param {string} [options.intent=authorize]
  * Checkout flows only.
  * * `authorize` - Submits the transaction for authorization but not settlement.
  * * `sale` - Payment will be immediately submitted for settlement upon creating a transaction.
- * @param {boolean} [options.offerCredit=false] Offers the customer PayPal Credit if they qualify. Checkout flows only.
+ * @param {boolean} [options.offerCredit=false] Offers the customer PayPal Credit if they qualify.
  * @param {string|number} [options.amount] The amount of the transaction. Required when using the Checkout flow.
  * @param {string} [options.currency] The currency code of the amount, such as 'USD'. Required when using the Checkout flow.
  * @param {string} [options.displayName] The merchant name displayed inside of the PayPal lightbox; defaults to the company name on your Braintree account
@@ -6439,68 +6404,62 @@ function PayPalCheckout(options) {
  *   // Add other options, e.g. onAuthorize, env, locale
  * }, '#paypal-button');
  *
- * @returns {Promise|void}
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  */
-PayPalCheckout.prototype.createPayment = wrapPromise(function (options) {
-  var self = this; // eslint-disable-line no-invalid-this
+PayPalCheckout.prototype.createPayment = function (options) {
+  var endpoint;
 
-  return new Promise(function (resolve, reject) {
-    var endpoint;
-    var client = self._client;
+  if (!options || !constants.FLOW_ENDPOINTS.hasOwnProperty(options.flow)) {
+    return Promise.reject(new BraintreeError(errors.PAYPAL_FLOW_OPTION_REQUIRED));
+  }
 
-    if (!options || !constants.FLOW_ENDPOINTS.hasOwnProperty(options.flow)) {
-      throw new BraintreeError(errors.PAYPAL_FLOW_OPTION_REQUIRED);
+  endpoint = 'paypal_hermes/' + constants.FLOW_ENDPOINTS[options.flow];
+
+  analytics.sendEvent(this._client, 'paypal-checkout.createPayment');
+  if (options.offerCredit === true) {
+    analytics.sendEvent(this._client, 'paypal-checkout.credit.offered');
+  }
+
+  return this._client.request({
+    endpoint: endpoint,
+    method: 'post',
+    data: this._formatPaymentResourceData(options)
+  }).then(function (response) {
+    var flowToken;
+
+    if (options.flow === 'checkout') {
+      flowToken = response.paymentResource.paymentToken;
+    } else {
+      flowToken = response.agreementSetup.tokenId;
     }
 
-    endpoint = 'paypal_hermes/' + constants.FLOW_ENDPOINTS[options.flow];
+    return flowToken;
+  }).catch(function (err) {
+    var status = err.details && err.details.httpStatus;
 
-    analytics.sendEvent(client, 'paypal-checkout.createPayment');
-    if (options.offerCredit === true && options.flow === 'checkout') {
-      analytics.sendEvent(client, 'paypal-checkout.credit.offered');
+    if (status === 422) {
+      return Promise.reject(new BraintreeError({
+        type: errors.PAYPAL_INVALID_PAYMENT_OPTION.type,
+        code: errors.PAYPAL_INVALID_PAYMENT_OPTION.code,
+        message: errors.PAYPAL_INVALID_PAYMENT_OPTION.message,
+        details: {
+          originalError: err
+        }
+      }));
     }
 
-    client.request({
-      endpoint: endpoint,
-      method: 'post',
-      data: self._formatPaymentResourceData(options)
-    }, function (err, response, status) {
-      var flowToken;
-
-      if (err) {
-        if (status === 422) {
-          reject(new BraintreeError({
-            type: errors.PAYPAL_INVALID_PAYMENT_OPTION.type,
-            code: errors.PAYPAL_INVALID_PAYMENT_OPTION.code,
-            message: errors.PAYPAL_INVALID_PAYMENT_OPTION.message,
-            details: {
-              originalError: err
-            }
-          }));
-        } else {
-          reject(convertToBraintreeError(err, {
-            type: errors.PAYPAL_FLOW_FAILED.type,
-            code: errors.PAYPAL_FLOW_FAILED.code,
-            message: errors.PAYPAL_FLOW_FAILED.message
-          }));
-        }
-      } else {
-        if (options.flow === 'checkout') {
-          flowToken = response.paymentResource.paymentToken;
-        } else {
-          flowToken = response.agreementSetup.tokenId;
-        }
-
-        resolve(flowToken);
-      }
-    });
+    return Promise.reject(convertToBraintreeError(err, {
+      type: errors.PAYPAL_FLOW_FAILED.type,
+      code: errors.PAYPAL_FLOW_FAILED.code,
+      message: errors.PAYPAL_FLOW_FAILED.message
+    }));
   });
-});
+};
 
 /**
  * Tokenizes the authorize data from PayPal's checkout.js library when completing a buyer approval flow.
  * When a {@link callback} is defined, invokes the callback with {@link PayPalCheckout~tokenizePayload|tokenizePayload} and returns undefined. Otherwise, returns a Promise that resolves with a {@link PayPalCheckout~tokenizePayload|tokenizePayload}.
  * @public
- * @function
  * @param {object} tokenizeOptions Tokens and IDs required to tokenize the payment.
  * @param {string} tokenizeOptions.payerId Payer ID returned by PayPal `onAuthorize` callback.
  * @param {string} [tokenizeOptions.paymentId] Payment ID returned by PayPal `onAuthorize` callback.
@@ -6519,54 +6478,49 @@ PayPalCheckout.prototype.createPayment = wrapPromise(function (options) {
  *   },
  *   // Add other options, e.g. payment, env, locale
  * }, '#paypal-button');
- * @returns {Promise|void}
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  */
-PayPalCheckout.prototype.tokenizePayment = wrapPromise(function (tokenizeOptions) {
-  var self = this; // eslint-disable-line no-invalid-this
+PayPalCheckout.prototype.tokenizePayment = function (tokenizeOptions) {
+  var self = this;
+  var payload;
+  var client = this._client;
+  var options = {
+    flow: tokenizeOptions.billingToken ? 'vault' : 'checkout',
+    intent: tokenizeOptions.intent
+  };
+  var params = {
+    // The paymentToken provided by Checkout.js v4 is the ECToken
+    ecToken: tokenizeOptions.paymentToken,
+    billingToken: tokenizeOptions.billingToken,
+    payerId: tokenizeOptions.payerID,
+    paymentId: tokenizeOptions.paymentID
+  };
 
-  return new Promise(function (resolve, reject) {
-    var payload;
-    var client = self._client;
-    var options = {
-      flow: tokenizeOptions.billingToken ? 'vault' : 'checkout',
-      intent: tokenizeOptions.intent
-    };
-    var params = {
-      // The paymentToken provided by Checkout.js v4 is the ECToken
-      ecToken: tokenizeOptions.paymentToken,
-      billingToken: tokenizeOptions.billingToken,
-      payerId: tokenizeOptions.payerID,
-      paymentId: tokenizeOptions.paymentID
-    };
+  analytics.sendEvent(client, 'paypal-checkout.tokenization.started');
 
-    analytics.sendEvent(client, 'paypal-checkout.tokenization.started');
+  return client.request({
+    endpoint: 'payment_methods/paypal_accounts',
+    method: 'post',
+    data: self._formatTokenizeData(options, params)
+  }).then(function (response) {
+    payload = self._formatTokenizePayload(response);
 
-    client.request({
-      endpoint: 'payment_methods/paypal_accounts',
-      method: 'post',
-      data: self._formatTokenizeData(options, params)
-    }, function (err, response) {
-      if (err) {
-        analytics.sendEvent(client, 'paypal-checkout.tokenization.failed');
+    analytics.sendEvent(client, 'paypal-checkout.tokenization.success');
+    if (payload.creditFinancingOffered) {
+      analytics.sendEvent(client, 'paypal-checkout.credit.accepted');
+    }
 
-        reject(convertToBraintreeError(err, {
-          type: errors.PAYPAL_ACCOUNT_TOKENIZATION_FAILED.type,
-          code: errors.PAYPAL_ACCOUNT_TOKENIZATION_FAILED.code,
-          message: errors.PAYPAL_ACCOUNT_TOKENIZATION_FAILED.message
-        }));
-      } else {
-        payload = self._formatTokenizePayload(response);
+    return payload;
+  }).catch(function (err) {
+    analytics.sendEvent(client, 'paypal-checkout.tokenization.failed');
 
-        analytics.sendEvent(client, 'paypal-checkout.tokenization.success');
-        if (payload.creditFinancingOffered) {
-          analytics.sendEvent(client, 'paypal-checkout.credit.accepted');
-        }
-
-        resolve(payload);
-      }
-    });
+    return Promise.reject(convertToBraintreeError(err, {
+      type: errors.PAYPAL_ACCOUNT_TOKENIZATION_FAILED.type,
+      code: errors.PAYPAL_ACCOUNT_TOKENIZATION_FAILED.code,
+      message: errors.PAYPAL_ACCOUNT_TOKENIZATION_FAILED.message
+    }));
   });
-});
+};
 
 PayPalCheckout.prototype._formatPaymentResourceData = function (options) {
   var key;
@@ -6576,6 +6530,7 @@ PayPalCheckout.prototype._formatPaymentResourceData = function (options) {
     // but are not validated and are not actually used with checkout.js
     returnUrl: 'x',
     cancelUrl: 'x',
+    offerPaypalCredit: options.offerCredit === true,
     experienceProfile: {
       brandName: options.displayName || gatewayConfiguration.paypal.displayName,
       localeCode: options.locale,
@@ -6588,7 +6543,6 @@ PayPalCheckout.prototype._formatPaymentResourceData = function (options) {
   if (options.flow === 'checkout') {
     paymentResource.amount = options.amount;
     paymentResource.currencyIsoCode = options.currency;
-    paymentResource.offerPaypalCredit = options.offerCredit === true;
 
     if (options.hasOwnProperty('intent')) {
       paymentResource.intent = options.intent;
@@ -6663,9 +6617,9 @@ PayPalCheckout.prototype._formatTokenizePayload = function (response) {
   return payload;
 };
 
-module.exports = PayPalCheckout;
+module.exports = wrapPromise.wrapPrototype(PayPalCheckout);
 
-},{"../lib/analytics":51,"../lib/braintree-error":54,"../lib/convert-to-braintree-error":62,"../lib/promise":85,"../paypal/shared/constants":99,"./errors":94,"wrap-promise":17}],97:[function(_dereq_,module,exports){
+},{"../lib/analytics":51,"../lib/braintree-error":54,"../lib/convert-to-braintree-error":62,"../lib/promise":85,"../paypal/shared/constants":98,"./errors":93,"wrap-promise":17}],96:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -6674,16 +6628,17 @@ var BraintreeError = _dereq_('../../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../../lib/convert-to-braintree-error');
 var useMin = _dereq_('../../lib/use-min');
 var once = _dereq_('../../lib/once');
-var VERSION = "3.13.0";
+var VERSION = "3.14.0";
 var constants = _dereq_('../shared/constants');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
-var throwIfNoCallback = _dereq_('../../lib/throw-if-no-callback');
 var methods = _dereq_('../../lib/methods');
 var deferred = _dereq_('../../lib/deferred');
 var errors = _dereq_('../shared/errors');
 var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
 var querystring = _dereq_('../../lib/querystring');
+var Promise = _dereq_('../../lib/promise');
+var wrapPromise = _dereq_('wrap-promise');
 
 /**
  * @typedef {object} PayPal~tokenizePayload
@@ -6749,22 +6704,25 @@ function PayPal(options) {
   this._authorizationInProgress = false;
 }
 
-PayPal.prototype._initialize = function (callback) {
+PayPal.prototype._initialize = function () {
+  var self = this;
   var client = this._client;
   var failureTimeout = setTimeout(function () {
     analytics.sendEvent(client, 'paypal.load.timed-out');
   }, INTEGRATION_TIMEOUT_MS);
 
-  frameService.create({
-    name: constants.LANDING_FRAME_NAME,
-    dispatchFrameUrl: this._assetsUrl + '/html/dispatch-frame' + useMin(this._isDebug) + '.html',
-    openFrameUrl: this._loadingFrameUrl
-  }, function (service) {
-    this._frameService = service;
-    clearTimeout(failureTimeout);
-    analytics.sendEvent(client, 'paypal.load.succeeded');
-    callback();
-  }.bind(this));
+  return new Promise(function (resolve) {
+    frameService.create({
+      name: constants.LANDING_FRAME_NAME,
+      dispatchFrameUrl: self._assetsUrl + '/html/dispatch-frame' + useMin(self._isDebug) + '.html',
+      openFrameUrl: self._loadingFrameUrl
+    }, function (service) {
+      self._frameService = service;
+      clearTimeout(failureTimeout);
+      analytics.sendEvent(client, 'paypal.load.succeeded');
+      resolve(self);
+    });
+  });
 };
 
 /**
@@ -6776,7 +6734,7 @@ PayPal.prototype._initialize = function (callback) {
  * Checkout flows only.
  * * `authorize` - Submits the transaction for authorization but not settlement.
  * * `sale` - Payment will be immediately submitted for settlement upon creating a transaction.
- * @param {boolean} [options.offerCredit=false] Offers the customer PayPal Credit if they qualify. Checkout flows only.
+ * @param {boolean} [options.offerCredit=false] Offers the customer PayPal Credit if they qualify.
  * @param {string} [options.useraction]
  * Changes the call-to-action in the PayPal flow. By default the final button will show the localized
  * word for "Continue" and implies that the final amount billed is not yet known.
@@ -6900,124 +6858,145 @@ PayPal.prototype._initialize = function (callback) {
  *     }
  *   });
  * });
- * @returns {PayPal~tokenizeReturn} A handle to manage the PayPal checkout frame.
+ * @returns {Promise|PayPal~tokenizeReturn} A handle to manage the PayPal checkout frame. If no callback is provided, returns a promise.
  */
 PayPal.prototype.tokenize = function (options, callback) {
+  var self = this;
   var client = this._client;
+  var tokenizePromise, optionError;
 
-  throwIfNoCallback(callback, 'tokenize');
-
-  callback = once(deferred(callback));
+  if (callback) {
+    callback = once(deferred(callback));
+  }
 
   if (!options || !constants.FLOW_ENDPOINTS.hasOwnProperty(options.flow)) {
-    callback(new BraintreeError(errors.PAYPAL_FLOW_OPTION_REQUIRED));
-    return this._frameService.createNoopHandler();
-  }
+    optionError = new BraintreeError(errors.PAYPAL_FLOW_OPTION_REQUIRED);
 
-  if (this._authorizationInProgress) {
-    analytics.sendEvent(client, 'paypal.tokenization.error.already-opened');
-
-    callback(new BraintreeError(errors.PAYPAL_TOKENIZATION_REQUEST_ACTIVE));
-  } else {
-    this._authorizationInProgress = true;
-
-    if (!global.popupBridge) {
-      analytics.sendEvent(client, 'paypal.tokenization.opened');
+    if (callback) {
+      callback(optionError);
+      return this._frameService.createNoopHandler();
     }
 
-    if (options.offerCredit === true && options.flow === 'checkout') {
-      analytics.sendEvent(client, 'paypal.credit.offered');
-    }
-
-    this._navigateFrameToAuth(options, callback);
-    // This MUST happen after _navigateFrameToAuth for Metro browsers to work.
-    this._frameService.open(this._createFrameServiceCallback(options, callback));
+    return Promise.reject(optionError);
   }
 
-  return this._frameService.createHandler({
-    beforeClose: function () {
-      analytics.sendEvent(client, 'paypal.tokenization.closed.by-merchant');
+  tokenizePromise = new Promise(function (resolve, reject) {
+    if (self._authorizationInProgress) {
+      analytics.sendEvent(client, 'paypal.tokenization.error.already-opened');
+
+      reject(new BraintreeError(errors.PAYPAL_TOKENIZATION_REQUEST_ACTIVE));
+    } else {
+      self._authorizationInProgress = true;
+
+      if (!global.popupBridge) {
+        analytics.sendEvent(client, 'paypal.tokenization.opened');
+      }
+
+      if (options.offerCredit === true) {
+        analytics.sendEvent(client, 'paypal.credit.offered');
+      }
+
+      self._navigateFrameToAuth(options).catch(reject);
+      // self MUST happen after _navigateFrameToAuth for Metro browsers to work.
+      self._frameService.open(self._createFrameServiceCallback(options, resolve, reject));
     }
   });
+
+  if (callback) {
+    tokenizePromise.then(function (res) {
+      callback(null, res);
+    }).catch(callback);
+
+    return this._frameService.createHandler({
+      beforeClose: function () {
+        analytics.sendEvent(client, 'paypal.tokenization.closed.by-merchant');
+      }
+    });
+  }
+
+  return tokenizePromise;
 };
 
-PayPal.prototype._createFrameServiceCallback = function (options, callback) {
+PayPal.prototype._createFrameServiceCallback = function (options, resolve, reject) {
+  var self = this;
   var client = this._client;
 
   if (global.popupBridge) {
     return function (err, payload) {
       var cancelled = payload && payload.path && payload.path.substring(0, 7) === '/cancel';
 
-      this._authorizationInProgress = false;
+      self._authorizationInProgress = false;
 
       // `err` exists when the user clicks "Done" button of browser view
       if (err || cancelled) {
         analytics.sendEvent(client, 'paypal.tokenization.closed-popupbridge.by-user');
         // Call merchant's tokenize callback with an error
-        callback(new BraintreeError(errors.PAYPAL_POPUP_CLOSED));
+        reject(new BraintreeError(errors.PAYPAL_POPUP_CLOSED));
       } else if (payload) {
-        this._tokenizePayPal(options, payload.queryItems, callback);
+        self._tokenizePayPal(options, payload.queryItems).then(resolve).catch(reject);
       }
-    }.bind(this);
+    };
   }
 
   return function (err, params) {
-    this._authorizationInProgress = false;
+    self._authorizationInProgress = false;
 
     if (err) {
       if (err.code === 'FRAME_SERVICE_FRAME_CLOSED') {
         analytics.sendEvent(client, 'paypal.tokenization.closed.by-user');
-        callback(new BraintreeError(errors.PAYPAL_POPUP_CLOSED));
+        reject(new BraintreeError(errors.PAYPAL_POPUP_CLOSED));
       } else if (err.code === 'FRAME_SERVICE_FRAME_OPEN_FAILED') {
-        callback(new BraintreeError(errors.PAYPAL_POPUP_OPEN_FAILED));
+        reject(new BraintreeError(errors.PAYPAL_POPUP_OPEN_FAILED));
       }
     } else if (params) {
-      this._tokenizePayPal(options, params, callback);
+      self._tokenizePayPal(options, params).then(resolve).catch(reject);
     }
-  }.bind(this);
+  };
 };
 
-PayPal.prototype._tokenizePayPal = function (options, params, callback) {
-  var payload;
+PayPal.prototype._tokenizePayPal = function (options, params) {
+  var self = this;
   var client = this._client;
 
   if (!global.popupBridge) {
     this._frameService.redirect(this._loadingFrameUrl);
   }
 
-  client.request({
+  return client.request({
     endpoint: 'payment_methods/paypal_accounts',
     method: 'post',
     data: this._formatTokenizeData(options, params)
-  }, function (err, response) {
-    if (err) {
-      if (global.popupBridge) {
-        analytics.sendEvent(client, 'paypal.tokenization.failed-popupbridge');
-      } else {
-        analytics.sendEvent(client, 'paypal.tokenization.failed');
-      }
-      callback(convertToBraintreeError(err, {
-        type: errors.PAYPAL_ACCOUNT_TOKENIZATION_FAILED.type,
-        code: errors.PAYPAL_ACCOUNT_TOKENIZATION_FAILED.code,
-        message: errors.PAYPAL_ACCOUNT_TOKENIZATION_FAILED.message
-      }));
+  }).then(function (response) {
+    var payload = self._formatTokenizePayload(response);
+
+    if (global.popupBridge) {
+      analytics.sendEvent(client, 'paypal.tokenization.success-popupbridge');
     } else {
-      payload = this._formatTokenizePayload(response);
-
-      if (global.popupBridge) {
-        analytics.sendEvent(client, 'paypal.tokenization.success-popupbridge');
-      } else {
-        analytics.sendEvent(client, 'paypal.tokenization.success');
-      }
-
-      if (payload.creditFinancingOffered) {
-        analytics.sendEvent(client, 'paypal.credit.accepted');
-      }
-
-      callback(null, payload);
+      analytics.sendEvent(client, 'paypal.tokenization.success');
     }
-    this._frameService.close();
-  }.bind(this));
+
+    if (payload.creditFinancingOffered) {
+      analytics.sendEvent(client, 'paypal.credit.accepted');
+    }
+
+    self._frameService.close();
+
+    return payload;
+  }).catch(function (err) {
+    if (global.popupBridge) {
+      analytics.sendEvent(client, 'paypal.tokenization.failed-popupbridge');
+    } else {
+      analytics.sendEvent(client, 'paypal.tokenization.failed');
+    }
+
+    self._frameService.close();
+
+    return Promise.reject(convertToBraintreeError(err, {
+      type: errors.PAYPAL_ACCOUNT_TOKENIZATION_FAILED.type,
+      code: errors.PAYPAL_ACCOUNT_TOKENIZATION_FAILED.code,
+      message: errors.PAYPAL_ACCOUNT_TOKENIZATION_FAILED.message
+    }));
+  });
 };
 
 PayPal.prototype._formatTokenizePayload = function (response) {
@@ -7073,54 +7052,56 @@ PayPal.prototype._formatTokenizeData = function (options, params) {
   return data;
 };
 
-PayPal.prototype._navigateFrameToAuth = function (options, callback) {
+PayPal.prototype._navigateFrameToAuth = function (options) {
+  var self = this;
   var client = this._client;
   var endpoint = 'paypal_hermes/' + constants.FLOW_ENDPOINTS[options.flow];
 
-  client.request({
+  return client.request({
     endpoint: endpoint,
     method: 'post',
     data: this._formatPaymentResourceData(options)
-  }, function (err, response, status) {
+  }).then(function (response) {
     var redirectUrl;
 
-    if (err) {
-      if (status === 422) {
-        callback(new BraintreeError({
-          type: errors.PAYPAL_INVALID_PAYMENT_OPTION.type,
-          code: errors.PAYPAL_INVALID_PAYMENT_OPTION.code,
-          message: errors.PAYPAL_INVALID_PAYMENT_OPTION.message,
-          details: {
-            originalError: err
-          }
-        }));
-      } else {
-        callback(convertToBraintreeError(err, {
-          type: errors.PAYPAL_FLOW_FAILED.type,
-          code: errors.PAYPAL_FLOW_FAILED.code,
-          message: errors.PAYPAL_FLOW_FAILED.message
-        }));
-      }
-      this._frameService.close();
-      this._authorizationInProgress = false;
+    if (options.flow === 'checkout') {
+      redirectUrl = response.paymentResource.redirectUrl;
     } else {
-      if (options.flow === 'checkout') {
-        redirectUrl = response.paymentResource.redirectUrl;
-      } else {
-        redirectUrl = response.agreementSetup.approvalUrl;
-      }
-
-      if (options.useraction === 'commit') {
-        redirectUrl = querystring.queryify(redirectUrl, {useraction: 'commit'});
-      }
-
-      if (global.popupBridge) {
-        analytics.sendEvent(client, 'paypal.tokenization.opened-popupbridge');
-      }
-
-      this._frameService.redirect(redirectUrl);
+      redirectUrl = response.agreementSetup.approvalUrl;
     }
-  }.bind(this));
+
+    if (options.useraction === 'commit') {
+      redirectUrl = querystring.queryify(redirectUrl, {useraction: 'commit'});
+    }
+
+    if (global.popupBridge) {
+      analytics.sendEvent(client, 'paypal.tokenization.opened-popupbridge');
+    }
+
+    self._frameService.redirect(redirectUrl);
+  }).catch(function (err) {
+    var status = err.details && err.details.httpStatus;
+
+    self._frameService.close();
+    self._authorizationInProgress = false;
+
+    if (status === 422) {
+      return Promise.reject(new BraintreeError({
+        type: errors.PAYPAL_INVALID_PAYMENT_OPTION.type,
+        code: errors.PAYPAL_INVALID_PAYMENT_OPTION.code,
+        message: errors.PAYPAL_INVALID_PAYMENT_OPTION.message,
+        details: {
+          originalError: err
+        }
+      }));
+    }
+
+    return Promise.reject(convertToBraintreeError(err, {
+      type: errors.PAYPAL_FLOW_FAILED.type,
+      code: errors.PAYPAL_FLOW_FAILED.code,
+      message: errors.PAYPAL_FLOW_FAILED.message
+    }));
+  });
 };
 
 PayPal.prototype._formatPaymentResourceData = function (options) {
@@ -7130,6 +7111,7 @@ PayPal.prototype._formatPaymentResourceData = function (options) {
   var paymentResource = {
     returnUrl: gatewayConfiguration.paypal.assetsUrl + '/web/' + VERSION + '/html/paypal-redirect-frame' + useMin(this._isDebug) + '.html?channel=' + serviceId,
     cancelUrl: gatewayConfiguration.paypal.assetsUrl + '/web/' + VERSION + '/html/paypal-cancel-frame' + useMin(this._isDebug) + '.html?channel=' + serviceId,
+    offerPaypalCredit: options.offerCredit === true,
     experienceProfile: {
       brandName: options.displayName || gatewayConfiguration.paypal.displayName,
       localeCode: options.locale,
@@ -7147,7 +7129,6 @@ PayPal.prototype._formatPaymentResourceData = function (options) {
   if (options.flow === 'checkout') {
     paymentResource.amount = options.amount;
     paymentResource.currencyIsoCode = options.currency;
-    paymentResource.offerPaypalCredit = options.offerCredit === true;
 
     if (options.hasOwnProperty('intent')) {
       paymentResource.intent = options.intent;
@@ -7170,6 +7151,31 @@ PayPal.prototype._formatPaymentResourceData = function (options) {
 };
 
 /**
+ * Closes the PayPal window if it is open.
+ * @public
+ * @example
+ * paypalInstance.closeWindow();
+ * @returns {void}
+ */
+PayPal.prototype.closeWindow = function () {
+  if (this._authorizationInProgress) {
+    analytics.sendEvent(this._client, 'paypal.tokenize.closed.by-merchant');
+  }
+  this._frameService.close();
+};
+
+/**
+ * Focuses the PayPal window if it is open.
+ * @public
+ * @example
+ * paypalInstance.focusWindow();
+ * @returns {void}
+ */
+PayPal.prototype.focusWindow = function () {
+  this._frameService.focus();
+};
+
+/**
  * Cleanly remove anything set up by {@link module:braintree-web/paypal.create|create}.
  * @public
  * @param {callback} [callback] Called on completion.
@@ -7179,25 +7185,24 @@ PayPal.prototype._formatPaymentResourceData = function (options) {
  * paypalInstance.teardown(function () {
  *   // teardown is complete
  * });
- * @returns {void}
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  */
-PayPal.prototype.teardown = function (callback) {
-  this._frameService.teardown();
+PayPal.prototype.teardown = wrapPromise(function () {
+  var self = this; // eslint-disable-line no-invalid-this
 
-  convertMethodsToError(this, methods(PayPal.prototype));
+  self._frameService.teardown();
 
-  analytics.sendEvent(this._client, 'paypal.teardown-completed');
+  convertMethodsToError(self, methods(PayPal.prototype));
 
-  if (typeof callback === 'function') {
-    callback = deferred(callback);
-    callback();
-  }
-};
+  analytics.sendEvent(self._client, 'paypal.teardown-completed');
+
+  return Promise.resolve();
+});
 
 module.exports = PayPal;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../lib/analytics":51,"../../lib/braintree-error":54,"../../lib/constants":60,"../../lib/convert-methods-to-error":61,"../../lib/convert-to-braintree-error":62,"../../lib/deferred":64,"../../lib/frame-service/external":70,"../../lib/methods":82,"../../lib/once":83,"../../lib/querystring":86,"../../lib/throw-if-no-callback":87,"../../lib/use-min":88,"../shared/constants":99,"../shared/errors":100}],98:[function(_dereq_,module,exports){
+},{"../../lib/analytics":51,"../../lib/braintree-error":54,"../../lib/constants":60,"../../lib/convert-methods-to-error":61,"../../lib/convert-to-braintree-error":62,"../../lib/deferred":64,"../../lib/frame-service/external":70,"../../lib/methods":82,"../../lib/once":83,"../../lib/promise":85,"../../lib/querystring":86,"../../lib/use-min":87,"../shared/constants":98,"../shared/errors":99,"wrap-promise":17}],97:[function(_dereq_,module,exports){
 'use strict';
 /**
  * @module braintree-web/paypal
@@ -7206,12 +7211,12 @@ module.exports = PayPal;
 
 var analytics = _dereq_('../lib/analytics');
 var BraintreeError = _dereq_('../lib/braintree-error');
-var deferred = _dereq_('../lib/deferred');
 var errors = _dereq_('./shared/errors');
-var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 var PayPal = _dereq_('./external/paypal');
 var sharedErrors = _dereq_('../lib/errors');
-var VERSION = "3.13.0";
+var VERSION = "3.14.0";
+var wrapPromise = _dereq_('wrap-promise');
+var Promise = _dereq_('../lib/promise');
 
 /**
  * @static
@@ -7266,47 +7271,38 @@ var VERSION = "3.13.0";
  *     }, false);
  *   });
  * });
- * @returns {void}
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  */
-function create(options, callback) {
+function create(options) {
   var config, pp, clientVersion;
 
-  throwIfNoCallback(callback, 'create');
-
-  callback = deferred(callback);
-
   if (options.client == null) {
-    callback(new BraintreeError({
+    return Promise.reject(new BraintreeError({
       type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
       code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
       message: 'options.client is required when instantiating PayPal.'
     }));
-    return;
   }
 
   config = options.client.getConfiguration();
   clientVersion = config.analyticsMetadata.sdkVersion;
 
   if (clientVersion !== VERSION) {
-    callback(new BraintreeError({
+    return Promise.reject(new BraintreeError({
       type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
       code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
       message: 'Client (version ' + clientVersion + ') and PayPal (version ' + VERSION + ') components must be from the same SDK version.'
     }));
-    return;
   }
 
   if (config.gatewayConfiguration.paypalEnabled !== true) {
-    callback(new BraintreeError(errors.PAYPAL_NOT_ENABLED));
-    return;
+    return Promise.reject(new BraintreeError(errors.PAYPAL_NOT_ENABLED));
   }
 
   analytics.sendEvent(options.client, 'paypal.initialized');
 
   pp = new PayPal(options);
-  pp._initialize(function () {
-    callback(null, pp);
-  });
+  return pp._initialize();
 }
 
 /**
@@ -7326,7 +7322,7 @@ function isSupported() {
 }
 
 module.exports = {
-  create: create,
+  create: wrapPromise(create),
   isSupported: isSupported,
   /**
    * @description The current version of the SDK, i.e. `{@pkg version}`.
@@ -7335,7 +7331,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/analytics":51,"../lib/braintree-error":54,"../lib/deferred":64,"../lib/errors":67,"../lib/throw-if-no-callback":87,"./external/paypal":97,"./shared/errors":100}],99:[function(_dereq_,module,exports){
+},{"../lib/analytics":51,"../lib/braintree-error":54,"../lib/errors":67,"../lib/promise":85,"./external/paypal":96,"./shared/errors":99,"wrap-promise":17}],98:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -7346,7 +7342,7 @@ module.exports = {
   }
 };
 
-},{}],100:[function(_dereq_,module,exports){
+},{}],99:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../lib/braintree-error');
@@ -7399,7 +7395,7 @@ module.exports = {
   }
 };
 
-},{"../../lib/braintree-error":54}],101:[function(_dereq_,module,exports){
+},{"../../lib/braintree-error":54}],100:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../lib/braintree-error');
@@ -7412,10 +7408,11 @@ var Bus = _dereq_('../../lib/bus');
 var uuid = _dereq_('../../lib/uuid');
 var deferred = _dereq_('../../lib/deferred');
 var errors = _dereq_('../shared/errors');
-var throwIfNoCallback = _dereq_('../../lib/throw-if-no-callback');
 var events = _dereq_('../shared/events');
-var VERSION = "3.13.0";
+var VERSION = "3.14.0";
 var iFramer = _dereq_('iframer');
+var Promise = _dereq_('../../lib/promise');
+var wrapPromise = _dereq_('wrap-promise');
 
 var IFRAME_HEIGHT = 400;
 var IFRAME_WIDTH = 400;
@@ -7466,8 +7463,9 @@ function ThreeDSecure(options) {
  * @param {number} options.amount The amount of the transaction in the current merchant account's currency. For example, if you are running a transaction of $123.45 US dollars, `amount` would be 123.45.
  * @param {errback} options.addFrame This {@link ThreeDSecure~addFrameCallback|addFrameCallback} will be called when the bank frame needs to be added to your page.
  * @param {callback} options.removeFrame This {@link ThreeDSecure~removeFrameCallback|removeFrameCallback} will be called when the bank frame needs to be removed from your page.
- * @param {errback} callback The second argument, <code>data</code>, is a {@link ThreeDSecure~verifyPayload|verifyPayload}
- * @returns {void}
+ * @param {errback} [callback] The second argument, <code>data</code>, is a {@link ThreeDSecure~verifyPayload|verifyPayload}. If no callback is provided, it will return a promise that resolves {@link ThreeDSecure~verifyPayload|verifyPayload}.
+
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  * @example
  * <caption>Verifying an existing nonce with 3DS</caption>
  * var my3DSContainer;
@@ -7503,13 +7501,11 @@ function ThreeDSecure(options) {
  *   }
  * });
  */
-ThreeDSecure.prototype.verifyCard = function (options, callback) {
+ThreeDSecure.prototype.verifyCard = function (options) {
   var url, addFrame, removeFrame, error, errorOption;
-
-  throwIfNoCallback(callback, 'verifyCard');
+  var self = this;
 
   options = options || {};
-  callback = deferred(callback);
 
   if (this._verifyCardInProgress === true) {
     error = errors.THREEDS_AUTHENTICATION_IN_PROGRESS;
@@ -7532,8 +7528,7 @@ ThreeDSecure.prototype.verifyCard = function (options, callback) {
   }
 
   if (error) {
-    callback(new BraintreeError(error));
-    return;
+    return Promise.reject(new BraintreeError(error));
   }
 
   this._verifyCardInProgress = true;
@@ -7543,37 +7538,41 @@ ThreeDSecure.prototype.verifyCard = function (options, callback) {
 
   url = 'payment_methods/' + options.nonce + '/three_d_secure/lookup';
 
-  this._client.request({
+  return this._client.request({
     endpoint: url,
     method: 'post',
     data: {amount: options.amount}
-  }, function (err, response) {
-    if (err) {
-      this._verifyCardInProgress = false;
-      callback(err);
-      return;
-    }
+  }).then(function (response) {
+    self._lookupPaymentMethod = response.paymentMethod;
 
-    this._lookupPaymentMethod = response.paymentMethod;
-    this._verifyCardCallback = function () {
-      this._verifyCardInProgress = false;
+    return new Promise(function (resolve, reject) {
+      self._verifyCardCallback = function (verifyErr, payload) {
+        self._verifyCardInProgress = false;
 
-      callback.apply(null, arguments);
-    }.bind(this);
+        if (verifyErr) {
+          reject(verifyErr);
+        } else {
+          resolve(payload);
+        }
+      };
 
-    this._handleLookupResponse({
-      lookupResponse: response,
-      addFrame: addFrame,
-      removeFrame: removeFrame
+      self._handleLookupResponse({
+        lookupResponse: response,
+        addFrame: addFrame,
+        removeFrame: removeFrame
+      });
     });
-  }.bind(this));
+  }).catch(function (err) {
+    self._verifyCardInProgress = false;
+    return Promise.reject(err);
+  });
 };
 
 /**
  * Cancel the 3DS flow and return the verification payload if available.
  * @public
- * @param {errback} callback The second argument is a {@link ThreeDSecure~verifyPayload|verifyPayload}. If there is no verifyPayload (the initial lookup did not complete), an error will be returned.
- * @returns {void}
+ * @param {errback} [callback] The second argument is a {@link ThreeDSecure~verifyPayload|verifyPayload}. If there is no verifyPayload (the initial lookup did not complete), an error will be returned. If no callback is passed, `cancelVerifyCard` will return a promise.
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  * @example
  * threeDSecure.cancelVerifyCard(function (err, verifyPayload) {
  *   if (err) {
@@ -7587,18 +7586,14 @@ ThreeDSecure.prototype.verifyCard = function (options, callback) {
  *   verifyPayload.liabilityShiftPossible; // boolean
  * });
  */
-ThreeDSecure.prototype.cancelVerifyCard = function (callback) {
-  var error;
-
+ThreeDSecure.prototype.cancelVerifyCard = function () {
   this._verifyCardInProgress = false;
 
-  if (typeof callback === 'function') {
-    if (!this._lookupPaymentMethod) {
-      error = new BraintreeError(errors.THREEDS_NO_VERIFICATION_PAYLOAD);
-    }
-
-    callback(error, this._lookupPaymentMethod);
+  if (!this._lookupPaymentMethod) {
+    return Promise.reject(new BraintreeError(errors.THREEDS_NO_VERIFICATION_PAYLOAD));
   }
+
+  return Promise.resolve(this._lookupPaymentMethod);
 };
 
 ThreeDSecure.prototype._handleLookupResponse = function (options) {
@@ -7695,16 +7690,16 @@ ThreeDSecure.prototype._formatAuthResponse = function (paymentMethod, threeDSecu
 /**
  * Cleanly remove anything set up by {@link module:braintree-web/three-d-secure.create|create}.
  * @public
- * @param {callback} [callback] Called on completion.
+ * @param {callback} [callback] Called on completion. If no callback is passed, `teardown` will return a promise.
  * @example
  * threeDSecure.teardown();
  * @example <caption>With callback</caption>
  * threeDSecure.teardown(function () {
  *   // teardown is complete
  * });
- * @returns {void}
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  */
-ThreeDSecure.prototype.teardown = function (callback) {
+ThreeDSecure.prototype.teardown = function () {
   var iframeParent;
 
   convertMethodsToError(this, methods(ThreeDSecure.prototype));
@@ -7723,15 +7718,12 @@ ThreeDSecure.prototype.teardown = function (callback) {
     }
   }
 
-  if (typeof callback === 'function') {
-    callback = deferred(callback);
-    callback();
-  }
+  return Promise.resolve();
 };
 
-module.exports = ThreeDSecure;
+module.exports = wrapPromise.wrapPrototype(ThreeDSecure);
 
-},{"../../lib/analytics":51,"../../lib/braintree-error":54,"../../lib/bus":57,"../../lib/convert-methods-to-error":61,"../../lib/deferred":64,"../../lib/methods":82,"../../lib/throw-if-no-callback":87,"../../lib/use-min":88,"../../lib/uuid":89,"../shared/constants":103,"../shared/errors":104,"../shared/events":105,"iframer":9}],102:[function(_dereq_,module,exports){
+},{"../../lib/analytics":51,"../../lib/braintree-error":54,"../../lib/bus":57,"../../lib/convert-methods-to-error":61,"../../lib/deferred":64,"../../lib/methods":82,"../../lib/promise":85,"../../lib/use-min":87,"../../lib/uuid":88,"../shared/constants":102,"../shared/errors":103,"../shared/events":104,"iframer":9,"wrap-promise":17}],101:[function(_dereq_,module,exports){
 'use strict';
 /** @module braintree-web/three-d-secure */
 
@@ -7739,38 +7731,33 @@ var ThreeDSecure = _dereq_('./external/three-d-secure');
 var isHTTPS = _dereq_('../lib/is-https').isHTTPS;
 var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
-var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
-var deferred = _dereq_('../lib/deferred');
 var errors = _dereq_('./shared/errors');
 var sharedErrors = _dereq_('../lib/errors');
-var VERSION = "3.13.0";
+var VERSION = "3.14.0";
+var Promise = _dereq_('../lib/promise');
+var wrapPromise = _dereq_('wrap-promise');
 
 /**
  * @static
  * @function create
  * @param {object} options Creation options:
  * @param {Client} options.client A {@link Client} instance.
- * @param {callback} callback The second argument, `data`, is the {@link ThreeDSecure} instance.
- * @returns {void}
+ * @param {callback} [callback] The second argument, `data`, is the {@link ThreeDSecure} instance. If no callback is provided, it returns a promise that resolves the {@link ThreeDSecure} instance.
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  * @example
  * braintree.threeDSecure.create({
  *   client: client
  * }, callback);
  */
-function create(options, callback) {
-  var config, threeDSecure, error, clientVersion, isProduction;
-
-  throwIfNoCallback(callback, 'create');
-
-  callback = deferred(callback);
+function create(options) {
+  var config, error, clientVersion, isProduction;
 
   if (options.client == null) {
-    callback(new BraintreeError({
+    return Promise.reject(new BraintreeError({
       type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
       code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
       message: 'options.client is required when instantiating 3D Secure.'
     }));
-    return;
   }
 
   config = options.client.getConfiguration();
@@ -7793,24 +7780,16 @@ function create(options, callback) {
   }
 
   if (error) {
-    callback(new BraintreeError(error));
-    return;
+    return Promise.reject(new BraintreeError(error));
   }
 
   analytics.sendEvent(options.client, 'threedsecure.initialized');
 
-  try {
-    threeDSecure = new ThreeDSecure(options);
-  } catch (err) {
-    callback(err);
-    return;
-  }
-
-  callback(null, threeDSecure);
+  return Promise.resolve(new ThreeDSecure(options));
 }
 
 module.exports = {
-  create: create,
+  create: wrapPromise(create),
   /**
    * @description The current version of the SDK, i.e. `{@pkg version}`.
    * @type {string}
@@ -7818,14 +7797,14 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/analytics":51,"../lib/braintree-error":54,"../lib/deferred":64,"../lib/errors":67,"../lib/is-https":79,"../lib/throw-if-no-callback":87,"./external/three-d-secure":101,"./shared/errors":104}],103:[function(_dereq_,module,exports){
+},{"../lib/analytics":51,"../lib/braintree-error":54,"../lib/errors":67,"../lib/is-https":79,"../lib/promise":85,"./external/three-d-secure":100,"./shared/errors":103,"wrap-promise":17}],102:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   LANDING_FRAME_NAME: 'braintreethreedsecurelanding'
 };
 
-},{}],104:[function(_dereq_,module,exports){
+},{}],103:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../lib/braintree-error');
@@ -7862,7 +7841,7 @@ module.exports = {
   }
 };
 
-},{"../../lib/braintree-error":54}],105:[function(_dereq_,module,exports){
+},{"../../lib/braintree-error":54}],104:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../../lib/enumerate');
@@ -7871,7 +7850,7 @@ module.exports = enumerate([
   'AUTHENTICATION_COMPLETE'
 ], 'threedsecure:');
 
-},{"../../lib/enumerate":66}],106:[function(_dereq_,module,exports){
+},{"../../lib/enumerate":66}],105:[function(_dereq_,module,exports){
 'use strict';
 /**
  * @module braintree-web/unionpay
@@ -7881,19 +7860,19 @@ module.exports = enumerate([
 var UnionPay = _dereq_('./shared/unionpay');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
-var deferred = _dereq_('../lib/deferred');
-var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 var errors = _dereq_('./shared/errors');
 var sharedErrors = _dereq_('../lib/errors');
-var VERSION = "3.13.0";
+var VERSION = "3.14.0";
+var Promise = _dereq_('../lib/promise');
+var wrapPromise = _dereq_('wrap-promise');
 
 /**
 * @static
 * @function create
 * @param {object} options Creation options:
 * @param {Client} options.client A {@link Client} instance.
-* @param {callback} callback The second argument, `data`, is the {@link UnionPay} instance.
-* @returns {void}
+* @param {callback} [callback] The second argument, `data`, is the {@link UnionPay} instance. If no callback is provided, `create` returns a promise that resolves with the {@link UnionPay} instance.
+* @returns {Promise|void} Returns a promise if no callback is provided.
 * @example
 * braintree.unionpay.create({ client: clientInstance }, function (createErr, unionpayInstance) {
 *   if (createErr) {
@@ -7903,46 +7882,39 @@ var VERSION = "3.13.0";
 *   // ...
 * });
 */
-function create(options, callback) {
+function create(options) {
   var config, clientVersion;
 
-  throwIfNoCallback(callback, 'create');
-
-  callback = deferred(callback);
-
   if (options.client == null) {
-    callback(new BraintreeError({
+    return Promise.reject(new BraintreeError({
       type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
       code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
       message: 'options.client is required when instantiating UnionPay.'
     }));
-    return;
   }
 
   config = options.client.getConfiguration();
   clientVersion = config.analyticsMetadata.sdkVersion;
 
   if (clientVersion !== VERSION) {
-    callback(new BraintreeError({
+    return Promise.reject(new BraintreeError({
       type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
       code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
       message: 'Client (version ' + clientVersion + ') and UnionPay (version ' + VERSION + ') components must be from the same SDK version.'
     }));
-    return;
   }
 
   if (!config.gatewayConfiguration.unionPay || config.gatewayConfiguration.unionPay.enabled !== true) {
-    callback(new BraintreeError(errors.UNIONPAY_NOT_ENABLED));
-    return;
+    return Promise.reject(new BraintreeError(errors.UNIONPAY_NOT_ENABLED));
   }
 
   analytics.sendEvent(options.client, 'unionpay.initialized');
 
-  callback(null, new UnionPay(options));
+  return Promise.resolve(new UnionPay(options));
 }
 
 module.exports = {
-  create: create,
+  create: wrapPromise(create),
   /**
    * @description The current version of the SDK, i.e. `{@pkg version}`.
    * @type {string}
@@ -7950,7 +7922,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/analytics":51,"../lib/braintree-error":54,"../lib/deferred":64,"../lib/errors":67,"../lib/throw-if-no-callback":87,"./shared/errors":108,"./shared/unionpay":109}],107:[function(_dereq_,module,exports){
+},{"../lib/analytics":51,"../lib/braintree-error":54,"../lib/errors":67,"../lib/promise":85,"./shared/errors":107,"./shared/unionpay":108,"wrap-promise":17}],106:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../../lib/enumerate');
@@ -7964,7 +7936,7 @@ module.exports = {
   HOSTED_FIELDS_FRAME_NAME: 'braintreeunionpayhostedfields'
 };
 
-},{"../../lib/enumerate":66}],108:[function(_dereq_,module,exports){
+},{"../../lib/enumerate":66}],107:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../lib/braintree-error');
@@ -8032,7 +8004,7 @@ module.exports = {
   }
 };
 
-},{"../../lib/braintree-error":54}],109:[function(_dereq_,module,exports){
+},{"../../lib/braintree-error":54}],108:[function(_dereq_,module,exports){
 'use strict';
 
 var analytics = _dereq_('../../lib/analytics');
@@ -8041,14 +8013,14 @@ var Bus = _dereq_('../../lib/bus');
 var constants = _dereq_('./constants');
 var useMin = _dereq_('../../lib/use-min');
 var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
-var deferred = _dereq_('../../lib/deferred');
 var errors = _dereq_('./errors');
 var events = constants.events;
 var iFramer = _dereq_('iframer');
 var methods = _dereq_('../../lib/methods');
-var VERSION = "3.13.0";
+var VERSION = "3.14.0";
 var uuid = _dereq_('../../lib/uuid');
-var throwIfNoCallback = _dereq_('../../lib/throw-if-no-callback');
+var Promise = _dereq_('../../lib/promise');
+var wrapPromise = _dereq_('wrap-promise');
 
 /**
  * @class
@@ -8076,7 +8048,7 @@ function UnionPay(options) {
  * @param {object} [options.card] The card from which to fetch capabilities. Note that this will only have one property, `number`. Required if you are not using the `hostedFields` option.
  * @param {string} options.card.number Card number.
  * @param {HostedFields} [options.hostedFields] The Hosted Fields instance used to collect card data. Required if you are not using the `card` option.
- * @param {callback} callback The second argument, <code>data</code>, is a {@link UnionPay#fetchCapabilitiesPayload fetchCapabilitiesPayload}.
+ * @param {callback} [callback] The second argument, <code>data</code>, is a {@link UnionPay#fetchCapabilitiesPayload fetchCapabilitiesPayload}. If no callback is provided, `fetchCapabilities` returns a promise that resolves with a {@link UnionPay#fetchCapabilitiesPayload fetchCapabilitiesPayload}.
  * @example <caption>With raw card data</caption>
  * unionpayInstance.fetchCapabilities({
  *   card: {
@@ -8138,22 +8110,18 @@ function UnionPay(options) {
  *     });
  *   });
  * });
- * @returns {void}
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  */
-UnionPay.prototype.fetchCapabilities = function (options, callback) {
+UnionPay.prototype.fetchCapabilities = function (options) {
+  var self = this;
   var client = this._options.client;
   var cardNumber = options.card ? options.card.number : null;
   var hostedFields = options.hostedFields;
 
-  throwIfNoCallback(callback, 'fetchCapabilities');
-
-  callback = deferred(callback);
-
   if (cardNumber && hostedFields) {
-    callback(new BraintreeError(errors.UNIONPAY_CARD_AND_HOSTED_FIELDS_INSTANCES));
-    return;
+    return Promise.reject(new BraintreeError(errors.UNIONPAY_CARD_AND_HOSTED_FIELDS_INSTANCES));
   } else if (cardNumber) {
-    client.request({
+    return client.request({
       method: 'get',
       endpoint: 'payment_methods/credit_cards/capabilities',
       data: {
@@ -8162,48 +8130,46 @@ UnionPay.prototype.fetchCapabilities = function (options, callback) {
           number: cardNumber
         }
       }
-    }, function (err, response, status) {
-      if (err) {
-        if (status === 403) {
-          callback(err);
-        } else {
-          callback(new BraintreeError({
-            type: errors.UNIONPAY_FETCH_CAPABILITIES_NETWORK_ERROR.type,
-            code: errors.UNIONPAY_FETCH_CAPABILITIES_NETWORK_ERROR.code,
-            message: errors.UNIONPAY_FETCH_CAPABILITIES_NETWORK_ERROR.message,
-            details: {
-              originalError: err
-            }
-          }));
-        }
-
-        analytics.sendEvent(client, 'unionpay.capabilities-failed');
-        return;
-      }
-
+    }).then(function (response) {
       analytics.sendEvent(client, 'unionpay.capabilities-received');
-      callback(null, response);
+      return response;
+    }).catch(function (err) {
+      var status = err.details && err.details.httpStatus;
+
+      analytics.sendEvent(client, 'unionpay.capabilities-failed');
+
+      if (status === 403) {
+        return Promise.reject(err);
+      }
+      return Promise.reject(new BraintreeError({
+        type: errors.UNIONPAY_FETCH_CAPABILITIES_NETWORK_ERROR.type,
+        code: errors.UNIONPAY_FETCH_CAPABILITIES_NETWORK_ERROR.code,
+        message: errors.UNIONPAY_FETCH_CAPABILITIES_NETWORK_ERROR.message,
+        details: {
+          originalError: err
+        }
+      }));
     });
   } else if (hostedFields) {
     if (!hostedFields._bus) {
-      callback(new BraintreeError(errors.UNIONPAY_HOSTED_FIELDS_INSTANCE_INVALID));
-      return;
+      return Promise.reject(new BraintreeError(errors.UNIONPAY_HOSTED_FIELDS_INSTANCE_INVALID));
     }
 
-    this._initializeHostedFields(function () {
-      this._bus.emit(events.HOSTED_FIELDS_FETCH_CAPABILITIES, {hostedFields: hostedFields}, function (response) {
-        if (response.err) {
-          callback(new BraintreeError(response.err));
-          return;
-        }
+    return new Promise(function (resolve, reject) {
+      self._initializeHostedFields(function () {
+        self._bus.emit(events.HOSTED_FIELDS_FETCH_CAPABILITIES, {hostedFields: hostedFields}, function (response) {
+          if (response.err) {
+            reject(new BraintreeError(response.err));
+            return;
+          }
 
-        callback(null, response.payload);
+          resolve(response.payload);
+        });
       });
-    }.bind(this));
-  } else {
-    callback(new BraintreeError(errors.UNIONPAY_CARD_OR_HOSTED_FIELDS_INSTANCE_REQUIRED));
-    return;
+    });
   }
+
+  return Promise.reject(new BraintreeError(errors.UNIONPAY_CARD_OR_HOSTED_FIELDS_INSTANCE_REQUIRED));
 };
 
 /**
@@ -8227,7 +8193,7 @@ UnionPay.prototype.fetchCapabilities = function (options, callback) {
  * @param {object} options.mobile The mobile information collected from the customer.
  * @param {string} options.mobile.countryCode The country code of the customer's mobile phone number.
  * @param {string} options.mobile.number The customer's mobile phone number.
- * @param {callback} callback The second argument, <code>data</code>, is a {@link UnionPay~enrollPayload|enrollPayload}.
+ * @param {callback} [callback] The second argument, <code>data</code>, is a {@link UnionPay~enrollPayload|enrollPayload}. If no callback is provided, `enroll` returns a promise that resolves with {@link UnionPay~enrollPayload|enrollPayload}.
  * @example <caption>With raw card data</caption>
  * unionpayInstance.enroll({
  *   card: {
@@ -8275,41 +8241,37 @@ UnionPay.prototype.fetchCapabilities = function (options, callback) {
  * });
  * @returns {void}
  */
-UnionPay.prototype.enroll = function (options, callback) {
+UnionPay.prototype.enroll = function (options) {
+  var self = this;
   var client = this._options.client;
   var card = options.card;
   var mobile = options.mobile;
   var hostedFields = options.hostedFields;
   var data;
 
-  throwIfNoCallback(callback, 'enroll');
-
-  callback = deferred(callback);
-
   if (!mobile) {
-    callback(new BraintreeError(errors.UNIONPAY_MISSING_MOBILE_PHONE_DATA));
-    return;
+    return Promise.reject(new BraintreeError(errors.UNIONPAY_MISSING_MOBILE_PHONE_DATA));
   }
 
   if (hostedFields) {
     if (!hostedFields._bus) {
-      callback(new BraintreeError(errors.UNIONPAY_HOSTED_FIELDS_INSTANCE_INVALID));
-      return;
+      return Promise.reject(new BraintreeError(errors.UNIONPAY_HOSTED_FIELDS_INSTANCE_INVALID));
     } else if (card) {
-      callback(new BraintreeError(errors.UNIONPAY_CARD_AND_HOSTED_FIELDS_INSTANCES));
-      return;
+      return Promise.reject(new BraintreeError(errors.UNIONPAY_CARD_AND_HOSTED_FIELDS_INSTANCES));
     }
 
-    this._initializeHostedFields(function () {
-      this._bus.emit(events.HOSTED_FIELDS_ENROLL, {hostedFields: hostedFields, mobile: mobile}, function (response) {
-        if (response.err) {
-          callback(new BraintreeError(response.err));
-          return;
-        }
+    return new Promise(function (resolve, reject) {
+      self._initializeHostedFields(function () {
+        self._bus.emit(events.HOSTED_FIELDS_ENROLL, {hostedFields: hostedFields, mobile: mobile}, function (response) {
+          if (response.err) {
+            reject(new BraintreeError(response.err));
+            return;
+          }
 
-        callback(null, response.payload);
+          resolve(response.payload);
+        });
       });
-    }.bind(this));
+    });
   } else if (card && card.number) {
     data = {
       _meta: {source: 'unionpay'},
@@ -8327,44 +8289,40 @@ UnionPay.prototype.enroll = function (options, callback) {
         data.unionPayEnrollment.expirationYear = card.expirationYear;
         data.unionPayEnrollment.expirationMonth = card.expirationMonth;
       } else {
-        callback(new BraintreeError(errors.UNIONPAY_EXPIRATION_DATE_INCOMPLETE));
-        return;
+        return Promise.reject(new BraintreeError(errors.UNIONPAY_EXPIRATION_DATE_INCOMPLETE));
       }
     }
 
-    client.request({
+    return client.request({
       method: 'post',
       endpoint: 'union_pay_enrollments',
       data: data
-    }, function (err, response, status) {
-      var error;
-
-      if (err) {
-        if (status === 403) {
-          error = err;
-        } else if (status < 500) {
-          error = new BraintreeError(errors.UNIONPAY_ENROLLMENT_CUSTOMER_INPUT_INVALID);
-          error.details = {originalError: err};
-        } else {
-          error = new BraintreeError(errors.UNIONPAY_ENROLLMENT_NETWORK_ERROR);
-          error.details = {originalError: err};
-        }
-
-        analytics.sendEvent(client, 'unionpay.enrollment-failed');
-        callback(error);
-        return;
-      }
-
+    }).then(function (response) {
       analytics.sendEvent(client, 'unionpay.enrollment-succeeded');
-      callback(null, {
+      return {
         enrollmentId: response.unionPayEnrollmentId,
         smsCodeRequired: response.smsCodeRequired
-      });
+      };
+    }).catch(function (err) {
+      var error;
+      var status = err.details && err.details.httpStatus;
+
+      if (status === 403) {
+        error = err;
+      } else if (status < 500) {
+        error = new BraintreeError(errors.UNIONPAY_ENROLLMENT_CUSTOMER_INPUT_INVALID);
+        error.details = {originalError: err};
+      } else {
+        error = new BraintreeError(errors.UNIONPAY_ENROLLMENT_NETWORK_ERROR);
+        error.details = {originalError: err};
+      }
+
+      analytics.sendEvent(client, 'unionpay.enrollment-failed');
+      return Promise.reject(error);
     });
-  } else {
-    callback(new BraintreeError(errors.UNIONPAY_CARD_OR_HOSTED_FIELDS_INSTANCE_REQUIRED));
-    return;
   }
+
+  return Promise.reject(new BraintreeError(errors.UNIONPAY_CARD_OR_HOSTED_FIELDS_INSTANCE_REQUIRED));
 };
 
 /**
@@ -8390,7 +8348,7 @@ UnionPay.prototype.enroll = function (options, callback) {
  * @param {HostedFields} [options.hostedFields] The Hosted Fields instance used to collect card data. Required if you are not using the `card` option.
  * @param {string} options.enrollmentId The enrollment ID from {@link UnionPay#enroll}.
  * @param {string} [options.smsCode] The SMS code received from the user if {@link UnionPay#enroll} payload have `smsCodeRequired`. if `smsCodeRequired` is false, smsCode should not be passed.
- * @param {callback} callback The second argument, <code>data</code>, is a {@link UnionPay~tokenizePayload|tokenizePayload}.
+ * @param {callback} [callback] The second argument, <code>data</code>, is a {@link UnionPay~tokenizePayload|tokenizePayload}. If no callback is provided, `tokenize` returns a promise that resolves with a {@link UnionPay~tokenizePayload|tokenizePayload}.
  * @example <caption>With raw card data</caption>
  * unionpayInstance.tokenize({
  *   card: {
@@ -8422,21 +8380,17 @@ UnionPay.prototype.enroll = function (options, callback) {
  *
  *   // Send response.nonce to your server
  * });
- * @returns {void}
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  */
-UnionPay.prototype.tokenize = function (options, callback) {
-  var data, tokenizedCard, error;
+UnionPay.prototype.tokenize = function (options) {
+  var data;
+  var self = this;
   var client = this._options.client;
   var card = options.card;
   var hostedFields = options.hostedFields;
 
-  throwIfNoCallback(callback, 'tokenize');
-
-  callback = deferred(callback);
-
   if (card && hostedFields) {
-    callback(new BraintreeError(errors.UNIONPAY_CARD_AND_HOSTED_FIELDS_INSTANCES));
-    return;
+    return Promise.reject(new BraintreeError(errors.UNIONPAY_CARD_AND_HOSTED_FIELDS_INSTANCES));
   } else if (card) {
     data = {
       _meta: {source: 'unionpay'},
@@ -8465,66 +8419,67 @@ UnionPay.prototype.tokenize = function (options, callback) {
       data.creditCard.cvv = options.card.cvv;
     }
 
-    client.request({
+    return client.request({
       method: 'post',
       endpoint: 'payment_methods/credit_cards',
       data: data
-    }, function (err, response, status) {
-      if (err) {
-        analytics.sendEvent(client, 'unionpay.nonce-failed');
+    }).then(function (response) {
+      var tokenizedCard = response.creditCards[0];
 
-        if (status === 403) {
-          error = err;
-        } else if (status < 500) {
-          error = new BraintreeError(errors.UNIONPAY_FAILED_TOKENIZATION);
-          error.details = {originalError: err};
-        } else {
-          error = new BraintreeError(errors.UNIONPAY_TOKENIZATION_NETWORK_ERROR);
-          error.details = {originalError: err};
-        }
-
-        callback(error);
-        return;
-      }
-
-      tokenizedCard = response.creditCards[0];
       delete tokenizedCard.consumed;
       delete tokenizedCard.threeDSecureInfo;
 
       analytics.sendEvent(client, 'unionpay.nonce-received');
-      callback(null, tokenizedCard);
+      return tokenizedCard;
+    }).catch(function (err) {
+      var error;
+      var status = err.details && err.details.httpStatus;
+
+      analytics.sendEvent(client, 'unionpay.nonce-failed');
+
+      if (status === 403) {
+        error = err;
+      } else if (status < 500) {
+        error = new BraintreeError(errors.UNIONPAY_FAILED_TOKENIZATION);
+        error.details = {originalError: err};
+      } else {
+        error = new BraintreeError(errors.UNIONPAY_TOKENIZATION_NETWORK_ERROR);
+        error.details = {originalError: err};
+      }
+
+      return Promise.reject(error);
     });
   } else if (hostedFields) {
     if (!hostedFields._bus) {
-      callback(new BraintreeError(errors.UNIONPAY_HOSTED_FIELDS_INSTANCE_INVALID));
-      return;
+      return Promise.reject(new BraintreeError(errors.UNIONPAY_HOSTED_FIELDS_INSTANCE_INVALID));
     }
 
-    this._initializeHostedFields(function () {
-      this._bus.emit(events.HOSTED_FIELDS_TOKENIZE, options, function (response) {
-        if (response.err) {
-          callback(new BraintreeError(response.err));
-          return;
-        }
+    return new Promise(function (resolve, reject) {
+      self._initializeHostedFields(function () {
+        self._bus.emit(events.HOSTED_FIELDS_TOKENIZE, options, function (response) {
+          if (response.err) {
+            reject(new BraintreeError(response.err));
+            return;
+          }
 
-        callback(null, response.payload);
+          resolve(response.payload);
+        });
       });
-    }.bind(this));
-  } else {
-    callback(new BraintreeError(errors.UNIONPAY_CARD_OR_HOSTED_FIELDS_INSTANCE_REQUIRED));
-    return;
+    });
   }
+
+  return Promise.reject(new BraintreeError(errors.UNIONPAY_CARD_OR_HOSTED_FIELDS_INSTANCE_REQUIRED));
 };
 
 /**
  * Cleanly remove anything set up by {@link module:braintree-web/unionpay.create|create}. This only needs to be called when using UnionPay with Hosted Fields.
  * @public
- * @param {callback} [callback] Called on completion.
+ * @param {callback} [callback] Called on completion. If no callback is provided, returns a promise.
  * @example
  * unionpayInstance.teardown();
- * @returns {void}
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  */
-UnionPay.prototype.teardown = function (callback) {
+UnionPay.prototype.teardown = function () {
   if (this._bus) {
     this._hostedFieldsFrame.parentNode.removeChild(this._hostedFieldsFrame);
     this._bus.teardown();
@@ -8532,10 +8487,7 @@ UnionPay.prototype.teardown = function (callback) {
 
   convertMethodsToError(this, methods(UnionPay.prototype));
 
-  if (typeof callback === 'function') {
-    callback = deferred(callback);
-    callback();
-  }
+  return Promise.resolve();
 };
 
 UnionPay.prototype._initializeHostedFields = function (callback) {
@@ -8570,16 +8522,16 @@ UnionPay.prototype._initializeHostedFields = function (callback) {
   document.body.appendChild(this._hostedFieldsFrame);
 };
 
-module.exports = UnionPay;
+module.exports = wrapPromise.wrapPrototype(UnionPay);
 
-},{"../../lib/analytics":51,"../../lib/braintree-error":54,"../../lib/bus":57,"../../lib/convert-methods-to-error":61,"../../lib/deferred":64,"../../lib/methods":82,"../../lib/throw-if-no-callback":87,"../../lib/use-min":88,"../../lib/uuid":89,"./constants":107,"./errors":108,"iframer":9}],110:[function(_dereq_,module,exports){
+},{"../../lib/analytics":51,"../../lib/braintree-error":54,"../../lib/bus":57,"../../lib/convert-methods-to-error":61,"../../lib/methods":82,"../../lib/promise":85,"../../lib/use-min":87,"../../lib/uuid":88,"./constants":106,"./errors":107,"iframer":9,"wrap-promise":17}],109:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   PLAID_LINK_JS: 'https://cdn.plaid.com/link/v2/stable/link-initialize.js'
 };
 
-},{}],111:[function(_dereq_,module,exports){
+},{}],110:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -8630,7 +8582,7 @@ module.exports = {
   }
 };
 
-},{"../lib/braintree-error":54}],112:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":54}],111:[function(_dereq_,module,exports){
 'use strict';
 /**
  * @module braintree-web/us-bank-account
@@ -8640,62 +8592,54 @@ module.exports = {
 var BraintreeError = _dereq_('../lib/braintree-error');
 var errors = _dereq_('./errors');
 var USBankAccount = _dereq_('./us-bank-account');
-var deferred = _dereq_('../lib/deferred');
-var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
-var VERSION = "3.13.0";
+var VERSION = "3.14.0";
 var sharedErrors = _dereq_('../lib/errors');
+var Promise = _dereq_('../lib/promise');
+var wrapPromise = _dereq_('wrap-promise');
 
 /**
  * @static
  * @function create
  * @param {object} options Creation options:
  * @param {Client} options.client A {@link Client} instance.
- * @param {callback} callback The second argument, `data`, is the {@link USBankAccount} instance.
- * @returns {void}
+ * @param {callback} [callback] The second argument, `data`, is the {@link USBankAccount} instance. If no callback is provided, `create` returns a promise that resolves with the {@link USBankAccount} instance.
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  */
-function create(options, callback) {
+function create(options) {
   var clientVersion, braintreeApi, usBankAccount;
 
-  throwIfNoCallback(callback, 'create');
-
-  callback = deferred(callback);
-
   if (options.client == null) {
-    callback(new BraintreeError({
+    return Promise.reject(new BraintreeError({
       type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
       code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
       message: 'options.client is required when instantiating US Bank Account.'
     }));
-    return;
   }
 
   clientVersion = options.client.getConfiguration().analyticsMetadata.sdkVersion;
   if (clientVersion !== VERSION) {
-    callback(new BraintreeError({
+    return Promise.reject(new BraintreeError({
       type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
       code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
       message: 'Client (version ' + clientVersion + ') and US Bank Account (version ' + VERSION + ') components must be from the same SDK version.'
     }));
-    return;
   }
 
   braintreeApi = options.client.getConfiguration().gatewayConfiguration.braintreeApi;
   if (!braintreeApi) {
-    callback(new BraintreeError(sharedErrors.BRAINTREE_API_ACCESS_RESTRICTED));
-    return;
+    return Promise.reject(new BraintreeError(sharedErrors.BRAINTREE_API_ACCESS_RESTRICTED));
   }
 
   usBankAccount = options.client.getConfiguration().gatewayConfiguration.usBankAccount;
   if (!usBankAccount) {
-    callback(new BraintreeError(errors.US_BANK_ACCOUNT_NOT_ENABLED));
-    return;
+    return Promise.reject(new BraintreeError(errors.US_BANK_ACCOUNT_NOT_ENABLED));
   }
 
-  callback(null, new USBankAccount(options));
+  return Promise.resolve(new USBankAccount(options));
 }
 
 module.exports = {
-  create: create,
+  create: wrapPromise(create),
   /**
    * @description The current version of the SDK, i.e. `{@pkg version}`.
    * @type {string}
@@ -8703,7 +8647,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/braintree-error":54,"../lib/deferred":64,"../lib/errors":67,"../lib/throw-if-no-callback":87,"./errors":111,"./us-bank-account":113}],113:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":54,"../lib/errors":67,"../lib/promise":85,"./errors":110,"./us-bank-account":112,"wrap-promise":17}],112:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -8712,12 +8656,12 @@ var constants = _dereq_('./constants');
 var errors = _dereq_('./errors');
 var sharedErrors = _dereq_('../lib/errors');
 var analytics = _dereq_('../lib/analytics');
-var deferred = _dereq_('../lib/deferred');
 var once = _dereq_('../lib/once');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
 var methods = _dereq_('../lib/methods');
-var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 var camelCaseToSnakeCase = _dereq_('../lib/camel-case-to-snake-case');
+var Promise = _dereq_('../lib/promise');
+var wrapPromise = _dereq_('wrap-promise');
 
 /**
  * @typedef {object} USBankAccount~tokenizePayload
@@ -8770,8 +8714,8 @@ function USBankAccount(options) {
  * @param {string} options.bankLogin.billingAddress.locality The locality for the customer's billing address. This is typically a city, such as `'San Francisco'`.
  * @param {string} options.bankLogin.billingAddress.region The region for the customer's billing address. This is typically a state, such as `'CA'`.
  * @param {string} options.bankLogin.billingAddress.postalCode The postal code for the customer's billing address. This is typically a ZIP code, such as `'94119'`.
- * @param {callback} callback The second argument, <code>data</code>, is a {@link USBankAccount~tokenizePayload|tokenizePayload}.
- * @returns {void}
+ * @param {callback} [callback] The second argument, <code>data</code>, is a {@link USBankAccount~tokenizePayload|tokenizePayload}. If no callback is provided, `tokenize` returns a promise that resolves with {@link USBankAccount~tokenizePayload|tokenizePayload}.
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  * @example
  * <caption>Tokenizing raw bank details</caption>
  * var routingNumberInput = document.querySelector('input[name="routing-number"]');
@@ -8869,45 +8813,41 @@ function USBankAccount(options) {
  *   });
  * });
  */
-USBankAccount.prototype.tokenize = function (options, callback) {
-  throwIfNoCallback(callback, 'tokenize');
-
+USBankAccount.prototype.tokenize = function (options) {
   options = options || {};
-  callback = deferred(callback);
 
   if (!options.mandateText) {
-    callback(new BraintreeError({
+    return Promise.reject(new BraintreeError({
       type: errors.US_BANK_ACCOUNT_OPTION_REQUIRED.type,
       code: errors.US_BANK_ACCOUNT_OPTION_REQUIRED.code,
       message: 'mandateText property is required.'
     }));
-    return;
   }
 
   if (options.bankDetails && options.bankLogin) {
-    callback(new BraintreeError({
+    return Promise.reject(new BraintreeError({
       type: errors.US_BANK_ACCOUNT_MUTUALLY_EXCLUSIVE_OPTIONS.type,
       code: errors.US_BANK_ACCOUNT_MUTUALLY_EXCLUSIVE_OPTIONS.code,
       message: 'tokenize must be called with bankDetails or bankLogin, not both.'
     }));
   } else if (options.bankDetails) {
-    this._tokenizeBankDetails(options, callback);
+    return this._tokenizeBankDetails(options);
   } else if (options.bankLogin) {
-    this._tokenizeBankLogin(options, callback);
-  } else {
-    callback(new BraintreeError({
-      type: errors.US_BANK_ACCOUNT_OPTION_REQUIRED.type,
-      code: errors.US_BANK_ACCOUNT_OPTION_REQUIRED.code,
-      message: 'tokenize must be called with bankDetails or bankLogin.'
-    }));
+    return this._tokenizeBankLogin(options);
   }
+
+  return Promise.reject(new BraintreeError({
+    type: errors.US_BANK_ACCOUNT_OPTION_REQUIRED.type,
+    code: errors.US_BANK_ACCOUNT_OPTION_REQUIRED.code,
+    message: 'tokenize must be called with bankDetails or bankLogin.'
+  }));
 };
 
-USBankAccount.prototype._tokenizeBankDetails = function (options, callback) {
+USBankAccount.prototype._tokenizeBankDetails = function (options) {
   var client = this._client;
   var bankDetails = options.bankDetails;
 
-  client.request({
+  return client.request({
     method: 'POST',
     endpoint: 'tokens',
     api: 'braintreeApi',
@@ -8925,23 +8865,20 @@ USBankAccount.prototype._tokenizeBankDetails = function (options, callback) {
         text: options.mandateText
       }
     })
-  }, function (err, response, status) {
-    var error;
-
-    if (err) {
-      error = errorFrom(err, status);
-      analytics.sendEvent(client, 'usbankaccount.bankdetails.tokenization.failed');
-      callback(error);
-      return;
-    }
-
+  }).then(function (response) {
     analytics.sendEvent(client, 'usbankaccount.bankdetails.tokenization.succeeded');
 
-    callback(null, formatTokenizeResponse(response));
+    return Promise.resolve(formatTokenizeResponse(response));
+  }).catch(function (err) {
+    var error = errorFrom(err);
+
+    analytics.sendEvent(client, 'usbankaccount.bankdetails.tokenization.failed');
+
+    return Promise.reject(error);
   });
 };
 
-USBankAccount.prototype._tokenizeBankLogin = function (options, callback) {
+USBankAccount.prototype._tokenizeBankLogin = function (options) {
   var self = this;
   var client = this._client;
   var gatewayConfiguration = client.getConfiguration().gatewayConfiguration;
@@ -8949,88 +8886,87 @@ USBankAccount.prototype._tokenizeBankLogin = function (options, callback) {
   var plaidConfig = gatewayConfiguration.usBankAccount.plaid;
 
   if (!options.bankLogin.displayName) {
-    callback(new BraintreeError({
+    return Promise.reject(new BraintreeError({
       type: errors.US_BANK_ACCOUNT_OPTION_REQUIRED.type,
       code: errors.US_BANK_ACCOUNT_OPTION_REQUIRED.code,
       message: 'displayName property is required when using bankLogin.'
     }));
-    return;
   }
 
   if (!plaidConfig) {
-    callback(new BraintreeError(errors.US_BANK_ACCOUNT_BANK_LOGIN_NOT_ENABLED));
-    return;
+    return Promise.reject(new BraintreeError(errors.US_BANK_ACCOUNT_BANK_LOGIN_NOT_ENABLED));
   }
 
   if (this._isTokenizingBankLogin) {
-    callback(new BraintreeError(errors.US_BANK_ACCOUNT_LOGIN_REQUEST_ACTIVE));
-    return;
+    return Promise.reject(new BraintreeError(errors.US_BANK_ACCOUNT_LOGIN_REQUEST_ACTIVE));
   }
   this._isTokenizingBankLogin = true;
 
-  this._loadPlaid(function (plaidLoadErr, plaid) {
-    if (plaidLoadErr) {
-      callback(plaidLoadErr);
-      return;
-    }
+  return new Promise(function (resolve, reject) {
+    self._loadPlaid(function (plaidLoadErr, plaid) {
+      if (plaidLoadErr) {
+        reject(plaidLoadErr);
+        return;
+      }
 
-    plaid.create({
-      clientName: options.bankLogin.displayName,
-      env: isProduction ? 'production' : 'tartan',
-      key: isProduction ? plaidConfig.publicKey : 'test_key',
-      product: 'auth',
-      selectAccount: true,
-      onExit: function () {
-        self._isTokenizingBankLogin = false;
-
-        analytics.sendEvent(client, 'usbankaccount.banklogin.tokenization.closed.by-user');
-
-        callback(new BraintreeError(errors.US_BANK_ACCOUNT_LOGIN_CLOSED));
-      },
-      onSuccess: function (publicToken, metadata) {
-        client.request({
-          method: 'POST',
-          endpoint: 'tokens',
-          api: 'braintreeApi',
-          data: camelCaseToSnakeCase({
-            type: 'plaid_public_token',
-            publicToken: publicToken,
-            accountId: metadata.account_id,
-            achMandate: {
-              text: options.mandateText
-            },
-            ownershipType: options.bankLogin.ownershipType,
-            firstName: options.bankLogin.firstName,
-            lastName: options.bankLogin.lastName,
-            businessName: options.bankLogin.businessName,
-            billingAddress: camelCaseToSnakeCase(options.bankLogin.billingAddress || {})
-          })
-        }, function (tokenizeErr, response, status) {
-          var error;
-
+      plaid.create({
+        clientName: options.bankLogin.displayName,
+        env: isProduction ? 'production' : 'tartan',
+        key: isProduction ? plaidConfig.publicKey : 'test_key',
+        product: 'auth',
+        selectAccount: true,
+        onExit: function () {
           self._isTokenizingBankLogin = false;
 
-          if (tokenizeErr) {
-            error = errorFrom(tokenizeErr, status);
+          analytics.sendEvent(client, 'usbankaccount.banklogin.tokenization.closed.by-user');
+
+          reject(new BraintreeError(errors.US_BANK_ACCOUNT_LOGIN_CLOSED));
+        },
+        onSuccess: function (publicToken, metadata) {
+          client.request({
+            method: 'POST',
+            endpoint: 'tokens',
+            api: 'braintreeApi',
+            data: camelCaseToSnakeCase({
+              type: 'plaid_public_token',
+              publicToken: publicToken,
+              accountId: metadata.account_id,
+              achMandate: {
+                text: options.mandateText
+              },
+              ownershipType: options.bankLogin.ownershipType,
+              firstName: options.bankLogin.firstName,
+              lastName: options.bankLogin.lastName,
+              businessName: options.bankLogin.businessName,
+              billingAddress: camelCaseToSnakeCase(options.bankLogin.billingAddress || {})
+            })
+          }).then(function (response) {
+            self._isTokenizingBankLogin = false;
+
+            analytics.sendEvent(client, 'usbankaccount.banklogin.tokenization.succeeded');
+
+            resolve(formatTokenizeResponse(response));
+          }).catch(function (tokenizeErr) {
+            var error;
+
+            self._isTokenizingBankLogin = false;
+            error = errorFrom(tokenizeErr);
+
             analytics.sendEvent(client, 'usbankaccount.banklogin.tokenization.failed');
 
-            callback(error);
-            return;
-          }
+            reject(error);
+          });
+        }
+      }).open();
 
-          analytics.sendEvent(client, 'usbankaccount.banklogin.tokenization.succeeded');
-
-          callback(null, formatTokenizeResponse(response));
-        });
-      }
-    }).open();
-
-    analytics.sendEvent(client, 'usbankaccount.banklogin.tokenization.started');
+      analytics.sendEvent(client, 'usbankaccount.banklogin.tokenization.started');
+    });
   });
 };
 
-function errorFrom(err, status) {
+function errorFrom(err) {
   var error;
+  var status = err.details && err.details.httpStatus;
 
   if (status === 401) {
     error = new BraintreeError(sharedErrors.BRAINTREE_API_ACCESS_RESTRICTED);
@@ -9117,25 +9053,22 @@ function addLoadListeners(script, callback) {
  * usBankAccountInstance.teardown(function () {
  *   // teardown is complete
  * });
- * @returns {void}
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  */
-USBankAccount.prototype.teardown = function (callback) {
+USBankAccount.prototype.teardown = function () {
   if (this._plaidScript) {
     document.body.removeChild(this._plaidScript);
   }
 
   convertMethodsToError(this, methods(USBankAccount.prototype));
 
-  if (callback) {
-    callback = deferred(callback);
-    callback();
-  }
+  return Promise.resolve();
 };
 
-module.exports = USBankAccount;
+module.exports = wrapPromise.wrapPrototype(USBankAccount);
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../lib/analytics":51,"../lib/braintree-error":54,"../lib/camel-case-to-snake-case":58,"../lib/convert-methods-to-error":61,"../lib/deferred":64,"../lib/errors":67,"../lib/methods":82,"../lib/once":83,"../lib/throw-if-no-callback":87,"./constants":110,"./errors":111}],114:[function(_dereq_,module,exports){
+},{"../lib/analytics":51,"../lib/braintree-error":54,"../lib/camel-case-to-snake-case":58,"../lib/convert-methods-to-error":61,"../lib/errors":67,"../lib/methods":82,"../lib/once":83,"../lib/promise":85,"./constants":109,"./errors":110,"wrap-promise":17}],113:[function(_dereq_,module,exports){
 'use strict';
 /**
  * @module braintree-web/vault-manager
@@ -9145,7 +9078,7 @@ module.exports = USBankAccount;
 var BraintreeError = _dereq_('../lib/braintree-error');
 var VaultManager = _dereq_('./vault-manager');
 var sharedErrors = _dereq_('../lib/errors');
-var VERSION = "3.13.0";
+var VERSION = "3.14.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('wrap-promise');
 
@@ -9189,7 +9122,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/braintree-error":54,"../lib/errors":67,"../lib/promise":85,"./vault-manager":115,"wrap-promise":17}],115:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":54,"../lib/errors":67,"../lib/promise":85,"./vault-manager":114,"wrap-promise":17}],114:[function(_dereq_,module,exports){
 'use strict';
 
 var wrapPromise = _dereq_('wrap-promise');
@@ -9217,12 +9150,11 @@ function VaultManager(options) {
 
 /**
  * Fetches payment methods owned by the customer whose id was used to generate the client token used to create the {@link module:braintree-web/client|client}.
- * @function
  * @public
  * @param {object} [options] Options for fetching payment methods.
  * @param {boolean} [options.defaultFirst = false] If `true`, the payment methods will be returned with the default payment method for the customer first. Otherwise, the payment methods will be returned with the most recently used payment method first.
  * @param {callback} [callback] The second argument is a {@link VaultManager~fetchPaymentMethodsPayload|fetchPaymentMehodsPayload}. This is also what is resolved by the promise if no callback is provided.
- * @returns {Promise|void}
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  * @example
  * vaultManagerInstance.fetchPaymentMethods(function (err, paymentMethods) {
  *   paymentMethods.forEach(function (paymentMethod) {
@@ -9233,14 +9165,14 @@ function VaultManager(options) {
  *   });
  * });
  */
-VaultManager.prototype.fetchPaymentMethods = wrapPromise(function (options) {
+VaultManager.prototype.fetchPaymentMethods = function (options) {
   var defaultFirst;
 
   options = options || {};
 
   defaultFirst = options.defaultFirst === true ? 1 : 0;
 
-  return this._client.request({ // eslint-disable-line no-invalid-this
+  return this._client.request({
     endpoint: 'payment_methods',
     method: 'get',
     data: {
@@ -9249,7 +9181,7 @@ VaultManager.prototype.fetchPaymentMethods = wrapPromise(function (options) {
   }).then(function (paymentMethodsPayload) {
     return paymentMethodsPayload.paymentMethods.map(formatPaymentMethodPayload);
   });
-});
+};
 
 function formatPaymentMethodPayload(paymentMethod) {
   var formattedPaymentMethod = {
@@ -9266,9 +9198,9 @@ function formatPaymentMethodPayload(paymentMethod) {
   return formattedPaymentMethod;
 }
 
-module.exports = VaultManager;
+module.exports = wrapPromise.wrapPrototype(VaultManager);
 
-},{"wrap-promise":17}],116:[function(_dereq_,module,exports){
+},{"wrap-promise":17}],115:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -9296,7 +9228,7 @@ module.exports = {
   }
 };
 
-},{"../lib/braintree-error":54}],117:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":54}],116:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -9307,58 +9239,51 @@ module.exports = {
 var BraintreeError = _dereq_('../lib/braintree-error');
 var VisaCheckout = _dereq_('./visa-checkout');
 var analytics = _dereq_('../lib/analytics');
-var deferred = _dereq_('../lib/deferred');
 var sharedErrors = _dereq_('../lib/errors');
 var errors = _dereq_('./errors');
-var VERSION = "3.13.0";
-var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
+var VERSION = "3.14.0";
+var Promise = _dereq_('../lib/promise');
+var wrapPromise = _dereq_('wrap-promise');
 
 /**
  * @static
  * @function create
  * @param {object} options Creation options:
  * @param {Client} options.client A {@link Client} instance.
- * @param {callback} callback The second argument, `data`, is the {@link VisaCheckout} instance.
- * @returns {void}
+ * @param {callback} [callback] The second argument, `data`, is the {@link VisaCheckout} instance. If no callback is provided, `create` returns a promise that resolves with the {@link VisaCheckout} instance.
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  */
-function create(options, callback) {
+function create(options) {
   var clientVersion;
 
-  throwIfNoCallback(callback, 'create');
-
-  callback = deferred(callback);
-
   if (options.client == null) {
-    callback(new BraintreeError({
+    return Promise.reject(new BraintreeError({
       type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
       code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
       message: 'options.client is required when instantiating Visa Checkout.'
     }));
-    return;
   }
 
   clientVersion = options.client.getConfiguration().analyticsMetadata.sdkVersion;
   if (clientVersion !== VERSION) {
-    callback(new BraintreeError({
+    return Promise.reject(new BraintreeError({
       type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
       code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
       message: 'Client (version ' + clientVersion + ') and Visa Checkout (version ' + VERSION + ') components must be from the same SDK version.'
     }));
-    return;
   }
 
   if (!options.client.getConfiguration().gatewayConfiguration.visaCheckout) {
-    callback(new BraintreeError(errors.VISA_CHECKOUT_NOT_ENABLED));
-    return;
+    return Promise.reject(new BraintreeError(errors.VISA_CHECKOUT_NOT_ENABLED));
   }
 
   analytics.sendEvent(options.client, 'visacheckout.initialized');
 
-  callback(null, new VisaCheckout(options));
+  return Promise.resolve(new VisaCheckout(options));
 }
 
 module.exports = {
-  create: create,
+  create: wrapPromise(create),
   /**
    * @description The current version of the SDK, i.e. `{@pkg version}`.
    * @type {string}
@@ -9366,15 +9291,15 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/analytics":51,"../lib/braintree-error":54,"../lib/deferred":64,"../lib/errors":67,"../lib/throw-if-no-callback":87,"./errors":116,"./visa-checkout":118}],118:[function(_dereq_,module,exports){
+},{"../lib/analytics":51,"../lib/braintree-error":54,"../lib/errors":67,"../lib/promise":85,"./errors":115,"./visa-checkout":117,"wrap-promise":17}],117:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
-var deferred = _dereq_('../lib/deferred');
 var errors = _dereq_('./errors');
 var jsonClone = _dereq_('../lib/json-clone');
-var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
+var Promise = _dereq_('../lib/promise');
+var wrapPromise = _dereq_('wrap-promise');
 var cardTypeTransformMap = {
   Visa: 'VISA',
   MasterCard: 'MASTERCARD',
@@ -9504,8 +9429,8 @@ VisaCheckout.prototype.createInitOptions = function (options) {
  * @param {string} payment.callid Visa Checkout transaction ID associated with this payment.
  * @param {string} payment.encKey The encrypted key used to decrypt the payment data.
  * @param {string} payment.encPaymentData The encrypted payment data.
- * @param {callback} callback The second argument, <code>tokenizePayload</code> is a {@link VisaCheckout~tokenizePayload|tokenizePayload}.
- * @returns {void}
+ * @param {callback} [callback] The second argument, <code>tokenizePayload</code> is a {@link VisaCheckout~tokenizePayload|tokenizePayload}. If no callback is provided, `tokenize` returns a promise that resolves with the {@link VisaCheckout~tokenizePayload|tokenizePayload}.
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  * @example
  * V.on('payment.success', function (payment) {
  *   visaCheckoutInstance.tokenize(payment, function (err, tokenizePayload) {
@@ -9517,17 +9442,14 @@ VisaCheckout.prototype.createInitOptions = function (options) {
  *   });
  * });
  */
-VisaCheckout.prototype.tokenize = function (payment, callback) {
-  throwIfNoCallback(callback, 'tokenize');
-
-  callback = deferred(callback);
+VisaCheckout.prototype.tokenize = function (payment) {
+  var self = this;
 
   if (!payment.callid || !payment.encKey || !payment.encPaymentData) {
-    callback(new BraintreeError(errors.VISA_CHECKOUT_PAYMENT_REQUIRED));
-    return;
+    return Promise.reject(new BraintreeError(errors.VISA_CHECKOUT_PAYMENT_REQUIRED));
   }
 
-  this._client.request({
+  return this._client.request({
     method: 'post',
     endpoint: 'payment_methods/visa_checkout_cards',
     data: {
@@ -9540,25 +9462,23 @@ VisaCheckout.prototype.tokenize = function (payment, callback) {
         encryptedKey: payment.encKey
       }
     }
-  }, function (err, response) {
-    if (err) {
-      callback(new BraintreeError({
-        type: errors.VISA_CHECKOUT_TOKENIZATION.type,
-        code: errors.VISA_CHECKOUT_TOKENIZATION.code,
-        message: errors.VISA_CHECKOUT_TOKENIZATION.message,
-        details: {
-          originalError: err
-        }
-      }));
-      analytics.sendEvent(this._client, 'visacheckout.tokenize.failed');
-    } else {
-      callback(null, response.visaCheckoutCards[0]);
-      analytics.sendEvent(this._client, 'visacheckout.tokenize.succeeded');
-    }
-  }.bind(this));
+  }).then(function (response) {
+    analytics.sendEvent(self._client, 'visacheckout.tokenize.succeeded');
+    return response.visaCheckoutCards[0];
+  }).catch(function (err) {
+    analytics.sendEvent(self._client, 'visacheckout.tokenize.failed');
+    return Promise.reject(new BraintreeError({
+      type: errors.VISA_CHECKOUT_TOKENIZATION.type,
+      code: errors.VISA_CHECKOUT_TOKENIZATION.code,
+      message: errors.VISA_CHECKOUT_TOKENIZATION.message,
+      details: {
+        originalError: err
+      }
+    }));
+  });
 };
 
-module.exports = VisaCheckout;
+module.exports = wrapPromise.wrapPrototype(VisaCheckout);
 
-},{"../lib/analytics":51,"../lib/braintree-error":54,"../lib/deferred":64,"../lib/json-clone":81,"../lib/throw-if-no-callback":87,"./errors":116}]},{},[49])(49)
+},{"../lib/analytics":51,"../lib/braintree-error":54,"../lib/json-clone":81,"../lib/promise":85,"./errors":115,"wrap-promise":17}]},{},[49])(49)
 });

@@ -1,12 +1,354 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}(g.braintree || (g.braintree = {})).applePay = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
+(function (root) {
+
+  // Store setTimeout reference so promise-polyfill will be unaffected by
+  // other code modifying setTimeout (like sinon.useFakeTimers())
+  var setTimeoutFunc = setTimeout;
+
+  function noop() {}
+  
+  // Polyfill for Function.prototype.bind
+  function bind(fn, thisArg) {
+    return function () {
+      fn.apply(thisArg, arguments);
+    };
+  }
+
+  function Promise(fn) {
+    if (typeof this !== 'object') throw new TypeError('Promises must be constructed via new');
+    if (typeof fn !== 'function') throw new TypeError('not a function');
+    this._state = 0;
+    this._handled = false;
+    this._value = undefined;
+    this._deferreds = [];
+
+    doResolve(fn, this);
+  }
+
+  function handle(self, deferred) {
+    while (self._state === 3) {
+      self = self._value;
+    }
+    if (self._state === 0) {
+      self._deferreds.push(deferred);
+      return;
+    }
+    self._handled = true;
+    Promise._immediateFn(function () {
+      var cb = self._state === 1 ? deferred.onFulfilled : deferred.onRejected;
+      if (cb === null) {
+        (self._state === 1 ? resolve : reject)(deferred.promise, self._value);
+        return;
+      }
+      var ret;
+      try {
+        ret = cb(self._value);
+      } catch (e) {
+        reject(deferred.promise, e);
+        return;
+      }
+      resolve(deferred.promise, ret);
+    });
+  }
+
+  function resolve(self, newValue) {
+    try {
+      // Promise Resolution Procedure: https://github.com/promises-aplus/promises-spec#the-promise-resolution-procedure
+      if (newValue === self) throw new TypeError('A promise cannot be resolved with itself.');
+      if (newValue && (typeof newValue === 'object' || typeof newValue === 'function')) {
+        var then = newValue.then;
+        if (newValue instanceof Promise) {
+          self._state = 3;
+          self._value = newValue;
+          finale(self);
+          return;
+        } else if (typeof then === 'function') {
+          doResolve(bind(then, newValue), self);
+          return;
+        }
+      }
+      self._state = 1;
+      self._value = newValue;
+      finale(self);
+    } catch (e) {
+      reject(self, e);
+    }
+  }
+
+  function reject(self, newValue) {
+    self._state = 2;
+    self._value = newValue;
+    finale(self);
+  }
+
+  function finale(self) {
+    if (self._state === 2 && self._deferreds.length === 0) {
+      Promise._immediateFn(function() {
+        if (!self._handled) {
+          Promise._unhandledRejectionFn(self._value);
+        }
+      });
+    }
+
+    for (var i = 0, len = self._deferreds.length; i < len; i++) {
+      handle(self, self._deferreds[i]);
+    }
+    self._deferreds = null;
+  }
+
+  function Handler(onFulfilled, onRejected, promise) {
+    this.onFulfilled = typeof onFulfilled === 'function' ? onFulfilled : null;
+    this.onRejected = typeof onRejected === 'function' ? onRejected : null;
+    this.promise = promise;
+  }
+
+  /**
+   * Take a potentially misbehaving resolver function and make sure
+   * onFulfilled and onRejected are only called once.
+   *
+   * Makes no guarantees about asynchrony.
+   */
+  function doResolve(fn, self) {
+    var done = false;
+    try {
+      fn(function (value) {
+        if (done) return;
+        done = true;
+        resolve(self, value);
+      }, function (reason) {
+        if (done) return;
+        done = true;
+        reject(self, reason);
+      });
+    } catch (ex) {
+      if (done) return;
+      done = true;
+      reject(self, ex);
+    }
+  }
+
+  Promise.prototype['catch'] = function (onRejected) {
+    return this.then(null, onRejected);
+  };
+
+  Promise.prototype.then = function (onFulfilled, onRejected) {
+    var prom = new (this.constructor)(noop);
+
+    handle(this, new Handler(onFulfilled, onRejected, prom));
+    return prom;
+  };
+
+  Promise.all = function (arr) {
+    var args = Array.prototype.slice.call(arr);
+
+    return new Promise(function (resolve, reject) {
+      if (args.length === 0) return resolve([]);
+      var remaining = args.length;
+
+      function res(i, val) {
+        try {
+          if (val && (typeof val === 'object' || typeof val === 'function')) {
+            var then = val.then;
+            if (typeof then === 'function') {
+              then.call(val, function (val) {
+                res(i, val);
+              }, reject);
+              return;
+            }
+          }
+          args[i] = val;
+          if (--remaining === 0) {
+            resolve(args);
+          }
+        } catch (ex) {
+          reject(ex);
+        }
+      }
+
+      for (var i = 0; i < args.length; i++) {
+        res(i, args[i]);
+      }
+    });
+  };
+
+  Promise.resolve = function (value) {
+    if (value && typeof value === 'object' && value.constructor === Promise) {
+      return value;
+    }
+
+    return new Promise(function (resolve) {
+      resolve(value);
+    });
+  };
+
+  Promise.reject = function (value) {
+    return new Promise(function (resolve, reject) {
+      reject(value);
+    });
+  };
+
+  Promise.race = function (values) {
+    return new Promise(function (resolve, reject) {
+      for (var i = 0, len = values.length; i < len; i++) {
+        values[i].then(resolve, reject);
+      }
+    });
+  };
+
+  // Use polyfill for setImmediate for performance gains
+  Promise._immediateFn = (typeof setImmediate === 'function' && function (fn) { setImmediate(fn); }) ||
+    function (fn) {
+      setTimeoutFunc(fn, 0);
+    };
+
+  Promise._unhandledRejectionFn = function _unhandledRejectionFn(err) {
+    if (typeof console !== 'undefined' && console) {
+      console.warn('Possible Unhandled Promise Rejection:', err); // eslint-disable-line no-console
+    }
+  };
+
+  /**
+   * Set the immediate function to execute callbacks
+   * @param fn {function} Function to execute
+   * @deprecated
+   */
+  Promise._setImmediateFn = function _setImmediateFn(fn) {
+    Promise._immediateFn = fn;
+  };
+
+  /**
+   * Change the function to execute on unhandled rejection
+   * @param {function} fn Function to execute on unhandled rejection
+   * @deprecated
+   */
+  Promise._setUnhandledRejectionFn = function _setUnhandledRejectionFn(fn) {
+    Promise._unhandledRejectionFn = fn;
+  };
+  
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = Promise;
+  } else if (!root.Promise) {
+    root.Promise = Promise;
+  }
+
+})(this);
+
+},{}],2:[function(_dereq_,module,exports){
+'use strict';
+
+function deferred(fn) {
+  return function () {
+    // IE9 doesn't support passing arguments to setTimeout so we have to emulate it.
+    var args = arguments;
+
+    setTimeout(function () {
+      fn.apply(null, args);
+    }, 1);
+  };
+}
+
+module.exports = deferred;
+
+},{}],3:[function(_dereq_,module,exports){
+'use strict';
+
+function once(fn) {
+  var called = false;
+
+  return function () {
+    if (!called) {
+      called = true;
+      fn.apply(null, arguments);
+    }
+  };
+}
+
+module.exports = once;
+
+},{}],4:[function(_dereq_,module,exports){
+'use strict';
+
+function promiseOrCallback(promise, callback) { // eslint-disable-line consistent-return
+  if (callback) {
+    promise
+      .then(function (data) {
+        callback(null, data);
+      })
+      .catch(function (err) {
+        callback(err);
+      });
+  } else {
+    return promise;
+  }
+}
+
+module.exports = promiseOrCallback;
+
+},{}],5:[function(_dereq_,module,exports){
+'use strict';
+
+var deferred = _dereq_('./lib/deferred');
+var once = _dereq_('./lib/once');
+var promiseOrCallback = _dereq_('./lib/promise-or-callback');
+
+function wrapPromise(fn) {
+  return function () {
+    var callback;
+    var args = Array.prototype.slice.call(arguments);
+    var lastArg = args[args.length - 1];
+
+    if (typeof lastArg === 'function') {
+      callback = args.pop();
+      callback = once(deferred(callback));
+    }
+    return promiseOrCallback(fn.apply(this, args), callback); // eslint-disable-line no-invalid-this
+  };
+}
+
+wrapPromise.wrapPrototype = function (target, options) {
+  var methods, ignoreMethods, includePrivateMethods;
+
+  options = options || {};
+  ignoreMethods = options.ignoreMethods || [];
+  includePrivateMethods = options.transformPrivateMethods === true;
+
+  methods = Object.getOwnPropertyNames(target.prototype).filter(function (method) {
+    var isNotPrivateMethod;
+    var isNonConstructorFunction = method !== 'constructor' &&
+      typeof target.prototype[method] === 'function';
+    var isNotAnIgnoredMethod = ignoreMethods.indexOf(method) === -1;
+
+    if (includePrivateMethods) {
+      isNotPrivateMethod = true;
+    } else {
+      isNotPrivateMethod = method.charAt(0) !== '_';
+    }
+
+    return isNonConstructorFunction &&
+      isNotPrivateMethod &&
+      isNotAnIgnoredMethod;
+  });
+
+  methods.forEach(function (method) {
+    var original = target.prototype[method];
+
+    target.prototype[method] = wrapPromise(original);
+  });
+
+  return target;
+};
+
+module.exports = wrapPromise;
+
+},{"./lib/deferred":2,"./lib/once":3,"./lib/promise-or-callback":4}],6:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
-var deferred = _dereq_('../lib/deferred');
-var sharedErrors = _dereq_('../lib/errors');
 var errors = _dereq_('./errors');
+var Promise = _dereq_('../lib/promise');
+var wrapPromise = _dereq_('wrap-promise');
 
 /**
  * An Apple Pay Payment Authorization Event object.
@@ -99,9 +441,9 @@ ApplePay.prototype.createPaymentRequest = function (paymentRequest) {
  * @param {object} options Options
  * @param {string} options.validationURL The validationURL fram an `ApplePayValidateMerchantEvent`.
  * @param {string} options.displayName The canonical name for your store. Use a non-localized name. This parameter should be a UTF-8 string that is a maximum of 128 characters. The system may display this name to the user.
- * @param {callback} callback The second argument, <code>data</code>, is the Apple Pay merchant session object.
+ * @param {callback} [callback] The second argument, <code>data</code>, is the Apple Pay merchant session object. If no callback is provided, `performValidation` returns a promise.
  * Pass the merchant session to your Apple Pay session's `completeMerchantValidation` method.
- * @returns {void}
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  * @example
  * var applePay = require('braintree-web/apple-pay');
  *
@@ -135,22 +477,12 @@ ApplePay.prototype.createPaymentRequest = function (paymentRequest) {
  *   };
  * });
  */
-ApplePay.prototype.performValidation = function (options, callback) {
+ApplePay.prototype.performValidation = function (options) {
   var applePayWebSession;
-
-  if (typeof callback !== 'function') {
-    throw new BraintreeError({
-      type: sharedErrors.CALLBACK_REQUIRED.type,
-      code: sharedErrors.CALLBACK_REQUIRED.code,
-      message: 'performValidation requires a callback.'
-    });
-  }
-
-  callback = deferred(callback);
+  var self = this;
 
   if (!options || !options.validationURL) {
-    callback(new BraintreeError(errors.APPLE_PAY_VALIDATION_URL_REQUIRED));
-    return;
+    return Promise.reject(new BraintreeError(errors.APPLE_PAY_VALIDATION_URL_REQUIRED));
   }
 
   applePayWebSession = {
@@ -163,40 +495,39 @@ ApplePay.prototype.performValidation = function (options, callback) {
     applePayWebSession.displayName = options.displayName;
   }
 
-  this._client.request({
+  return this._client.request({
     method: 'post',
     endpoint: 'apple_pay_web/sessions',
     data: {
       _meta: {source: 'apple-pay'},
       applePayWebSession: applePayWebSession
     }
-  }, function (err, response) {
-    if (err) {
-      if (err.code === 'CLIENT_REQUEST_ERROR') {
-        callback(new BraintreeError({
-          type: errors.APPLE_PAY_MERCHANT_VALIDATION_FAILED.type,
-          code: errors.APPLE_PAY_MERCHANT_VALIDATION_FAILED.code,
-          message: errors.APPLE_PAY_MERCHANT_VALIDATION_FAILED.message,
-          details: {
-            originalError: err.details.originalError
-          }
-        }));
-      } else {
-        callback(new BraintreeError({
-          type: errors.APPLE_PAY_MERCHANT_VALIDATION_NETWORK.type,
-          code: errors.APPLE_PAY_MERCHANT_VALIDATION_NETWORK.code,
-          message: errors.APPLE_PAY_MERCHANT_VALIDATION_NETWORK.message,
-          details: {
-            originalError: err
-          }
-        }));
-      }
-      analytics.sendEvent(this._client, 'applepay.performValidation.failed');
-    } else {
-      callback(null, response);
-      analytics.sendEvent(this._client, 'applepay.performValidation.succeeded');
+  }).then(function (response) {
+    analytics.sendEvent(self._client, 'applepay.performValidation.succeeded');
+    return Promise.resolve(response);
+  }).catch(function (err) {
+    analytics.sendEvent(self._client, 'applepay.performValidation.failed');
+
+    if (err.code === 'CLIENT_REQUEST_ERROR') {
+      return Promise.reject(new BraintreeError({
+        type: errors.APPLE_PAY_MERCHANT_VALIDATION_FAILED.type,
+        code: errors.APPLE_PAY_MERCHANT_VALIDATION_FAILED.code,
+        message: errors.APPLE_PAY_MERCHANT_VALIDATION_FAILED.message,
+        details: {
+          originalError: err.details.originalError
+        }
+      }));
     }
-  }.bind(this));
+
+    return Promise.reject(new BraintreeError({
+      type: errors.APPLE_PAY_MERCHANT_VALIDATION_NETWORK.type,
+      code: errors.APPLE_PAY_MERCHANT_VALIDATION_NETWORK.code,
+      message: errors.APPLE_PAY_MERCHANT_VALIDATION_NETWORK.message,
+      details: {
+        originalError: err
+      }
+    }));
+  });
 };
 
 /**
@@ -204,8 +535,8 @@ ApplePay.prototype.performValidation = function (options, callback) {
  * @public
  * @param {object} options Options
  * @param {object} options.token The `payment.token` property of an {@link external:ApplePayPaymentAuthorizedEvent}.
- * @param {callback} callback The second argument, <code>data</code>, is the tokenized payload.
- * @returns {void}
+ * @param {callback} [callback] The second argument, <code>data</code>, is the tokenized payload. If no callback is provided, `tokenize` returns a promise that resolves with the tokenized payload.
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  * @example
  * var applePay = require('braintree-web/apple-pay');
  *
@@ -240,23 +571,14 @@ ApplePay.prototype.performValidation = function (options, callback) {
  *   // ...
  * });
  */
-ApplePay.prototype.tokenize = function (options, callback) {
-  if (typeof callback !== 'function') {
-    throw new BraintreeError({
-      type: sharedErrors.CALLBACK_REQUIRED.type,
-      code: sharedErrors.CALLBACK_REQUIRED.code,
-      message: 'tokenize requires a callback.'
-    });
-  }
-
-  callback = deferred(callback);
+ApplePay.prototype.tokenize = function (options) {
+  var self = this;
 
   if (!options.token) {
-    callback(new BraintreeError(errors.APPLE_PAY_PAYMENT_TOKEN_REQUIRED));
-    return;
+    return Promise.reject(new BraintreeError(errors.APPLE_PAY_PAYMENT_TOKEN_REQUIRED));
   }
 
-  this._client.request({
+  return this._client.request({
     method: 'post',
     endpoint: 'payment_methods/apple_payment_tokens',
     data: {
@@ -268,28 +590,27 @@ ApplePay.prototype.tokenize = function (options, callback) {
         paymentData: btoa(JSON.stringify(options.token.paymentData))
       })
     }
-  }, function (err, response) {
-    if (err) {
-      callback(new BraintreeError({
-        type: errors.APPLE_PAY_TOKENIZATION.type,
-        code: errors.APPLE_PAY_TOKENIZATION.code,
-        message: errors.APPLE_PAY_TOKENIZATION.message,
-        details: {
-          originalError: err
-        }
-      }));
-      analytics.sendEvent(this._client, 'applepay.tokenize.failed');
-    } else {
-      callback(null, response.applePayCards[0]);
-      analytics.sendEvent(this._client, 'applepay.tokenize.succeeded');
-    }
-  }.bind(this));
+  }).then(function (response) {
+    analytics.sendEvent(self._client, 'applepay.tokenize.succeeded');
+    return Promise.resolve(response.applePayCards[0]);
+  }).catch(function (err) {
+    analytics.sendEvent(self._client, 'applepay.tokenize.failed');
+
+    return Promise.reject(new BraintreeError({
+      type: errors.APPLE_PAY_TOKENIZATION.type,
+      code: errors.APPLE_PAY_TOKENIZATION.code,
+      message: errors.APPLE_PAY_TOKENIZATION.message,
+      details: {
+        originalError: err
+      }
+    }));
+  });
 };
 
-module.exports = ApplePay;
+module.exports = wrapPromise.wrapPrototype(ApplePay);
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../lib/analytics":5,"../lib/braintree-error":6,"../lib/deferred":9,"../lib/errors":11,"./errors":2}],2:[function(_dereq_,module,exports){
+},{"../lib/analytics":10,"../lib/braintree-error":11,"../lib/promise":18,"./errors":7,"wrap-promise":5}],7:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -327,7 +648,7 @@ module.exports = {
   }
 };
 
-},{"../lib/braintree-error":6}],3:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":11}],8:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -338,58 +659,51 @@ module.exports = {
 var BraintreeError = _dereq_('../lib/braintree-error');
 var ApplePay = _dereq_('./apple-pay');
 var analytics = _dereq_('../lib/analytics');
-var deferred = _dereq_('../lib/deferred');
 var sharedErrors = _dereq_('../lib/errors');
-var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 var errors = _dereq_('./errors');
-var VERSION = "3.13.0";
+var VERSION = "3.14.0";
+var Promise = _dereq_('../lib/promise');
+var wrapPromise = _dereq_('wrap-promise');
 
 /**
  * @static
  * @function create
  * @param {object} options Creation options:
  * @param {Client} options.client A {@link Client} instance.
- * @param {callback} callback The second argument, `data`, is the {@link ApplePay} instance.
- * @returns {void}
+ * @param {callback} [callback] The second argument, `data`, is the {@link ApplePay} instance. If no callback is provided, `create` returns a promise that resolves with the {@link ApplePay} instance.
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  */
-function create(options, callback) {
+function create(options) {
   var clientVersion;
 
-  throwIfNoCallback(callback, 'create');
-
-  callback = deferred(callback);
-
   if (options.client == null) {
-    callback(new BraintreeError({
+    return Promise.reject(new BraintreeError({
       type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
       code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
       message: 'options.client is required when instantiating Apple Pay.'
     }));
-    return;
   }
 
   clientVersion = options.client.getConfiguration().analyticsMetadata.sdkVersion;
   if (clientVersion !== VERSION) {
-    callback(new BraintreeError({
+    return Promise.reject(new BraintreeError({
       type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
       code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
       message: 'Client (version ' + clientVersion + ') and Apple Pay (version ' + VERSION + ') components must be from the same SDK version.'
     }));
-    return;
   }
 
   if (!options.client.getConfiguration().gatewayConfiguration.applePayWeb) {
-    callback(new BraintreeError(errors.APPLE_PAY_NOT_ENABLED));
-    return;
+    return Promise.reject(new BraintreeError(errors.APPLE_PAY_NOT_ENABLED));
   }
 
   analytics.sendEvent(options.client, 'applepay.initialized');
 
-  callback(null, new ApplePay(options));
+  return Promise.resolve(new ApplePay(options));
 }
 
 module.exports = {
-  create: create,
+  create: wrapPromise(create),
   /**
    * @description The current version of the SDK, i.e. `{@pkg version}`.
    * @type {string}
@@ -397,7 +711,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/analytics":5,"../lib/braintree-error":6,"../lib/deferred":9,"../lib/errors":11,"../lib/throw-if-no-callback":14,"./apple-pay":1,"./errors":2}],4:[function(_dereq_,module,exports){
+},{"../lib/analytics":10,"../lib/braintree-error":11,"../lib/errors":15,"../lib/promise":18,"./apple-pay":6,"./errors":7,"wrap-promise":5}],9:[function(_dereq_,module,exports){
 'use strict';
 
 var createAuthorizationData = _dereq_('./create-authorization-data');
@@ -431,7 +745,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":7,"./create-authorization-data":8,"./json-clone":12}],5:[function(_dereq_,module,exports){
+},{"./constants":12,"./create-authorization-data":13,"./json-clone":16}],10:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('./constants');
@@ -465,7 +779,7 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":4,"./constants":7}],6:[function(_dereq_,module,exports){
+},{"./add-metadata":9,"./constants":12}],11:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -550,10 +864,10 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":10}],7:[function(_dereq_,module,exports){
+},{"./enumerate":14}],12:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.13.0";
+var VERSION = "3.14.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -567,7 +881,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],8:[function(_dereq_,module,exports){
+},{}],13:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/polyfill').atob;
@@ -616,21 +930,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":13}],9:[function(_dereq_,module,exports){
-'use strict';
-
-module.exports = function (fn) {
-  return function () {
-    // IE9 doesn't support passing arguments to setTimeout so we have to emulate it.
-    var args = arguments;
-
-    setTimeout(function () {
-      fn.apply(null, args);
-    }, 1);
-  };
-};
-
-},{}],10:[function(_dereq_,module,exports){
+},{"../lib/polyfill":17}],14:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -644,7 +944,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],11:[function(_dereq_,module,exports){
+},{}],15:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -677,14 +977,14 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":6}],12:[function(_dereq_,module,exports){
+},{"./braintree-error":11}],16:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],13:[function(_dereq_,module,exports){
+},{}],17:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -725,21 +1025,14 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],14:[function(_dereq_,module,exports){
+},{}],18:[function(_dereq_,module,exports){
+(function (global){
 'use strict';
 
-var BraintreeError = _dereq_('./braintree-error');
-var sharedErrors = _dereq_('./errors');
+var Promise = global.Promise || _dereq_('promise-polyfill');
 
-module.exports = function (callback, functionName) {
-  if (typeof callback !== 'function') {
-    throw new BraintreeError({
-      type: sharedErrors.CALLBACK_REQUIRED.type,
-      code: sharedErrors.CALLBACK_REQUIRED.code,
-      message: functionName + ' must include a callback function.'
-    });
-  }
-};
+module.exports = Promise;
 
-},{"./braintree-error":6,"./errors":11}]},{},[3])(3)
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"promise-polyfill":1}]},{},[8])(8)
 });

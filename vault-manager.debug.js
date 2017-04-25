@@ -305,6 +305,39 @@ function wrapPromise(fn) {
   };
 }
 
+wrapPromise.wrapPrototype = function (target, options) {
+  var methods, ignoreMethods, includePrivateMethods;
+
+  options = options || {};
+  ignoreMethods = options.ignoreMethods || [];
+  includePrivateMethods = options.transformPrivateMethods === true;
+
+  methods = Object.getOwnPropertyNames(target.prototype).filter(function (method) {
+    var isNotPrivateMethod;
+    var isNonConstructorFunction = method !== 'constructor' &&
+      typeof target.prototype[method] === 'function';
+    var isNotAnIgnoredMethod = ignoreMethods.indexOf(method) === -1;
+
+    if (includePrivateMethods) {
+      isNotPrivateMethod = true;
+    } else {
+      isNotPrivateMethod = method.charAt(0) !== '_';
+    }
+
+    return isNonConstructorFunction &&
+      isNotPrivateMethod &&
+      isNotAnIgnoredMethod;
+  });
+
+  methods.forEach(function (method) {
+    var original = target.prototype[method];
+
+    target.prototype[method] = wrapPromise(original);
+  });
+
+  return target;
+};
+
 module.exports = wrapPromise;
 
 },{"./lib/deferred":2,"./lib/once":3,"./lib/promise-or-callback":4}],6:[function(_dereq_,module,exports){
@@ -458,7 +491,7 @@ module.exports = Promise;
 var BraintreeError = _dereq_('../lib/braintree-error');
 var VaultManager = _dereq_('./vault-manager');
 var sharedErrors = _dereq_('../lib/errors');
-var VERSION = "3.13.0";
+var VERSION = "3.14.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('wrap-promise');
 
@@ -530,12 +563,11 @@ function VaultManager(options) {
 
 /**
  * Fetches payment methods owned by the customer whose id was used to generate the client token used to create the {@link module:braintree-web/client|client}.
- * @function
  * @public
  * @param {object} [options] Options for fetching payment methods.
  * @param {boolean} [options.defaultFirst = false] If `true`, the payment methods will be returned with the default payment method for the customer first. Otherwise, the payment methods will be returned with the most recently used payment method first.
  * @param {callback} [callback] The second argument is a {@link VaultManager~fetchPaymentMethodsPayload|fetchPaymentMehodsPayload}. This is also what is resolved by the promise if no callback is provided.
- * @returns {Promise|void}
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  * @example
  * vaultManagerInstance.fetchPaymentMethods(function (err, paymentMethods) {
  *   paymentMethods.forEach(function (paymentMethod) {
@@ -546,14 +578,14 @@ function VaultManager(options) {
  *   });
  * });
  */
-VaultManager.prototype.fetchPaymentMethods = wrapPromise(function (options) {
+VaultManager.prototype.fetchPaymentMethods = function (options) {
   var defaultFirst;
 
   options = options || {};
 
   defaultFirst = options.defaultFirst === true ? 1 : 0;
 
-  return this._client.request({ // eslint-disable-line no-invalid-this
+  return this._client.request({
     endpoint: 'payment_methods',
     method: 'get',
     data: {
@@ -562,7 +594,7 @@ VaultManager.prototype.fetchPaymentMethods = wrapPromise(function (options) {
   }).then(function (paymentMethodsPayload) {
     return paymentMethodsPayload.paymentMethods.map(formatPaymentMethodPayload);
   });
-});
+};
 
 function formatPaymentMethodPayload(paymentMethod) {
   var formattedPaymentMethod = {
@@ -579,7 +611,7 @@ function formatPaymentMethodPayload(paymentMethod) {
   return formattedPaymentMethod;
 }
 
-module.exports = VaultManager;
+module.exports = wrapPromise.wrapPrototype(VaultManager);
 
 },{"wrap-promise":5}]},{},[10])(10)
 });

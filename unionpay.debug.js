@@ -348,6 +348,348 @@ module.exports = function setAttributes(element, attributes) {
 };
 
 },{}],6:[function(_dereq_,module,exports){
+(function (root) {
+
+  // Store setTimeout reference so promise-polyfill will be unaffected by
+  // other code modifying setTimeout (like sinon.useFakeTimers())
+  var setTimeoutFunc = setTimeout;
+
+  function noop() {}
+  
+  // Polyfill for Function.prototype.bind
+  function bind(fn, thisArg) {
+    return function () {
+      fn.apply(thisArg, arguments);
+    };
+  }
+
+  function Promise(fn) {
+    if (typeof this !== 'object') throw new TypeError('Promises must be constructed via new');
+    if (typeof fn !== 'function') throw new TypeError('not a function');
+    this._state = 0;
+    this._handled = false;
+    this._value = undefined;
+    this._deferreds = [];
+
+    doResolve(fn, this);
+  }
+
+  function handle(self, deferred) {
+    while (self._state === 3) {
+      self = self._value;
+    }
+    if (self._state === 0) {
+      self._deferreds.push(deferred);
+      return;
+    }
+    self._handled = true;
+    Promise._immediateFn(function () {
+      var cb = self._state === 1 ? deferred.onFulfilled : deferred.onRejected;
+      if (cb === null) {
+        (self._state === 1 ? resolve : reject)(deferred.promise, self._value);
+        return;
+      }
+      var ret;
+      try {
+        ret = cb(self._value);
+      } catch (e) {
+        reject(deferred.promise, e);
+        return;
+      }
+      resolve(deferred.promise, ret);
+    });
+  }
+
+  function resolve(self, newValue) {
+    try {
+      // Promise Resolution Procedure: https://github.com/promises-aplus/promises-spec#the-promise-resolution-procedure
+      if (newValue === self) throw new TypeError('A promise cannot be resolved with itself.');
+      if (newValue && (typeof newValue === 'object' || typeof newValue === 'function')) {
+        var then = newValue.then;
+        if (newValue instanceof Promise) {
+          self._state = 3;
+          self._value = newValue;
+          finale(self);
+          return;
+        } else if (typeof then === 'function') {
+          doResolve(bind(then, newValue), self);
+          return;
+        }
+      }
+      self._state = 1;
+      self._value = newValue;
+      finale(self);
+    } catch (e) {
+      reject(self, e);
+    }
+  }
+
+  function reject(self, newValue) {
+    self._state = 2;
+    self._value = newValue;
+    finale(self);
+  }
+
+  function finale(self) {
+    if (self._state === 2 && self._deferreds.length === 0) {
+      Promise._immediateFn(function() {
+        if (!self._handled) {
+          Promise._unhandledRejectionFn(self._value);
+        }
+      });
+    }
+
+    for (var i = 0, len = self._deferreds.length; i < len; i++) {
+      handle(self, self._deferreds[i]);
+    }
+    self._deferreds = null;
+  }
+
+  function Handler(onFulfilled, onRejected, promise) {
+    this.onFulfilled = typeof onFulfilled === 'function' ? onFulfilled : null;
+    this.onRejected = typeof onRejected === 'function' ? onRejected : null;
+    this.promise = promise;
+  }
+
+  /**
+   * Take a potentially misbehaving resolver function and make sure
+   * onFulfilled and onRejected are only called once.
+   *
+   * Makes no guarantees about asynchrony.
+   */
+  function doResolve(fn, self) {
+    var done = false;
+    try {
+      fn(function (value) {
+        if (done) return;
+        done = true;
+        resolve(self, value);
+      }, function (reason) {
+        if (done) return;
+        done = true;
+        reject(self, reason);
+      });
+    } catch (ex) {
+      if (done) return;
+      done = true;
+      reject(self, ex);
+    }
+  }
+
+  Promise.prototype['catch'] = function (onRejected) {
+    return this.then(null, onRejected);
+  };
+
+  Promise.prototype.then = function (onFulfilled, onRejected) {
+    var prom = new (this.constructor)(noop);
+
+    handle(this, new Handler(onFulfilled, onRejected, prom));
+    return prom;
+  };
+
+  Promise.all = function (arr) {
+    var args = Array.prototype.slice.call(arr);
+
+    return new Promise(function (resolve, reject) {
+      if (args.length === 0) return resolve([]);
+      var remaining = args.length;
+
+      function res(i, val) {
+        try {
+          if (val && (typeof val === 'object' || typeof val === 'function')) {
+            var then = val.then;
+            if (typeof then === 'function') {
+              then.call(val, function (val) {
+                res(i, val);
+              }, reject);
+              return;
+            }
+          }
+          args[i] = val;
+          if (--remaining === 0) {
+            resolve(args);
+          }
+        } catch (ex) {
+          reject(ex);
+        }
+      }
+
+      for (var i = 0; i < args.length; i++) {
+        res(i, args[i]);
+      }
+    });
+  };
+
+  Promise.resolve = function (value) {
+    if (value && typeof value === 'object' && value.constructor === Promise) {
+      return value;
+    }
+
+    return new Promise(function (resolve) {
+      resolve(value);
+    });
+  };
+
+  Promise.reject = function (value) {
+    return new Promise(function (resolve, reject) {
+      reject(value);
+    });
+  };
+
+  Promise.race = function (values) {
+    return new Promise(function (resolve, reject) {
+      for (var i = 0, len = values.length; i < len; i++) {
+        values[i].then(resolve, reject);
+      }
+    });
+  };
+
+  // Use polyfill for setImmediate for performance gains
+  Promise._immediateFn = (typeof setImmediate === 'function' && function (fn) { setImmediate(fn); }) ||
+    function (fn) {
+      setTimeoutFunc(fn, 0);
+    };
+
+  Promise._unhandledRejectionFn = function _unhandledRejectionFn(err) {
+    if (typeof console !== 'undefined' && console) {
+      console.warn('Possible Unhandled Promise Rejection:', err); // eslint-disable-line no-console
+    }
+  };
+
+  /**
+   * Set the immediate function to execute callbacks
+   * @param fn {function} Function to execute
+   * @deprecated
+   */
+  Promise._setImmediateFn = function _setImmediateFn(fn) {
+    Promise._immediateFn = fn;
+  };
+
+  /**
+   * Change the function to execute on unhandled rejection
+   * @param {function} fn Function to execute on unhandled rejection
+   * @deprecated
+   */
+  Promise._setUnhandledRejectionFn = function _setUnhandledRejectionFn(fn) {
+    Promise._unhandledRejectionFn = fn;
+  };
+  
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = Promise;
+  } else if (!root.Promise) {
+    root.Promise = Promise;
+  }
+
+})(this);
+
+},{}],7:[function(_dereq_,module,exports){
+'use strict';
+
+function deferred(fn) {
+  return function () {
+    // IE9 doesn't support passing arguments to setTimeout so we have to emulate it.
+    var args = arguments;
+
+    setTimeout(function () {
+      fn.apply(null, args);
+    }, 1);
+  };
+}
+
+module.exports = deferred;
+
+},{}],8:[function(_dereq_,module,exports){
+'use strict';
+
+function once(fn) {
+  var called = false;
+
+  return function () {
+    if (!called) {
+      called = true;
+      fn.apply(null, arguments);
+    }
+  };
+}
+
+module.exports = once;
+
+},{}],9:[function(_dereq_,module,exports){
+'use strict';
+
+function promiseOrCallback(promise, callback) { // eslint-disable-line consistent-return
+  if (callback) {
+    promise
+      .then(function (data) {
+        callback(null, data);
+      })
+      .catch(function (err) {
+        callback(err);
+      });
+  } else {
+    return promise;
+  }
+}
+
+module.exports = promiseOrCallback;
+
+},{}],10:[function(_dereq_,module,exports){
+'use strict';
+
+var deferred = _dereq_('./lib/deferred');
+var once = _dereq_('./lib/once');
+var promiseOrCallback = _dereq_('./lib/promise-or-callback');
+
+function wrapPromise(fn) {
+  return function () {
+    var callback;
+    var args = Array.prototype.slice.call(arguments);
+    var lastArg = args[args.length - 1];
+
+    if (typeof lastArg === 'function') {
+      callback = args.pop();
+      callback = once(deferred(callback));
+    }
+    return promiseOrCallback(fn.apply(this, args), callback); // eslint-disable-line no-invalid-this
+  };
+}
+
+wrapPromise.wrapPrototype = function (target, options) {
+  var methods, ignoreMethods, includePrivateMethods;
+
+  options = options || {};
+  ignoreMethods = options.ignoreMethods || [];
+  includePrivateMethods = options.transformPrivateMethods === true;
+
+  methods = Object.getOwnPropertyNames(target.prototype).filter(function (method) {
+    var isNotPrivateMethod;
+    var isNonConstructorFunction = method !== 'constructor' &&
+      typeof target.prototype[method] === 'function';
+    var isNotAnIgnoredMethod = ignoreMethods.indexOf(method) === -1;
+
+    if (includePrivateMethods) {
+      isNotPrivateMethod = true;
+    } else {
+      isNotPrivateMethod = method.charAt(0) !== '_';
+    }
+
+    return isNonConstructorFunction &&
+      isNotPrivateMethod &&
+      isNotAnIgnoredMethod;
+  });
+
+  methods.forEach(function (method) {
+    var original = target.prototype[method];
+
+    target.prototype[method] = wrapPromise(original);
+  });
+
+  return target;
+};
+
+module.exports = wrapPromise;
+
+},{"./lib/deferred":7,"./lib/once":8,"./lib/promise-or-callback":9}],11:[function(_dereq_,module,exports){
 'use strict';
 
 var createAuthorizationData = _dereq_('./create-authorization-data');
@@ -381,7 +723,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":12,"./create-authorization-data":14,"./json-clone":19}],7:[function(_dereq_,module,exports){
+},{"./constants":17,"./create-authorization-data":19,"./json-clone":23}],12:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('./constants');
@@ -415,7 +757,7 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":6,"./constants":12}],8:[function(_dereq_,module,exports){
+},{"./add-metadata":11,"./constants":17}],13:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -500,7 +842,7 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":16}],9:[function(_dereq_,module,exports){
+},{"./enumerate":20}],14:[function(_dereq_,module,exports){
 'use strict';
 
 var isWhitelistedDomain = _dereq_('../is-whitelisted-domain');
@@ -532,7 +874,7 @@ module.exports = {
   checkOrigin: checkOrigin
 };
 
-},{"../is-whitelisted-domain":18}],10:[function(_dereq_,module,exports){
+},{"../is-whitelisted-domain":22}],15:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../enumerate');
@@ -541,7 +883,7 @@ module.exports = enumerate([
   'CONFIGURATION_REQUEST'
 ], 'bus:');
 
-},{"../enumerate":16}],11:[function(_dereq_,module,exports){
+},{"../enumerate":20}],16:[function(_dereq_,module,exports){
 'use strict';
 
 var bus = _dereq_('framebus');
@@ -672,10 +1014,10 @@ BraintreeBus.events = events;
 
 module.exports = BraintreeBus;
 
-},{"../braintree-error":8,"./check-origin":9,"./events":10,"framebus":1}],12:[function(_dereq_,module,exports){
+},{"../braintree-error":13,"./check-origin":14,"./events":15,"framebus":1}],17:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.13.0";
+var VERSION = "3.14.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -689,7 +1031,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],13:[function(_dereq_,module,exports){
+},{}],18:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -707,7 +1049,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"./braintree-error":8,"./errors":17}],14:[function(_dereq_,module,exports){
+},{"./braintree-error":13,"./errors":21}],19:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/polyfill').atob;
@@ -756,21 +1098,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":21}],15:[function(_dereq_,module,exports){
-'use strict';
-
-module.exports = function (fn) {
-  return function () {
-    // IE9 doesn't support passing arguments to setTimeout so we have to emulate it.
-    var args = arguments;
-
-    setTimeout(function () {
-      fn.apply(null, args);
-    }, 1);
-  };
-};
-
-},{}],16:[function(_dereq_,module,exports){
+},{"../lib/polyfill":25}],20:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -784,7 +1112,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],17:[function(_dereq_,module,exports){
+},{}],21:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -817,7 +1145,7 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":8}],18:[function(_dereq_,module,exports){
+},{"./braintree-error":13}],22:[function(_dereq_,module,exports){
 'use strict';
 
 var parser;
@@ -852,14 +1180,14 @@ function isWhitelistedDomain(url) {
 
 module.exports = isWhitelistedDomain;
 
-},{}],19:[function(_dereq_,module,exports){
+},{}],23:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],20:[function(_dereq_,module,exports){
+},{}],24:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -868,7 +1196,7 @@ module.exports = function (obj) {
   });
 };
 
-},{}],21:[function(_dereq_,module,exports){
+},{}],25:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -909,23 +1237,16 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],22:[function(_dereq_,module,exports){
+},{}],26:[function(_dereq_,module,exports){
+(function (global){
 'use strict';
 
-var BraintreeError = _dereq_('./braintree-error');
-var sharedErrors = _dereq_('./errors');
+var Promise = global.Promise || _dereq_('promise-polyfill');
 
-module.exports = function (callback, functionName) {
-  if (typeof callback !== 'function') {
-    throw new BraintreeError({
-      type: sharedErrors.CALLBACK_REQUIRED.type,
-      code: sharedErrors.CALLBACK_REQUIRED.code,
-      message: functionName + ' must include a callback function.'
-    });
-  }
-};
+module.exports = Promise;
 
-},{"./braintree-error":8,"./errors":17}],23:[function(_dereq_,module,exports){
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"promise-polyfill":6}],27:[function(_dereq_,module,exports){
 'use strict';
 
 function useMin(isDebug) {
@@ -934,7 +1255,7 @@ function useMin(isDebug) {
 
 module.exports = useMin;
 
-},{}],24:[function(_dereq_,module,exports){
+},{}],28:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {
@@ -948,7 +1269,7 @@ function uuid() {
 
 module.exports = uuid;
 
-},{}],25:[function(_dereq_,module,exports){
+},{}],29:[function(_dereq_,module,exports){
 'use strict';
 /**
  * @module braintree-web/unionpay
@@ -958,19 +1279,19 @@ module.exports = uuid;
 var UnionPay = _dereq_('./shared/unionpay');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
-var deferred = _dereq_('../lib/deferred');
-var throwIfNoCallback = _dereq_('../lib/throw-if-no-callback');
 var errors = _dereq_('./shared/errors');
 var sharedErrors = _dereq_('../lib/errors');
-var VERSION = "3.13.0";
+var VERSION = "3.14.0";
+var Promise = _dereq_('../lib/promise');
+var wrapPromise = _dereq_('wrap-promise');
 
 /**
 * @static
 * @function create
 * @param {object} options Creation options:
 * @param {Client} options.client A {@link Client} instance.
-* @param {callback} callback The second argument, `data`, is the {@link UnionPay} instance.
-* @returns {void}
+* @param {callback} [callback] The second argument, `data`, is the {@link UnionPay} instance. If no callback is provided, `create` returns a promise that resolves with the {@link UnionPay} instance.
+* @returns {Promise|void} Returns a promise if no callback is provided.
 * @example
 * braintree.unionpay.create({ client: clientInstance }, function (createErr, unionpayInstance) {
 *   if (createErr) {
@@ -980,46 +1301,39 @@ var VERSION = "3.13.0";
 *   // ...
 * });
 */
-function create(options, callback) {
+function create(options) {
   var config, clientVersion;
 
-  throwIfNoCallback(callback, 'create');
-
-  callback = deferred(callback);
-
   if (options.client == null) {
-    callback(new BraintreeError({
+    return Promise.reject(new BraintreeError({
       type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
       code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
       message: 'options.client is required when instantiating UnionPay.'
     }));
-    return;
   }
 
   config = options.client.getConfiguration();
   clientVersion = config.analyticsMetadata.sdkVersion;
 
   if (clientVersion !== VERSION) {
-    callback(new BraintreeError({
+    return Promise.reject(new BraintreeError({
       type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
       code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
       message: 'Client (version ' + clientVersion + ') and UnionPay (version ' + VERSION + ') components must be from the same SDK version.'
     }));
-    return;
   }
 
   if (!config.gatewayConfiguration.unionPay || config.gatewayConfiguration.unionPay.enabled !== true) {
-    callback(new BraintreeError(errors.UNIONPAY_NOT_ENABLED));
-    return;
+    return Promise.reject(new BraintreeError(errors.UNIONPAY_NOT_ENABLED));
   }
 
   analytics.sendEvent(options.client, 'unionpay.initialized');
 
-  callback(null, new UnionPay(options));
+  return Promise.resolve(new UnionPay(options));
 }
 
 module.exports = {
-  create: create,
+  create: wrapPromise(create),
   /**
    * @description The current version of the SDK, i.e. `{@pkg version}`.
    * @type {string}
@@ -1027,7 +1341,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/analytics":7,"../lib/braintree-error":8,"../lib/deferred":15,"../lib/errors":17,"../lib/throw-if-no-callback":22,"./shared/errors":27,"./shared/unionpay":28}],26:[function(_dereq_,module,exports){
+},{"../lib/analytics":12,"../lib/braintree-error":13,"../lib/errors":21,"../lib/promise":26,"./shared/errors":31,"./shared/unionpay":32,"wrap-promise":10}],30:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../../lib/enumerate');
@@ -1041,7 +1355,7 @@ module.exports = {
   HOSTED_FIELDS_FRAME_NAME: 'braintreeunionpayhostedfields'
 };
 
-},{"../../lib/enumerate":16}],27:[function(_dereq_,module,exports){
+},{"../../lib/enumerate":20}],31:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../lib/braintree-error');
@@ -1109,7 +1423,7 @@ module.exports = {
   }
 };
 
-},{"../../lib/braintree-error":8}],28:[function(_dereq_,module,exports){
+},{"../../lib/braintree-error":13}],32:[function(_dereq_,module,exports){
 'use strict';
 
 var analytics = _dereq_('../../lib/analytics');
@@ -1118,14 +1432,14 @@ var Bus = _dereq_('../../lib/bus');
 var constants = _dereq_('./constants');
 var useMin = _dereq_('../../lib/use-min');
 var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
-var deferred = _dereq_('../../lib/deferred');
 var errors = _dereq_('./errors');
 var events = constants.events;
 var iFramer = _dereq_('iframer');
 var methods = _dereq_('../../lib/methods');
-var VERSION = "3.13.0";
+var VERSION = "3.14.0";
 var uuid = _dereq_('../../lib/uuid');
-var throwIfNoCallback = _dereq_('../../lib/throw-if-no-callback');
+var Promise = _dereq_('../../lib/promise');
+var wrapPromise = _dereq_('wrap-promise');
 
 /**
  * @class
@@ -1153,7 +1467,7 @@ function UnionPay(options) {
  * @param {object} [options.card] The card from which to fetch capabilities. Note that this will only have one property, `number`. Required if you are not using the `hostedFields` option.
  * @param {string} options.card.number Card number.
  * @param {HostedFields} [options.hostedFields] The Hosted Fields instance used to collect card data. Required if you are not using the `card` option.
- * @param {callback} callback The second argument, <code>data</code>, is a {@link UnionPay#fetchCapabilitiesPayload fetchCapabilitiesPayload}.
+ * @param {callback} [callback] The second argument, <code>data</code>, is a {@link UnionPay#fetchCapabilitiesPayload fetchCapabilitiesPayload}. If no callback is provided, `fetchCapabilities` returns a promise that resolves with a {@link UnionPay#fetchCapabilitiesPayload fetchCapabilitiesPayload}.
  * @example <caption>With raw card data</caption>
  * unionpayInstance.fetchCapabilities({
  *   card: {
@@ -1215,22 +1529,18 @@ function UnionPay(options) {
  *     });
  *   });
  * });
- * @returns {void}
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  */
-UnionPay.prototype.fetchCapabilities = function (options, callback) {
+UnionPay.prototype.fetchCapabilities = function (options) {
+  var self = this;
   var client = this._options.client;
   var cardNumber = options.card ? options.card.number : null;
   var hostedFields = options.hostedFields;
 
-  throwIfNoCallback(callback, 'fetchCapabilities');
-
-  callback = deferred(callback);
-
   if (cardNumber && hostedFields) {
-    callback(new BraintreeError(errors.UNIONPAY_CARD_AND_HOSTED_FIELDS_INSTANCES));
-    return;
+    return Promise.reject(new BraintreeError(errors.UNIONPAY_CARD_AND_HOSTED_FIELDS_INSTANCES));
   } else if (cardNumber) {
-    client.request({
+    return client.request({
       method: 'get',
       endpoint: 'payment_methods/credit_cards/capabilities',
       data: {
@@ -1239,48 +1549,46 @@ UnionPay.prototype.fetchCapabilities = function (options, callback) {
           number: cardNumber
         }
       }
-    }, function (err, response, status) {
-      if (err) {
-        if (status === 403) {
-          callback(err);
-        } else {
-          callback(new BraintreeError({
-            type: errors.UNIONPAY_FETCH_CAPABILITIES_NETWORK_ERROR.type,
-            code: errors.UNIONPAY_FETCH_CAPABILITIES_NETWORK_ERROR.code,
-            message: errors.UNIONPAY_FETCH_CAPABILITIES_NETWORK_ERROR.message,
-            details: {
-              originalError: err
-            }
-          }));
-        }
-
-        analytics.sendEvent(client, 'unionpay.capabilities-failed');
-        return;
-      }
-
+    }).then(function (response) {
       analytics.sendEvent(client, 'unionpay.capabilities-received');
-      callback(null, response);
+      return response;
+    }).catch(function (err) {
+      var status = err.details && err.details.httpStatus;
+
+      analytics.sendEvent(client, 'unionpay.capabilities-failed');
+
+      if (status === 403) {
+        return Promise.reject(err);
+      }
+      return Promise.reject(new BraintreeError({
+        type: errors.UNIONPAY_FETCH_CAPABILITIES_NETWORK_ERROR.type,
+        code: errors.UNIONPAY_FETCH_CAPABILITIES_NETWORK_ERROR.code,
+        message: errors.UNIONPAY_FETCH_CAPABILITIES_NETWORK_ERROR.message,
+        details: {
+          originalError: err
+        }
+      }));
     });
   } else if (hostedFields) {
     if (!hostedFields._bus) {
-      callback(new BraintreeError(errors.UNIONPAY_HOSTED_FIELDS_INSTANCE_INVALID));
-      return;
+      return Promise.reject(new BraintreeError(errors.UNIONPAY_HOSTED_FIELDS_INSTANCE_INVALID));
     }
 
-    this._initializeHostedFields(function () {
-      this._bus.emit(events.HOSTED_FIELDS_FETCH_CAPABILITIES, {hostedFields: hostedFields}, function (response) {
-        if (response.err) {
-          callback(new BraintreeError(response.err));
-          return;
-        }
+    return new Promise(function (resolve, reject) {
+      self._initializeHostedFields(function () {
+        self._bus.emit(events.HOSTED_FIELDS_FETCH_CAPABILITIES, {hostedFields: hostedFields}, function (response) {
+          if (response.err) {
+            reject(new BraintreeError(response.err));
+            return;
+          }
 
-        callback(null, response.payload);
+          resolve(response.payload);
+        });
       });
-    }.bind(this));
-  } else {
-    callback(new BraintreeError(errors.UNIONPAY_CARD_OR_HOSTED_FIELDS_INSTANCE_REQUIRED));
-    return;
+    });
   }
+
+  return Promise.reject(new BraintreeError(errors.UNIONPAY_CARD_OR_HOSTED_FIELDS_INSTANCE_REQUIRED));
 };
 
 /**
@@ -1304,7 +1612,7 @@ UnionPay.prototype.fetchCapabilities = function (options, callback) {
  * @param {object} options.mobile The mobile information collected from the customer.
  * @param {string} options.mobile.countryCode The country code of the customer's mobile phone number.
  * @param {string} options.mobile.number The customer's mobile phone number.
- * @param {callback} callback The second argument, <code>data</code>, is a {@link UnionPay~enrollPayload|enrollPayload}.
+ * @param {callback} [callback] The second argument, <code>data</code>, is a {@link UnionPay~enrollPayload|enrollPayload}. If no callback is provided, `enroll` returns a promise that resolves with {@link UnionPay~enrollPayload|enrollPayload}.
  * @example <caption>With raw card data</caption>
  * unionpayInstance.enroll({
  *   card: {
@@ -1352,41 +1660,37 @@ UnionPay.prototype.fetchCapabilities = function (options, callback) {
  * });
  * @returns {void}
  */
-UnionPay.prototype.enroll = function (options, callback) {
+UnionPay.prototype.enroll = function (options) {
+  var self = this;
   var client = this._options.client;
   var card = options.card;
   var mobile = options.mobile;
   var hostedFields = options.hostedFields;
   var data;
 
-  throwIfNoCallback(callback, 'enroll');
-
-  callback = deferred(callback);
-
   if (!mobile) {
-    callback(new BraintreeError(errors.UNIONPAY_MISSING_MOBILE_PHONE_DATA));
-    return;
+    return Promise.reject(new BraintreeError(errors.UNIONPAY_MISSING_MOBILE_PHONE_DATA));
   }
 
   if (hostedFields) {
     if (!hostedFields._bus) {
-      callback(new BraintreeError(errors.UNIONPAY_HOSTED_FIELDS_INSTANCE_INVALID));
-      return;
+      return Promise.reject(new BraintreeError(errors.UNIONPAY_HOSTED_FIELDS_INSTANCE_INVALID));
     } else if (card) {
-      callback(new BraintreeError(errors.UNIONPAY_CARD_AND_HOSTED_FIELDS_INSTANCES));
-      return;
+      return Promise.reject(new BraintreeError(errors.UNIONPAY_CARD_AND_HOSTED_FIELDS_INSTANCES));
     }
 
-    this._initializeHostedFields(function () {
-      this._bus.emit(events.HOSTED_FIELDS_ENROLL, {hostedFields: hostedFields, mobile: mobile}, function (response) {
-        if (response.err) {
-          callback(new BraintreeError(response.err));
-          return;
-        }
+    return new Promise(function (resolve, reject) {
+      self._initializeHostedFields(function () {
+        self._bus.emit(events.HOSTED_FIELDS_ENROLL, {hostedFields: hostedFields, mobile: mobile}, function (response) {
+          if (response.err) {
+            reject(new BraintreeError(response.err));
+            return;
+          }
 
-        callback(null, response.payload);
+          resolve(response.payload);
+        });
       });
-    }.bind(this));
+    });
   } else if (card && card.number) {
     data = {
       _meta: {source: 'unionpay'},
@@ -1404,44 +1708,40 @@ UnionPay.prototype.enroll = function (options, callback) {
         data.unionPayEnrollment.expirationYear = card.expirationYear;
         data.unionPayEnrollment.expirationMonth = card.expirationMonth;
       } else {
-        callback(new BraintreeError(errors.UNIONPAY_EXPIRATION_DATE_INCOMPLETE));
-        return;
+        return Promise.reject(new BraintreeError(errors.UNIONPAY_EXPIRATION_DATE_INCOMPLETE));
       }
     }
 
-    client.request({
+    return client.request({
       method: 'post',
       endpoint: 'union_pay_enrollments',
       data: data
-    }, function (err, response, status) {
-      var error;
-
-      if (err) {
-        if (status === 403) {
-          error = err;
-        } else if (status < 500) {
-          error = new BraintreeError(errors.UNIONPAY_ENROLLMENT_CUSTOMER_INPUT_INVALID);
-          error.details = {originalError: err};
-        } else {
-          error = new BraintreeError(errors.UNIONPAY_ENROLLMENT_NETWORK_ERROR);
-          error.details = {originalError: err};
-        }
-
-        analytics.sendEvent(client, 'unionpay.enrollment-failed');
-        callback(error);
-        return;
-      }
-
+    }).then(function (response) {
       analytics.sendEvent(client, 'unionpay.enrollment-succeeded');
-      callback(null, {
+      return {
         enrollmentId: response.unionPayEnrollmentId,
         smsCodeRequired: response.smsCodeRequired
-      });
+      };
+    }).catch(function (err) {
+      var error;
+      var status = err.details && err.details.httpStatus;
+
+      if (status === 403) {
+        error = err;
+      } else if (status < 500) {
+        error = new BraintreeError(errors.UNIONPAY_ENROLLMENT_CUSTOMER_INPUT_INVALID);
+        error.details = {originalError: err};
+      } else {
+        error = new BraintreeError(errors.UNIONPAY_ENROLLMENT_NETWORK_ERROR);
+        error.details = {originalError: err};
+      }
+
+      analytics.sendEvent(client, 'unionpay.enrollment-failed');
+      return Promise.reject(error);
     });
-  } else {
-    callback(new BraintreeError(errors.UNIONPAY_CARD_OR_HOSTED_FIELDS_INSTANCE_REQUIRED));
-    return;
   }
+
+  return Promise.reject(new BraintreeError(errors.UNIONPAY_CARD_OR_HOSTED_FIELDS_INSTANCE_REQUIRED));
 };
 
 /**
@@ -1467,7 +1767,7 @@ UnionPay.prototype.enroll = function (options, callback) {
  * @param {HostedFields} [options.hostedFields] The Hosted Fields instance used to collect card data. Required if you are not using the `card` option.
  * @param {string} options.enrollmentId The enrollment ID from {@link UnionPay#enroll}.
  * @param {string} [options.smsCode] The SMS code received from the user if {@link UnionPay#enroll} payload have `smsCodeRequired`. if `smsCodeRequired` is false, smsCode should not be passed.
- * @param {callback} callback The second argument, <code>data</code>, is a {@link UnionPay~tokenizePayload|tokenizePayload}.
+ * @param {callback} [callback] The second argument, <code>data</code>, is a {@link UnionPay~tokenizePayload|tokenizePayload}. If no callback is provided, `tokenize` returns a promise that resolves with a {@link UnionPay~tokenizePayload|tokenizePayload}.
  * @example <caption>With raw card data</caption>
  * unionpayInstance.tokenize({
  *   card: {
@@ -1499,21 +1799,17 @@ UnionPay.prototype.enroll = function (options, callback) {
  *
  *   // Send response.nonce to your server
  * });
- * @returns {void}
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  */
-UnionPay.prototype.tokenize = function (options, callback) {
-  var data, tokenizedCard, error;
+UnionPay.prototype.tokenize = function (options) {
+  var data;
+  var self = this;
   var client = this._options.client;
   var card = options.card;
   var hostedFields = options.hostedFields;
 
-  throwIfNoCallback(callback, 'tokenize');
-
-  callback = deferred(callback);
-
   if (card && hostedFields) {
-    callback(new BraintreeError(errors.UNIONPAY_CARD_AND_HOSTED_FIELDS_INSTANCES));
-    return;
+    return Promise.reject(new BraintreeError(errors.UNIONPAY_CARD_AND_HOSTED_FIELDS_INSTANCES));
   } else if (card) {
     data = {
       _meta: {source: 'unionpay'},
@@ -1542,66 +1838,67 @@ UnionPay.prototype.tokenize = function (options, callback) {
       data.creditCard.cvv = options.card.cvv;
     }
 
-    client.request({
+    return client.request({
       method: 'post',
       endpoint: 'payment_methods/credit_cards',
       data: data
-    }, function (err, response, status) {
-      if (err) {
-        analytics.sendEvent(client, 'unionpay.nonce-failed');
+    }).then(function (response) {
+      var tokenizedCard = response.creditCards[0];
 
-        if (status === 403) {
-          error = err;
-        } else if (status < 500) {
-          error = new BraintreeError(errors.UNIONPAY_FAILED_TOKENIZATION);
-          error.details = {originalError: err};
-        } else {
-          error = new BraintreeError(errors.UNIONPAY_TOKENIZATION_NETWORK_ERROR);
-          error.details = {originalError: err};
-        }
-
-        callback(error);
-        return;
-      }
-
-      tokenizedCard = response.creditCards[0];
       delete tokenizedCard.consumed;
       delete tokenizedCard.threeDSecureInfo;
 
       analytics.sendEvent(client, 'unionpay.nonce-received');
-      callback(null, tokenizedCard);
+      return tokenizedCard;
+    }).catch(function (err) {
+      var error;
+      var status = err.details && err.details.httpStatus;
+
+      analytics.sendEvent(client, 'unionpay.nonce-failed');
+
+      if (status === 403) {
+        error = err;
+      } else if (status < 500) {
+        error = new BraintreeError(errors.UNIONPAY_FAILED_TOKENIZATION);
+        error.details = {originalError: err};
+      } else {
+        error = new BraintreeError(errors.UNIONPAY_TOKENIZATION_NETWORK_ERROR);
+        error.details = {originalError: err};
+      }
+
+      return Promise.reject(error);
     });
   } else if (hostedFields) {
     if (!hostedFields._bus) {
-      callback(new BraintreeError(errors.UNIONPAY_HOSTED_FIELDS_INSTANCE_INVALID));
-      return;
+      return Promise.reject(new BraintreeError(errors.UNIONPAY_HOSTED_FIELDS_INSTANCE_INVALID));
     }
 
-    this._initializeHostedFields(function () {
-      this._bus.emit(events.HOSTED_FIELDS_TOKENIZE, options, function (response) {
-        if (response.err) {
-          callback(new BraintreeError(response.err));
-          return;
-        }
+    return new Promise(function (resolve, reject) {
+      self._initializeHostedFields(function () {
+        self._bus.emit(events.HOSTED_FIELDS_TOKENIZE, options, function (response) {
+          if (response.err) {
+            reject(new BraintreeError(response.err));
+            return;
+          }
 
-        callback(null, response.payload);
+          resolve(response.payload);
+        });
       });
-    }.bind(this));
-  } else {
-    callback(new BraintreeError(errors.UNIONPAY_CARD_OR_HOSTED_FIELDS_INSTANCE_REQUIRED));
-    return;
+    });
   }
+
+  return Promise.reject(new BraintreeError(errors.UNIONPAY_CARD_OR_HOSTED_FIELDS_INSTANCE_REQUIRED));
 };
 
 /**
  * Cleanly remove anything set up by {@link module:braintree-web/unionpay.create|create}. This only needs to be called when using UnionPay with Hosted Fields.
  * @public
- * @param {callback} [callback] Called on completion.
+ * @param {callback} [callback] Called on completion. If no callback is provided, returns a promise.
  * @example
  * unionpayInstance.teardown();
- * @returns {void}
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  */
-UnionPay.prototype.teardown = function (callback) {
+UnionPay.prototype.teardown = function () {
   if (this._bus) {
     this._hostedFieldsFrame.parentNode.removeChild(this._hostedFieldsFrame);
     this._bus.teardown();
@@ -1609,10 +1906,7 @@ UnionPay.prototype.teardown = function (callback) {
 
   convertMethodsToError(this, methods(UnionPay.prototype));
 
-  if (typeof callback === 'function') {
-    callback = deferred(callback);
-    callback();
-  }
+  return Promise.resolve();
 };
 
 UnionPay.prototype._initializeHostedFields = function (callback) {
@@ -1647,7 +1941,7 @@ UnionPay.prototype._initializeHostedFields = function (callback) {
   document.body.appendChild(this._hostedFieldsFrame);
 };
 
-module.exports = UnionPay;
+module.exports = wrapPromise.wrapPrototype(UnionPay);
 
-},{"../../lib/analytics":7,"../../lib/braintree-error":8,"../../lib/bus":11,"../../lib/convert-methods-to-error":13,"../../lib/deferred":15,"../../lib/methods":20,"../../lib/throw-if-no-callback":22,"../../lib/use-min":23,"../../lib/uuid":24,"./constants":26,"./errors":27,"iframer":2}]},{},[25])(25)
+},{"../../lib/analytics":12,"../../lib/braintree-error":13,"../../lib/bus":16,"../../lib/convert-methods-to-error":18,"../../lib/methods":24,"../../lib/promise":26,"../../lib/use-min":27,"../../lib/uuid":28,"./constants":30,"./errors":31,"iframer":2,"wrap-promise":10}]},{},[29])(29)
 });

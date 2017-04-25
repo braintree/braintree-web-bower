@@ -855,6 +855,39 @@ function wrapPromise(fn) {
   };
 }
 
+wrapPromise.wrapPrototype = function (target, options) {
+  var methods, ignoreMethods, includePrivateMethods;
+
+  options = options || {};
+  ignoreMethods = options.ignoreMethods || [];
+  includePrivateMethods = options.transformPrivateMethods === true;
+
+  methods = Object.getOwnPropertyNames(target.prototype).filter(function (method) {
+    var isNotPrivateMethod;
+    var isNonConstructorFunction = method !== 'constructor' &&
+      typeof target.prototype[method] === 'function';
+    var isNotAnIgnoredMethod = ignoreMethods.indexOf(method) === -1;
+
+    if (includePrivateMethods) {
+      isNotPrivateMethod = true;
+    } else {
+      isNotPrivateMethod = method.charAt(0) !== '_';
+    }
+
+    return isNonConstructorFunction &&
+      isNotPrivateMethod &&
+      isNotAnIgnoredMethod;
+  });
+
+  methods.forEach(function (method) {
+    var original = target.prototype[method];
+
+    target.prototype[method] = wrapPromise(original);
+  });
+
+  return target;
+};
+
 module.exports = wrapPromise;
 
 },{"./lib/deferred":9,"./lib/once":10,"./lib/promise-or-callback":11}],13:[function(_dereq_,module,exports){
@@ -910,7 +943,7 @@ module.exports = function composeUrl(assetsUrl, componentId, isDebug) {
     componentId;
 };
 
-},{"../../lib/use-min":43,"../shared/constants":18}],15:[function(_dereq_,module,exports){
+},{"../../lib/use-min":42,"../shared/constants":18}],15:[function(_dereq_,module,exports){
 'use strict';
 
 var Destructor = _dereq_('../../lib/destructor');
@@ -930,10 +963,9 @@ var EventEmitter = _dereq_('../../lib/event-emitter');
 var injectFrame = _dereq_('./inject-frame');
 var analytics = _dereq_('../../lib/analytics');
 var whitelistedFields = constants.whitelistedFields;
-var VERSION = "3.13.0";
+var VERSION = "3.14.0";
 var methods = _dereq_('../../lib/methods');
 var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
-var deferred = _dereq_('../../lib/deferred');
 var sharedErrors = _dereq_('../../lib/errors');
 var getCardTypes = _dereq_('credit-card-type');
 var attributeValidationError = _dereq_('./attribute-validation-error');
@@ -1381,7 +1413,6 @@ HostedFields.prototype._setupLabelFocus = function (type, container) {
 /**
  * Cleanly remove anything set up by {@link module:braintree-web/hosted-fields.create|create}.
  * @public
- * @function
  * @param {callback} [callback] Called on completion, containing an error if one occurred. No data is returned if teardown completes successfully. If no callback is provided, `teardown` returns a promise.
  * @example
  * hostedFieldsInstance.teardown(function (teardownErr) {
@@ -1391,10 +1422,10 @@ HostedFields.prototype._setupLabelFocus = function (type, container) {
  *     console.info('Hosted Fields has been torn down!');
  *   }
  * });
- * @returns {Promise|void} If no callback is provided, returns a promise that resolves when the teardown is complete.
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  */
-HostedFields.prototype.teardown = wrapPromise(function () {
-  var self = this; // eslint-disable-line no-invalid-this
+HostedFields.prototype.teardown = function () {
+  var self = this;
 
   return new Promise(function (resolve, reject) {
     self._destructor.teardown(function (err) {
@@ -1407,12 +1438,11 @@ HostedFields.prototype.teardown = wrapPromise(function () {
       }
     });
   });
-});
+};
 
 /**
  * Tokenizes fields and returns a nonce payload.
  * @public
- * @function
  * @param {object} [options] All tokenization options for the Hosted Fields component.
  * @param {boolean} [options.vault=false] When true, will vault the tokenized card. Cards will only be vaulted when using a client created with a client token that includes a customer ID.
  * @param {string} [options.billingAddress.postalCode] When supplied, this postal code will be tokenized along with the contents of the fields. If a postal code is provided as part of the Hosted Fields configuration, the value of the field will be tokenized and this value will be ignored.
@@ -1475,10 +1505,10 @@ HostedFields.prototype.teardown = wrapPromise(function () {
  *     console.log('Got nonce:', payload.nonce);
  *   }
  * });
- * @returns {void}
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  */
-HostedFields.prototype.tokenize = wrapPromise(function (options) {
-  var self = this; // eslint-disable-line no-invalid-this
+HostedFields.prototype.tokenize = function (options) {
+  var self = this;
 
   if (!options) {
     options = {};
@@ -1496,7 +1526,7 @@ HostedFields.prototype.tokenize = wrapPromise(function (options) {
       }
     });
   });
-});
+};
 
 /**
  * Add a class to a {@link module:braintree-web/hosted-fields~field field}. Useful for updating field styles when events occur elsewhere in your checkout.
@@ -1511,9 +1541,9 @@ HostedFields.prototype.tokenize = wrapPromise(function (options) {
  *     console.error(addClassErr);
  *   }
  * });
- * @returns {void}
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  */
-HostedFields.prototype.addClass = function (field, classname, callback) {
+HostedFields.prototype.addClass = function (field, classname) {
   var err;
 
   if (!whitelistedFields.hasOwnProperty(field)) {
@@ -1532,10 +1562,11 @@ HostedFields.prototype.addClass = function (field, classname, callback) {
     this._bus.emit(events.ADD_CLASS, field, classname);
   }
 
-  if (typeof callback === 'function') {
-    callback = deferred(callback);
-    callback(err);
+  if (err) {
+    return Promise.reject(err);
   }
+
+  return Promise.resolve();
 };
 
 /**
@@ -1555,9 +1586,9 @@ HostedFields.prototype.addClass = function (field, classname, callback) {
  *   // some time later...
  *   hostedFieldsInstance.removeClass('number', 'custom-class');
  * });
- * @returns {void}
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  */
-HostedFields.prototype.removeClass = function (field, classname, callback) {
+HostedFields.prototype.removeClass = function (field, classname) {
   var err;
 
   if (!whitelistedFields.hasOwnProperty(field)) {
@@ -1576,10 +1607,11 @@ HostedFields.prototype.removeClass = function (field, classname, callback) {
     this._bus.emit(events.REMOVE_CLASS, field, classname);
   }
 
-  if (typeof callback === 'function') {
-    callback = deferred(callback);
-    callback(err);
+  if (err) {
+    return Promise.reject(err);
   }
+
+  return Promise.resolve();
 };
 
 /**
@@ -1615,9 +1647,9 @@ HostedFields.prototype.removeClass = function (field, classname, callback) {
  *   }
  * });
  *
- * @returns {void}
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  */
-HostedFields.prototype.setAttribute = function (options, callback) {
+HostedFields.prototype.setAttribute = function (options) {
   var attributeErr, err;
 
   if (!whitelistedFields.hasOwnProperty(options.field)) {
@@ -1642,10 +1674,11 @@ HostedFields.prototype.setAttribute = function (options, callback) {
     }
   }
 
-  if (typeof callback === 'function') {
-    callback = deferred(callback);
-    callback(err);
+  if (err) {
+    return Promise.reject(err);
   }
+
+  return Promise.resolve();
 };
 
 /**
@@ -1667,9 +1700,9 @@ HostedFields.prototype.setAttribute = function (options, callback) {
  *   }
  * });
  *
- * @returns {void}
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  */
-HostedFields.prototype.removeAttribute = function (options, callback) {
+HostedFields.prototype.removeAttribute = function (options) {
   var attributeErr, err;
 
   if (!whitelistedFields.hasOwnProperty(options.field)) {
@@ -1694,10 +1727,11 @@ HostedFields.prototype.removeAttribute = function (options, callback) {
     }
   }
 
-  if (typeof callback === 'function') {
-    callback = deferred(callback);
-    callback(err);
+  if (err) {
+    return Promise.reject(err);
   }
+
+  return Promise.resolve();
 };
 
 /**
@@ -1708,14 +1742,14 @@ HostedFields.prototype.removeAttribute = function (options, callback) {
  * @param {string} placeholder Will be used as the `placeholder` attribute of the input.
  * @param {callback} [callback] Callback executed on completion, containing an error if one occurred. No data is returned if the placeholder updated successfully.
  *
- * @returns {void}
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  */
-HostedFields.prototype.setPlaceholder = function (field, placeholder, callback) {
-  this.setAttribute({
+HostedFields.prototype.setPlaceholder = function (field, placeholder) {
+  return this.setAttribute({
     field: field,
     attribute: 'placeholder',
     value: placeholder
-  }, callback);
+  });
 };
 
 /**
@@ -1723,7 +1757,7 @@ HostedFields.prototype.setPlaceholder = function (field, placeholder, callback) 
  * @public
  * @param {string} field The field you wish to clear. Must be a valid {@link module:braintree-web/hosted-fields~fieldOptions fieldOption}.
  * @param {callback} [callback] Callback executed on completion, containing an error if one occurred. No data is returned if the field cleared successfully.
- * @returns {void}
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  * @example
  * hostedFieldsInstance.clear('number', function (clearErr) {
  *   if (clearErr) {
@@ -1736,7 +1770,7 @@ HostedFields.prototype.setPlaceholder = function (field, placeholder, callback) 
  * hostedFieldsInstance.clear('cvv');
  * hostedFieldsInstance.clear('expirationDate');
  */
-HostedFields.prototype.clear = function (field, callback) {
+HostedFields.prototype.clear = function (field) {
   var err;
 
   if (!whitelistedFields.hasOwnProperty(field)) {
@@ -1755,10 +1789,11 @@ HostedFields.prototype.clear = function (field, callback) {
     this._bus.emit(events.CLEAR_FIELD, field);
   }
 
-  if (typeof callback === 'function') {
-    callback = deferred(callback);
-    callback(err);
+  if (err) {
+    return Promise.reject(err);
   }
+
+  return Promise.resolve();
 };
 
 /**
@@ -1782,7 +1817,7 @@ HostedFields.prototype.clear = function (field, callback) {
  *   hostedFieldsInstance.focus('number');
  * });
  */
-HostedFields.prototype.focus = function (field, callback) {
+HostedFields.prototype.focus = function (field) {
   var err;
 
   if (!whitelistedFields.hasOwnProperty(field)) {
@@ -1798,13 +1833,14 @@ HostedFields.prototype.focus = function (field, callback) {
       message: 'Cannot focus "' + field + '" field because it is not part of the current Hosted Fields options.'
     });
   } else {
-    this._bus.emit(events.FOCUS_FIELD, field);
+    this._bus.emit(events.TRIGGER_INPUT_FOCUS, field);
   }
 
-  if (typeof callback === 'function') {
-    callback = deferred(callback);
-    callback(err);
+  if (err) {
+    return Promise.reject(err);
   }
+
+  return Promise.resolve();
 };
 
 /**
@@ -1822,9 +1858,9 @@ HostedFields.prototype.getState = function () {
   return this._state;
 };
 
-module.exports = HostedFields;
+module.exports = wrapPromise.wrapPrototype(HostedFields);
 
-},{"../../lib/analytics":22,"../../lib/braintree-error":24,"../../lib/bus":27,"../../lib/classlist":28,"../../lib/constants":29,"../../lib/convert-methods-to-error":30,"../../lib/deferred":32,"../../lib/destructor":33,"../../lib/errors":35,"../../lib/event-emitter":36,"../../lib/methods":39,"../../lib/promise":42,"../../lib/uuid":44,"../shared/constants":18,"../shared/errors":19,"../shared/find-parent-tags":20,"./attribute-validation-error":13,"./compose-url":14,"./inject-frame":16,"browser-detection/is-ios":1,"credit-card-type":2,"iframer":4,"wrap-promise":12}],16:[function(_dereq_,module,exports){
+},{"../../lib/analytics":22,"../../lib/braintree-error":24,"../../lib/bus":27,"../../lib/classlist":28,"../../lib/constants":29,"../../lib/convert-methods-to-error":30,"../../lib/destructor":32,"../../lib/errors":34,"../../lib/event-emitter":35,"../../lib/methods":38,"../../lib/promise":41,"../../lib/uuid":43,"../shared/constants":18,"../shared/errors":19,"../shared/find-parent-tags":20,"./attribute-validation-error":13,"./compose-url":14,"./inject-frame":16,"browser-detection/is-ios":1,"credit-card-type":2,"iframer":4,"wrap-promise":12}],16:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function injectFrame(frame, container) {
@@ -1848,7 +1884,7 @@ module.exports = function injectFrame(frame, container) {
 var HostedFields = _dereq_('./external/hosted-fields');
 var wrapPromise = _dereq_('wrap-promise');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.13.0";
+var VERSION = "3.14.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -1998,13 +2034,13 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/promise":42,"./external/hosted-fields":15,"wrap-promise":12}],18:[function(_dereq_,module,exports){
+},{"../lib/promise":41,"./external/hosted-fields":15,"wrap-promise":12}],18:[function(_dereq_,module,exports){
 'use strict';
 /* eslint-disable no-reserved-keys */
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.13.0";
+var VERSION = "3.14.0";
 
 var constants = {
   VERSION: VERSION,
@@ -2117,13 +2153,12 @@ constants.events = enumerate([
   'REMOVE_CLASS',
   'SET_ATTRIBUTE',
   'REMOVE_ATTRIBUTE',
-  'CLEAR_FIELD',
-  'FOCUS_FIELD'
+  'CLEAR_FIELD'
 ], 'hosted-fields:');
 
 module.exports = constants;
 
-},{"../../lib/enumerate":34,"./errors":19}],19:[function(_dereq_,module,exports){
+},{"../../lib/enumerate":33,"./errors":19}],19:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../lib/braintree-error');
@@ -2249,7 +2284,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":29,"./create-authorization-data":31,"./json-clone":38}],22:[function(_dereq_,module,exports){
+},{"./constants":29,"./create-authorization-data":31,"./json-clone":37}],22:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('./constants');
@@ -2327,7 +2362,7 @@ module.exports = function (functions, cb) {
   }
 };
 
-},{"./once":40}],24:[function(_dereq_,module,exports){
+},{"./once":39}],24:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -2412,7 +2447,7 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":34}],25:[function(_dereq_,module,exports){
+},{"./enumerate":33}],25:[function(_dereq_,module,exports){
 'use strict';
 
 var isWhitelistedDomain = _dereq_('../is-whitelisted-domain');
@@ -2444,7 +2479,7 @@ module.exports = {
   checkOrigin: checkOrigin
 };
 
-},{"../is-whitelisted-domain":37}],26:[function(_dereq_,module,exports){
+},{"../is-whitelisted-domain":36}],26:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../enumerate');
@@ -2453,7 +2488,7 @@ module.exports = enumerate([
   'CONFIGURATION_REQUEST'
 ], 'bus:');
 
-},{"../enumerate":34}],27:[function(_dereq_,module,exports){
+},{"../enumerate":33}],27:[function(_dereq_,module,exports){
 'use strict';
 
 var bus = _dereq_('framebus');
@@ -2626,7 +2661,7 @@ module.exports = {
 },{}],29:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.13.0";
+var VERSION = "3.14.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -2658,7 +2693,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"./braintree-error":24,"./errors":35}],31:[function(_dereq_,module,exports){
+},{"./braintree-error":24,"./errors":34}],31:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/polyfill').atob;
@@ -2707,21 +2742,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":41}],32:[function(_dereq_,module,exports){
-'use strict';
-
-module.exports = function (fn) {
-  return function () {
-    // IE9 doesn't support passing arguments to setTimeout so we have to emulate it.
-    var args = arguments;
-
-    setTimeout(function () {
-      fn.apply(null, args);
-    }, 1);
-  };
-};
-
-},{}],33:[function(_dereq_,module,exports){
+},{"../lib/polyfill":40}],32:[function(_dereq_,module,exports){
 'use strict';
 
 var batchExecuteFunctions = _dereq_('./batch-execute-functions');
@@ -2758,7 +2779,7 @@ Destructor.prototype.teardown = function (callback) {
 
 module.exports = Destructor;
 
-},{"./batch-execute-functions":23}],34:[function(_dereq_,module,exports){
+},{"./batch-execute-functions":23}],33:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -2772,7 +2793,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],35:[function(_dereq_,module,exports){
+},{}],34:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -2805,7 +2826,7 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":24}],36:[function(_dereq_,module,exports){
+},{"./braintree-error":24}],35:[function(_dereq_,module,exports){
 'use strict';
 
 function EventEmitter() {
@@ -2835,7 +2856,7 @@ EventEmitter.prototype._emit = function (event) {
 
 module.exports = EventEmitter;
 
-},{}],37:[function(_dereq_,module,exports){
+},{}],36:[function(_dereq_,module,exports){
 'use strict';
 
 var parser;
@@ -2870,14 +2891,14 @@ function isWhitelistedDomain(url) {
 
 module.exports = isWhitelistedDomain;
 
-},{}],38:[function(_dereq_,module,exports){
+},{}],37:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],39:[function(_dereq_,module,exports){
+},{}],38:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -2886,9 +2907,9 @@ module.exports = function (obj) {
   });
 };
 
-},{}],40:[function(_dereq_,module,exports){
+},{}],39:[function(_dereq_,module,exports){
 arguments[4][10][0].apply(exports,arguments)
-},{"dup":10}],41:[function(_dereq_,module,exports){
+},{"dup":10}],40:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -2929,7 +2950,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],42:[function(_dereq_,module,exports){
+},{}],41:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -2938,7 +2959,7 @@ var Promise = global.Promise || _dereq_('promise-polyfill');
 module.exports = Promise;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":8}],43:[function(_dereq_,module,exports){
+},{"promise-polyfill":8}],42:[function(_dereq_,module,exports){
 'use strict';
 
 function useMin(isDebug) {
@@ -2947,7 +2968,7 @@ function useMin(isDebug) {
 
 module.exports = useMin;
 
-},{}],44:[function(_dereq_,module,exports){
+},{}],43:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {

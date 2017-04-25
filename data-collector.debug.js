@@ -305,6 +305,39 @@ function wrapPromise(fn) {
   };
 }
 
+wrapPromise.wrapPrototype = function (target, options) {
+  var methods, ignoreMethods, includePrivateMethods;
+
+  options = options || {};
+  ignoreMethods = options.ignoreMethods || [];
+  includePrivateMethods = options.transformPrivateMethods === true;
+
+  methods = Object.getOwnPropertyNames(target.prototype).filter(function (method) {
+    var isNotPrivateMethod;
+    var isNonConstructorFunction = method !== 'constructor' &&
+      typeof target.prototype[method] === 'function';
+    var isNotAnIgnoredMethod = ignoreMethods.indexOf(method) === -1;
+
+    if (includePrivateMethods) {
+      isNotPrivateMethod = true;
+    } else {
+      isNotPrivateMethod = method.charAt(0) !== '_';
+    }
+
+    return isNonConstructorFunction &&
+      isNotPrivateMethod &&
+      isNotAnIgnoredMethod;
+  });
+
+  methods.forEach(function (method) {
+    var original = target.prototype[method];
+
+    target.prototype[method] = wrapPromise(original);
+  });
+
+  return target;
+};
+
 module.exports = wrapPromise;
 
 },{"./lib/deferred":2,"./lib/once":3,"./lib/promise-or-callback":4}],6:[function(_dereq_,module,exports){
@@ -441,7 +474,7 @@ var fraudnet = _dereq_('./fraudnet');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var methods = _dereq_('../lib/methods');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
-var VERSION = "3.13.0";
+var VERSION = "3.14.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -476,7 +509,7 @@ var errors = _dereq_('./errors');
  * dataCollectorInstance.teardown(function () {
  *   // teardown is complete
  * });
- * @returns {Promise|void} If no callback is provided, returns a promise that resolves when the teardown is complete.
+ * @returns {Promise|void} Returns a promise if no callback is provided.
  */
 
 /**
