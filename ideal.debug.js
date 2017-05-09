@@ -1,4 +1,4 @@
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}(g.braintree || (g.braintree = {})).masterpass = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}(g.braintree || (g.braintree = {})).ideal = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 'use strict';
 
 var isAndroid = _dereq_('./is-android');
@@ -806,6 +806,505 @@ module.exports = wrapPromise;
 },{"./lib/deferred":13,"./lib/once":14,"./lib/promise-or-callback":15}],17:[function(_dereq_,module,exports){
 'use strict';
 
+module.exports = {
+  MAX_TRANSACTION_STATUS_POLLING_RETRIES: 5,
+  POLL_RETRY_TIME: 10000,
+  REQUIRED_OPTIONS_FOR_START_PAYMENT: ['orderId', 'amount', 'currency']
+};
+
+},{}],18:[function(_dereq_,module,exports){
+'use strict';
+
+var Promise = _dereq_('../../lib/promise');
+var frameService = _dereq_('../../lib/frame-service/external');
+var BraintreeError = _dereq_('../../lib/braintree-error');
+var convertToBraintreeError = _dereq_('../../lib/convert-to-braintree-error');
+var errors = _dereq_('../shared/errors');
+var VERSION = "3.15.0";
+var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
+var methods = _dereq_('../../lib/methods');
+var wrapPromise = _dereq_('wrap-promise');
+var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
+var analytics = _dereq_('../../lib/analytics');
+var useMin = _dereq_('../../lib/use-min');
+var once = _dereq_('../../lib/once');
+var deferred = _dereq_('../../lib/deferred');
+var constants = _dereq_('./constants');
+var events = _dereq_('../shared/events');
+
+/**
+ * @typedef {object} iDEAL~startPaymentPayload
+ * @property {string} nonce The payment method nonce.
+ * @property {object} details Additional iDEAL payment details.
+ * @property {string} details.id The identifier for the iDEAL Payment.
+ * @property {string} details.status The status of the iDEAL Payment.
+ * @property {string} type The payment method type, always `IdealPayment`.
+ */
+
+/**
+ * @class
+ * @param {object} options see {@link module:braintree-web/ideal.create|ideal.create}
+ * @description <strong>You cannot use this constructor directly. Use {@link module:braintree-web/ideal.create|braintree.ideal.create} instead.</strong>
+ * @classdesc This class represents an iDEAL component. Instances of this class have methods for launching a new window to process a transaction with iDEAL.
+ */
+function Ideal(options) {
+  var configuration = options.client.getConfiguration();
+
+  this._client = options.client;
+  this._assetsUrl = configuration.gatewayConfiguration.assetsUrl + '/web/' + VERSION;
+  this._isDebug = configuration.isDebug;
+  this._idealPaymentStatus = {
+    authInProgress: false,
+    id: '',
+    status: ''
+  };
+}
+
+Ideal.prototype._initialize = function () {
+  var self = this;
+
+  var failureTimeout = setTimeout(function () {
+    analytics.sendEvent(self._client, 'ideal.load.timed-out');
+  }, INTEGRATION_TIMEOUT_MS);
+
+  return this._client.request({
+    api: 'braintreeApi',
+    method: 'get',
+    endpoint: 'issuers/ideal'
+  }).then(function (response) {
+    return new Promise(function (resolve) {
+      frameService.create({
+        name: 'braintreeideallanding',
+        dispatchFrameUrl: self._assetsUrl + '/html/dispatch-frame' + useMin(self._isDebug) + '.html',
+        openFrameUrl: self._assetsUrl + '/html/ideal-issuers-frame' + useMin(self._isDebug) + '.html',
+        state: {bankData: response.data}
+      }, function (service) {
+        self._frameService = service;
+        clearTimeout(failureTimeout);
+        analytics.sendEvent(self._client, 'ideal.load.succeeded');
+
+        self._frameService._bus.on(events.BANK_CHOSEN, self._createBankChosenHandler());
+        self._frameService._bus.on(events.REDIRECT_PAGE_REACHED, self._createRedirectPageReachedHandler());
+
+        resolve(self);
+      });
+    });
+  });
+};
+
+/**
+ * Launches the iDEAL flow and returns a nonce payload. Only one iDEAL flow should be active at a time. One way to achieve this is to disable your iDEAL button while the flow is open.
+ * @public
+ * @function
+ * @param {object} options All options for initiating the iDEAL payment flow.
+ * @param {string} options.orderId An ID supplied by the merchant for creating the iDEAL transaction.
+ * @param {string} options.amount The amount to authorize for the transaction.
+ * @param {string} options.currency The currency to process the payment.
+ * @param {string} [options.descriptor] An optional string that will appear on the customer's bank statement.
+ * @param {function} options.onPaymentStart A function that will be called with an object containing the iDEAL Payment `id` and `status` when the customer chooses an issuing bank. You can use this hook to update your payment page.
+ * @param {callback} [callback] The second argument, <code>data</code>, is a {@link iDEAL~startPaymentPayload|startPaymentPayload}. If no callback is provided, the method will return a Promise that resolves with a {@link iDEAL~startPaymentPayload|startPaymentPayload}.
+ * @example
+ * button.addEventListener('click', function () {
+ *   // Disable the button when iDEAL payment is in progress
+ *   button.setAttribute('disabled', 'disabled');
+ *
+ *   // Because startPayment opens a new window, this must be called
+ *   // as a result of a user action, such as a button click.
+ *   idealInstance.startPayment({
+ *     orderId: 'some id',
+ *     amount: '10.00',
+ *     currency: 'EUR',
+ *     descriptor: 'Merchant Name',
+ *     onPaymentStart: function (data) {
+ *       // disable payment form on the page
+ *     }
+ *   }).then(function (payload) {
+ *     button.removeAttribute('disabled');
+ *     // Submit payload.nonce to your server
+ *   }).catch(function (startPaymentError) {
+ *     button.removeAttribute('disabled');
+ *     // Handle flow errors or premature flow closure
+ *
+ *     switch (startPaymentError.code) {
+ *       case 'IDEAL_WINDOW_CLOSED':
+ *         console.error('Customer closed iDEAL window.');
+ *         break;
+ *       case 'IDEAL_START_PAYMENT_FAILED':
+ *         console.error('iDEAL startPayment failed. See details:', startPaymentError.details);
+ *         break;
+ *       default:
+ *         console.error('Error!', startPaymentError);
+ *     }
+ *   });
+ * });
+ * @returns {Promise|void}
+ */
+Ideal.prototype.startPayment = wrapPromise(function (options) {
+  var self = this; // eslint-disable-line no-invalid-this
+
+  return new Promise(function (resolve, reject) {
+    if (!options || hasMissingOption(options)) {
+      reject(new BraintreeError(errors.IDEAL_START_PAYMENT_MISSING_REQUIRED_OPTION));
+      return;
+    }
+
+    if (self._idealPaymentStatus.authInProgress) {
+      analytics.sendEvent(self._client, 'ideal.start-payment.error.already-opened');
+      reject(new BraintreeError(errors.IDEAL_PAYMENT_ALREADY_IN_PROGRESS));
+      return;
+    }
+
+    self._idealPaymentStatus.authInProgress = true;
+    analytics.sendEvent(self._client, 'ideal.start-payment.opened');
+
+    self._startPaymentCallback = self._createStartPaymentCallback(resolve, reject);
+    self._startPaymentOptions = options;
+
+    self._frameService.open(self._startPaymentCallback);
+  });
+});
+
+/**
+ * Closes the iDEAL window if it is open.
+ * @public
+ * @example
+ * idealInstance.closeWindow();
+ * @returns {void}
+ */
+Ideal.prototype.closeWindow = function () {
+  if (this._idealPaymentStatus.authInProgress) {
+    analytics.sendEvent(this._client, 'ideal.start-payment.closed.by-merchant');
+  }
+  this._frameService.close();
+};
+
+/**
+ * Focuses the iDEAL window if it is open.
+ * @public
+ * @example
+ * idealInstance.focusWindow();
+ * @returns {void}
+ */
+Ideal.prototype.focusWindow = function () {
+  this._frameService.focus();
+};
+
+Ideal.prototype._createRedirectPageReachedHandler = function () {
+  var self = this;
+
+  return function () {
+    self._pollForCompleteTransactionStatus(0);
+  };
+};
+
+Ideal.prototype._createStartPaymentCallback = function (resolve, reject) {
+  var self = this;
+
+  return function (err) {
+    var idealPaymentId = self._idealPaymentStatus.id;
+    var idealPaymentStatus = self._idealPaymentStatus.status;
+
+    self._idealPaymentStatus.authInProgress = false;
+    delete self._idealPaymentStatus.id;
+    delete self._idealPaymentStatus.status;
+
+    self._frameService.close();
+
+    if (shouldResolveWithSuccess(err, idealPaymentStatus)) {
+      analytics.sendEvent(self._client, 'ideal.start-payment.success-' + idealPaymentStatus.toLowerCase());
+      resolve({
+        nonce: idealPaymentId,
+        type: 'IdealPayment',
+        details: {
+          id: idealPaymentId,
+          status: idealPaymentStatus
+        }
+      });
+      return;
+    }
+
+    if (err) {
+      if (err.code === 'FRAME_SERVICE_FRAME_CLOSED') {
+        analytics.sendEvent(self._client, 'ideal.start-payment.closed.by-user');
+        reject(new BraintreeError(errors.IDEAL_WINDOW_CLOSED));
+        return;
+      } else if (err.code === 'FRAME_SERVICE_FRAME_OPEN_FAILED') {
+        reject(new BraintreeError(errors.IDEAL_WINDOW_OPEN_FAILED));
+        return;
+      }
+
+      analytics.sendEvent(self._client, 'ideal.start-payment.failed');
+
+      reject(convertToBraintreeError(err, errors.IDEAL_START_PAYMENT_FAILED));
+    } else {
+      reject(new BraintreeError(errors.IDEAL_START_PAYMENT_UNEXPECTED_STATUS));
+    }
+  };
+};
+
+function shouldResolveWithSuccess(err, status) {
+  if (err && err.code !== 'FRAME_SERVICE_FRAME_CLOSED') {
+    return false;
+  }
+
+  return status === 'COMPLETE' || status === 'PENDING';
+}
+
+Ideal.prototype._createBankChosenHandler = function () {
+  var self = this;
+
+  return function (config) {
+    var options = self._startPaymentOptions;
+    var onPaymentStart;
+
+    if (typeof options.onPaymentStart === 'function') {
+      onPaymentStart = once(deferred(options.onPaymentStart));
+    } else {
+      onPaymentStart = function noop() {};
+    }
+
+    self._client.request({
+      api: 'braintreeApi',
+      method: 'post',
+      data: {
+        route_id: self._client.getConfiguration().gatewayConfiguration.ideal.routeId, // eslint-disable-line camelcase
+        issuer: config.issuingBankId,
+        order_id: options.orderId, // eslint-disable-line camelcase
+        amount: options.amount,
+        currency: options.currency,
+        descriptor: options.descriptor,
+        redirect_url: self._assetsUrl + '/html/ideal-redirect-frame.html' // eslint-disable-line camelcase
+      },
+      endpoint: 'ideal-payments'
+    }).then(function (response) {
+      onPaymentStart({
+        id: response.data.id,
+        status: response.data.status
+      });
+
+      self._idealPaymentStatus.id = response.data.id;
+      self._idealPaymentStatus.status = response.data.status;
+      self._frameService.redirect(response.data.approval_url);
+    }).catch(function (err) {
+      self._idealPaymentStatus.authInProgress = false;
+      self._startPaymentCallback(err);
+    });
+  };
+};
+
+Ideal.prototype._pollForCompleteTransactionStatus = function (retryCount) {
+  var self = this;
+
+  if (!this._idealPaymentStatus.id) {
+    this._startPaymentCallback(errors.IDEAL_PAYMENT_ALREADY_IN_PROGRESS);
+    return;
+  }
+
+  this._client.request({
+    api: 'braintreeApi',
+    method: 'get',
+    endpoint: 'ideal-payments/' + this._idealPaymentStatus.id + '/status'
+  }).then(function (response) {
+    self._idealPaymentStatus.status = response.data.status;
+
+    if (response.data.status === 'PENDING' && retryCount < constants.MAX_TRANSACTION_STATUS_POLLING_RETRIES) {
+      setTimeout(function () {
+        self._pollForCompleteTransactionStatus(retryCount + 1);
+      }, constants.POLL_RETRY_TIME);
+    } else if (response.data.status === 'COMPLETE' || response.data.status === 'PENDING') {
+      self._startPaymentCallback();
+    } else {
+      self._startPaymentCallback(new BraintreeError({
+        code: errors.IDEAL_PAYMENT_NOT_COMPLETE_OR_PENDING.code,
+        type: errors.IDEAL_PAYMENT_NOT_COMPLETE_OR_PENDING.type,
+        message: 'Transaction is not complete. It has a status of: ' + response.data.status
+      }));
+    }
+  }).catch(self._startPaymentCallback);
+};
+
+function hasMissingOption(options) {
+  var i, option;
+
+  for (i = 0; i < constants.REQUIRED_OPTIONS_FOR_START_PAYMENT.length; i++) {
+    option = constants.REQUIRED_OPTIONS_FOR_START_PAYMENT[i];
+
+    if (!options.hasOwnProperty(option)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Cleanly tear down anything set up by {@link module:braintree-web/ideal.create|create}.
+ * @public
+ * @function
+ * @param {callback} [callback] Called once teardown is complete. No data is returned if teardown completes successfully.
+ * @returns {Promise|void} If no callback is provided, returns a promise.
+ */
+Ideal.prototype.teardown = wrapPromise(function () {
+  var self = this; // eslint-disable-line no-invalid-this
+
+  self._frameService.teardown();
+
+  convertMethodsToError(self, methods(Ideal.prototype));
+
+  analytics.sendEvent(self._client, 'ideal.teardown-completed');
+
+  return Promise.resolve();
+});
+
+module.exports = Ideal;
+
+},{"../../lib/analytics":23,"../../lib/braintree-error":25,"../../lib/constants":29,"../../lib/convert-methods-to-error":30,"../../lib/convert-to-braintree-error":31,"../../lib/deferred":33,"../../lib/frame-service/external":37,"../../lib/methods":48,"../../lib/once":49,"../../lib/promise":51,"../../lib/use-min":52,"../shared/errors":20,"../shared/events":21,"./constants":17,"wrap-promise":16}],19:[function(_dereq_,module,exports){
+'use strict';
+/** @module braintree-web/ideal */
+
+var BraintreeError = _dereq_('../lib/braintree-error');
+var browserDetection = _dereq_('browser-detection');
+var Ideal = _dereq_('./external/ideal');
+var VERSION = "3.15.0";
+var errors = _dereq_('./shared/errors');
+var sharedErrors = _dereq_('../lib/errors');
+var analytics = _dereq_('../lib/analytics');
+var Promise = _dereq_('../lib/promise');
+var wrapPromise = _dereq_('wrap-promise');
+
+/**
+ * @static
+ * @function create
+ * @param {object} options Creation options:
+ * @param {Client} options.client A {@link Client} instance.
+ * @param {callback} [callback] The second argument, `data`, is the {@link Ideal} instance. If no callback is passed in, the create function returns a promise that resolves the {@link Ideal} instance.
+ * @example
+ * braintree.ideal.create({
+ *   client: clientInstance
+ * }, function (createErr, idealInstance) {
+ *   if (createErr) {
+ *     if (createErr.code === 'IDEAL_BROWSER_NOT_SUPPORTED') {
+ *       console.error('This browser is not supported.');
+ *     } else {
+ *       console.error('Error!', createErr);
+ *     }
+ *     return;
+ *   }
+ * });
+ * @returns {Promise|void} Resolves with the iDEAL Payment instance.
+ */
+function create(options) {
+  var idealInstance, clientVersion, configuration;
+
+  if (options.client == null) {
+    return Promise.reject(new BraintreeError({
+      type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
+      code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
+      message: 'options.client is required when instantiating iDEAL.'
+    }));
+  }
+
+  clientVersion = options.client.getConfiguration().analyticsMetadata.sdkVersion;
+  if (clientVersion !== VERSION) {
+    return Promise.reject(new BraintreeError({
+      type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
+      code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
+      message: 'Client (version ' + clientVersion + ') and iDEAL (version ' + VERSION + ') components must be from the same SDK version.'
+    }));
+  }
+
+  if (!browserDetection.supportsPopups()) {
+    return Promise.reject(new BraintreeError(errors.IDEAL_BROWSER_NOT_SUPPORTED));
+  }
+
+  configuration = options.client.getConfiguration().gatewayConfiguration;
+  if (!configuration.braintreeApi) {
+    return Promise.reject(new BraintreeError(sharedErrors.BRAINTREE_API_ACCESS_RESTRICTED));
+  } else if (!configuration.ideal) {
+    return Promise.reject(new BraintreeError(errors.IDEAL_NOT_ENABLED));
+  }
+
+  analytics.sendEvent(options.client, 'ideal.initialization');
+  idealInstance = new Ideal(options);
+
+  return idealInstance._initialize();
+}
+
+module.exports = {
+  create: wrapPromise(create),
+  /**
+   * @description The current version of the SDK, i.e. `{@pkg version}`.
+   * @type {string}
+   */
+  VERSION: VERSION
+};
+
+},{"../lib/analytics":23,"../lib/braintree-error":25,"../lib/errors":35,"../lib/promise":51,"./external/ideal":18,"./shared/errors":20,"browser-detection":1,"wrap-promise":16}],20:[function(_dereq_,module,exports){
+'use strict';
+
+var BraintreeError = _dereq_('../../lib/braintree-error');
+
+module.exports = {
+  IDEAL_BROWSER_NOT_SUPPORTED: {
+    type: BraintreeError.types.CUSTOMER,
+    code: 'IDEAL_BROWSER_NOT_SUPPORTED',
+    message: 'Browser is not supported.'
+  },
+  IDEAL_NOT_ENABLED: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'IDEAL_NOT_ENABLED',
+    message: 'iDEAL is not enabled for this merchant.'
+  },
+  IDEAL_PAYMENT_ALREADY_IN_PROGRESS: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'IDEAL_PAYMENT_ALREADY_IN_PROGRESS',
+    message: 'iDEAL payment is already in progress.'
+  },
+  IDEAL_PAYMENT_NOT_COMPLETE_OR_PENDING: {
+    code: 'IDEAL_PAYMENT_NOT_COMPLETE_OR_PENDING',
+    type: BraintreeError.types.CUSTOMER
+  },
+  IDEAL_WINDOW_CLOSED: {
+    type: BraintreeError.types.CUSTOMER,
+    code: 'IDEAL_WINDOW_CLOSED',
+    message: 'Customer closed iDEAL window before authorizing.'
+  },
+  IDEAL_WINDOW_OPEN_FAILED: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'IDEAL_WINDOW_OPEN_FAILED',
+    message: 'iDEAL window failed to open; make sure startPayment was called in response to a user action.'
+  },
+  IDEAL_START_PAYMENT_FAILED: {
+    type: BraintreeError.types.NETWORK,
+    code: 'IDEAL_START_PAYMENT_FAILED',
+    message: 'iDEAL startPayment failed.'
+  },
+  IDEAL_START_PAYMENT_UNEXPECTED_STATUS: {
+    type: BraintreeError.types.INTERNAL,
+    code: 'IDEAL_START_PAYMENT_UNEXPECTED_STATUS',
+    message: 'iDEAL startPayment returned an unexpected status without an error.'
+  },
+  IDEAL_START_PAYMENT_MISSING_REQUIRED_OPTION: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'IDEAL_START_PAYMENT_MISSING_REQUIRED_OPTION',
+    message: 'Missing required option for startPayment.'
+  }
+};
+
+
+},{"../../lib/braintree-error":25}],21:[function(_dereq_,module,exports){
+'use strict';
+
+var enumerate = _dereq_('../../lib/enumerate');
+
+module.exports = enumerate([
+  'BANK_CHOSEN',
+  'REDIRECT_PAGE_REACHED'
+], 'ideal:');
+
+},{"../../lib/enumerate":34}],22:[function(_dereq_,module,exports){
+'use strict';
+
 var createAuthorizationData = _dereq_('./create-authorization-data');
 var jsonClone = _dereq_('./json-clone');
 var constants = _dereq_('./constants');
@@ -837,7 +1336,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":24,"./create-authorization-data":27,"./json-clone":41}],18:[function(_dereq_,module,exports){
+},{"./constants":29,"./create-authorization-data":32,"./json-clone":47}],23:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('./constants');
@@ -871,7 +1370,7 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":17,"./constants":24}],19:[function(_dereq_,module,exports){
+},{"./add-metadata":22,"./constants":29}],24:[function(_dereq_,module,exports){
 'use strict';
 
 var assignNormalized = typeof Object.assign === 'function' ? Object.assign : assignPolyfill;
@@ -896,7 +1395,7 @@ module.exports = {
   _assign: assignPolyfill
 };
 
-},{}],20:[function(_dereq_,module,exports){
+},{}],25:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -981,7 +1480,7 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":28}],21:[function(_dereq_,module,exports){
+},{"./enumerate":34}],26:[function(_dereq_,module,exports){
 'use strict';
 
 var isWhitelistedDomain = _dereq_('../is-whitelisted-domain');
@@ -1013,7 +1512,7 @@ module.exports = {
   checkOrigin: checkOrigin
 };
 
-},{"../is-whitelisted-domain":40}],22:[function(_dereq_,module,exports){
+},{"../is-whitelisted-domain":46}],27:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../enumerate');
@@ -1022,7 +1521,7 @@ module.exports = enumerate([
   'CONFIGURATION_REQUEST'
 ], 'bus:');
 
-},{"../enumerate":28}],23:[function(_dereq_,module,exports){
+},{"../enumerate":34}],28:[function(_dereq_,module,exports){
 'use strict';
 
 var bus = _dereq_('framebus');
@@ -1153,7 +1652,7 @@ BraintreeBus.events = events;
 
 module.exports = BraintreeBus;
 
-},{"../braintree-error":20,"./check-origin":21,"./events":22,"framebus":7}],24:[function(_dereq_,module,exports){
+},{"../braintree-error":25,"./check-origin":26,"./events":27,"framebus":7}],29:[function(_dereq_,module,exports){
 'use strict';
 
 var VERSION = "3.15.0";
@@ -1170,7 +1669,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],25:[function(_dereq_,module,exports){
+},{}],30:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -1188,7 +1687,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"./braintree-error":20,"./errors":29}],26:[function(_dereq_,module,exports){
+},{"./braintree-error":25,"./errors":35}],31:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -1210,7 +1709,7 @@ function convertToBraintreeError(originalErr, btErrorObject) {
 
 module.exports = convertToBraintreeError;
 
-},{"./braintree-error":20}],27:[function(_dereq_,module,exports){
+},{"./braintree-error":25}],32:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/polyfill').atob;
@@ -1259,7 +1758,21 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":43}],28:[function(_dereq_,module,exports){
+},{"../lib/polyfill":50}],33:[function(_dereq_,module,exports){
+'use strict';
+
+module.exports = function (fn) {
+  return function () {
+    // IE9 doesn't support passing arguments to setTimeout so we have to emulate it.
+    var args = arguments;
+
+    setTimeout(function () {
+      fn.apply(null, args);
+    }, 1);
+  };
+};
+
+},{}],34:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -1273,7 +1786,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],29:[function(_dereq_,module,exports){
+},{}],35:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -1306,7 +1819,7 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":20}],30:[function(_dereq_,module,exports){
+},{"./braintree-error":25}],36:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1525,7 +2038,7 @@ FrameService.prototype._getFrameForEnvironment = function () {
 module.exports = FrameService;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../braintree-error":20,"../../bus":23,"../../uuid":45,"../shared/constants":37,"../shared/errors":38,"../shared/events":39,"./strategies/modal":32,"./strategies/popup":35,"./strategies/popup-bridge":33,"browser-detection":1,"iframer":8}],31:[function(_dereq_,module,exports){
+},{"../../braintree-error":25,"../../bus":28,"../../uuid":53,"../shared/constants":43,"../shared/errors":44,"../shared/events":45,"./strategies/modal":38,"./strategies/popup":41,"./strategies/popup-bridge":39,"browser-detection":1,"iframer":8}],37:[function(_dereq_,module,exports){
 'use strict';
 
 var FrameService = _dereq_('./frame-service');
@@ -1540,7 +2053,7 @@ module.exports = {
   }
 };
 
-},{"./frame-service":30}],32:[function(_dereq_,module,exports){
+},{"./frame-service":36}],38:[function(_dereq_,module,exports){
 'use strict';
 
 var iFramer = _dereq_('iframer');
@@ -1613,7 +2126,7 @@ Modal.prototype.redirect = function (redirectUrl) {
 
 module.exports = Modal;
 
-},{"../../../assign":19,"browser-detection":1,"iframer":8}],33:[function(_dereq_,module,exports){
+},{"../../../assign":24,"browser-detection":1,"iframer":8}],39:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1670,7 +2183,7 @@ PopupBridge.prototype.redirect = function (redirectUrl) {
 module.exports = PopupBridge;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../../braintree-error":20,"../../shared/errors":38}],34:[function(_dereq_,module,exports){
+},{"../../../braintree-error":25,"../../shared/errors":44}],40:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('../../../shared/constants');
@@ -1689,7 +2202,7 @@ module.exports = function composePopupOptions(options) {
   ].join(',');
 };
 
-},{"../../../shared/constants":37,"./position":36}],35:[function(_dereq_,module,exports){
+},{"../../../shared/constants":43,"./position":42}],41:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1733,7 +2246,7 @@ Popup.prototype.redirect = function (redirectUrl) {
 module.exports = Popup;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./compose-options":34}],36:[function(_dereq_,module,exports){
+},{"./compose-options":40}],42:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1762,7 +2275,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],37:[function(_dereq_,module,exports){
+},{}],43:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -1775,7 +2288,7 @@ module.exports = {
   POPUP_CLOSE_TIMEOUT: 100
 };
 
-},{}],38:[function(_dereq_,module,exports){
+},{}],44:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../braintree-error');
@@ -1793,7 +2306,7 @@ module.exports = {
   }
 };
 
-},{"../../braintree-error":20}],39:[function(_dereq_,module,exports){
+},{"../../braintree-error":25}],45:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../../enumerate');
@@ -1803,7 +2316,7 @@ module.exports = enumerate([
   'DISPATCH_FRAME_REPORT'
 ], 'frameService:');
 
-},{"../../enumerate":28}],40:[function(_dereq_,module,exports){
+},{"../../enumerate":34}],46:[function(_dereq_,module,exports){
 'use strict';
 
 var parser;
@@ -1838,14 +2351,14 @@ function isWhitelistedDomain(url) {
 
 module.exports = isWhitelistedDomain;
 
-},{}],41:[function(_dereq_,module,exports){
+},{}],47:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],42:[function(_dereq_,module,exports){
+},{}],48:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -1854,7 +2367,9 @@ module.exports = function (obj) {
   });
 };
 
-},{}],43:[function(_dereq_,module,exports){
+},{}],49:[function(_dereq_,module,exports){
+arguments[4][14][0].apply(exports,arguments)
+},{"dup":14}],50:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1895,7 +2410,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],44:[function(_dereq_,module,exports){
+},{}],51:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1904,7 +2419,16 @@ var Promise = global.Promise || _dereq_('promise-polyfill');
 module.exports = Promise;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":12}],45:[function(_dereq_,module,exports){
+},{"promise-polyfill":12}],52:[function(_dereq_,module,exports){
+'use strict';
+
+function useMin(isDebug) {
+  return isDebug ? '' : '.min';
+}
+
+module.exports = useMin;
+
+},{}],53:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {
@@ -1918,502 +2442,5 @@ function uuid() {
 
 module.exports = uuid;
 
-},{}],46:[function(_dereq_,module,exports){
-(function (global){
-'use strict';
-
-var Promise = _dereq_('../../lib/promise');
-var frameService = _dereq_('../../lib/frame-service/external');
-var BraintreeError = _dereq_('../../lib/braintree-error');
-var errors = _dereq_('../shared/errors');
-var VERSION = "3.15.0";
-var methods = _dereq_('../../lib/methods');
-var wrapPromise = _dereq_('wrap-promise');
-var analytics = _dereq_('../../lib/analytics');
-var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
-var convertToBraintreeError = _dereq_('../../lib/convert-to-braintree-error');
-var constants = _dereq_('../shared/constants');
-
-var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
-
-/**
- * Masterpass Address object.
- * @typedef {object} Masterpass~Address
- * @property {string} countryCodeAlpha2 The customer's country code.
- * @property {string} extendedAddress The customer's extended address.
- * @property {string} locality The customer's locality.
- * @property {string} postalCode The customer's postal code.
- * @property {string} region The customer's region.
- * @property {string} streetAddress The customer's street address.
- */
-
-/**
- * @typedef {object} Masterpass~tokenizePayload
- * @property {string} nonce The payment method nonce.
- * @property {string} description The human readable description.
- * @property {string} type The payment method type, always `MasterpassCard`.
- * @property {object} details Additional account details.
- * @property {string} details.cardType Type of card, ex: Visa, MasterCard.
- * @property {string} details.lastTwo Last two digits of card number.
- * @property {Masterpass~Address} billingAddress The customer's billing address.
- * @property {Masterpass~Address} shippingAddress The customer's shipping address.
- */
-
-/**
- * @class
- * @param {object} options see {@link module:braintree-web/masterpass.create|masterpass.create}
- * @description <strong>You cannot use this constructor directly. Use {@link module:braintree-web/masterpass.create|braintree.masterpass.create} instead.</strong>
- * @classdesc This class represents an Masterpass component. Instances of this class have methods for launching a new window to process a transaction with Masterpass.
- */
-function Masterpass(options) {
-  var configuration = options.client.getConfiguration();
-
-  this._client = options.client;
-  this._assetsUrl = configuration.gatewayConfiguration.assetsUrl + '/web/' + VERSION;
-  this._isDebug = configuration.isDebug;
-  this._authInProgress = false;
-  if (global.popupBridge && typeof global.popupBridge.getReturnUrlPrefix === 'function') {
-    this._callbackUrl = global.popupBridge.getReturnUrlPrefix() + 'return';
-  } else {
-    this._callbackUrl = this._assetsUrl + '/html/masterpass-redirect-frame' + (this._isDebug ? '' : '.min') + '.html';
-  }
-}
-
-Masterpass.prototype._initialize = function () {
-  var self = this;
-
-  return new Promise(function (resolve) {
-    var failureTimeout = setTimeout(function () {
-      analytics.sendEvent(self._client, 'masterpass.load.timed-out');
-    }, INTEGRATION_TIMEOUT_MS);
-
-    frameService.create({
-      name: constants.LANDING_FRAME_NAME,
-      height: constants.POPUP_HEIGHT,
-      width: constants.POPUP_WIDTH,
-      dispatchFrameUrl: self._assetsUrl + '/html/dispatch-frame' + (self._isDebug ? '' : '.min') + '.html',
-      openFrameUrl: self._assetsUrl + '/html/masterpass-landing-frame' + (self._isDebug ? '' : '.min') + '.html'
-    }, function (service) {
-      self._frameService = service;
-      clearTimeout(failureTimeout);
-      analytics.sendEvent(self._client, 'masterpass.load.succeeded');
-      resolve(self);
-    });
-  });
-};
-
-/**
- * Launches the Masterpass flow and returns a nonce payload. Only one Masterpass flow should be active at a time. One way to achieve this is to disable your Masterpass button while the flow is open.
- * @public
- * @param {object} options All options for initiating the Masterpass payment flow.
- * @param {string} options.currencyCode The currency code to process the payment.
- * @param {string} options.subtotal The amount to authorize for the transaction.
- * @param {object} options.config All configuration parameters accepted by Masterpass lightbox, except `function` data type. These options will override the values set by Braintree server. Please see {@link Masterpass Lightbox Parameters|https://developer.mastercard.com/page/masterpass-lightbox-parameters} for more information.
- * @param {callback} [callback] The second argument, <code>data</code>, is a {@link Masterpass~tokenizePayload|tokenizePayload}. If no callback is provided, the method will return a Promise that resolves with a {@link Masterpass~tokenizePayload|tokenizePayload}.
- * @returns {Promise|void} Returns a promise if no callback is provided.
- * @example
- * button.addEventListener('click', function () {
- *   // Disable the button so that we don't attempt to open multiple popups.
- *   button.setAttribute('disabled', 'disabled');
- *
- *   // Because tokenize opens a new window, this must be called
- *   // as a result of a user action, such as a button click.
- *   masterpassInstance.tokenize({
- *     currencyCode: 'USD',
- *     subtotal: '10.00'
- *   }).then(function (payload) {
- *     button.removeAttribute('disabled');
- *     // Submit payload.nonce to your server
- *   }).catch(function (tokenizeError) {
- *     button.removeAttribute('disabled');
- *     // Handle flow errors or premature flow closure
- *
- *     switch (tokenizeErr.code) {
- *       case 'MASTERPASS_POPUP_CLOSED':
- *         console.error('Customer closed Masterpass popup.');
- *         break;
- *       case 'MASTERPASS_ACCOUNT_TOKENIZATION_FAILED':
- *         console.error('Masterpass tokenization failed. See details:', tokenizeErr.details);
- *         break;
- *       case 'MASTERPASS_FLOW_FAILED':
- *         console.error('Unable to initialize Masterpass flow. Are your options correct?', tokenizeErr.details);
- *         break;
- *       default:
- *         console.error('Error!', tokenizeErr);
- *     }
- *   });
- * });
- */
-Masterpass.prototype.tokenize = function (options) {
-  var self = this;
-
-  if (!options || hasMissingOption(options)) {
-    return Promise.reject(new BraintreeError(errors.MASTERPASS_TOKENIZE_MISSING_REQUIRED_OPTION));
-  }
-
-  if (self._authInProgress) {
-    return Promise.reject(new BraintreeError(errors.MASTERPASS_TOKENIZATION_ALREADY_IN_PROGRESS));
-  }
-
-  return new Promise(function (resolve, reject) {
-    self._navigateFrameToLoadingPage(options).catch(reject);
-    // This MUST happen after _navigateFrameToLoadingPage for Metro browsers to work.
-    self._frameService.open(self._createFrameOpenHandler(resolve, reject));
-  });
-};
-
-Masterpass.prototype._navigateFrameToLoadingPage = function (options) {
-  var self = this;
-
-  this._authInProgress = true;
-
-  return this._client.request({
-    method: 'post',
-    endpoint: 'masterpass/request_token',
-    data: {
-      requestToken: {
-        originUrl: global.location.protocol + '//' + global.location.hostname,
-        subtotal: options.subtotal,
-        currencyCode: options.currencyCode,
-        callbackUrl: this._callbackUrl
-      }
-    }
-  }).then(function (response) {
-    var redirectUrl = self._assetsUrl + '/html/masterpass-loading-frame' + (self._isDebug ? '' : '.min') + '.html?';
-    var gatewayConfiguration = self._client.getConfiguration().gatewayConfiguration;
-    var config = options.config || {};
-    var queryParams;
-
-    queryParams = {
-      environment: gatewayConfiguration.environment,
-      requestToken: response.requestToken,
-      callbackUrl: self._callbackUrl,
-      merchantCheckoutId: gatewayConfiguration.masterpass.merchantCheckoutId,
-      allowedCardTypes: gatewayConfiguration.masterpass.supportedNetworks
-    };
-
-    Object.keys(config).forEach(function (key) {
-      if (typeof config[key] !== 'function') {
-        queryParams[key] = config[key];
-      }
-    });
-
-    redirectUrl += Object.keys(queryParams).map(function (key) {
-      return key + '=' + queryParams[key];
-    }).join('&');
-
-    self._frameService.redirect(redirectUrl);
-  }).catch(function (err) {
-    var status = err.details && err.details.httpStatus;
-
-    self._closeWindow();
-
-    if (status === 422) {
-      return Promise.reject(convertToBraintreeError(err, errors.MASTERPASS_INVALID_PAYMENT_OPTION));
-    }
-
-    return Promise.reject(convertToBraintreeError(err, errors.MASTERPASS_FLOW_FAILED));
-  });
-};
-
-Masterpass.prototype._createFrameOpenHandler = function (resolve, reject) {
-  var self = this;
-
-  if (global.popupBridge) {
-    return function (popupBridgeErr, payload) {
-      self._authInProgress = false;
-
-      if (popupBridgeErr) {
-        analytics.sendEvent(self._client, 'masterpass.tokenization.closed-popupbridge.by-user');
-        reject(convertToBraintreeError(popupBridgeErr, errors.MASTERPASS_POPUP_CLOSED));
-        return;
-      } else if (!payload.queryItems) {
-        analytics.sendEvent(self._client, 'masterpass.tokenization.failed-popupbridge');
-        reject(new BraintreeError(errors.MASTERPASS_FLOW_FAILED));
-        return;
-      }
-
-      self._tokenizeMasterpass(payload.queryItems).then(resolve).catch(reject);
-    };
-  }
-
-  return function (frameServiceErr, payload) {
-    if (frameServiceErr) {
-      self._authInProgress = false;
-
-      if (frameServiceErr.code === 'FRAME_SERVICE_FRAME_CLOSED') {
-        analytics.sendEvent(self._client, 'masterpass.tokenization.closed.by-user');
-        reject(new BraintreeError(errors.MASTERPASS_POPUP_CLOSED));
-        return;
-      }
-
-      if (frameServiceErr.code === 'FRAME_SERVICE_FRAME_OPEN_FAILED') {
-        analytics.sendEvent(self._client, 'masterpass.tokenization.failed.to-open');
-        reject(new BraintreeError(errors.MASTERPASS_POPUP_OPEN_FAILED));
-        return;
-      }
-
-      analytics.sendEvent(self._client, 'masterpass.tokenization.failed');
-      self._closeWindow();
-      reject(convertToBraintreeError(frameServiceErr, errors.MASTERPASS_FLOW_FAILED));
-      return;
-    }
-
-    self._tokenizeMasterpass(payload).then(resolve).catch(reject);
-  };
-};
-
-Masterpass.prototype._tokenizeMasterpass = function (payload) {
-  var self = this;
-
-  if (payload.mpstatus !== 'success') {
-    analytics.sendEvent(self._client, 'masterpass.tokenization.closed.by-user');
-    self._closeWindow();
-    return Promise.reject(new BraintreeError(errors.MASTERPASS_POPUP_CLOSED));
-  }
-
-  return self._client.request({
-    endpoint: 'payment_methods/masterpass_cards',
-    method: 'post',
-    data: {
-      masterpassCard: {
-        checkoutResourceUrl: payload.checkout_resource_url,
-        requestToken: payload.oauth_token,
-        verifierToken: payload.oauth_verifier
-      }
-    }
-  }).then(function (response) {
-    self._closeWindow();
-    if (global.popupBridge) {
-      analytics.sendEvent(self._client, 'masterpass.tokenization.success-popupbridge');
-    } else {
-      analytics.sendEvent(self._client, 'masterpass.tokenization.success');
-    }
-    return response.masterpassCards[0];
-  }).catch(function (tokenizeErr) {
-    self._closeWindow();
-    if (global.popupBridge) {
-      analytics.sendEvent(self._client, 'masterpass.tokenization.failed-popupbridge');
-    } else {
-      analytics.sendEvent(self._client, 'masterpass.tokenization.failed');
-    }
-
-    return Promise.reject(convertToBraintreeError(tokenizeErr, errors.MASTERPASS_ACCOUNT_TOKENIZATION_FAILED));
-  });
-};
-
-Masterpass.prototype._closeWindow = function () {
-  this._authInProgress = false;
-  this._frameService.close();
-};
-
-/**
- * Cleanly tear down anything set up by {@link module:braintree-web/masterpass.create|create}.
- * @public
- * @param {callback} [callback] Called on completion. If no callback is provided, `teardown` returns a promise.
- * @example
- * masterpassInstance.teardown();
- * @example <caption>With callback</caption>
- * masterpassInstance.teardown(function () {
- *   // teardown is complete
- * });
- * @returns {Promise|void} Returns a promise if no callback is provided.
- */
-Masterpass.prototype.teardown = function () {
-  var self = this;
-
-  return new Promise(function (resolve) {
-    self._frameService.teardown();
-
-    convertMethodsToError(self, methods(Masterpass.prototype));
-
-    analytics.sendEvent(self._client, 'masterpass.teardown-completed');
-
-    resolve();
-  });
-};
-
-function hasMissingOption(options) {
-  var i, option;
-
-  for (i = 0; i < constants.REQUIRED_OPTIONS_FOR_TOKENIZE.length; i++) {
-    option = constants.REQUIRED_OPTIONS_FOR_TOKENIZE[i];
-
-    if (!options.hasOwnProperty(option)) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-module.exports = wrapPromise.wrapPrototype(Masterpass);
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../lib/analytics":18,"../../lib/braintree-error":20,"../../lib/constants":24,"../../lib/convert-methods-to-error":25,"../../lib/convert-to-braintree-error":26,"../../lib/frame-service/external":31,"../../lib/methods":42,"../../lib/promise":44,"../shared/constants":48,"../shared/errors":49,"wrap-promise":16}],47:[function(_dereq_,module,exports){
-(function (global){
-'use strict';
-/** @module braintree-web/masterpass
- * @description Processes Masterpass. *This component is currently in beta and is subject to change.*
- */
-
-var BraintreeError = _dereq_('../lib/braintree-error');
-var browserDetection = _dereq_('browser-detection');
-var Masterpass = _dereq_('./external/masterpass');
-var VERSION = "3.15.0";
-var errors = _dereq_('./shared/errors');
-var sharedErrors = _dereq_('../lib/errors');
-var Promise = _dereq_('../lib/promise');
-var wrapPromise = _dereq_('wrap-promise');
-
-/**
- * @static
- * @function create
- * @param {object} options Creation options:
- * @param {Client} options.client A {@link Client} instance.
- * @param {callback} [callback] The second argument, `data`, is the {@link Masterpass} instance. If no callback is passed in, the create function returns a promise that resolves the {@link Masterpass} instance.
- * @example
- * braintree.masterpass.create({
- *   client: clientInstance
- * }, function (createErr, masterpassInstance) {
- *   if (createErr) {
- *     if (createErr.code === 'MASTERPASS_BROWSER_NOT_SUPPORTED') {
- *       console.error('This browser is not supported.');
- *     } else {
- *       console.error('Error!', createErr);
- *     }
- *     return;
- *   }
- * });
- * @returns {Promise|void} Returns a promise if no callback is provided.
- */
-function create(options) {
-  var masterpassInstance, clientVersion, configuration;
-
-  if (options.client == null) {
-    return Promise.reject(new BraintreeError({
-      type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
-      code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
-      message: 'options.client is required when instantiating Masterpass.'
-    }));
-  }
-
-  clientVersion = options.client.getConfiguration().analyticsMetadata.sdkVersion;
-  if (clientVersion !== VERSION) {
-    return Promise.reject(new BraintreeError({
-      type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
-      code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
-      message: 'Client (version ' + clientVersion + ') and Masterpass (version ' + VERSION + ') components must be from the same SDK version.'
-    }));
-  }
-
-  if (!isSupported()) {
-    return Promise.reject(new BraintreeError(errors.MASTERPASS_BROWSER_NOT_SUPPORTED));
-  }
-
-  configuration = options.client.getConfiguration().gatewayConfiguration;
-  if (!configuration.masterpass) {
-    return Promise.reject(new BraintreeError(errors.MASTERPASS_NOT_ENABLED));
-  }
-
-  masterpassInstance = new Masterpass(options);
-
-  return masterpassInstance._initialize();
-}
-
-/**
- * @static
- * @function isSupported
- * @description Returns true if Masterpass supports this browser.
- * @example
- * if (braintree.masterpass.isSupported()) {
- *   // Add Masterpass button to the page
- * } else {
- *   // Hide Masterpass payment option
- * }
- * @returns {Boolean} Returns true if Masterpass supports this browser.
- */
-function isSupported() {
-  return Boolean(global.popupBridge || browserDetection.supportsPopups());
-}
-
-module.exports = {
-  create: wrapPromise(create),
-  isSupported: isSupported,
-  /**
-   * @description The current version of the SDK, i.e. `{@pkg version}`.
-   * @type {string}
-   */
-  VERSION: VERSION
-};
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../lib/braintree-error":20,"../lib/errors":29,"../lib/promise":44,"./external/masterpass":46,"./shared/errors":49,"browser-detection":1,"wrap-promise":16}],48:[function(_dereq_,module,exports){
-'use strict';
-
-module.exports = {
-  LANDING_FRAME_NAME: 'braintreemasterpasslanding',
-  POPUP_WIDTH: 450,
-  POPUP_HEIGHT: 660,
-  REQUIRED_OPTIONS_FOR_TOKENIZE: [
-    'subtotal',
-    'currencyCode'
-  ]
-};
-
-},{}],49:[function(_dereq_,module,exports){
-'use strict';
-
-var BraintreeError = _dereq_('../../lib/braintree-error');
-
-module.exports = {
-  MASTERPASS_BROWSER_NOT_SUPPORTED: {
-    type: BraintreeError.types.CUSTOMER,
-    code: 'MASTERPASS_BROWSER_NOT_SUPPORTED',
-    message: 'Browser is not supported.'
-  },
-  MASTERPASS_NOT_ENABLED: {
-    type: BraintreeError.types.MERCHANT,
-    code: 'MASTERPASS_NOT_ENABLED',
-    message: 'Masterpass is not enabled for this merchant.'
-  },
-  MASTERPASS_TOKENIZE_MISSING_REQUIRED_OPTION: {
-    type: BraintreeError.types.MERCHANT,
-    code: 'MASTERPASS_TOKENIZE_MISSING_REQUIRED_OPTION',
-    message: 'Missing required option for tokenize.'
-  },
-  MASTERPASS_TOKENIZATION_ALREADY_IN_PROGRESS: {
-    type: BraintreeError.types.MERCHANT,
-    code: 'MASTERPASS_TOKENIZATION_ALREADY_IN_PROGRESS',
-    message: 'Masterpass tokenization is already in progress.'
-  },
-  MASTERPASS_ACCOUNT_TOKENIZATION_FAILED: {
-    type: BraintreeError.types.NETWORK,
-    code: 'MASTERPASS_ACCOUNT_TOKENIZATION_FAILED',
-    message: 'Could not tokenize user\'s Masterpass account.'
-  },
-  MASTERPASS_POPUP_OPEN_FAILED: {
-    type: BraintreeError.types.MERCHANT,
-    code: 'MASTERPASS_POPUP_OPEN_FAILED',
-    message: 'Masterpass popup failed to open. Make sure to tokenize in response to a user action, such as a click.'
-  },
-  MASTERPASS_POPUP_CLOSED: {
-    type: BraintreeError.types.CUSTOMER,
-    code: 'MASTERPASS_POPUP_CLOSED',
-    message: 'Customer closed Masterpass popup before authorizing.'
-  },
-  MASTERPASS_INVALID_PAYMENT_OPTION: {
-    type: BraintreeError.types.MERCHANT,
-    code: 'MASTERPASS_INVALID_PAYMENT_OPTION',
-    message: 'Masterpass payment options are invalid.'
-  },
-  MASTERPASS_FLOW_FAILED: {
-    type: BraintreeError.types.NETWORK,
-    code: 'MASTERPASS_FLOW_FAILED',
-    message: 'Could not initialize Masterpass flow.'
-  }
-};
-
-
-},{"../../lib/braintree-error":20}]},{},[47])(47)
+},{}]},{},[19])(19)
 });

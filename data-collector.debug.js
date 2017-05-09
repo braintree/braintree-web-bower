@@ -474,7 +474,7 @@ var fraudnet = _dereq_('./fraudnet');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var methods = _dereq_('../lib/methods');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
-var VERSION = "3.14.0";
+var VERSION = "3.15.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -643,13 +643,14 @@ var sjcl = _dereq_('./vendor/sjcl');
 var camelCaseToSnakeCase = _dereq_('../lib/camel-case-to-snake-case');
 
 var QA_URL = 'https://assets.qa.braintreepayments.com/data';
-var IFRAME_ID = 'braintreeDataFrame';
+var IFRAME_ID_PREFIX = 'braintreeDataFrame-';
 var environmentUrls = {
   development: QA_URL,
   qa: QA_URL,
   sandbox: 'https://assets.braintreegateway.com/sandbox/data',
   production: 'https://assets.braintreegateway.com/data'
 };
+var cachedDeviceData = {};
 
 function setup(o) {
   var options = o != null ? o : {};
@@ -658,14 +659,32 @@ function setup(o) {
 }
 
 function Kount(options) {
-  sjcl.random.startCollectors();
+  var previouslyInitializedDeviceData = Kount.getCachedDeviceData(options.merchantId);
+
+  if (previouslyInitializedDeviceData) {
+    this.deviceData = previouslyInitializedDeviceData;
+    return;
+  }
 
   this._currentEnvironment = this._initializeEnvironment(options);
+
+  sjcl.random.startCollectors();
+
   this._deviceSessionId = this._generateDeviceSessionId();
   this.deviceData = this._getDeviceData();
 
+  Kount.setCachedDeviceData(options.merchantId, this.deviceData);
+
   this._iframe = this._setupIFrame();
 }
+
+Kount.getCachedDeviceData = function (merchantId) {
+  return cachedDeviceData[merchantId];
+};
+
+Kount.setCachedDeviceData = function (merchantId, data) {
+  cachedDeviceData[merchantId] = data;
+};
 
 Kount.prototype.teardown = function () {
   sjcl.random.stopCollectors();
@@ -693,19 +712,14 @@ Kount.prototype._generateDeviceSessionId = function () {
 };
 
 Kount.prototype._setupIFrame = function () {
-  var params;
+  var params, iframe;
   var self = this;
-  var iframe = document.getElementById(IFRAME_ID);
-
-  if (iframe != null) {
-    return iframe;
-  }
 
   params = '?m=' + this._currentEnvironment.id + '&s=' + this._deviceSessionId;
 
   iframe = document.createElement('iframe');
   iframe.width = 1;
-  iframe.id = IFRAME_ID;
+  iframe.id = IFRAME_ID_PREFIX + this._deviceSessionId;
   iframe.height = 1;
   iframe.frameBorder = 0;
   iframe.scrolling = 'no';

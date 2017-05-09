@@ -2,13 +2,39 @@
 (function (global){
 'use strict';
 
+module.exports = function isAndroid(ua) {
+  ua = ua || global.navigator.userAgent;
+  return /Android/.test(ua);
+};
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],2:[function(_dereq_,module,exports){
+'use strict';
+
+module.exports = function isChrome(ua) {
+  ua = ua || navigator.userAgent;
+  return ua.indexOf('Chrome') !== -1 || ua.indexOf('CriOS') !== -1;
+};
+
+},{}],3:[function(_dereq_,module,exports){
+'use strict';
+
+module.exports = function isIe9(ua) {
+  ua = ua || navigator.userAgent;
+  return ua.indexOf('MSIE 9') !== -1;
+};
+
+},{}],4:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+
 module.exports = function isIos(ua) {
   ua = ua || global.navigator.userAgent;
   return /iPhone|iPod|iPad/i.test(ua);
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],2:[function(_dereq_,module,exports){
+},{}],5:[function(_dereq_,module,exports){
 'use strict';
 
 var types = {};
@@ -199,7 +225,7 @@ creditCardType.types = {
 
 module.exports = creditCardType;
 
-},{}],3:[function(_dereq_,module,exports){
+},{}],6:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 (function (root, factory) {
@@ -477,7 +503,7 @@ module.exports = creditCardType;
 });
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],4:[function(_dereq_,module,exports){
+},{}],7:[function(_dereq_,module,exports){
 'use strict';
 
 var setAttributes = _dereq_('./lib/set-attributes');
@@ -502,7 +528,7 @@ module.exports = function createFrame(options) {
   return iframe;
 };
 
-},{"./lib/assign":5,"./lib/default-attributes":6,"./lib/set-attributes":7}],5:[function(_dereq_,module,exports){
+},{"./lib/assign":8,"./lib/default-attributes":9,"./lib/set-attributes":10}],8:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function assign(target) {
@@ -519,7 +545,7 @@ module.exports = function assign(target) {
   return target;
 }
 
-},{}],6:[function(_dereq_,module,exports){
+},{}],9:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -529,7 +555,7 @@ module.exports = {
   scrolling: 'no'
 };
 
-},{}],7:[function(_dereq_,module,exports){
+},{}],10:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function setAttributes(element, attributes) {
@@ -548,7 +574,7 @@ module.exports = function setAttributes(element, attributes) {
   }
 };
 
-},{}],8:[function(_dereq_,module,exports){
+},{}],11:[function(_dereq_,module,exports){
 (function (root) {
 
   // Store setTimeout reference so promise-polyfill will be unaffected by
@@ -783,7 +809,62 @@ module.exports = function setAttributes(element, attributes) {
 
 })(this);
 
-},{}],9:[function(_dereq_,module,exports){
+},{}],12:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+
+var UA = global.navigator && global.navigator.userAgent;
+
+var isAndroid = _dereq_('browser-detection/is-android');
+var isChrome = _dereq_('browser-detection/is-chrome');
+var isIos = _dereq_('browser-detection/is-ios');
+var isIE9 = _dereq_('browser-detection/is-ie9');
+
+// Old Android Webviews used specific versions of Chrome with 0.0.0 as their version suffix
+// https://developer.chrome.com/multidevice/user-agent#webview_user_agent
+var KITKAT_WEBVIEW_REGEX = /Version\/\d\.\d* Chrome\/\d*\.0\.0\.0/;
+
+function _isOldSamsungBrowserOrSamsungWebview(ua) {
+  return !isChrome(ua) && ua.indexOf('Samsung') > -1;
+}
+
+function isKitKatWebview(uaArg) {
+  var ua = uaArg || UA;
+
+  return isAndroid(ua) && KITKAT_WEBVIEW_REGEX.test(ua);
+}
+
+function isAndroidChrome(uaArg) {
+  var ua = uaArg || UA;
+
+  return isAndroid(ua) && isChrome(ua);
+}
+
+function isSamsungBrowser(ua) {
+  ua = ua || UA;
+  return /SamsungBrowser/.test(ua) || _isOldSamsungBrowserOrSamsungWebview(ua);
+}
+
+module.exports = {
+  isIE9: isIE9,
+  isAndroidChrome: isAndroidChrome,
+  isIos: isIos,
+  isKitKatWebview: isKitKatWebview,
+  isSamsungBrowser: isSamsungBrowser
+};
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"browser-detection/is-android":1,"browser-detection/is-chrome":2,"browser-detection/is-ie9":3,"browser-detection/is-ios":4}],13:[function(_dereq_,module,exports){
+'use strict';
+
+var device = _dereq_('./lib/device');
+
+module.exports = function () {
+  // Digits get dropped in samsung browser
+  return !device.isSamsungBrowser();
+};
+
+},{"./lib/device":12}],14:[function(_dereq_,module,exports){
 'use strict';
 
 function deferred(fn) {
@@ -799,7 +880,7 @@ function deferred(fn) {
 
 module.exports = deferred;
 
-},{}],10:[function(_dereq_,module,exports){
+},{}],15:[function(_dereq_,module,exports){
 'use strict';
 
 function once(fn) {
@@ -815,7 +896,7 @@ function once(fn) {
 
 module.exports = once;
 
-},{}],11:[function(_dereq_,module,exports){
+},{}],16:[function(_dereq_,module,exports){
 'use strict';
 
 function promiseOrCallback(promise, callback) { // eslint-disable-line consistent-return
@@ -834,7 +915,7 @@ function promiseOrCallback(promise, callback) { // eslint-disable-line consisten
 
 module.exports = promiseOrCallback;
 
-},{}],12:[function(_dereq_,module,exports){
+},{}],17:[function(_dereq_,module,exports){
 'use strict';
 
 var deferred = _dereq_('./lib/deferred');
@@ -890,7 +971,7 @@ wrapPromise.wrapPrototype = function (target, options) {
 
 module.exports = wrapPromise;
 
-},{"./lib/deferred":9,"./lib/once":10,"./lib/promise-or-callback":11}],13:[function(_dereq_,module,exports){
+},{"./lib/deferred":14,"./lib/once":15,"./lib/promise-or-callback":16}],18:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../lib/braintree-error');
@@ -929,7 +1010,7 @@ function _isValid(attribute, value) {
 
 module.exports = attributeValidationError;
 
-},{"../../lib/braintree-error":24,"../shared/constants":18,"../shared/errors":19}],14:[function(_dereq_,module,exports){
+},{"../../lib/braintree-error":29,"../shared/constants":23,"../shared/errors":24}],19:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('../shared/constants');
@@ -943,7 +1024,7 @@ module.exports = function composeUrl(assetsUrl, componentId, isDebug) {
     componentId;
 };
 
-},{"../../lib/use-min":42,"../shared/constants":18}],15:[function(_dereq_,module,exports){
+},{"../../lib/use-min":47,"../shared/constants":23}],20:[function(_dereq_,module,exports){
 'use strict';
 
 var Destructor = _dereq_('../../lib/destructor');
@@ -963,7 +1044,7 @@ var EventEmitter = _dereq_('../../lib/event-emitter');
 var injectFrame = _dereq_('./inject-frame');
 var analytics = _dereq_('../../lib/analytics');
 var whitelistedFields = constants.whitelistedFields;
-var VERSION = "3.14.0";
+var VERSION = "3.15.0";
 var methods = _dereq_('../../lib/methods');
 var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
 var sharedErrors = _dereq_('../../lib/errors');
@@ -1860,7 +1941,7 @@ HostedFields.prototype.getState = function () {
 
 module.exports = wrapPromise.wrapPrototype(HostedFields);
 
-},{"../../lib/analytics":22,"../../lib/braintree-error":24,"../../lib/bus":27,"../../lib/classlist":28,"../../lib/constants":29,"../../lib/convert-methods-to-error":30,"../../lib/destructor":32,"../../lib/errors":34,"../../lib/event-emitter":35,"../../lib/methods":38,"../../lib/promise":41,"../../lib/uuid":43,"../shared/constants":18,"../shared/errors":19,"../shared/find-parent-tags":20,"./attribute-validation-error":13,"./compose-url":14,"./inject-frame":16,"browser-detection/is-ios":1,"credit-card-type":2,"iframer":4,"wrap-promise":12}],16:[function(_dereq_,module,exports){
+},{"../../lib/analytics":27,"../../lib/braintree-error":29,"../../lib/bus":32,"../../lib/classlist":33,"../../lib/constants":34,"../../lib/convert-methods-to-error":35,"../../lib/destructor":37,"../../lib/errors":39,"../../lib/event-emitter":40,"../../lib/methods":43,"../../lib/promise":46,"../../lib/uuid":48,"../shared/constants":23,"../shared/errors":24,"../shared/find-parent-tags":25,"./attribute-validation-error":18,"./compose-url":19,"./inject-frame":21,"browser-detection/is-ios":4,"credit-card-type":5,"iframer":7,"wrap-promise":17}],21:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function injectFrame(frame, container) {
@@ -1877,14 +1958,15 @@ module.exports = function injectFrame(frame, container) {
   return [frame, clearboth];
 };
 
-},{}],17:[function(_dereq_,module,exports){
+},{}],22:[function(_dereq_,module,exports){
 'use strict';
 /** @module braintree-web/hosted-fields */
 
 var HostedFields = _dereq_('./external/hosted-fields');
+var supportsInputFormatting = _dereq_('restricted-input/supports-input-formatting');
 var wrapPromise = _dereq_('wrap-promise');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.14.0";
+var VERSION = "3.15.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -2026,6 +2108,46 @@ function create(options) {
 }
 
 module.exports = {
+  /**
+   * @static
+   * @function supportsInputFormatting
+   * @description Returns false if input formatting will be automatically disabled due to browser incompatibility. Otherwise, returns true. For a list of unsupported browsers, [go here](https://github.com/braintree/restricted-input/blob/master/README.md#browsers-where-formatting-is-turned-off-automatically).
+   * @returns {Boolean} Returns false if input formatting will be automatically disabled due to browser incompatibility. Otherwise, returns true.
+   * @example Conditionally choosing split expiration date inputs if formatting is unavailable
+   * var canFormat = braintree.hostedFields.supportsInputFormatting();
+   * var fields = {
+   *   number: {
+   *     selector: '#card-number'
+   *   },
+   *   cvv: {
+   *     selector: '#cvv'
+   *   }
+   * };
+   *
+   * if (canFormat) {
+   *   fields.expirationDate = {
+   *     selection: '#expiration-date'
+   *   };
+   *   functionToCreateAndInsertExpirationDateDivToForm();
+   * } else {
+   *   fields.expirationMonth = {
+   *     selection: '#expiration-month'
+   *   };
+   *   fields.expirationYear = {
+   *     selection: '#expiration-year'
+   *   };
+   *   functionToCreateAndInsertExpirationMonthAndYearDivsToForm();
+   * }
+   *
+   * braintree.hostedFields.create({
+   *   client: clientInstance,
+   *   styles: {
+   *     // Styles
+   *   },
+   *   fields: fields
+   * }, callback);
+   */
+  supportsInputFormatting: supportsInputFormatting,
   create: wrapPromise(create),
   /**
    * @description The current version of the SDK, i.e. `{@pkg version}`.
@@ -2034,13 +2156,13 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/promise":41,"./external/hosted-fields":15,"wrap-promise":12}],18:[function(_dereq_,module,exports){
+},{"../lib/promise":46,"./external/hosted-fields":20,"restricted-input/supports-input-formatting":13,"wrap-promise":17}],23:[function(_dereq_,module,exports){
 'use strict';
 /* eslint-disable no-reserved-keys */
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.14.0";
+var VERSION = "3.15.0";
 
 var constants = {
   VERSION: VERSION,
@@ -2158,7 +2280,7 @@ constants.events = enumerate([
 
 module.exports = constants;
 
-},{"../../lib/enumerate":33,"./errors":19}],19:[function(_dereq_,module,exports){
+},{"../../lib/enumerate":38,"./errors":24}],24:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../lib/braintree-error');
@@ -2230,7 +2352,7 @@ module.exports = {
   }
 };
 
-},{"../../lib/braintree-error":24}],20:[function(_dereq_,module,exports){
+},{"../../lib/braintree-error":29}],25:[function(_dereq_,module,exports){
 'use strict';
 
 function findParentTags(element, tag) {
@@ -2250,7 +2372,7 @@ function findParentTags(element, tag) {
 
 module.exports = findParentTags;
 
-},{}],21:[function(_dereq_,module,exports){
+},{}],26:[function(_dereq_,module,exports){
 'use strict';
 
 var createAuthorizationData = _dereq_('./create-authorization-data');
@@ -2284,7 +2406,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":29,"./create-authorization-data":31,"./json-clone":37}],22:[function(_dereq_,module,exports){
+},{"./constants":34,"./create-authorization-data":36,"./json-clone":42}],27:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('./constants');
@@ -2318,7 +2440,7 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":21,"./constants":29}],23:[function(_dereq_,module,exports){
+},{"./add-metadata":26,"./constants":34}],28:[function(_dereq_,module,exports){
 'use strict';
 
 var once = _dereq_('./once');
@@ -2362,7 +2484,7 @@ module.exports = function (functions, cb) {
   }
 };
 
-},{"./once":39}],24:[function(_dereq_,module,exports){
+},{"./once":44}],29:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -2447,7 +2569,7 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":33}],25:[function(_dereq_,module,exports){
+},{"./enumerate":38}],30:[function(_dereq_,module,exports){
 'use strict';
 
 var isWhitelistedDomain = _dereq_('../is-whitelisted-domain');
@@ -2479,7 +2601,7 @@ module.exports = {
   checkOrigin: checkOrigin
 };
 
-},{"../is-whitelisted-domain":36}],26:[function(_dereq_,module,exports){
+},{"../is-whitelisted-domain":41}],31:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../enumerate');
@@ -2488,7 +2610,7 @@ module.exports = enumerate([
   'CONFIGURATION_REQUEST'
 ], 'bus:');
 
-},{"../enumerate":33}],27:[function(_dereq_,module,exports){
+},{"../enumerate":38}],32:[function(_dereq_,module,exports){
 'use strict';
 
 var bus = _dereq_('framebus');
@@ -2619,7 +2741,7 @@ BraintreeBus.events = events;
 
 module.exports = BraintreeBus;
 
-},{"../braintree-error":24,"./check-origin":25,"./events":26,"framebus":3}],28:[function(_dereq_,module,exports){
+},{"../braintree-error":29,"./check-origin":30,"./events":31,"framebus":6}],33:[function(_dereq_,module,exports){
 'use strict';
 
 function _classesOf(element) {
@@ -2658,10 +2780,10 @@ module.exports = {
   toggle: toggle
 };
 
-},{}],29:[function(_dereq_,module,exports){
+},{}],34:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.14.0";
+var VERSION = "3.15.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -2675,7 +2797,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],30:[function(_dereq_,module,exports){
+},{}],35:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -2693,7 +2815,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"./braintree-error":24,"./errors":34}],31:[function(_dereq_,module,exports){
+},{"./braintree-error":29,"./errors":39}],36:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/polyfill').atob;
@@ -2742,7 +2864,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":40}],32:[function(_dereq_,module,exports){
+},{"../lib/polyfill":45}],37:[function(_dereq_,module,exports){
 'use strict';
 
 var batchExecuteFunctions = _dereq_('./batch-execute-functions');
@@ -2779,7 +2901,7 @@ Destructor.prototype.teardown = function (callback) {
 
 module.exports = Destructor;
 
-},{"./batch-execute-functions":23}],33:[function(_dereq_,module,exports){
+},{"./batch-execute-functions":28}],38:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -2793,7 +2915,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],34:[function(_dereq_,module,exports){
+},{}],39:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -2826,7 +2948,7 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":24}],35:[function(_dereq_,module,exports){
+},{"./braintree-error":29}],40:[function(_dereq_,module,exports){
 'use strict';
 
 function EventEmitter() {
@@ -2856,7 +2978,7 @@ EventEmitter.prototype._emit = function (event) {
 
 module.exports = EventEmitter;
 
-},{}],36:[function(_dereq_,module,exports){
+},{}],41:[function(_dereq_,module,exports){
 'use strict';
 
 var parser;
@@ -2891,14 +3013,14 @@ function isWhitelistedDomain(url) {
 
 module.exports = isWhitelistedDomain;
 
-},{}],37:[function(_dereq_,module,exports){
+},{}],42:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],38:[function(_dereq_,module,exports){
+},{}],43:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -2907,9 +3029,9 @@ module.exports = function (obj) {
   });
 };
 
-},{}],39:[function(_dereq_,module,exports){
-arguments[4][10][0].apply(exports,arguments)
-},{"dup":10}],40:[function(_dereq_,module,exports){
+},{}],44:[function(_dereq_,module,exports){
+arguments[4][15][0].apply(exports,arguments)
+},{"dup":15}],45:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -2950,7 +3072,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],41:[function(_dereq_,module,exports){
+},{}],46:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -2959,7 +3081,7 @@ var Promise = global.Promise || _dereq_('promise-polyfill');
 module.exports = Promise;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":8}],42:[function(_dereq_,module,exports){
+},{"promise-polyfill":11}],47:[function(_dereq_,module,exports){
 'use strict';
 
 function useMin(isDebug) {
@@ -2968,7 +3090,7 @@ function useMin(isDebug) {
 
 module.exports = useMin;
 
-},{}],43:[function(_dereq_,module,exports){
+},{}],48:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {
@@ -2982,5 +3104,5 @@ function uuid() {
 
 module.exports = uuid;
 
-},{}]},{},[17])(17)
+},{}]},{},[22])(22)
 });

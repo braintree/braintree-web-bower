@@ -351,6 +351,17 @@ var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('wrap-promise');
 
 /**
+ * @typedef {object} ApplePay~tokenizePayload
+ * @property {string} nonce The payment method nonce.
+ * @property {object} details Additional details.
+ * @property {string} details.cardType Type of card, ex: Visa, MasterCard.
+ * @property {string} details.cardHolderName The name of the card holder.
+ * @property {string} details.dpanLastTwo Last two digits of card number.
+ * @property {string} description A human-readable description.
+ * @property {string} type The payment method type, always `ApplePayCard`.
+ */
+
+/**
  * An Apple Pay Payment Authorization Event object.
  * @typedef {object} ApplePayPaymentAuthorizedEvent
  * @external ApplePayPaymentAuthorizedEvent
@@ -535,7 +546,7 @@ ApplePay.prototype.performValidation = function (options) {
  * @public
  * @param {object} options Options
  * @param {object} options.token The `payment.token` property of an {@link external:ApplePayPaymentAuthorizedEvent}.
- * @param {callback} [callback] The second argument, <code>data</code>, is the tokenized payload. If no callback is provided, `tokenize` returns a promise that resolves with the tokenized payload.
+ * @param {callback} [callback] The second argument, <code>data</code>, is a {@link ApplePay~tokenizePayload|tokenizePayload}. If no callback is provided, `tokenize` returns a promise that resolves with a {@link ApplePay~tokenizePayload|tokenizePayload}.
  * @returns {Promise|void} Returns a promise if no callback is provided.
  * @example
  * var applePay = require('braintree-web/apple-pay');
@@ -661,7 +672,7 @@ var ApplePay = _dereq_('./apple-pay');
 var analytics = _dereq_('../lib/analytics');
 var sharedErrors = _dereq_('../lib/errors');
 var errors = _dereq_('./errors');
-var VERSION = "3.14.0";
+var VERSION = "3.15.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('wrap-promise');
 
@@ -867,7 +878,7 @@ module.exports = BraintreeError;
 },{"./enumerate":14}],12:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.14.0";
+var VERSION = "3.15.0";
 var PLATFORM = 'web';
 
 module.exports = {
