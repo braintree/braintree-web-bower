@@ -496,7 +496,7 @@ module.exports = BraintreeError;
 },{"./enumerate":11}],9:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.15.0";
+var VERSION = "3.16.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -704,7 +704,7 @@ var VisaCheckout = _dereq_('./visa-checkout');
 var analytics = _dereq_('../lib/analytics');
 var sharedErrors = _dereq_('../lib/errors');
 var errors = _dereq_('./errors');
-var VERSION = "3.15.0";
+var VERSION = "3.16.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('wrap-promise');
 
@@ -727,7 +727,7 @@ function create(options) {
     }));
   }
 
-  clientVersion = options.client.getConfiguration().analyticsMetadata.sdkVersion;
+  clientVersion = options.client.getVersion();
   if (clientVersion !== VERSION) {
     return Promise.reject(new BraintreeError({
       type: sharedErrors.INCOMPATIBLE_VERSIONS.type,

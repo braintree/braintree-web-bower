@@ -4,18 +4,24 @@
 var isAndroid = _dereq_('./is-android');
 var isChrome = _dereq_('./is-chrome');
 var isIe9 = _dereq_('./is-ie9');
+var isIe10 = _dereq_('./is-ie10');
 var isIos = _dereq_('./is-ios');
+var isIosSafari = _dereq_('./is-ios-safari');
+var isIosWebview = _dereq_('./is-ios-webview');
 var supportsPopups = _dereq_('./supports-popups');
 
 module.exports = {
   isAndroid: isAndroid,
   isChrome: isChrome,
   isIe9: isIe9,
+  isIe10: isIe10,
   isIos: isIos,
+  isIosSafari: isIosSafari,
+  isIosWebview: isIosWebview,
   supportsPopups: supportsPopups
 };
 
-},{"./is-android":2,"./is-chrome":3,"./is-ie9":4,"./is-ios":5,"./supports-popups":6}],2:[function(_dereq_,module,exports){
+},{"./is-android":2,"./is-chrome":3,"./is-ie10":4,"./is-ie9":5,"./is-ios":8,"./is-ios-safari":6,"./is-ios-webview":7,"./supports-popups":9}],2:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -36,12 +42,59 @@ module.exports = function isChrome(ua) {
 },{}],4:[function(_dereq_,module,exports){
 'use strict';
 
+module.exports = function isIe10(ua) {
+  ua = ua || navigator.userAgent;
+  return ua.indexOf('MSIE 10') !== -1;
+};
+
+},{}],5:[function(_dereq_,module,exports){
+'use strict';
+
 module.exports = function isIe9(ua) {
   ua = ua || navigator.userAgent;
   return ua.indexOf('MSIE 9') !== -1;
 };
 
-},{}],5:[function(_dereq_,module,exports){
+},{}],6:[function(_dereq_,module,exports){
+'use strict';
+
+var isIos = _dereq_('./is-ios');
+var webkitRegexp = /webkit/i;
+
+function isWebkit(ua) {
+  return ua.match(webkitRegexp);
+}
+
+module.exports = function isIosSafari(ua) {
+  ua = ua || navigator.userAgent;
+
+  return isIos(ua) && isWebkit(ua) && ua.indexOf('CriOS') === -1;
+};
+
+},{"./is-ios":8}],7:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+
+var isIos = _dereq_('./is-ios');
+
+// The Google Search iOS app is technically a webview and doesn't support popups.
+function isGoogleSearchApp(ua) {
+  return /\bGSA\b/.test(ua);
+}
+
+module.exports = function isIosWebview(ua) {
+  ua = ua || global.navigator.userAgent;
+  if (isIos(ua)) {
+    if (isGoogleSearchApp(ua)) {
+      return true;
+    }
+    return /.+AppleWebKit(?!.*Safari)/.test(ua);
+  }
+  return false;
+};
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./is-ios":8}],8:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -51,14 +104,14 @@ module.exports = function isIos(ua) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],6:[function(_dereq_,module,exports){
+},{}],9:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
 var MINIMUM_SUPPORTED_CHROME_IOS_VERSION = 48;
 
 var isAndroid = _dereq_('./is-android');
-var isIos = _dereq_('./is-ios');
+var isIosWebview = _dereq_('./is-ios-webview');
 
 function isUnsupportedIosChrome(ua) {
   var match, version;
@@ -80,22 +133,6 @@ function isOperaMini(ua) {
   return ua.indexOf('Opera Mini') > -1;
 }
 
-// The Google Search iOS app is technically a webview and doesn't support popups.
-function isGoogleSearchApp(ua) {
-  return /\bGSA\b/.test(ua);
-}
-
-function isIosWebview(ua) {
-  ua = ua || global.navigator.userAgent;
-  if (isIos(ua)) {
-    if (isGoogleSearchApp(ua)) {
-      return true;
-    }
-    return /.+AppleWebKit(?!.*Safari)/.test(ua);
-  }
-  return false;
-}
-
 function isAndroidWebview(ua) {
   var androidWebviewRegExp = /Version\/[\d\.]+/;
 
@@ -112,7 +149,7 @@ module.exports = function supportsPopups(ua) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./is-android":2,"./is-ios":5}],7:[function(_dereq_,module,exports){
+},{"./is-android":2,"./is-ios-webview":7}],10:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 (function (root, factory) {
@@ -390,7 +427,7 @@ module.exports = function supportsPopups(ua) {
 });
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],8:[function(_dereq_,module,exports){
+},{}],11:[function(_dereq_,module,exports){
 'use strict';
 
 var setAttributes = _dereq_('./lib/set-attributes');
@@ -415,7 +452,7 @@ module.exports = function createFrame(options) {
   return iframe;
 };
 
-},{"./lib/assign":9,"./lib/default-attributes":10,"./lib/set-attributes":11}],9:[function(_dereq_,module,exports){
+},{"./lib/assign":12,"./lib/default-attributes":13,"./lib/set-attributes":14}],12:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function assign(target) {
@@ -432,7 +469,7 @@ module.exports = function assign(target) {
   return target;
 }
 
-},{}],10:[function(_dereq_,module,exports){
+},{}],13:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -442,7 +479,7 @@ module.exports = {
   scrolling: 'no'
 };
 
-},{}],11:[function(_dereq_,module,exports){
+},{}],14:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function setAttributes(element, attributes) {
@@ -461,7 +498,7 @@ module.exports = function setAttributes(element, attributes) {
   }
 };
 
-},{}],12:[function(_dereq_,module,exports){
+},{}],15:[function(_dereq_,module,exports){
 (function (root) {
 
   // Store setTimeout reference so promise-polyfill will be unaffected by
@@ -696,7 +733,7 @@ module.exports = function setAttributes(element, attributes) {
 
 })(this);
 
-},{}],13:[function(_dereq_,module,exports){
+},{}],16:[function(_dereq_,module,exports){
 'use strict';
 
 function deferred(fn) {
@@ -712,7 +749,7 @@ function deferred(fn) {
 
 module.exports = deferred;
 
-},{}],14:[function(_dereq_,module,exports){
+},{}],17:[function(_dereq_,module,exports){
 'use strict';
 
 function once(fn) {
@@ -728,7 +765,7 @@ function once(fn) {
 
 module.exports = once;
 
-},{}],15:[function(_dereq_,module,exports){
+},{}],18:[function(_dereq_,module,exports){
 'use strict';
 
 function promiseOrCallback(promise, callback) { // eslint-disable-line consistent-return
@@ -747,7 +784,7 @@ function promiseOrCallback(promise, callback) { // eslint-disable-line consisten
 
 module.exports = promiseOrCallback;
 
-},{}],16:[function(_dereq_,module,exports){
+},{}],19:[function(_dereq_,module,exports){
 'use strict';
 
 var deferred = _dereq_('./lib/deferred');
@@ -803,7 +840,7 @@ wrapPromise.wrapPrototype = function (target, options) {
 
 module.exports = wrapPromise;
 
-},{"./lib/deferred":13,"./lib/once":14,"./lib/promise-or-callback":15}],17:[function(_dereq_,module,exports){
+},{"./lib/deferred":16,"./lib/once":17,"./lib/promise-or-callback":18}],20:[function(_dereq_,module,exports){
 'use strict';
 
 var createAuthorizationData = _dereq_('./create-authorization-data');
@@ -837,7 +874,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":24,"./create-authorization-data":27,"./json-clone":42}],18:[function(_dereq_,module,exports){
+},{"./constants":27,"./create-authorization-data":30,"./json-clone":45}],21:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('./constants');
@@ -871,7 +908,7 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":17,"./constants":24}],19:[function(_dereq_,module,exports){
+},{"./add-metadata":20,"./constants":27}],22:[function(_dereq_,module,exports){
 'use strict';
 
 var assignNormalized = typeof Object.assign === 'function' ? Object.assign : assignPolyfill;
@@ -896,7 +933,7 @@ module.exports = {
   _assign: assignPolyfill
 };
 
-},{}],20:[function(_dereq_,module,exports){
+},{}],23:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -981,7 +1018,7 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":29}],21:[function(_dereq_,module,exports){
+},{"./enumerate":32}],24:[function(_dereq_,module,exports){
 'use strict';
 
 var isWhitelistedDomain = _dereq_('../is-whitelisted-domain');
@@ -1013,7 +1050,7 @@ module.exports = {
   checkOrigin: checkOrigin
 };
 
-},{"../is-whitelisted-domain":41}],22:[function(_dereq_,module,exports){
+},{"../is-whitelisted-domain":44}],25:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../enumerate');
@@ -1022,7 +1059,7 @@ module.exports = enumerate([
   'CONFIGURATION_REQUEST'
 ], 'bus:');
 
-},{"../enumerate":29}],23:[function(_dereq_,module,exports){
+},{"../enumerate":32}],26:[function(_dereq_,module,exports){
 'use strict';
 
 var bus = _dereq_('framebus');
@@ -1153,10 +1190,10 @@ BraintreeBus.events = events;
 
 module.exports = BraintreeBus;
 
-},{"../braintree-error":20,"./check-origin":21,"./events":22,"framebus":7}],24:[function(_dereq_,module,exports){
+},{"../braintree-error":23,"./check-origin":24,"./events":25,"framebus":10}],27:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.15.0";
+var VERSION = "3.16.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -1170,7 +1207,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],25:[function(_dereq_,module,exports){
+},{}],28:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -1188,7 +1225,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"./braintree-error":20,"./errors":30}],26:[function(_dereq_,module,exports){
+},{"./braintree-error":23,"./errors":33}],29:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -1210,7 +1247,7 @@ function convertToBraintreeError(originalErr, btErrorObject) {
 
 module.exports = convertToBraintreeError;
 
-},{"./braintree-error":20}],27:[function(_dereq_,module,exports){
+},{"./braintree-error":23}],30:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/polyfill').atob;
@@ -1259,7 +1296,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":45}],28:[function(_dereq_,module,exports){
+},{"../lib/polyfill":48}],31:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (fn) {
@@ -1273,7 +1310,7 @@ module.exports = function (fn) {
   };
 };
 
-},{}],29:[function(_dereq_,module,exports){
+},{}],32:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -1287,7 +1324,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],30:[function(_dereq_,module,exports){
+},{}],33:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -1320,7 +1357,7 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":20}],31:[function(_dereq_,module,exports){
+},{"./braintree-error":23}],34:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1335,6 +1372,7 @@ var uuid = _dereq_('../../uuid');
 var iFramer = _dereq_('iframer');
 var BraintreeError = _dereq_('../../braintree-error');
 var browserDetection = _dereq_('browser-detection');
+var assign = _dereq_('./../../assign').assign;
 
 var REQUIRED_CONFIG_KEYS = [
   'name',
@@ -1370,7 +1408,9 @@ function FrameService(options) {
     dispatchFrameUrl: options.dispatchFrameUrl,
     openFrameUrl: options.openFrameUrl,
     height: options.height,
-    width: options.width
+    width: options.width,
+    top: options.top,
+    left: options.left
   };
   this.state = options.state;
 
@@ -1426,8 +1466,10 @@ FrameService.prototype._setBusEvents = function () {
   }.bind(this));
 };
 
-FrameService.prototype.open = function (callback) {
-  this._frame = this._getFrameForEnvironment();
+FrameService.prototype.open = function (options, callback) {
+  options = options || {};
+  this._frame = this._getFrameForEnvironment(options);
+
   this._frame.initialize(callback);
 
   if (this._frame instanceof PopupBridge) {
@@ -1523,23 +1565,25 @@ FrameService.prototype._pollForPopupClose = function () {
   return this._popupInterval;
 };
 
-FrameService.prototype._getFrameForEnvironment = function () {
+FrameService.prototype._getFrameForEnvironment = function (options) {
   var usePopup = browserDetection.supportsPopups();
   var popupBridgeExists = Boolean(global.popupBridge);
 
+  var initOptions = assign({}, this._options, options);
+
   if (usePopup) {
-    return new Popup(this._options);
+    return new Popup(initOptions);
   } else if (popupBridgeExists) {
-    return new PopupBridge(this._options);
+    return new PopupBridge(initOptions);
   }
 
-  return new Modal(this._options);
+  return new Modal(initOptions);
 };
 
 module.exports = FrameService;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../braintree-error":20,"../../bus":23,"../../uuid":49,"../shared/constants":38,"../shared/errors":39,"../shared/events":40,"./strategies/modal":33,"./strategies/popup":36,"./strategies/popup-bridge":34,"browser-detection":1,"iframer":8}],32:[function(_dereq_,module,exports){
+},{"../../braintree-error":23,"../../bus":26,"../../uuid":52,"../shared/constants":41,"../shared/errors":42,"../shared/events":43,"./../../assign":22,"./strategies/modal":36,"./strategies/popup":39,"./strategies/popup-bridge":37,"browser-detection":1,"iframer":11}],35:[function(_dereq_,module,exports){
 'use strict';
 
 var FrameService = _dereq_('./frame-service');
@@ -1554,7 +1598,7 @@ module.exports = {
   }
 };
 
-},{"./frame-service":31}],33:[function(_dereq_,module,exports){
+},{"./frame-service":34}],36:[function(_dereq_,module,exports){
 'use strict';
 
 var iFramer = _dereq_('iframer');
@@ -1627,7 +1671,7 @@ Modal.prototype.redirect = function (redirectUrl) {
 
 module.exports = Modal;
 
-},{"../../../assign":19,"browser-detection":1,"iframer":8}],34:[function(_dereq_,module,exports){
+},{"../../../assign":22,"browser-detection":1,"iframer":11}],37:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1684,26 +1728,36 @@ PopupBridge.prototype.redirect = function (redirectUrl) {
 module.exports = PopupBridge;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../../braintree-error":20,"../../shared/errors":39}],35:[function(_dereq_,module,exports){
+},{"../../../braintree-error":23,"../../shared/errors":42}],38:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('../../../shared/constants');
 var position = _dereq_('./position');
 
+function calculatePosition(type, userDefinedPosition, size) {
+  if (typeof userDefinedPosition !== 'undefined') {
+    return userDefinedPosition;
+  }
+
+  return position[type](size);
+}
+
 module.exports = function composePopupOptions(options) {
   var height = options.height || constants.DEFAULT_POPUP_HEIGHT;
   var width = options.width || constants.DEFAULT_POPUP_WIDTH;
+  var top = calculatePosition('top', options.top, height);
+  var left = calculatePosition('left', options.left, width);
 
   return [
     constants.POPUP_BASE_OPTIONS,
     'height=' + height,
     'width=' + width,
-    'top=' + position.top(height),
-    'left=' + position.left(width)
+    'top=' + top,
+    'left=' + left
   ].join(',');
 };
 
-},{"../../../shared/constants":38,"./position":37}],36:[function(_dereq_,module,exports){
+},{"../../../shared/constants":41,"./position":40}],39:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1747,7 +1801,7 @@ Popup.prototype.redirect = function (redirectUrl) {
 module.exports = Popup;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./compose-options":35}],37:[function(_dereq_,module,exports){
+},{"./compose-options":38}],40:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1776,7 +1830,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],38:[function(_dereq_,module,exports){
+},{}],41:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -1789,7 +1843,7 @@ module.exports = {
   POPUP_CLOSE_TIMEOUT: 100
 };
 
-},{}],39:[function(_dereq_,module,exports){
+},{}],42:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../braintree-error');
@@ -1807,7 +1861,7 @@ module.exports = {
   }
 };
 
-},{"../../braintree-error":20}],40:[function(_dereq_,module,exports){
+},{"../../braintree-error":23}],43:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../../enumerate');
@@ -1817,7 +1871,7 @@ module.exports = enumerate([
   'DISPATCH_FRAME_REPORT'
 ], 'frameService:');
 
-},{"../../enumerate":29}],41:[function(_dereq_,module,exports){
+},{"../../enumerate":32}],44:[function(_dereq_,module,exports){
 'use strict';
 
 var parser;
@@ -1852,14 +1906,14 @@ function isWhitelistedDomain(url) {
 
 module.exports = isWhitelistedDomain;
 
-},{}],42:[function(_dereq_,module,exports){
+},{}],45:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],43:[function(_dereq_,module,exports){
+},{}],46:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -1868,9 +1922,9 @@ module.exports = function (obj) {
   });
 };
 
-},{}],44:[function(_dereq_,module,exports){
-arguments[4][14][0].apply(exports,arguments)
-},{"dup":14}],45:[function(_dereq_,module,exports){
+},{}],47:[function(_dereq_,module,exports){
+arguments[4][17][0].apply(exports,arguments)
+},{"dup":17}],48:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1911,7 +1965,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],46:[function(_dereq_,module,exports){
+},{}],49:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1920,7 +1974,7 @@ var Promise = global.Promise || _dereq_('promise-polyfill');
 module.exports = Promise;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":12}],47:[function(_dereq_,module,exports){
+},{"promise-polyfill":15}],50:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -2011,7 +2065,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],48:[function(_dereq_,module,exports){
+},{}],51:[function(_dereq_,module,exports){
 'use strict';
 
 function useMin(isDebug) {
@@ -2020,7 +2074,7 @@ function useMin(isDebug) {
 
 module.exports = useMin;
 
-},{}],49:[function(_dereq_,module,exports){
+},{}],52:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {
@@ -2034,7 +2088,7 @@ function uuid() {
 
 module.exports = uuid;
 
-},{}],50:[function(_dereq_,module,exports){
+},{}],53:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -2043,7 +2097,7 @@ var BraintreeError = _dereq_('../../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../../lib/convert-to-braintree-error');
 var useMin = _dereq_('../../lib/use-min');
 var once = _dereq_('../../lib/once');
-var VERSION = "3.15.0";
+var VERSION = "3.16.0";
 var constants = _dereq_('../shared/constants');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
@@ -2108,7 +2162,9 @@ var wrapPromise = _dereq_('wrap-promise');
 /**
  * @class
  * @param {object} options see {@link module:braintree-web/paypal.create|paypal.create}
- * @classdesc This class represents a PayPal component. Instances of this class have methods for launching auth dialogs and other programmatic interactions with the PayPal component.
+ * @classdesc This class represents a PayPal component. Instances of this class can open a PayPal window for authenticating a PayPal account. Any additional UI, such as disabling the page while authentication is taking place, is up to the developer.
+ *
+ * This component has been deprecated in favor of the {@link PayPalCheckout|PayPal Checkout component}, which provides a fully managed UI. New features will not be added to this component.
  * @description <strong>Do not use this constructor directly. Use {@link module:braintree-web/paypal.create|braintree-web.paypal.create} instead.</strong>
  */
 function PayPal(options) {
@@ -2207,6 +2263,9 @@ PayPal.prototype._initialize = function () {
  *   // Disable the button so that we don't attempt to open multiple popups.
  *   button.setAttribute('disabled', 'disabled');
  *
+ *   // if there is any other part of the page that must be disabled
+ *   // while authentication is in progress, do so now
+ *
  *   // Because PayPal tokenization opens a popup, this must be called
  *   // as a result of a user action, such as a button click.
  *   paypalInstance.tokenize({
@@ -2214,6 +2273,8 @@ PayPal.prototype._initialize = function () {
  *     // Any other tokenization options
  *   }, function (tokenizeErr, payload) {
  *     button.removeAttribute('disabled');
+ *
+ *     // if any other part of the page was disabled, re-enable now
  *
  *     if (tokenizeErr) {
  *       // Handle tokenization errors or premature flow closure
@@ -2313,7 +2374,7 @@ PayPal.prototype.tokenize = function (options, callback) {
 
       self._navigateFrameToAuth(options).catch(reject);
       // self MUST happen after _navigateFrameToAuth for Metro browsers to work.
-      self._frameService.open(self._createFrameServiceCallback(options, resolve, reject));
+      self._frameService.open({}, self._createFrameServiceCallback(options, resolve, reject));
     }
   });
 
@@ -2617,11 +2678,12 @@ PayPal.prototype.teardown = wrapPromise(function () {
 module.exports = PayPal;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../lib/analytics":18,"../../lib/braintree-error":20,"../../lib/constants":24,"../../lib/convert-methods-to-error":25,"../../lib/convert-to-braintree-error":26,"../../lib/deferred":28,"../../lib/frame-service/external":32,"../../lib/methods":43,"../../lib/once":44,"../../lib/promise":46,"../../lib/querystring":47,"../../lib/use-min":48,"../shared/constants":52,"../shared/errors":53,"wrap-promise":16}],51:[function(_dereq_,module,exports){
+},{"../../lib/analytics":21,"../../lib/braintree-error":23,"../../lib/constants":27,"../../lib/convert-methods-to-error":28,"../../lib/convert-to-braintree-error":29,"../../lib/deferred":31,"../../lib/frame-service/external":35,"../../lib/methods":46,"../../lib/once":47,"../../lib/promise":49,"../../lib/querystring":50,"../../lib/use-min":51,"../shared/constants":55,"../shared/errors":56,"wrap-promise":19}],54:[function(_dereq_,module,exports){
 'use strict';
 /**
  * @module braintree-web/paypal
  * @description A component to integrate with PayPal.
+ * @deprecated Use the {@link PayPalCheckout|PayPal Checkout component} instead.
  */
 
 var analytics = _dereq_('../lib/analytics');
@@ -2629,7 +2691,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var errors = _dereq_('./shared/errors');
 var PayPal = _dereq_('./external/paypal');
 var sharedErrors = _dereq_('../lib/errors');
-var VERSION = "3.15.0";
+var VERSION = "3.16.0";
 var wrapPromise = _dereq_('wrap-promise');
 var Promise = _dereq_('../lib/promise');
 
@@ -2700,7 +2762,7 @@ function create(options) {
   }
 
   config = options.client.getConfiguration();
-  clientVersion = config.analyticsMetadata.sdkVersion;
+  clientVersion = options.client.getVersion();
 
   if (clientVersion !== VERSION) {
     return Promise.reject(new BraintreeError({
@@ -2746,7 +2808,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/analytics":18,"../lib/braintree-error":20,"../lib/errors":30,"../lib/promise":46,"./external/paypal":50,"./shared/errors":53,"wrap-promise":16}],52:[function(_dereq_,module,exports){
+},{"../lib/analytics":21,"../lib/braintree-error":23,"../lib/errors":33,"../lib/promise":49,"./external/paypal":53,"./shared/errors":56,"wrap-promise":19}],55:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -2757,7 +2819,7 @@ module.exports = {
   }
 };
 
-},{}],53:[function(_dereq_,module,exports){
+},{}],56:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../lib/braintree-error');
@@ -2810,5 +2872,5 @@ module.exports = {
   }
 };
 
-},{"../../lib/braintree-error":20}]},{},[51])(51)
+},{"../../lib/braintree-error":23}]},{},[54])(54)
 });

@@ -355,6 +355,7 @@ var assign = _dereq_('../lib/assign').assign;
 var constants = _dereq_('./constants');
 var errors = _dereq_('./errors');
 var sharedErrors = _dereq_('../lib/errors');
+var VERSION = _dereq_('../lib/constants').VERSION;
 
 /**
  * This object is returned by {@link Client#getConfiguration|getConfiguration}. This information is used extensively by other Braintree modules to properly configure themselves.
@@ -597,9 +598,27 @@ Client.prototype.toJSON = function () {
   return this.getConfiguration();
 };
 
+/**
+ * Returns the Client version.
+ * @public
+ * @returns {String} The created client's version.
+ * @example
+ * var createClient = require('braintree-web/client').create;
+ *
+ * createClient({
+ *   authorization: CLIENT_AUTHORIZATION
+ * }, function (createErr, clientInstance) {
+ *   console.log(clientInstance.getVersion()); // Ex: 1.0.0
+ * });
+ * @returns {void}
+ */
+Client.prototype.getVersion = function () {
+  return VERSION;
+};
+
 module.exports = Client;
 
-},{"../lib/add-metadata":18,"../lib/assign":19,"../lib/braintree-error":20,"../lib/convert-to-braintree-error":22,"../lib/deferred":24,"../lib/errors":26,"../lib/is-whitelisted-domain":27,"../lib/once":29,"../lib/promise":31,"./constants":7,"./errors":8,"./request":13}],7:[function(_dereq_,module,exports){
+},{"../lib/add-metadata":18,"../lib/assign":19,"../lib/braintree-error":20,"../lib/constants":21,"../lib/convert-to-braintree-error":22,"../lib/deferred":24,"../lib/errors":26,"../lib/is-whitelisted-domain":27,"../lib/once":29,"../lib/promise":31,"./constants":7,"./errors":8,"./request":13}],7:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -749,7 +768,7 @@ module.exports = {
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Client = _dereq_('./client');
 var getConfiguration = _dereq_('./get-configuration').getConfiguration;
-var VERSION = "3.15.0";
+var VERSION = "3.16.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -1220,7 +1239,7 @@ module.exports = BraintreeError;
 },{"./enumerate":25}],21:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.15.0";
+var VERSION = "3.16.0";
 var PLATFORM = 'web';
 
 module.exports = {

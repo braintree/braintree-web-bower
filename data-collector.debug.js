@@ -474,7 +474,7 @@ var fraudnet = _dereq_('./fraudnet');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var methods = _dereq_('../lib/methods');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
-var VERSION = "3.15.0";
+var VERSION = "3.16.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -519,6 +519,8 @@ var errors = _dereq_('./errors');
  * @param {object} options Creation options:
  * @param {Client} options.client A {@link Client} instance.
  * @param {boolean} [options.kount] If true, Kount fraud data collection is enabled.
+ *
+ * **Note:** the data sent to Kount is asynchronous and may not have completed by the time the data collector create call is complete. In most cases, this will not matter, but if you create the data collector instance and immediately navigate away from the page, the device information may fail to be sent to Kount.
  * @param {boolean} [options.paypal] If true, PayPal fraud data collection is enabled.
  * @param {callback} [callback] The second argument, `data`, is the {@link DataCollector} instance.
  * @example
@@ -561,7 +563,7 @@ function create(options) {
   }
 
   config = options.client.getConfiguration();
-  clientVersion = config.analyticsMetadata.sdkVersion;
+  clientVersion = options.client.getVersion();
 
   if (clientVersion !== VERSION) {
     return Promise.reject(new BraintreeError({

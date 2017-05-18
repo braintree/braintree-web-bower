@@ -496,7 +496,7 @@ module.exports = BraintreeError;
 },{"./enumerate":12}],9:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.15.0";
+var VERSION = "3.16.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -752,7 +752,7 @@ var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('wrap-promise');
 var PayPalCheckout = _dereq_('./paypal-checkout');
 var sharedErrors = _dereq_('../lib/errors');
-var VERSION = "3.15.0";
+var VERSION = "3.16.0";
 
 /**
  * @static
@@ -814,7 +814,7 @@ function create(options) {
   }
 
   config = options.client.getConfiguration();
-  clientVersion = config.analyticsMetadata.sdkVersion;
+  clientVersion = options.client.getVersion();
 
   if (clientVersion !== VERSION) {
     return Promise.reject(new BraintreeError({
@@ -923,6 +923,8 @@ var constants = _dereq_('../paypal/shared/constants');
  * @class
  * @param {object} options see {@link module:braintree-web/paypal-checkout.create|paypal-checkout.create}
  * @classdesc This class represents a PayPal Checkout component that coordinates with the {@link https://developer.paypal.com/docs/integration/direct/express-checkout/integration-jsv4|PayPal checkout.js} library. Instances of this class can generate payment data and tokenize authorized payments.
+ *
+ * All UI (such as preventing actions on the parent page while authentication is in progress) is managed by {@link https://developer.paypal.com/docs/integration/direct/express-checkout/integration-jsv4|checkout.js}.
  * @description <strong>Do not use this constructor directly. Use {@link module:braintree-web/paypal-checkout.create|braintree-web.paypal-checkout.create} instead.</strong>
  */
 function PayPalCheckout(options) {

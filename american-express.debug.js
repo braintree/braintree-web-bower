@@ -494,7 +494,7 @@ module.exports = {
 var BraintreeError = _dereq_('../lib/braintree-error');
 var AmericanExpress = _dereq_('./american-express');
 var sharedErrors = _dereq_('../lib/errors');
-var VERSION = "3.15.0";
+var VERSION = "3.16.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('wrap-promise');
 
@@ -517,7 +517,7 @@ function create(options) {
     }));
   }
 
-  clientVersion = options.client.getConfiguration().analyticsMetadata.sdkVersion;
+  clientVersion = options.client.getVersion();
   if (clientVersion !== VERSION) {
     return Promise.reject(new BraintreeError({
       type: sharedErrors.INCOMPATIBLE_VERSIONS.type,

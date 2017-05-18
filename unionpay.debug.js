@@ -1017,7 +1017,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":13,"./check-origin":14,"./events":15,"framebus":1}],17:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.15.0";
+var VERSION = "3.16.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -1281,7 +1281,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
 var sharedErrors = _dereq_('../lib/errors');
-var VERSION = "3.15.0";
+var VERSION = "3.16.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('wrap-promise');
 
@@ -1313,7 +1313,7 @@ function create(options) {
   }
 
   config = options.client.getConfiguration();
-  clientVersion = config.analyticsMetadata.sdkVersion;
+  clientVersion = options.client.getVersion();
 
   if (clientVersion !== VERSION) {
     return Promise.reject(new BraintreeError({
@@ -1436,7 +1436,7 @@ var errors = _dereq_('./errors');
 var events = constants.events;
 var iFramer = _dereq_('iframer');
 var methods = _dereq_('../../lib/methods');
-var VERSION = "3.15.0";
+var VERSION = "3.16.0";
 var uuid = _dereq_('../../lib/uuid');
 var Promise = _dereq_('../../lib/promise');
 var wrapPromise = _dereq_('wrap-promise');
