@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+## 2.32.1
+
+* Drop-in
+  * Fix bug in Firefox 54 where payment method manager would not open (#294)
+
 ## 2.32.0
 
 * PayPal
