@@ -1,6 +1,10 @@
 CHANGELOG
 =========
 
+## 2.15.7
+
+* Bugfix - Drop-in payment method manager would not open in Firefox 54 (#294)
+
 ## 2.15.6
 
 * Bugfix - Maestro cards beginning with 6 and MasterCards beginning with 2 are now properly recognized

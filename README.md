@@ -1,9 +1,17 @@
 braintree-web
-=================
+=============
 
 A suite of tools for integrating Braintree in the browser.
 
-This is the repo to submit issues if you have any problems or questions about any v.zero JS integration.
+This is the repo to submit issues if you have any problems or questions about any JavaScript integration.
+
+> ### Note
+
+> This branch is for __v2__ of the Braintree JavaScript SDK.
+
+> Full source code for __v3__ of the Braintree JavaScript SDK is on the [master branch of braintree-web](https://github.com/braintree/braintree-web). Pull requests welcome.
+
+> If you are upgrading from __v2__ to __v3__, take a look at our [migration guide](https://developers.braintreepayments.com/guides/client-sdk/migration/javascript/v3).
 
 Install
 =======
@@ -19,7 +27,7 @@ bower install braintree-web
 Usage
 =====
 
-For more thorough documentation, visit [the JS SDK docs](https://developers.braintreepayments.com/javascript/sdk/client).
+For more thorough documentation, visit [the JavaScript client SDK docs](https://developers.braintreepayments.com/guides/client-sdk/javascript/v2).
 
 #### Drop-in integration
 
