@@ -7,7 +7,9 @@ var isIe9 = _dereq_('./is-ie9');
 var isIe10 = _dereq_('./is-ie10');
 var isIos = _dereq_('./is-ios');
 var isIosSafari = _dereq_('./is-ios-safari');
+var isIosUIWebview = _dereq_('./is-ios-uiwebview');
 var isIosWebview = _dereq_('./is-ios-webview');
+var isIosWKWebview = _dereq_('./is-ios-wkwebview');
 var supportsPopups = _dereq_('./supports-popups');
 
 module.exports = {
@@ -17,11 +19,13 @@ module.exports = {
   isIe10: isIe10,
   isIos: isIos,
   isIosSafari: isIosSafari,
+  isIosUIWebview: isIosUIWebview,
   isIosWebview: isIosWebview,
+  isIosWKWebview: isIosWKWebview,
   supportsPopups: supportsPopups
 };
 
-},{"./is-android":2,"./is-chrome":3,"./is-ie10":4,"./is-ie9":5,"./is-ios":8,"./is-ios-safari":6,"./is-ios-webview":7,"./supports-popups":9}],2:[function(_dereq_,module,exports){
+},{"./is-android":2,"./is-chrome":3,"./is-ie10":4,"./is-ie9":5,"./is-ios":10,"./is-ios-safari":6,"./is-ios-uiwebview":7,"./is-ios-webview":8,"./is-ios-wkwebview":9,"./supports-popups":11}],2:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -71,7 +75,19 @@ module.exports = function isIosSafari(ua) {
   return isIos(ua) && isWebkit(ua) && ua.indexOf('CriOS') === -1;
 };
 
-},{"./is-ios":8}],7:[function(_dereq_,module,exports){
+},{"./is-ios":10}],7:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+
+var isIosWebview = _dereq_('./is-ios-webview');
+
+module.exports = function isIosUIWebview(ua, statusBarVisible) {
+  statusBarVisible = typeof statusBarVisible !== 'undefined' ? statusBarVisible : global.statusbar.visible;
+  return isIosWebview(ua) && !statusBarVisible;
+};
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./is-ios-webview":8}],8:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -94,7 +110,19 @@ module.exports = function isIosWebview(ua) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./is-ios":8}],8:[function(_dereq_,module,exports){
+},{"./is-ios":10}],9:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+
+var isIosWebview = _dereq_('./is-ios-webview');
+
+module.exports = function isIosWKWebview(ua, statusBarVisible) {
+  statusBarVisible = typeof statusBarVisible !== 'undefined' ? statusBarVisible : global.statusbar.visible;
+  return isIosWebview(ua) && statusBarVisible;
+};
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./is-ios-webview":8}],10:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -104,7 +132,7 @@ module.exports = function isIos(ua) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],9:[function(_dereq_,module,exports){
+},{}],11:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -149,7 +177,7 @@ module.exports = function supportsPopups(ua) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./is-android":2,"./is-ios-webview":7}],10:[function(_dereq_,module,exports){
+},{"./is-android":2,"./is-ios-webview":8}],12:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 (function (root, factory) {
@@ -427,7 +455,7 @@ module.exports = function supportsPopups(ua) {
 });
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],11:[function(_dereq_,module,exports){
+},{}],13:[function(_dereq_,module,exports){
 'use strict';
 
 var setAttributes = _dereq_('./lib/set-attributes');
@@ -452,7 +480,7 @@ module.exports = function createFrame(options) {
   return iframe;
 };
 
-},{"./lib/assign":12,"./lib/default-attributes":13,"./lib/set-attributes":14}],12:[function(_dereq_,module,exports){
+},{"./lib/assign":14,"./lib/default-attributes":15,"./lib/set-attributes":16}],14:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function assign(target) {
@@ -469,7 +497,7 @@ module.exports = function assign(target) {
   return target;
 }
 
-},{}],13:[function(_dereq_,module,exports){
+},{}],15:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -479,7 +507,7 @@ module.exports = {
   scrolling: 'no'
 };
 
-},{}],14:[function(_dereq_,module,exports){
+},{}],16:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function setAttributes(element, attributes) {
@@ -498,7 +526,7 @@ module.exports = function setAttributes(element, attributes) {
   }
 };
 
-},{}],15:[function(_dereq_,module,exports){
+},{}],17:[function(_dereq_,module,exports){
 (function (root) {
 
   // Store setTimeout reference so promise-polyfill will be unaffected by
@@ -733,7 +761,7 @@ module.exports = function setAttributes(element, attributes) {
 
 })(this);
 
-},{}],16:[function(_dereq_,module,exports){
+},{}],18:[function(_dereq_,module,exports){
 'use strict';
 
 function deferred(fn) {
@@ -749,7 +777,7 @@ function deferred(fn) {
 
 module.exports = deferred;
 
-},{}],17:[function(_dereq_,module,exports){
+},{}],19:[function(_dereq_,module,exports){
 'use strict';
 
 function once(fn) {
@@ -765,7 +793,7 @@ function once(fn) {
 
 module.exports = once;
 
-},{}],18:[function(_dereq_,module,exports){
+},{}],20:[function(_dereq_,module,exports){
 'use strict';
 
 function promiseOrCallback(promise, callback) { // eslint-disable-line consistent-return
@@ -784,7 +812,7 @@ function promiseOrCallback(promise, callback) { // eslint-disable-line consisten
 
 module.exports = promiseOrCallback;
 
-},{}],19:[function(_dereq_,module,exports){
+},{}],21:[function(_dereq_,module,exports){
 'use strict';
 
 var deferred = _dereq_('./lib/deferred');
@@ -840,7 +868,7 @@ wrapPromise.wrapPrototype = function (target, options) {
 
 module.exports = wrapPromise;
 
-},{"./lib/deferred":16,"./lib/once":17,"./lib/promise-or-callback":18}],20:[function(_dereq_,module,exports){
+},{"./lib/deferred":18,"./lib/once":19,"./lib/promise-or-callback":20}],22:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -849,7 +877,7 @@ module.exports = {
   REQUIRED_OPTIONS_FOR_START_PAYMENT: ['orderId', 'amount', 'currency']
 };
 
-},{}],21:[function(_dereq_,module,exports){
+},{}],23:[function(_dereq_,module,exports){
 'use strict';
 
 var Promise = _dereq_('../../lib/promise');
@@ -857,7 +885,7 @@ var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../../lib/convert-to-braintree-error');
 var errors = _dereq_('../shared/errors');
-var VERSION = "3.16.0";
+var VERSION = "3.17.0";
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var methods = _dereq_('../../lib/methods');
 var wrapPromise = _dereq_('wrap-promise');
@@ -912,6 +940,8 @@ Ideal.prototype._initialize = function () {
     return new Promise(function (resolve) {
       frameService.create({
         name: 'braintreeideallanding',
+        height: 550,
+        width: 500,
         dispatchFrameUrl: self._assetsUrl + '/html/dispatch-frame' + useMin(self._isDebug) + '.html',
         openFrameUrl: self._assetsUrl + '/html/ideal-issuers-frame' + useMin(self._isDebug) + '.html',
         state: {bankData: response.data}
@@ -1195,14 +1225,14 @@ Ideal.prototype.teardown = wrapPromise(function () {
 
 module.exports = Ideal;
 
-},{"../../lib/analytics":26,"../../lib/braintree-error":28,"../../lib/constants":32,"../../lib/convert-methods-to-error":33,"../../lib/convert-to-braintree-error":34,"../../lib/deferred":36,"../../lib/frame-service/external":40,"../../lib/methods":51,"../../lib/once":52,"../../lib/promise":54,"../../lib/use-min":55,"../shared/errors":23,"../shared/events":24,"./constants":20,"wrap-promise":19}],22:[function(_dereq_,module,exports){
+},{"../../lib/analytics":28,"../../lib/braintree-error":30,"../../lib/constants":34,"../../lib/convert-methods-to-error":35,"../../lib/convert-to-braintree-error":36,"../../lib/deferred":38,"../../lib/frame-service/external":42,"../../lib/methods":53,"../../lib/once":54,"../../lib/promise":56,"../../lib/use-min":57,"../shared/errors":25,"../shared/events":26,"./constants":22,"wrap-promise":21}],24:[function(_dereq_,module,exports){
 'use strict';
 /** @module braintree-web/ideal */
 
 var BraintreeError = _dereq_('../lib/braintree-error');
 var browserDetection = _dereq_('browser-detection');
 var Ideal = _dereq_('./external/ideal');
-var VERSION = "3.16.0";
+var VERSION = "3.17.0";
 var errors = _dereq_('./shared/errors');
 var sharedErrors = _dereq_('../lib/errors');
 var analytics = _dereq_('../lib/analytics');
@@ -1276,7 +1306,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/analytics":26,"../lib/braintree-error":28,"../lib/errors":38,"../lib/promise":54,"./external/ideal":21,"./shared/errors":23,"browser-detection":1,"wrap-promise":19}],23:[function(_dereq_,module,exports){
+},{"../lib/analytics":28,"../lib/braintree-error":30,"../lib/errors":40,"../lib/promise":56,"./external/ideal":23,"./shared/errors":25,"browser-detection":1,"wrap-promise":21}],25:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../lib/braintree-error');
@@ -1329,7 +1359,7 @@ module.exports = {
 };
 
 
-},{"../../lib/braintree-error":28}],24:[function(_dereq_,module,exports){
+},{"../../lib/braintree-error":30}],26:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../../lib/enumerate');
@@ -1339,7 +1369,7 @@ module.exports = enumerate([
   'REDIRECT_PAGE_REACHED'
 ], 'ideal:');
 
-},{"../../lib/enumerate":37}],25:[function(_dereq_,module,exports){
+},{"../../lib/enumerate":39}],27:[function(_dereq_,module,exports){
 'use strict';
 
 var createAuthorizationData = _dereq_('./create-authorization-data');
@@ -1373,7 +1403,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":32,"./create-authorization-data":35,"./json-clone":50}],26:[function(_dereq_,module,exports){
+},{"./constants":34,"./create-authorization-data":37,"./json-clone":52}],28:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('./constants');
@@ -1407,7 +1437,7 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":25,"./constants":32}],27:[function(_dereq_,module,exports){
+},{"./add-metadata":27,"./constants":34}],29:[function(_dereq_,module,exports){
 'use strict';
 
 var assignNormalized = typeof Object.assign === 'function' ? Object.assign : assignPolyfill;
@@ -1432,7 +1462,7 @@ module.exports = {
   _assign: assignPolyfill
 };
 
-},{}],28:[function(_dereq_,module,exports){
+},{}],30:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -1517,7 +1547,7 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":37}],29:[function(_dereq_,module,exports){
+},{"./enumerate":39}],31:[function(_dereq_,module,exports){
 'use strict';
 
 var isWhitelistedDomain = _dereq_('../is-whitelisted-domain');
@@ -1549,7 +1579,7 @@ module.exports = {
   checkOrigin: checkOrigin
 };
 
-},{"../is-whitelisted-domain":49}],30:[function(_dereq_,module,exports){
+},{"../is-whitelisted-domain":51}],32:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../enumerate');
@@ -1558,7 +1588,7 @@ module.exports = enumerate([
   'CONFIGURATION_REQUEST'
 ], 'bus:');
 
-},{"../enumerate":37}],31:[function(_dereq_,module,exports){
+},{"../enumerate":39}],33:[function(_dereq_,module,exports){
 'use strict';
 
 var bus = _dereq_('framebus');
@@ -1689,10 +1719,10 @@ BraintreeBus.events = events;
 
 module.exports = BraintreeBus;
 
-},{"../braintree-error":28,"./check-origin":29,"./events":30,"framebus":10}],32:[function(_dereq_,module,exports){
+},{"../braintree-error":30,"./check-origin":31,"./events":32,"framebus":12}],34:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.16.0";
+var VERSION = "3.17.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -1706,7 +1736,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],33:[function(_dereq_,module,exports){
+},{}],35:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -1724,7 +1754,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"./braintree-error":28,"./errors":38}],34:[function(_dereq_,module,exports){
+},{"./braintree-error":30,"./errors":40}],36:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -1746,7 +1776,7 @@ function convertToBraintreeError(originalErr, btErrorObject) {
 
 module.exports = convertToBraintreeError;
 
-},{"./braintree-error":28}],35:[function(_dereq_,module,exports){
+},{"./braintree-error":30}],37:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/polyfill').atob;
@@ -1795,7 +1825,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":53}],36:[function(_dereq_,module,exports){
+},{"../lib/polyfill":55}],38:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (fn) {
@@ -1809,7 +1839,7 @@ module.exports = function (fn) {
   };
 };
 
-},{}],37:[function(_dereq_,module,exports){
+},{}],39:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -1823,7 +1853,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],38:[function(_dereq_,module,exports){
+},{}],40:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -1856,7 +1886,7 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":28}],39:[function(_dereq_,module,exports){
+},{"./braintree-error":30}],41:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -2082,7 +2112,7 @@ FrameService.prototype._getFrameForEnvironment = function (options) {
 module.exports = FrameService;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../braintree-error":28,"../../bus":31,"../../uuid":56,"../shared/constants":46,"../shared/errors":47,"../shared/events":48,"./../../assign":27,"./strategies/modal":41,"./strategies/popup":44,"./strategies/popup-bridge":42,"browser-detection":1,"iframer":11}],40:[function(_dereq_,module,exports){
+},{"../../braintree-error":30,"../../bus":33,"../../uuid":58,"../shared/constants":48,"../shared/errors":49,"../shared/events":50,"./../../assign":29,"./strategies/modal":43,"./strategies/popup":46,"./strategies/popup-bridge":44,"browser-detection":1,"iframer":13}],42:[function(_dereq_,module,exports){
 'use strict';
 
 var FrameService = _dereq_('./frame-service');
@@ -2097,7 +2127,8 @@ module.exports = {
   }
 };
 
-},{"./frame-service":39}],41:[function(_dereq_,module,exports){
+},{"./frame-service":41}],43:[function(_dereq_,module,exports){
+(function (global){
 'use strict';
 
 var iFramer = _dereq_('iframer');
@@ -2139,9 +2170,23 @@ Modal.prototype.open = function () {
   };
 
   if (browserDetection.isIos()) {
-    iframerConfig.style.position = 'absolute';
+    // WKWebView has buggy behavior when scrolling a fixed position modal. The workaround is to lock scrolling in
+    // the background. When modal is closed, we restore scrolling and return to the previous scroll position.
+    if (browserDetection.isIosWKWebview()) {
+      this._lockScrolling();
+      // Allows WKWebView to scroll all the way down to bottom
+      iframerConfig.style = {};
+    }
 
     this._el = document.createElement('div');
+
+    assign(this._el.style, ELEMENT_STYLES, {
+      height: '100%',
+      width: '100%',
+      overflow: 'auto',
+      '-webkit-overflow-scrolling': 'touch'
+    });
+
     this._frame = iFramer(iframerConfig);
     this._el.appendChild(this._frame);
   } else {
@@ -2158,6 +2203,9 @@ Modal.prototype.close = function () {
   this._container.removeChild(this._el);
   this._frame = null;
   this._closed = true;
+  if (browserDetection.isIosWKWebview()) {
+    this._unlockScrolling();
+  }
 };
 
 Modal.prototype.isClosed = function () {
@@ -2168,9 +2216,32 @@ Modal.prototype.redirect = function (redirectUrl) {
   this._frame.src = redirectUrl;
 };
 
+Modal.prototype._unlockScrolling = function () {
+  document.body.style.overflow = this._savedBodyProperties.overflowStyle;
+  document.body.style.position = this._savedBodyProperties.positionStyle;
+  global.scrollTo(this._savedBodyProperties.left, this._savedBodyProperties.top);
+  delete this._savedBodyProperties;
+};
+
+Modal.prototype._lockScrolling = function () {
+  var doc = document.documentElement;
+
+  // From http://stackoverflow.com/questions/9538868/prevent-body-from-scrolling-when-a-modal-is-opened#comment65626743_24727206
+  this._savedBodyProperties = {
+    left: (global.pageXOffset || doc.scrollLeft) - (doc.clientLeft || 0),
+    top: (global.pageYOffset || doc.scrollTop) - (doc.clientTop || 0),
+    overflowStyle: document.body.style.overflow,
+    positionStyle: document.body.style.position
+  };
+  document.body.style.overflow = 'hidden';
+  document.body.style.position = 'fixed';
+  global.scrollTo(0, 0);
+};
+
 module.exports = Modal;
 
-},{"../../../assign":27,"browser-detection":1,"iframer":11}],42:[function(_dereq_,module,exports){
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"../../../assign":29,"browser-detection":1,"iframer":13}],44:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -2227,7 +2298,7 @@ PopupBridge.prototype.redirect = function (redirectUrl) {
 module.exports = PopupBridge;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../../braintree-error":28,"../../shared/errors":47}],43:[function(_dereq_,module,exports){
+},{"../../../braintree-error":30,"../../shared/errors":49}],45:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('../../../shared/constants');
@@ -2256,7 +2327,7 @@ module.exports = function composePopupOptions(options) {
   ].join(',');
 };
 
-},{"../../../shared/constants":46,"./position":45}],44:[function(_dereq_,module,exports){
+},{"../../../shared/constants":48,"./position":47}],46:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -2300,7 +2371,7 @@ Popup.prototype.redirect = function (redirectUrl) {
 module.exports = Popup;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./compose-options":43}],45:[function(_dereq_,module,exports){
+},{"./compose-options":45}],47:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -2329,7 +2400,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],46:[function(_dereq_,module,exports){
+},{}],48:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -2342,7 +2413,7 @@ module.exports = {
   POPUP_CLOSE_TIMEOUT: 100
 };
 
-},{}],47:[function(_dereq_,module,exports){
+},{}],49:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../braintree-error');
@@ -2360,7 +2431,7 @@ module.exports = {
   }
 };
 
-},{"../../braintree-error":28}],48:[function(_dereq_,module,exports){
+},{"../../braintree-error":30}],50:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../../enumerate');
@@ -2370,7 +2441,7 @@ module.exports = enumerate([
   'DISPATCH_FRAME_REPORT'
 ], 'frameService:');
 
-},{"../../enumerate":37}],49:[function(_dereq_,module,exports){
+},{"../../enumerate":39}],51:[function(_dereq_,module,exports){
 'use strict';
 
 var parser;
@@ -2405,14 +2476,14 @@ function isWhitelistedDomain(url) {
 
 module.exports = isWhitelistedDomain;
 
-},{}],50:[function(_dereq_,module,exports){
+},{}],52:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],51:[function(_dereq_,module,exports){
+},{}],53:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -2421,9 +2492,9 @@ module.exports = function (obj) {
   });
 };
 
-},{}],52:[function(_dereq_,module,exports){
-arguments[4][17][0].apply(exports,arguments)
-},{"dup":17}],53:[function(_dereq_,module,exports){
+},{}],54:[function(_dereq_,module,exports){
+arguments[4][19][0].apply(exports,arguments)
+},{"dup":19}],55:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -2464,7 +2535,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],54:[function(_dereq_,module,exports){
+},{}],56:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -2473,7 +2544,7 @@ var Promise = global.Promise || _dereq_('promise-polyfill');
 module.exports = Promise;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":15}],55:[function(_dereq_,module,exports){
+},{"promise-polyfill":17}],57:[function(_dereq_,module,exports){
 'use strict';
 
 function useMin(isDebug) {
@@ -2482,7 +2553,7 @@ function useMin(isDebug) {
 
 module.exports = useMin;
 
-},{}],56:[function(_dereq_,module,exports){
+},{}],58:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {
@@ -2496,5 +2567,5 @@ function uuid() {
 
 module.exports = uuid;
 
-},{}]},{},[22])(22)
+},{}]},{},[24])(24)
 });
