@@ -1,4 +1,111 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}(g.braintree || (g.braintree = {})).visaCheckout = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
+'use strict';
+
+function deferred(fn) {
+  return function () {
+    // IE9 doesn't support passing arguments to setTimeout so we have to emulate it.
+    var args = arguments;
+
+    setTimeout(function () {
+      fn.apply(null, args);
+    }, 1);
+  };
+}
+
+module.exports = deferred;
+
+},{}],2:[function(_dereq_,module,exports){
+'use strict';
+
+function once(fn) {
+  var called = false;
+
+  return function () {
+    if (!called) {
+      called = true;
+      fn.apply(null, arguments);
+    }
+  };
+}
+
+module.exports = once;
+
+},{}],3:[function(_dereq_,module,exports){
+'use strict';
+
+function promiseOrCallback(promise, callback) { // eslint-disable-line consistent-return
+  if (callback) {
+    promise
+      .then(function (data) {
+        callback(null, data);
+      })
+      .catch(function (err) {
+        callback(err);
+      });
+  } else {
+    return promise;
+  }
+}
+
+module.exports = promiseOrCallback;
+
+},{}],4:[function(_dereq_,module,exports){
+'use strict';
+
+var deferred = _dereq_('./lib/deferred');
+var once = _dereq_('./lib/once');
+var promiseOrCallback = _dereq_('./lib/promise-or-callback');
+
+function wrapPromise(fn) {
+  return function () {
+    var callback;
+    var args = Array.prototype.slice.call(arguments);
+    var lastArg = args[args.length - 1];
+
+    if (typeof lastArg === 'function') {
+      callback = args.pop();
+      callback = once(deferred(callback));
+    }
+    return promiseOrCallback(fn.apply(this, args), callback); // eslint-disable-line no-invalid-this
+  };
+}
+
+wrapPromise.wrapPrototype = function (target, options) {
+  var methods, ignoreMethods, includePrivateMethods;
+
+  options = options || {};
+  ignoreMethods = options.ignoreMethods || [];
+  includePrivateMethods = options.transformPrivateMethods === true;
+
+  methods = Object.getOwnPropertyNames(target.prototype).filter(function (method) {
+    var isNotPrivateMethod;
+    var isNonConstructorFunction = method !== 'constructor' &&
+      typeof target.prototype[method] === 'function';
+    var isNotAnIgnoredMethod = ignoreMethods.indexOf(method) === -1;
+
+    if (includePrivateMethods) {
+      isNotPrivateMethod = true;
+    } else {
+      isNotPrivateMethod = method.charAt(0) !== '_';
+    }
+
+    return isNonConstructorFunction &&
+      isNotPrivateMethod &&
+      isNotAnIgnoredMethod;
+  });
+
+  methods.forEach(function (method) {
+    var original = target.prototype[method];
+
+    target.prototype[method] = wrapPromise(original);
+  });
+
+  return target;
+};
+
+module.exports = wrapPromise;
+
+},{"./lib/deferred":1,"./lib/once":2,"./lib/promise-or-callback":3}],5:[function(_dereq_,module,exports){
 (function (root) {
 
   // Store setTimeout reference so promise-polyfill will be unaffected by
@@ -233,114 +340,7 @@
 
 })(this);
 
-},{}],2:[function(_dereq_,module,exports){
-'use strict';
-
-function deferred(fn) {
-  return function () {
-    // IE9 doesn't support passing arguments to setTimeout so we have to emulate it.
-    var args = arguments;
-
-    setTimeout(function () {
-      fn.apply(null, args);
-    }, 1);
-  };
-}
-
-module.exports = deferred;
-
-},{}],3:[function(_dereq_,module,exports){
-'use strict';
-
-function once(fn) {
-  var called = false;
-
-  return function () {
-    if (!called) {
-      called = true;
-      fn.apply(null, arguments);
-    }
-  };
-}
-
-module.exports = once;
-
-},{}],4:[function(_dereq_,module,exports){
-'use strict';
-
-function promiseOrCallback(promise, callback) { // eslint-disable-line consistent-return
-  if (callback) {
-    promise
-      .then(function (data) {
-        callback(null, data);
-      })
-      .catch(function (err) {
-        callback(err);
-      });
-  } else {
-    return promise;
-  }
-}
-
-module.exports = promiseOrCallback;
-
-},{}],5:[function(_dereq_,module,exports){
-'use strict';
-
-var deferred = _dereq_('./lib/deferred');
-var once = _dereq_('./lib/once');
-var promiseOrCallback = _dereq_('./lib/promise-or-callback');
-
-function wrapPromise(fn) {
-  return function () {
-    var callback;
-    var args = Array.prototype.slice.call(arguments);
-    var lastArg = args[args.length - 1];
-
-    if (typeof lastArg === 'function') {
-      callback = args.pop();
-      callback = once(deferred(callback));
-    }
-    return promiseOrCallback(fn.apply(this, args), callback); // eslint-disable-line no-invalid-this
-  };
-}
-
-wrapPromise.wrapPrototype = function (target, options) {
-  var methods, ignoreMethods, includePrivateMethods;
-
-  options = options || {};
-  ignoreMethods = options.ignoreMethods || [];
-  includePrivateMethods = options.transformPrivateMethods === true;
-
-  methods = Object.getOwnPropertyNames(target.prototype).filter(function (method) {
-    var isNotPrivateMethod;
-    var isNonConstructorFunction = method !== 'constructor' &&
-      typeof target.prototype[method] === 'function';
-    var isNotAnIgnoredMethod = ignoreMethods.indexOf(method) === -1;
-
-    if (includePrivateMethods) {
-      isNotPrivateMethod = true;
-    } else {
-      isNotPrivateMethod = method.charAt(0) !== '_';
-    }
-
-    return isNonConstructorFunction &&
-      isNotPrivateMethod &&
-      isNotAnIgnoredMethod;
-  });
-
-  methods.forEach(function (method) {
-    var original = target.prototype[method];
-
-    target.prototype[method] = wrapPromise(original);
-  });
-
-  return target;
-};
-
-module.exports = wrapPromise;
-
-},{"./lib/deferred":2,"./lib/once":3,"./lib/promise-or-callback":4}],6:[function(_dereq_,module,exports){
+},{}],6:[function(_dereq_,module,exports){
 'use strict';
 
 var createAuthorizationData = _dereq_('./create-authorization-data');
@@ -496,7 +496,7 @@ module.exports = BraintreeError;
 },{"./enumerate":11}],9:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.17.0";
+var VERSION = "3.18.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -663,7 +663,7 @@ var Promise = global.Promise || _dereq_('promise-polyfill');
 module.exports = Promise;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":1}],16:[function(_dereq_,module,exports){
+},{"promise-polyfill":5}],16:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -704,9 +704,9 @@ var VisaCheckout = _dereq_('./visa-checkout');
 var analytics = _dereq_('../lib/analytics');
 var sharedErrors = _dereq_('../lib/errors');
 var errors = _dereq_('./errors');
-var VERSION = "3.17.0";
+var VERSION = "3.18.0";
 var Promise = _dereq_('../lib/promise');
-var wrapPromise = _dereq_('wrap-promise');
+var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
  * @static
@@ -754,7 +754,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/analytics":7,"../lib/braintree-error":8,"../lib/errors":12,"../lib/promise":15,"./errors":16,"./visa-checkout":18,"wrap-promise":5}],18:[function(_dereq_,module,exports){
+},{"../lib/analytics":7,"../lib/braintree-error":8,"../lib/errors":12,"../lib/promise":15,"./errors":16,"./visa-checkout":18,"@braintree/wrap-promise":4}],18:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -762,7 +762,7 @@ var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./errors');
 var jsonClone = _dereq_('../lib/json-clone');
 var Promise = _dereq_('../lib/promise');
-var wrapPromise = _dereq_('wrap-promise');
+var wrapPromise = _dereq_('@braintree/wrap-promise');
 var cardTypeTransformMap = {
   Visa: 'VISA',
   MasterCard: 'MASTERCARD',
@@ -943,5 +943,5 @@ VisaCheckout.prototype.tokenize = function (payment) {
 
 module.exports = wrapPromise.wrapPrototype(VisaCheckout);
 
-},{"../lib/analytics":7,"../lib/braintree-error":8,"../lib/json-clone":13,"../lib/promise":15,"./errors":16,"wrap-promise":5}]},{},[17])(17)
+},{"../lib/analytics":7,"../lib/braintree-error":8,"../lib/json-clone":13,"../lib/promise":15,"./errors":16,"@braintree/wrap-promise":4}]},{},[17])(17)
 });

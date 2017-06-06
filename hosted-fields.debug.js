@@ -37,6 +37,184 @@ module.exports = function isIos(ua) {
 },{}],5:[function(_dereq_,module,exports){
 'use strict';
 
+var setAttributes = _dereq_('./lib/set-attributes');
+var defaultAttributes = _dereq_('./lib/default-attributes');
+var assign = _dereq_('./lib/assign');
+
+module.exports = function createFrame(options) {
+  var iframe = document.createElement('iframe');
+  var config = assign({}, defaultAttributes, options);
+
+  if (config.style && typeof config.style !== 'string') {
+    assign(iframe.style, config.style);
+    delete config.style;
+  }
+
+  setAttributes(iframe, config);
+
+  if (!iframe.getAttribute('id')) {
+    iframe.id = iframe.name;
+  }
+
+  return iframe;
+};
+
+},{"./lib/assign":6,"./lib/default-attributes":7,"./lib/set-attributes":8}],6:[function(_dereq_,module,exports){
+'use strict';
+
+module.exports = function assign(target) {
+  var objs = Array.prototype.slice.call(arguments, 1);
+
+  objs.forEach(function (obj) {
+    if (typeof obj !== 'object') { return; }
+
+    Object.keys(obj).forEach(function (key) {
+      target[key] = obj[key];
+    });
+  });
+
+  return target;
+}
+
+},{}],7:[function(_dereq_,module,exports){
+'use strict';
+
+module.exports = {
+  src: 'about:blank',
+  frameBorder: 0,
+  allowtransparency: true,
+  scrolling: 'no'
+};
+
+},{}],8:[function(_dereq_,module,exports){
+'use strict';
+
+module.exports = function setAttributes(element, attributes) {
+  var value;
+
+  for (var key in attributes) {
+    if (attributes.hasOwnProperty(key)) {
+      value = attributes[key];
+
+      if (value == null) {
+        element.removeAttribute(key);
+      } else {
+        element.setAttribute(key, value);
+      }
+    }
+  }
+};
+
+},{}],9:[function(_dereq_,module,exports){
+'use strict';
+
+function deferred(fn) {
+  return function () {
+    // IE9 doesn't support passing arguments to setTimeout so we have to emulate it.
+    var args = arguments;
+
+    setTimeout(function () {
+      fn.apply(null, args);
+    }, 1);
+  };
+}
+
+module.exports = deferred;
+
+},{}],10:[function(_dereq_,module,exports){
+'use strict';
+
+function once(fn) {
+  var called = false;
+
+  return function () {
+    if (!called) {
+      called = true;
+      fn.apply(null, arguments);
+    }
+  };
+}
+
+module.exports = once;
+
+},{}],11:[function(_dereq_,module,exports){
+'use strict';
+
+function promiseOrCallback(promise, callback) { // eslint-disable-line consistent-return
+  if (callback) {
+    promise
+      .then(function (data) {
+        callback(null, data);
+      })
+      .catch(function (err) {
+        callback(err);
+      });
+  } else {
+    return promise;
+  }
+}
+
+module.exports = promiseOrCallback;
+
+},{}],12:[function(_dereq_,module,exports){
+'use strict';
+
+var deferred = _dereq_('./lib/deferred');
+var once = _dereq_('./lib/once');
+var promiseOrCallback = _dereq_('./lib/promise-or-callback');
+
+function wrapPromise(fn) {
+  return function () {
+    var callback;
+    var args = Array.prototype.slice.call(arguments);
+    var lastArg = args[args.length - 1];
+
+    if (typeof lastArg === 'function') {
+      callback = args.pop();
+      callback = once(deferred(callback));
+    }
+    return promiseOrCallback(fn.apply(this, args), callback); // eslint-disable-line no-invalid-this
+  };
+}
+
+wrapPromise.wrapPrototype = function (target, options) {
+  var methods, ignoreMethods, includePrivateMethods;
+
+  options = options || {};
+  ignoreMethods = options.ignoreMethods || [];
+  includePrivateMethods = options.transformPrivateMethods === true;
+
+  methods = Object.getOwnPropertyNames(target.prototype).filter(function (method) {
+    var isNotPrivateMethod;
+    var isNonConstructorFunction = method !== 'constructor' &&
+      typeof target.prototype[method] === 'function';
+    var isNotAnIgnoredMethod = ignoreMethods.indexOf(method) === -1;
+
+    if (includePrivateMethods) {
+      isNotPrivateMethod = true;
+    } else {
+      isNotPrivateMethod = method.charAt(0) !== '_';
+    }
+
+    return isNonConstructorFunction &&
+      isNotPrivateMethod &&
+      isNotAnIgnoredMethod;
+  });
+
+  methods.forEach(function (method) {
+    var original = target.prototype[method];
+
+    target.prototype[method] = wrapPromise(original);
+  });
+
+  return target;
+};
+
+module.exports = wrapPromise;
+
+},{"./lib/deferred":9,"./lib/once":10,"./lib/promise-or-callback":11}],13:[function(_dereq_,module,exports){
+'use strict';
+
 var types = {};
 var VISA = 'visa';
 var MASTERCARD = 'master-card';
@@ -225,7 +403,7 @@ creditCardType.types = {
 
 module.exports = creditCardType;
 
-},{}],6:[function(_dereq_,module,exports){
+},{}],14:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 (function (root, factory) {
@@ -503,78 +681,7 @@ module.exports = creditCardType;
 });
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],7:[function(_dereq_,module,exports){
-'use strict';
-
-var setAttributes = _dereq_('./lib/set-attributes');
-var defaultAttributes = _dereq_('./lib/default-attributes');
-var assign = _dereq_('./lib/assign');
-
-module.exports = function createFrame(options) {
-  var iframe = document.createElement('iframe');
-  var config = assign({}, defaultAttributes, options);
-
-  if (config.style && typeof config.style !== 'string') {
-    assign(iframe.style, config.style);
-    delete config.style;
-  }
-
-  setAttributes(iframe, config);
-
-  if (!iframe.getAttribute('id')) {
-    iframe.id = iframe.name;
-  }
-
-  return iframe;
-};
-
-},{"./lib/assign":8,"./lib/default-attributes":9,"./lib/set-attributes":10}],8:[function(_dereq_,module,exports){
-'use strict';
-
-module.exports = function assign(target) {
-  var objs = Array.prototype.slice.call(arguments, 1);
-
-  objs.forEach(function (obj) {
-    if (typeof obj !== 'object') { return; }
-
-    Object.keys(obj).forEach(function (key) {
-      target[key] = obj[key];
-    });
-  });
-
-  return target;
-}
-
-},{}],9:[function(_dereq_,module,exports){
-'use strict';
-
-module.exports = {
-  src: 'about:blank',
-  frameBorder: 0,
-  allowtransparency: true,
-  scrolling: 'no'
-};
-
-},{}],10:[function(_dereq_,module,exports){
-'use strict';
-
-module.exports = function setAttributes(element, attributes) {
-  var value;
-
-  for (var key in attributes) {
-    if (attributes.hasOwnProperty(key)) {
-      value = attributes[key];
-
-      if (value == null) {
-        element.removeAttribute(key);
-      } else {
-        element.setAttribute(key, value);
-      }
-    }
-  }
-};
-
-},{}],11:[function(_dereq_,module,exports){
+},{}],15:[function(_dereq_,module,exports){
 (function (root) {
 
   // Store setTimeout reference so promise-polyfill will be unaffected by
@@ -809,16 +916,16 @@ module.exports = function setAttributes(element, attributes) {
 
 })(this);
 
-},{}],12:[function(_dereq_,module,exports){
+},{}],16:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
 var UA = global.navigator && global.navigator.userAgent;
 
-var isAndroid = _dereq_('browser-detection/is-android');
-var isChrome = _dereq_('browser-detection/is-chrome');
-var isIos = _dereq_('browser-detection/is-ios');
-var isIE9 = _dereq_('browser-detection/is-ie9');
+var isAndroid = _dereq_('@braintree/browser-detection/is-android');
+var isChrome = _dereq_('@braintree/browser-detection/is-chrome');
+var isIos = _dereq_('@braintree/browser-detection/is-ios');
+var isIE9 = _dereq_('@braintree/browser-detection/is-ie9');
 
 // Old Android Webviews used specific versions of Chrome with 0.0.0 as their version suffix
 // https://developer.chrome.com/multidevice/user-agent#webview_user_agent
@@ -854,7 +961,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"browser-detection/is-android":1,"browser-detection/is-chrome":2,"browser-detection/is-ie9":3,"browser-detection/is-ios":4}],13:[function(_dereq_,module,exports){
+},{"@braintree/browser-detection/is-android":1,"@braintree/browser-detection/is-chrome":2,"@braintree/browser-detection/is-ie9":3,"@braintree/browser-detection/is-ios":4}],17:[function(_dereq_,module,exports){
 'use strict';
 
 var device = _dereq_('./lib/device');
@@ -864,114 +971,7 @@ module.exports = function () {
   return !device.isSamsungBrowser();
 };
 
-},{"./lib/device":12}],14:[function(_dereq_,module,exports){
-'use strict';
-
-function deferred(fn) {
-  return function () {
-    // IE9 doesn't support passing arguments to setTimeout so we have to emulate it.
-    var args = arguments;
-
-    setTimeout(function () {
-      fn.apply(null, args);
-    }, 1);
-  };
-}
-
-module.exports = deferred;
-
-},{}],15:[function(_dereq_,module,exports){
-'use strict';
-
-function once(fn) {
-  var called = false;
-
-  return function () {
-    if (!called) {
-      called = true;
-      fn.apply(null, arguments);
-    }
-  };
-}
-
-module.exports = once;
-
-},{}],16:[function(_dereq_,module,exports){
-'use strict';
-
-function promiseOrCallback(promise, callback) { // eslint-disable-line consistent-return
-  if (callback) {
-    promise
-      .then(function (data) {
-        callback(null, data);
-      })
-      .catch(function (err) {
-        callback(err);
-      });
-  } else {
-    return promise;
-  }
-}
-
-module.exports = promiseOrCallback;
-
-},{}],17:[function(_dereq_,module,exports){
-'use strict';
-
-var deferred = _dereq_('./lib/deferred');
-var once = _dereq_('./lib/once');
-var promiseOrCallback = _dereq_('./lib/promise-or-callback');
-
-function wrapPromise(fn) {
-  return function () {
-    var callback;
-    var args = Array.prototype.slice.call(arguments);
-    var lastArg = args[args.length - 1];
-
-    if (typeof lastArg === 'function') {
-      callback = args.pop();
-      callback = once(deferred(callback));
-    }
-    return promiseOrCallback(fn.apply(this, args), callback); // eslint-disable-line no-invalid-this
-  };
-}
-
-wrapPromise.wrapPrototype = function (target, options) {
-  var methods, ignoreMethods, includePrivateMethods;
-
-  options = options || {};
-  ignoreMethods = options.ignoreMethods || [];
-  includePrivateMethods = options.transformPrivateMethods === true;
-
-  methods = Object.getOwnPropertyNames(target.prototype).filter(function (method) {
-    var isNotPrivateMethod;
-    var isNonConstructorFunction = method !== 'constructor' &&
-      typeof target.prototype[method] === 'function';
-    var isNotAnIgnoredMethod = ignoreMethods.indexOf(method) === -1;
-
-    if (includePrivateMethods) {
-      isNotPrivateMethod = true;
-    } else {
-      isNotPrivateMethod = method.charAt(0) !== '_';
-    }
-
-    return isNonConstructorFunction &&
-      isNotPrivateMethod &&
-      isNotAnIgnoredMethod;
-  });
-
-  methods.forEach(function (method) {
-    var original = target.prototype[method];
-
-    target.prototype[method] = wrapPromise(original);
-  });
-
-  return target;
-};
-
-module.exports = wrapPromise;
-
-},{"./lib/deferred":14,"./lib/once":15,"./lib/promise-or-callback":16}],18:[function(_dereq_,module,exports){
+},{"./lib/device":16}],18:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../lib/braintree-error');
@@ -1029,7 +1029,7 @@ module.exports = function composeUrl(assetsUrl, componentId, isDebug) {
 
 var Destructor = _dereq_('../../lib/destructor');
 var classlist = _dereq_('../../lib/classlist');
-var iFramer = _dereq_('iframer');
+var iFramer = _dereq_('@braintree/iframer');
 var Bus = _dereq_('../../lib/bus');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var composeUrl = _dereq_('./compose-url');
@@ -1038,20 +1038,20 @@ var errors = _dereq_('../shared/errors');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var uuid = _dereq_('../../lib/uuid');
 var findParentTags = _dereq_('../shared/find-parent-tags');
-var isIos = _dereq_('browser-detection/is-ios');
+var isIos = _dereq_('@braintree/browser-detection/is-ios');
 var events = constants.events;
 var EventEmitter = _dereq_('../../lib/event-emitter');
 var injectFrame = _dereq_('./inject-frame');
 var analytics = _dereq_('../../lib/analytics');
 var whitelistedFields = constants.whitelistedFields;
-var VERSION = "3.17.0";
+var VERSION = "3.18.0";
 var methods = _dereq_('../../lib/methods');
 var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
 var sharedErrors = _dereq_('../../lib/errors');
 var getCardTypes = _dereq_('credit-card-type');
 var attributeValidationError = _dereq_('./attribute-validation-error');
 var Promise = _dereq_('../../lib/promise');
-var wrapPromise = _dereq_('wrap-promise');
+var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
  * @typedef {object} HostedFields~tokenizePayload
@@ -1962,7 +1962,7 @@ HostedFields.prototype.getState = function () {
 
 module.exports = wrapPromise.wrapPrototype(HostedFields);
 
-},{"../../lib/analytics":27,"../../lib/braintree-error":29,"../../lib/bus":32,"../../lib/classlist":33,"../../lib/constants":34,"../../lib/convert-methods-to-error":35,"../../lib/destructor":37,"../../lib/errors":39,"../../lib/event-emitter":40,"../../lib/methods":43,"../../lib/promise":46,"../../lib/uuid":48,"../shared/constants":23,"../shared/errors":24,"../shared/find-parent-tags":25,"./attribute-validation-error":18,"./compose-url":19,"./inject-frame":21,"browser-detection/is-ios":4,"credit-card-type":5,"iframer":7,"wrap-promise":17}],21:[function(_dereq_,module,exports){
+},{"../../lib/analytics":27,"../../lib/braintree-error":29,"../../lib/bus":32,"../../lib/classlist":33,"../../lib/constants":34,"../../lib/convert-methods-to-error":35,"../../lib/destructor":37,"../../lib/errors":39,"../../lib/event-emitter":40,"../../lib/methods":43,"../../lib/promise":46,"../../lib/uuid":48,"../shared/constants":23,"../shared/errors":24,"../shared/find-parent-tags":25,"./attribute-validation-error":18,"./compose-url":19,"./inject-frame":21,"@braintree/browser-detection/is-ios":4,"@braintree/iframer":5,"@braintree/wrap-promise":12,"credit-card-type":13}],21:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function injectFrame(frame, container) {
@@ -1985,9 +1985,9 @@ module.exports = function injectFrame(frame, container) {
 
 var HostedFields = _dereq_('./external/hosted-fields');
 var supportsInputFormatting = _dereq_('restricted-input/supports-input-formatting');
-var wrapPromise = _dereq_('wrap-promise');
+var wrapPromise = _dereq_('@braintree/wrap-promise');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.17.0";
+var VERSION = "3.18.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -2135,7 +2135,8 @@ module.exports = {
    * @function supportsInputFormatting
    * @description Returns false if input formatting will be automatically disabled due to browser incompatibility. Otherwise, returns true. For a list of unsupported browsers, [go here](https://github.com/braintree/restricted-input/blob/master/README.md#browsers-where-formatting-is-turned-off-automatically).
    * @returns {Boolean} Returns false if input formatting will be automatically disabled due to browser incompatibility. Otherwise, returns true.
-   * @example Conditionally choosing split expiration date inputs if formatting is unavailable
+   * @example
+   * <caption>Conditionally choosing split expiration date inputs if formatting is unavailable</caption>
    * var canFormat = braintree.hostedFields.supportsInputFormatting();
    * var fields = {
    *   number: {
@@ -2178,13 +2179,13 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/promise":46,"./external/hosted-fields":20,"restricted-input/supports-input-formatting":13,"wrap-promise":17}],23:[function(_dereq_,module,exports){
+},{"../lib/promise":46,"./external/hosted-fields":20,"@braintree/wrap-promise":12,"restricted-input/supports-input-formatting":17}],23:[function(_dereq_,module,exports){
 'use strict';
 /* eslint-disable no-reserved-keys */
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.17.0";
+var VERSION = "3.18.0";
 
 var constants = {
   VERSION: VERSION,
@@ -2297,7 +2298,8 @@ constants.events = enumerate([
   'REMOVE_CLASS',
   'SET_ATTRIBUTE',
   'REMOVE_ATTRIBUTE',
-  'CLEAR_FIELD'
+  'CLEAR_FIELD',
+  'AUTOFILL_EXPIRATION_DATE'
 ], 'hosted-fields:');
 
 module.exports = constants;
@@ -2763,7 +2765,7 @@ BraintreeBus.events = events;
 
 module.exports = BraintreeBus;
 
-},{"../braintree-error":29,"./check-origin":30,"./events":31,"framebus":6}],33:[function(_dereq_,module,exports){
+},{"../braintree-error":29,"./check-origin":30,"./events":31,"framebus":14}],33:[function(_dereq_,module,exports){
 'use strict';
 
 function _classesOf(element) {
@@ -2805,7 +2807,7 @@ module.exports = {
 },{}],34:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.17.0";
+var VERSION = "3.18.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -3052,8 +3054,8 @@ module.exports = function (obj) {
 };
 
 },{}],44:[function(_dereq_,module,exports){
-arguments[4][15][0].apply(exports,arguments)
-},{"dup":15}],45:[function(_dereq_,module,exports){
+arguments[4][10][0].apply(exports,arguments)
+},{"dup":10}],45:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -3103,7 +3105,7 @@ var Promise = global.Promise || _dereq_('promise-polyfill');
 module.exports = Promise;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":11}],47:[function(_dereq_,module,exports){
+},{"promise-polyfill":15}],47:[function(_dereq_,module,exports){
 'use strict';
 
 function useMin(isDebug) {

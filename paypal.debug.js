@@ -178,6 +178,184 @@ module.exports = function supportsPopups(ua) {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"./is-android":2,"./is-ios-webview":8}],12:[function(_dereq_,module,exports){
+'use strict';
+
+var setAttributes = _dereq_('./lib/set-attributes');
+var defaultAttributes = _dereq_('./lib/default-attributes');
+var assign = _dereq_('./lib/assign');
+
+module.exports = function createFrame(options) {
+  var iframe = document.createElement('iframe');
+  var config = assign({}, defaultAttributes, options);
+
+  if (config.style && typeof config.style !== 'string') {
+    assign(iframe.style, config.style);
+    delete config.style;
+  }
+
+  setAttributes(iframe, config);
+
+  if (!iframe.getAttribute('id')) {
+    iframe.id = iframe.name;
+  }
+
+  return iframe;
+};
+
+},{"./lib/assign":13,"./lib/default-attributes":14,"./lib/set-attributes":15}],13:[function(_dereq_,module,exports){
+'use strict';
+
+module.exports = function assign(target) {
+  var objs = Array.prototype.slice.call(arguments, 1);
+
+  objs.forEach(function (obj) {
+    if (typeof obj !== 'object') { return; }
+
+    Object.keys(obj).forEach(function (key) {
+      target[key] = obj[key];
+    });
+  });
+
+  return target;
+}
+
+},{}],14:[function(_dereq_,module,exports){
+'use strict';
+
+module.exports = {
+  src: 'about:blank',
+  frameBorder: 0,
+  allowtransparency: true,
+  scrolling: 'no'
+};
+
+},{}],15:[function(_dereq_,module,exports){
+'use strict';
+
+module.exports = function setAttributes(element, attributes) {
+  var value;
+
+  for (var key in attributes) {
+    if (attributes.hasOwnProperty(key)) {
+      value = attributes[key];
+
+      if (value == null) {
+        element.removeAttribute(key);
+      } else {
+        element.setAttribute(key, value);
+      }
+    }
+  }
+};
+
+},{}],16:[function(_dereq_,module,exports){
+'use strict';
+
+function deferred(fn) {
+  return function () {
+    // IE9 doesn't support passing arguments to setTimeout so we have to emulate it.
+    var args = arguments;
+
+    setTimeout(function () {
+      fn.apply(null, args);
+    }, 1);
+  };
+}
+
+module.exports = deferred;
+
+},{}],17:[function(_dereq_,module,exports){
+'use strict';
+
+function once(fn) {
+  var called = false;
+
+  return function () {
+    if (!called) {
+      called = true;
+      fn.apply(null, arguments);
+    }
+  };
+}
+
+module.exports = once;
+
+},{}],18:[function(_dereq_,module,exports){
+'use strict';
+
+function promiseOrCallback(promise, callback) { // eslint-disable-line consistent-return
+  if (callback) {
+    promise
+      .then(function (data) {
+        callback(null, data);
+      })
+      .catch(function (err) {
+        callback(err);
+      });
+  } else {
+    return promise;
+  }
+}
+
+module.exports = promiseOrCallback;
+
+},{}],19:[function(_dereq_,module,exports){
+'use strict';
+
+var deferred = _dereq_('./lib/deferred');
+var once = _dereq_('./lib/once');
+var promiseOrCallback = _dereq_('./lib/promise-or-callback');
+
+function wrapPromise(fn) {
+  return function () {
+    var callback;
+    var args = Array.prototype.slice.call(arguments);
+    var lastArg = args[args.length - 1];
+
+    if (typeof lastArg === 'function') {
+      callback = args.pop();
+      callback = once(deferred(callback));
+    }
+    return promiseOrCallback(fn.apply(this, args), callback); // eslint-disable-line no-invalid-this
+  };
+}
+
+wrapPromise.wrapPrototype = function (target, options) {
+  var methods, ignoreMethods, includePrivateMethods;
+
+  options = options || {};
+  ignoreMethods = options.ignoreMethods || [];
+  includePrivateMethods = options.transformPrivateMethods === true;
+
+  methods = Object.getOwnPropertyNames(target.prototype).filter(function (method) {
+    var isNotPrivateMethod;
+    var isNonConstructorFunction = method !== 'constructor' &&
+      typeof target.prototype[method] === 'function';
+    var isNotAnIgnoredMethod = ignoreMethods.indexOf(method) === -1;
+
+    if (includePrivateMethods) {
+      isNotPrivateMethod = true;
+    } else {
+      isNotPrivateMethod = method.charAt(0) !== '_';
+    }
+
+    return isNonConstructorFunction &&
+      isNotPrivateMethod &&
+      isNotAnIgnoredMethod;
+  });
+
+  methods.forEach(function (method) {
+    var original = target.prototype[method];
+
+    target.prototype[method] = wrapPromise(original);
+  });
+
+  return target;
+};
+
+module.exports = wrapPromise;
+
+},{"./lib/deferred":16,"./lib/once":17,"./lib/promise-or-callback":18}],20:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 (function (root, factory) {
@@ -455,78 +633,7 @@ module.exports = function supportsPopups(ua) {
 });
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],13:[function(_dereq_,module,exports){
-'use strict';
-
-var setAttributes = _dereq_('./lib/set-attributes');
-var defaultAttributes = _dereq_('./lib/default-attributes');
-var assign = _dereq_('./lib/assign');
-
-module.exports = function createFrame(options) {
-  var iframe = document.createElement('iframe');
-  var config = assign({}, defaultAttributes, options);
-
-  if (config.style && typeof config.style !== 'string') {
-    assign(iframe.style, config.style);
-    delete config.style;
-  }
-
-  setAttributes(iframe, config);
-
-  if (!iframe.getAttribute('id')) {
-    iframe.id = iframe.name;
-  }
-
-  return iframe;
-};
-
-},{"./lib/assign":14,"./lib/default-attributes":15,"./lib/set-attributes":16}],14:[function(_dereq_,module,exports){
-'use strict';
-
-module.exports = function assign(target) {
-  var objs = Array.prototype.slice.call(arguments, 1);
-
-  objs.forEach(function (obj) {
-    if (typeof obj !== 'object') { return; }
-
-    Object.keys(obj).forEach(function (key) {
-      target[key] = obj[key];
-    });
-  });
-
-  return target;
-}
-
-},{}],15:[function(_dereq_,module,exports){
-'use strict';
-
-module.exports = {
-  src: 'about:blank',
-  frameBorder: 0,
-  allowtransparency: true,
-  scrolling: 'no'
-};
-
-},{}],16:[function(_dereq_,module,exports){
-'use strict';
-
-module.exports = function setAttributes(element, attributes) {
-  var value;
-
-  for (var key in attributes) {
-    if (attributes.hasOwnProperty(key)) {
-      value = attributes[key];
-
-      if (value == null) {
-        element.removeAttribute(key);
-      } else {
-        element.setAttribute(key, value);
-      }
-    }
-  }
-};
-
-},{}],17:[function(_dereq_,module,exports){
+},{}],21:[function(_dereq_,module,exports){
 (function (root) {
 
   // Store setTimeout reference so promise-polyfill will be unaffected by
@@ -761,114 +868,7 @@ module.exports = function setAttributes(element, attributes) {
 
 })(this);
 
-},{}],18:[function(_dereq_,module,exports){
-'use strict';
-
-function deferred(fn) {
-  return function () {
-    // IE9 doesn't support passing arguments to setTimeout so we have to emulate it.
-    var args = arguments;
-
-    setTimeout(function () {
-      fn.apply(null, args);
-    }, 1);
-  };
-}
-
-module.exports = deferred;
-
-},{}],19:[function(_dereq_,module,exports){
-'use strict';
-
-function once(fn) {
-  var called = false;
-
-  return function () {
-    if (!called) {
-      called = true;
-      fn.apply(null, arguments);
-    }
-  };
-}
-
-module.exports = once;
-
-},{}],20:[function(_dereq_,module,exports){
-'use strict';
-
-function promiseOrCallback(promise, callback) { // eslint-disable-line consistent-return
-  if (callback) {
-    promise
-      .then(function (data) {
-        callback(null, data);
-      })
-      .catch(function (err) {
-        callback(err);
-      });
-  } else {
-    return promise;
-  }
-}
-
-module.exports = promiseOrCallback;
-
-},{}],21:[function(_dereq_,module,exports){
-'use strict';
-
-var deferred = _dereq_('./lib/deferred');
-var once = _dereq_('./lib/once');
-var promiseOrCallback = _dereq_('./lib/promise-or-callback');
-
-function wrapPromise(fn) {
-  return function () {
-    var callback;
-    var args = Array.prototype.slice.call(arguments);
-    var lastArg = args[args.length - 1];
-
-    if (typeof lastArg === 'function') {
-      callback = args.pop();
-      callback = once(deferred(callback));
-    }
-    return promiseOrCallback(fn.apply(this, args), callback); // eslint-disable-line no-invalid-this
-  };
-}
-
-wrapPromise.wrapPrototype = function (target, options) {
-  var methods, ignoreMethods, includePrivateMethods;
-
-  options = options || {};
-  ignoreMethods = options.ignoreMethods || [];
-  includePrivateMethods = options.transformPrivateMethods === true;
-
-  methods = Object.getOwnPropertyNames(target.prototype).filter(function (method) {
-    var isNotPrivateMethod;
-    var isNonConstructorFunction = method !== 'constructor' &&
-      typeof target.prototype[method] === 'function';
-    var isNotAnIgnoredMethod = ignoreMethods.indexOf(method) === -1;
-
-    if (includePrivateMethods) {
-      isNotPrivateMethod = true;
-    } else {
-      isNotPrivateMethod = method.charAt(0) !== '_';
-    }
-
-    return isNonConstructorFunction &&
-      isNotPrivateMethod &&
-      isNotAnIgnoredMethod;
-  });
-
-  methods.forEach(function (method) {
-    var original = target.prototype[method];
-
-    target.prototype[method] = wrapPromise(original);
-  });
-
-  return target;
-};
-
-module.exports = wrapPromise;
-
-},{"./lib/deferred":18,"./lib/once":19,"./lib/promise-or-callback":20}],22:[function(_dereq_,module,exports){
+},{}],22:[function(_dereq_,module,exports){
 'use strict';
 
 var createAuthorizationData = _dereq_('./create-authorization-data');
@@ -1218,10 +1218,10 @@ BraintreeBus.events = events;
 
 module.exports = BraintreeBus;
 
-},{"../braintree-error":25,"./check-origin":26,"./events":27,"framebus":12}],29:[function(_dereq_,module,exports){
+},{"../braintree-error":25,"./check-origin":26,"./events":27,"framebus":20}],29:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.17.0";
+var VERSION = "3.18.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -1397,9 +1397,9 @@ var events = _dereq_('../shared/events');
 var errors = _dereq_('../shared/errors');
 var constants = _dereq_('../shared/constants');
 var uuid = _dereq_('../../uuid');
-var iFramer = _dereq_('iframer');
+var iFramer = _dereq_('@braintree/iframer');
 var BraintreeError = _dereq_('../../braintree-error');
-var browserDetection = _dereq_('browser-detection');
+var browserDetection = _dereq_('@braintree/browser-detection');
 var assign = _dereq_('./../../assign').assign;
 
 var REQUIRED_CONFIG_KEYS = [
@@ -1611,7 +1611,7 @@ FrameService.prototype._getFrameForEnvironment = function (options) {
 module.exports = FrameService;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../braintree-error":25,"../../bus":28,"../../uuid":54,"../shared/constants":43,"../shared/errors":44,"../shared/events":45,"./../../assign":24,"./strategies/modal":38,"./strategies/popup":41,"./strategies/popup-bridge":39,"browser-detection":1,"iframer":13}],37:[function(_dereq_,module,exports){
+},{"../../braintree-error":25,"../../bus":28,"../../uuid":54,"../shared/constants":43,"../shared/errors":44,"../shared/events":45,"./../../assign":24,"./strategies/modal":38,"./strategies/popup":41,"./strategies/popup-bridge":39,"@braintree/browser-detection":1,"@braintree/iframer":12}],37:[function(_dereq_,module,exports){
 'use strict';
 
 var FrameService = _dereq_('./frame-service');
@@ -1630,9 +1630,9 @@ module.exports = {
 (function (global){
 'use strict';
 
-var iFramer = _dereq_('iframer');
+var iFramer = _dereq_('@braintree/iframer');
 var assign = _dereq_('../../../assign').assign;
-var browserDetection = _dereq_('browser-detection');
+var browserDetection = _dereq_('@braintree/browser-detection');
 
 var ELEMENT_STYLES = {
   position: 'fixed',
@@ -1740,7 +1740,7 @@ Modal.prototype._lockScrolling = function () {
 module.exports = Modal;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../../assign":24,"browser-detection":1,"iframer":13}],39:[function(_dereq_,module,exports){
+},{"../../../assign":24,"@braintree/browser-detection":1,"@braintree/iframer":12}],39:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1992,8 +1992,8 @@ module.exports = function (obj) {
 };
 
 },{}],49:[function(_dereq_,module,exports){
-arguments[4][19][0].apply(exports,arguments)
-},{"dup":19}],50:[function(_dereq_,module,exports){
+arguments[4][17][0].apply(exports,arguments)
+},{"dup":17}],50:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -2043,7 +2043,7 @@ var Promise = global.Promise || _dereq_('promise-polyfill');
 module.exports = Promise;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":17}],52:[function(_dereq_,module,exports){
+},{"promise-polyfill":21}],52:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -2166,7 +2166,7 @@ var BraintreeError = _dereq_('../../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../../lib/convert-to-braintree-error');
 var useMin = _dereq_('../../lib/use-min');
 var once = _dereq_('../../lib/once');
-var VERSION = "3.17.0";
+var VERSION = "3.18.0";
 var constants = _dereq_('../shared/constants');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
@@ -2176,7 +2176,7 @@ var errors = _dereq_('../shared/errors');
 var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
 var querystring = _dereq_('../../lib/querystring');
 var Promise = _dereq_('../../lib/promise');
-var wrapPromise = _dereq_('wrap-promise');
+var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
  * @typedef {object} PayPal~tokenizePayload
@@ -2323,11 +2323,12 @@ PayPal.prototype._initialize = function () {
  * @param {string} [options.shippingAddressOverride.recipientName] Recipient's name.
  * @param {boolean} [options.shippingAddressEditable=true] Set to false to disable user editing of the shipping address.
  * @param {string} [options.billingAgreementDescription] Use this option to set the description of the preapproved payment agreement visible to customers in their PayPal profile during Vault flows. Max 255 characters.
- * @param {string} [options.landingPageType=login] Use this option to specify the PayPal page to display when a user lands on the PayPal site to complete the payment. It defaults to `login`.
+ * @param {string} [options.landingPageType] Use this option to specify the PayPal page to display when a user lands on the PayPal site to complete the payment.
  * * `login` - A PayPal account login page is used.
  * * `billing` - A non-PayPal account landing page is used.
  * @param {callback} callback The second argument, <code>data</code>, is a {@link PayPal~tokenizePayload|tokenizePayload}.
- * @example Tokenizing with the vault flow
+ * @example
+ * <caption>Tokenizing with the vault flow</caption>
  * button.addEventListener('click', function () {
  *   // Disable the button so that we don't attempt to open multiple popups.
  *   button.setAttribute('disabled', 'disabled');
@@ -2367,7 +2368,8 @@ PayPal.prototype._initialize = function () {
  *   });
  * });
 
- * @example Tokenizing with the checkout flow
+ * @example
+ * <caption>Tokenizing with the checkout flow</caption>
  * button.addEventListener('click', function () {
  *   // Disable the button so that we don't attempt to open multiple popups.
  *   button.setAttribute('disabled', 'disabled');
@@ -2747,7 +2749,7 @@ PayPal.prototype.teardown = wrapPromise(function () {
 module.exports = PayPal;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../lib/analytics":23,"../../lib/braintree-error":25,"../../lib/constants":29,"../../lib/convert-methods-to-error":30,"../../lib/convert-to-braintree-error":31,"../../lib/deferred":33,"../../lib/frame-service/external":37,"../../lib/methods":48,"../../lib/once":49,"../../lib/promise":51,"../../lib/querystring":52,"../../lib/use-min":53,"../shared/constants":57,"../shared/errors":58,"wrap-promise":21}],56:[function(_dereq_,module,exports){
+},{"../../lib/analytics":23,"../../lib/braintree-error":25,"../../lib/constants":29,"../../lib/convert-methods-to-error":30,"../../lib/convert-to-braintree-error":31,"../../lib/deferred":33,"../../lib/frame-service/external":37,"../../lib/methods":48,"../../lib/once":49,"../../lib/promise":51,"../../lib/querystring":52,"../../lib/use-min":53,"../shared/constants":57,"../shared/errors":58,"@braintree/wrap-promise":19}],56:[function(_dereq_,module,exports){
 'use strict';
 /**
  * @module braintree-web/paypal
@@ -2760,8 +2762,8 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var errors = _dereq_('./shared/errors');
 var PayPal = _dereq_('./external/paypal');
 var sharedErrors = _dereq_('../lib/errors');
-var VERSION = "3.17.0";
-var wrapPromise = _dereq_('wrap-promise');
+var VERSION = "3.18.0";
+var wrapPromise = _dereq_('@braintree/wrap-promise');
 var Promise = _dereq_('../lib/promise');
 
 /**
@@ -2877,7 +2879,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/analytics":23,"../lib/braintree-error":25,"../lib/errors":35,"../lib/promise":51,"./external/paypal":55,"./shared/errors":58,"wrap-promise":21}],57:[function(_dereq_,module,exports){
+},{"../lib/analytics":23,"../lib/braintree-error":25,"../lib/errors":35,"../lib/promise":51,"./external/paypal":55,"./shared/errors":58,"@braintree/wrap-promise":19}],57:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
