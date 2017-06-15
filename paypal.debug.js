@@ -1221,7 +1221,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":25,"./check-origin":26,"./events":27,"framebus":20}],29:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.18.0";
+var VERSION = "3.19.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -2166,7 +2166,7 @@ var BraintreeError = _dereq_('../../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../../lib/convert-to-braintree-error');
 var useMin = _dereq_('../../lib/use-min');
 var once = _dereq_('../../lib/once');
-var VERSION = "3.18.0";
+var VERSION = "3.19.0";
 var constants = _dereq_('../shared/constants');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
@@ -2273,6 +2273,7 @@ PayPal.prototype._initialize = function () {
  * @param {string} [options.intent=authorize]
  * Checkout flows only.
  * * `authorize` - Submits the transaction for authorization but not settlement.
+ * * `order` - Validates the transaction without an authorization (i.e. without holding funds). Useful for authorizing and capturing funds up to 90 days after the order has been placed.
  * * `sale` - Payment will be immediately submitted for settlement upon creating a transaction.
  * @param {boolean} [options.offerCredit=false] Offers the customer PayPal Credit if they qualify.
  * @param {string} [options.useraction]
@@ -2762,7 +2763,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var errors = _dereq_('./shared/errors');
 var PayPal = _dereq_('./external/paypal');
 var sharedErrors = _dereq_('../lib/errors');
-var VERSION = "3.18.0";
+var VERSION = "3.19.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var Promise = _dereq_('../lib/promise');
 
