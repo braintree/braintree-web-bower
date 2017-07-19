@@ -1,4 +1,24 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}(g.braintree || (g.braintree = {})).client = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+
+var isIE11 = _dereq_('./is-ie11');
+
+module.exports = function isIE(ua) {
+  ua = ua || global.navigator.userAgent;
+  return ua.indexOf('MSIE') !== -1 || isIE11(ua);
+};
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./is-ie11":2}],2:[function(_dereq_,module,exports){
+'use strict';
+
+module.exports = function isIe11(ua) {
+  ua = ua || navigator.userAgent;
+  return ua.indexOf('Trident/7') !== -1;
+};
+
+},{}],3:[function(_dereq_,module,exports){
 'use strict';
 
 function deferred(fn) {
@@ -14,7 +34,7 @@ function deferred(fn) {
 
 module.exports = deferred;
 
-},{}],2:[function(_dereq_,module,exports){
+},{}],4:[function(_dereq_,module,exports){
 'use strict';
 
 function once(fn) {
@@ -30,7 +50,7 @@ function once(fn) {
 
 module.exports = once;
 
-},{}],3:[function(_dereq_,module,exports){
+},{}],5:[function(_dereq_,module,exports){
 'use strict';
 
 function promiseOrCallback(promise, callback) { // eslint-disable-line consistent-return
@@ -49,7 +69,7 @@ function promiseOrCallback(promise, callback) { // eslint-disable-line consisten
 
 module.exports = promiseOrCallback;
 
-},{}],4:[function(_dereq_,module,exports){
+},{}],6:[function(_dereq_,module,exports){
 'use strict';
 
 var deferred = _dereq_('./lib/deferred');
@@ -105,7 +125,7 @@ wrapPromise.wrapPrototype = function (target, options) {
 
 module.exports = wrapPromise;
 
-},{"./lib/deferred":1,"./lib/once":2,"./lib/promise-or-callback":3}],5:[function(_dereq_,module,exports){
+},{"./lib/deferred":3,"./lib/once":4,"./lib/promise-or-callback":5}],7:[function(_dereq_,module,exports){
 (function (root) {
 
   // Store setTimeout reference so promise-polyfill will be unaffected by
@@ -340,7 +360,16 @@ module.exports = wrapPromise;
 
 })(this);
 
-},{}],6:[function(_dereq_,module,exports){
+},{}],8:[function(_dereq_,module,exports){
+'use strict';
+
+var isIe = _dereq_('@braintree/browser-detection/is-ie');
+
+module.exports = {
+  isIe: isIe
+};
+
+},{"@braintree/browser-detection/is-ie":1}],9:[function(_dereq_,module,exports){
 'use strict';
 
 var request = _dereq_('./request');
@@ -453,9 +482,48 @@ function Client(configuration) {
  *     creditCard: {
  *       number: form['cc-number'].value,
  *       cvv: form['cc-cvv'].value,
- *       expirationDate: form['cc-date'].value,
+ *       expirationDate: form['cc-expiration-date'].value,
  *       billingAddress: {
- *         postalCode: form['cc-postal'].value
+ *         postalCode: form['cc-postal-code'].value
+ *       },
+ *       options: {
+ *         validate: false
+ *       }
+ *     }
+ *   };
+ *
+ *   // Warning: For a merchant to be eligible for the easiest level of PCI compliance (SAQ A),
+ *   // payment fields cannot be hosted on your checkout page.
+ *   // For an alternative to the following, use Hosted Fields.
+ *   clientInstance.request({
+ *     endpoint: 'payment_methods/credit_cards',
+ *     method: 'post',
+ *     data: data
+ *   }, function (requestErr, response) {
+ *     // More detailed example of handling API errors: https://codepen.io/braintree/pen/MbwjdM
+ *     if (requestErr) { throw new Error(requestErr); }
+ *
+ *     console.log('Got nonce:', response.creditCards[0].nonce);
+ *   });
+ * });
+ * @example
+ * <caption>Tokenizing Fields for AVS Checks</caption>
+ * var createClient = require('braintree-web/client').create;
+ *
+ * createClient({
+ *   authorization: CLIENT_AUTHORIZATION
+ * }, function (createErr, clientInstance) {
+ *   var form = document.getElementById('my-form-id');
+ *   var data = {
+ *     creditCard: {
+ *       number: form['cc-number'].value,
+ *       cvv: form['cc-cvv'].value,
+ *       expirationDate: form['cc-date'].value,
+ *       // The billing address can be checked with AVS rules.
+ *       // See: https://articles.braintreepayments.com/support/guides/fraud-tools/basic/avs-cvv-rules
+ *       billingAddress: {
+ *         postalCode: form['cc-postal-code'].value,
+ *         streetAddress: form['cc-street-address'].value
  *       },
  *       options: {
  *         validate: false
@@ -537,8 +605,9 @@ Client.prototype.request = function (options, callback) {
     requestOptions.url = baseUrl + options.endpoint;
 
     self._request(requestOptions, function (err, data, status) {
-      var resolvedData;
-      var requestError = formatRequestError(status, err);
+      var resolvedData, requestError;
+
+      requestError = formatRequestError(status, err);
 
       if (requestError) {
         reject(requestError);
@@ -618,14 +687,14 @@ Client.prototype.getVersion = function () {
 
 module.exports = Client;
 
-},{"../lib/add-metadata":18,"../lib/assign":19,"../lib/braintree-error":20,"../lib/constants":21,"../lib/convert-to-braintree-error":22,"../lib/deferred":24,"../lib/errors":26,"../lib/is-whitelisted-domain":27,"../lib/once":29,"../lib/promise":31,"./constants":7,"./errors":8,"./request":13}],7:[function(_dereq_,module,exports){
+},{"../lib/add-metadata":21,"../lib/assign":22,"../lib/braintree-error":23,"../lib/constants":24,"../lib/convert-to-braintree-error":25,"../lib/deferred":27,"../lib/errors":29,"../lib/is-whitelisted-domain":30,"../lib/once":32,"../lib/promise":34,"./constants":10,"./errors":11,"./request":16}],10:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   BRAINTREE_API_VERSION_HEADER: '2017-04-03'
 };
 
-},{}],8:[function(_dereq_,module,exports){
+},{}],11:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -680,7 +749,7 @@ module.exports = {
   }
 };
 
-},{"../lib/braintree-error":20}],9:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":23}],12:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -762,13 +831,13 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../lib/braintree-error":20,"../lib/constants":21,"../lib/create-authorization-data":23,"../lib/promise":31,"../lib/uuid":33,"./errors":8,"./request":13,"@braintree/wrap-promise":4}],10:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":23,"../lib/constants":24,"../lib/create-authorization-data":26,"../lib/promise":34,"../lib/uuid":36,"./errors":11,"./request":16,"@braintree/wrap-promise":6}],13:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Client = _dereq_('./client');
 var getConfiguration = _dereq_('./get-configuration').getConfiguration;
-var VERSION = "3.19.1";
+var VERSION = "3.20.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -837,21 +906,29 @@ module.exports = {
   _clearCache: clearCache
 };
 
-},{"../lib/braintree-error":20,"../lib/errors":26,"../lib/promise":31,"./client":6,"./get-configuration":9,"@braintree/wrap-promise":4}],11:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":23,"../lib/errors":29,"../lib/promise":34,"./client":9,"./get-configuration":12,"@braintree/wrap-promise":6}],14:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
 var querystring = _dereq_('../../lib/querystring');
+var browserDetection = _dereq_('../browser-detection');
 var assign = _dereq_('../../lib/assign').assign;
 var prepBody = _dereq_('./prep-body');
 var parseBody = _dereq_('./parse-body');
 var isXHRAvailable = global.XMLHttpRequest && 'withCredentials' in new global.XMLHttpRequest();
 
+var MAX_TCP_RETRYCOUNT = 1;
+var TCP_PRECONNECT_BUG_STATUS_CODE = 408;
+
 function getRequestObject() {
   return isXHRAvailable ? new XMLHttpRequest() : new XDomainRequest();
 }
 
-function request(options, cb) {
+function requestShouldRetry(status) {
+  return (!status || status === TCP_PRECONNECT_BUG_STATUS_CODE) && browserDetection.isIe();
+}
+
+function _requestWithRetry(options, tcpRetryCount, cb) {
   var status, resBody;
   var method = options.method;
   var url = options.url;
@@ -876,6 +953,11 @@ function request(options, cb) {
       resBody = parseBody(req.responseText);
 
       if (status >= 400 || status < 200) {
+        if (tcpRetryCount < MAX_TCP_RETRYCOUNT && requestShouldRetry(status)) {
+          tcpRetryCount++;
+          _requestWithRetry(options, tcpRetryCount, cb);
+          return;
+        }
         callback(resBody || 'error', null, status || 500);
       } else {
         callback(null, resBody, status);
@@ -918,12 +1000,16 @@ function request(options, cb) {
   } catch (e) { /* ignored */ }
 }
 
+function request(options, cb) {
+  _requestWithRetry(options, 0, cb);
+}
+
 module.exports = {
   request: request
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../lib/assign":19,"../../lib/querystring":32,"./parse-body":16,"./prep-body":17}],12:[function(_dereq_,module,exports){
+},{"../../lib/assign":22,"../../lib/querystring":35,"../browser-detection":8,"./parse-body":19,"./prep-body":20}],15:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -932,7 +1018,7 @@ module.exports = function getUserAgent() {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],13:[function(_dereq_,module,exports){
+},{}],16:[function(_dereq_,module,exports){
 'use strict';
 
 var ajaxIsAvaliable;
@@ -963,7 +1049,7 @@ module.exports = function (options, cb) {
   }
 };
 
-},{"../../lib/once":29,"./ajax-driver":11,"./get-user-agent":12,"./is-http":14,"./jsonp-driver":15}],14:[function(_dereq_,module,exports){
+},{"../../lib/once":32,"./ajax-driver":14,"./get-user-agent":15,"./is-http":17,"./jsonp-driver":18}],17:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -972,7 +1058,7 @@ module.exports = function () {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],15:[function(_dereq_,module,exports){
+},{}],18:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1084,7 +1170,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../lib/querystring":32,"../../lib/uuid":33}],16:[function(_dereq_,module,exports){
+},{"../../lib/querystring":35,"../../lib/uuid":36}],19:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (body) {
@@ -1095,7 +1181,7 @@ module.exports = function (body) {
   return body;
 };
 
-},{}],17:[function(_dereq_,module,exports){
+},{}],20:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (method, body) {
@@ -1110,7 +1196,7 @@ module.exports = function (method, body) {
   return body;
 };
 
-},{}],18:[function(_dereq_,module,exports){
+},{}],21:[function(_dereq_,module,exports){
 'use strict';
 
 var createAuthorizationData = _dereq_('./create-authorization-data');
@@ -1144,7 +1230,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":21,"./create-authorization-data":23,"./json-clone":28}],19:[function(_dereq_,module,exports){
+},{"./constants":24,"./create-authorization-data":26,"./json-clone":31}],22:[function(_dereq_,module,exports){
 'use strict';
 
 var assignNormalized = typeof Object.assign === 'function' ? Object.assign : assignPolyfill;
@@ -1169,7 +1255,7 @@ module.exports = {
   _assign: assignPolyfill
 };
 
-},{}],20:[function(_dereq_,module,exports){
+},{}],23:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -1254,10 +1340,10 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":25}],21:[function(_dereq_,module,exports){
+},{"./enumerate":28}],24:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.19.1";
+var VERSION = "3.20.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -1271,7 +1357,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],22:[function(_dereq_,module,exports){
+},{}],25:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -1293,7 +1379,7 @@ function convertToBraintreeError(originalErr, btErrorObject) {
 
 module.exports = convertToBraintreeError;
 
-},{"./braintree-error":20}],23:[function(_dereq_,module,exports){
+},{"./braintree-error":23}],26:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/polyfill').atob;
@@ -1342,7 +1428,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":30}],24:[function(_dereq_,module,exports){
+},{"../lib/polyfill":33}],27:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (fn) {
@@ -1356,7 +1442,7 @@ module.exports = function (fn) {
   };
 };
 
-},{}],25:[function(_dereq_,module,exports){
+},{}],28:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -1370,7 +1456,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],26:[function(_dereq_,module,exports){
+},{}],29:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -1403,7 +1489,7 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":20}],27:[function(_dereq_,module,exports){
+},{"./braintree-error":23}],30:[function(_dereq_,module,exports){
 'use strict';
 
 var parser;
@@ -1438,16 +1524,16 @@ function isWhitelistedDomain(url) {
 
 module.exports = isWhitelistedDomain;
 
-},{}],28:[function(_dereq_,module,exports){
+},{}],31:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],29:[function(_dereq_,module,exports){
-arguments[4][2][0].apply(exports,arguments)
-},{"dup":2}],30:[function(_dereq_,module,exports){
+},{}],32:[function(_dereq_,module,exports){
+arguments[4][4][0].apply(exports,arguments)
+},{"dup":4}],33:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1488,7 +1574,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],31:[function(_dereq_,module,exports){
+},{}],34:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1497,7 +1583,7 @@ var Promise = global.Promise || _dereq_('promise-polyfill');
 module.exports = Promise;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":5}],32:[function(_dereq_,module,exports){
+},{"promise-polyfill":7}],35:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1588,7 +1674,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],33:[function(_dereq_,module,exports){
+},{}],36:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {
@@ -1602,5 +1688,5 @@ function uuid() {
 
 module.exports = uuid;
 
-},{}]},{},[10])(10)
+},{}]},{},[13])(13)
 });

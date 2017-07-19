@@ -1044,7 +1044,7 @@ var EventEmitter = _dereq_('../../lib/event-emitter');
 var injectFrame = _dereq_('./inject-frame');
 var analytics = _dereq_('../../lib/analytics');
 var whitelistedFields = constants.whitelistedFields;
-var VERSION = "3.19.1";
+var VERSION = "3.20.0";
 var methods = _dereq_('../../lib/methods');
 var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
 var sharedErrors = _dereq_('../../lib/errors');
@@ -1425,7 +1425,18 @@ function HostedFields(options) {
     };
 
     setTimeout(function () {
-      frame.src = composeUrl(clientConfig.gatewayConfiguration.assetsUrl, componentId, clientConfig.isDebug);
+      // Edge has an intermittent issue where
+      // the iframes load, but the JavaScript
+      // can't message out to the parent page.
+      // We can fix this by setting the src
+      // to about:blank first followed by
+      // the actual source. Both instances
+      // of setting the src need to be in a
+      // setTimeout to work.
+      frame.src = 'about:blank';
+      setTimeout(function () {
+        frame.src = composeUrl(clientConfig.gatewayConfiguration.assetsUrl, componentId, clientConfig.isDebug);
+      }, 0);
     }, 0);
   }.bind(this));
 
@@ -1539,6 +1550,7 @@ HostedFields.prototype.teardown = function () {
  * @param {boolean} [options.vault=false] When true, will vault the tokenized card. Cards will only be vaulted when using a client created with a client token that includes a customer ID.
  * @param {string} [options.cardholderName] When supplied, the cardholder name to be tokenized with the contents of the fields.
  * @param {string} [options.billingAddress.postalCode] When supplied, this postal code will be tokenized along with the contents of the fields. If a postal code is provided as part of the Hosted Fields configuration, the value of the field will be tokenized and this value will be ignored.
+ * @param {string} [options.billingAddress.streetAddress] When supplied, this street address will be tokenized along with the contents of the fields.
  * @param {callback} [callback] The second argument, <code>data</code>, is a {@link HostedFields~tokenizePayload|tokenizePayload}. If no callback is provided, `tokenize` returns a function that resolves with a {@link HostedFields~tokenizePayload|tokenizePayload}.
  * @example <caption>Tokenize a card</caption>
  * hostedFieldsInstance.tokenize(function (tokenizeErr, payload) {
@@ -1998,7 +2010,7 @@ var HostedFields = _dereq_('./external/hosted-fields');
 var supportsInputFormatting = _dereq_('restricted-input/supports-input-formatting');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.19.1";
+var VERSION = "3.20.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -2196,7 +2208,7 @@ module.exports = {
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.19.1";
+var VERSION = "3.20.0";
 
 var constants = {
   VERSION: VERSION,
@@ -2818,7 +2830,7 @@ module.exports = {
 },{}],34:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.19.1";
+var VERSION = "3.20.0";
 var PLATFORM = 'web';
 
 module.exports = {
