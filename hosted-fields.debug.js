@@ -11,12 +11,23 @@ module.exports = function isAndroid(ua) {
 },{}],2:[function(_dereq_,module,exports){
 'use strict';
 
+var isEdge = _dereq_('./is-edge');
+var isSamsung = _dereq_('./is-samsung');
+
 module.exports = function isChrome(ua) {
   ua = ua || navigator.userAgent;
-  return ua.indexOf('Chrome') !== -1 || ua.indexOf('CriOS') !== -1;
+  return (ua.indexOf('Chrome') !== -1 || ua.indexOf('CriOS') !== -1) && !isEdge(ua) && !isSamsung(ua);
 };
 
-},{}],3:[function(_dereq_,module,exports){
+},{"./is-edge":3,"./is-samsung":6}],3:[function(_dereq_,module,exports){
+'use strict';
+
+module.exports = function isEdge(ua) {
+  ua = ua || navigator.userAgent;
+  return ua.indexOf('Edge/') !== -1;
+};
+
+},{}],4:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function isIe9(ua) {
@@ -24,7 +35,7 @@ module.exports = function isIe9(ua) {
   return ua.indexOf('MSIE 9') !== -1;
 };
 
-},{}],4:[function(_dereq_,module,exports){
+},{}],5:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -34,7 +45,17 @@ module.exports = function isIos(ua) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],5:[function(_dereq_,module,exports){
+},{}],6:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+
+module.exports = function isSamsungBrowser(ua) {
+  ua = ua || global.navigator.userAgent;
+  return /SamsungBrowser/i.test(ua);
+};
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],7:[function(_dereq_,module,exports){
 'use strict';
 
 var setAttributes = _dereq_('./lib/set-attributes');
@@ -59,7 +80,7 @@ module.exports = function createFrame(options) {
   return iframe;
 };
 
-},{"./lib/assign":6,"./lib/default-attributes":7,"./lib/set-attributes":8}],6:[function(_dereq_,module,exports){
+},{"./lib/assign":8,"./lib/default-attributes":9,"./lib/set-attributes":10}],8:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function assign(target) {
@@ -76,7 +97,7 @@ module.exports = function assign(target) {
   return target;
 }
 
-},{}],7:[function(_dereq_,module,exports){
+},{}],9:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -86,7 +107,7 @@ module.exports = {
   scrolling: 'no'
 };
 
-},{}],8:[function(_dereq_,module,exports){
+},{}],10:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function setAttributes(element, attributes) {
@@ -105,7 +126,7 @@ module.exports = function setAttributes(element, attributes) {
   }
 };
 
-},{}],9:[function(_dereq_,module,exports){
+},{}],11:[function(_dereq_,module,exports){
 'use strict';
 
 function deferred(fn) {
@@ -121,7 +142,7 @@ function deferred(fn) {
 
 module.exports = deferred;
 
-},{}],10:[function(_dereq_,module,exports){
+},{}],12:[function(_dereq_,module,exports){
 'use strict';
 
 function once(fn) {
@@ -137,7 +158,7 @@ function once(fn) {
 
 module.exports = once;
 
-},{}],11:[function(_dereq_,module,exports){
+},{}],13:[function(_dereq_,module,exports){
 'use strict';
 
 function promiseOrCallback(promise, callback) { // eslint-disable-line consistent-return
@@ -156,7 +177,7 @@ function promiseOrCallback(promise, callback) { // eslint-disable-line consisten
 
 module.exports = promiseOrCallback;
 
-},{}],12:[function(_dereq_,module,exports){
+},{}],14:[function(_dereq_,module,exports){
 'use strict';
 
 var deferred = _dereq_('./lib/deferred');
@@ -212,7 +233,7 @@ wrapPromise.wrapPrototype = function (target, options) {
 
 module.exports = wrapPromise;
 
-},{"./lib/deferred":9,"./lib/once":10,"./lib/promise-or-callback":11}],13:[function(_dereq_,module,exports){
+},{"./lib/deferred":11,"./lib/once":12,"./lib/promise-or-callback":13}],15:[function(_dereq_,module,exports){
 'use strict';
 
 var types = {};
@@ -403,7 +424,7 @@ creditCardType.types = {
 
 module.exports = creditCardType;
 
-},{}],14:[function(_dereq_,module,exports){
+},{}],16:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 (function (root, factory) {
@@ -681,7 +702,7 @@ module.exports = creditCardType;
 });
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],15:[function(_dereq_,module,exports){
+},{}],17:[function(_dereq_,module,exports){
 (function (root) {
 
   // Store setTimeout reference so promise-polyfill will be unaffected by
@@ -916,7 +937,7 @@ module.exports = creditCardType;
 
 })(this);
 
-},{}],16:[function(_dereq_,module,exports){
+},{}],18:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -961,7 +982,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"@braintree/browser-detection/is-android":1,"@braintree/browser-detection/is-chrome":2,"@braintree/browser-detection/is-ie9":3,"@braintree/browser-detection/is-ios":4}],17:[function(_dereq_,module,exports){
+},{"@braintree/browser-detection/is-android":1,"@braintree/browser-detection/is-chrome":2,"@braintree/browser-detection/is-ie9":4,"@braintree/browser-detection/is-ios":5}],19:[function(_dereq_,module,exports){
 'use strict';
 
 var device = _dereq_('./lib/device');
@@ -971,7 +992,7 @@ module.exports = function () {
   return !device.isSamsungBrowser();
 };
 
-},{"./lib/device":16}],18:[function(_dereq_,module,exports){
+},{"./lib/device":18}],20:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../lib/braintree-error');
@@ -1010,7 +1031,7 @@ function _isValid(attribute, value) {
 
 module.exports = attributeValidationError;
 
-},{"../../lib/braintree-error":29,"../shared/constants":23,"../shared/errors":24}],19:[function(_dereq_,module,exports){
+},{"../../lib/braintree-error":31,"../shared/constants":25,"../shared/errors":26}],21:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('../shared/constants');
@@ -1024,7 +1045,7 @@ module.exports = function composeUrl(assetsUrl, componentId, isDebug) {
     componentId;
 };
 
-},{"../../lib/use-min":47,"../shared/constants":23}],20:[function(_dereq_,module,exports){
+},{"../../lib/use-min":49,"../shared/constants":25}],22:[function(_dereq_,module,exports){
 'use strict';
 
 var Destructor = _dereq_('../../lib/destructor');
@@ -1044,7 +1065,7 @@ var EventEmitter = _dereq_('../../lib/event-emitter');
 var injectFrame = _dereq_('./inject-frame');
 var analytics = _dereq_('../../lib/analytics');
 var whitelistedFields = constants.whitelistedFields;
-var VERSION = "3.20.0";
+var VERSION = "3.20.1";
 var methods = _dereq_('../../lib/methods');
 var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
 var sharedErrors = _dereq_('../../lib/errors');
@@ -1268,6 +1289,10 @@ function createInputEventHandler(fields) {
 
     field = merchantPayload.fields[emittedBy];
 
+    if (eventData.type === 'blur') {
+      performBlurFixForIos(container);
+    }
+
     classlist.toggle(container, constants.externalClasses.FOCUSED, field.isFocused);
     classlist.toggle(container, constants.externalClasses.VALID, field.isValid);
     classlist.toggle(container, constants.externalClasses.INVALID, !field.isPotentiallyValid);
@@ -1279,6 +1304,41 @@ function createInputEventHandler(fields) {
 
     this._emit(eventData.type, merchantPayload); // eslint-disable-line no-invalid-this
   };
+}
+
+// iOS Safari has a bug where inputs in iframes
+// will not dismiss the keyboard when they lose
+// focus. We create a hidden button input that we
+// can focus on and blur to force the keyboard to
+// dismiss. See #229
+function performBlurFixForIos(container) {
+  var hiddenInput;
+
+  if (!isIos()) {
+    return;
+  }
+
+  if (document.activeElement === document.body) {
+    hiddenInput = container.querySelector('input');
+
+    if (!hiddenInput) {
+      hiddenInput = document.createElement('input');
+
+      hiddenInput.type = 'button';
+      hiddenInput.style.height = '0px';
+      hiddenInput.style.width = '0px';
+      hiddenInput.style.opacity = '0';
+      hiddenInput.style.padding = '0';
+      hiddenInput.style.position = 'absolute';
+      hiddenInput.style.left = '-200%';
+      hiddenInput.style.top = '0px';
+
+      container.insertBefore(hiddenInput, container.firstChild);
+    }
+
+    hiddenInput.focus();
+    hiddenInput.blur();
+  }
 }
 
 /**
@@ -1985,7 +2045,7 @@ HostedFields.prototype.getState = function () {
 
 module.exports = wrapPromise.wrapPrototype(HostedFields);
 
-},{"../../lib/analytics":27,"../../lib/braintree-error":29,"../../lib/bus":32,"../../lib/classlist":33,"../../lib/constants":34,"../../lib/convert-methods-to-error":35,"../../lib/destructor":37,"../../lib/errors":39,"../../lib/event-emitter":40,"../../lib/methods":43,"../../lib/promise":46,"../../lib/uuid":48,"../shared/constants":23,"../shared/errors":24,"../shared/find-parent-tags":25,"./attribute-validation-error":18,"./compose-url":19,"./inject-frame":21,"@braintree/browser-detection/is-ios":4,"@braintree/iframer":5,"@braintree/wrap-promise":12,"credit-card-type":13}],21:[function(_dereq_,module,exports){
+},{"../../lib/analytics":29,"../../lib/braintree-error":31,"../../lib/bus":34,"../../lib/classlist":35,"../../lib/constants":36,"../../lib/convert-methods-to-error":37,"../../lib/destructor":39,"../../lib/errors":41,"../../lib/event-emitter":42,"../../lib/methods":45,"../../lib/promise":48,"../../lib/uuid":50,"../shared/constants":25,"../shared/errors":26,"../shared/find-parent-tags":27,"./attribute-validation-error":20,"./compose-url":21,"./inject-frame":23,"@braintree/browser-detection/is-ios":5,"@braintree/iframer":7,"@braintree/wrap-promise":14,"credit-card-type":15}],23:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function injectFrame(frame, container) {
@@ -2002,7 +2062,7 @@ module.exports = function injectFrame(frame, container) {
   return [frame, clearboth];
 };
 
-},{}],22:[function(_dereq_,module,exports){
+},{}],24:[function(_dereq_,module,exports){
 'use strict';
 /** @module braintree-web/hosted-fields */
 
@@ -2010,7 +2070,7 @@ var HostedFields = _dereq_('./external/hosted-fields');
 var supportsInputFormatting = _dereq_('restricted-input/supports-input-formatting');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.20.0";
+var VERSION = "3.20.1";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -2202,13 +2262,13 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/promise":46,"./external/hosted-fields":20,"@braintree/wrap-promise":12,"restricted-input/supports-input-formatting":17}],23:[function(_dereq_,module,exports){
+},{"../lib/promise":48,"./external/hosted-fields":22,"@braintree/wrap-promise":14,"restricted-input/supports-input-formatting":19}],25:[function(_dereq_,module,exports){
 'use strict';
 /* eslint-disable no-reserved-keys */
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.20.0";
+var VERSION = "3.20.1";
 
 var constants = {
   VERSION: VERSION,
@@ -2327,7 +2387,7 @@ constants.events = enumerate([
 
 module.exports = constants;
 
-},{"../../lib/enumerate":38,"./errors":24}],24:[function(_dereq_,module,exports){
+},{"../../lib/enumerate":40,"./errors":26}],26:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../lib/braintree-error');
@@ -2399,7 +2459,7 @@ module.exports = {
   }
 };
 
-},{"../../lib/braintree-error":29}],25:[function(_dereq_,module,exports){
+},{"../../lib/braintree-error":31}],27:[function(_dereq_,module,exports){
 'use strict';
 
 function findParentTags(element, tag) {
@@ -2419,7 +2479,7 @@ function findParentTags(element, tag) {
 
 module.exports = findParentTags;
 
-},{}],26:[function(_dereq_,module,exports){
+},{}],28:[function(_dereq_,module,exports){
 'use strict';
 
 var createAuthorizationData = _dereq_('./create-authorization-data');
@@ -2453,7 +2513,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":34,"./create-authorization-data":36,"./json-clone":42}],27:[function(_dereq_,module,exports){
+},{"./constants":36,"./create-authorization-data":38,"./json-clone":44}],29:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('./constants');
@@ -2487,7 +2547,7 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":26,"./constants":34}],28:[function(_dereq_,module,exports){
+},{"./add-metadata":28,"./constants":36}],30:[function(_dereq_,module,exports){
 'use strict';
 
 var once = _dereq_('./once');
@@ -2531,7 +2591,7 @@ module.exports = function (functions, cb) {
   }
 };
 
-},{"./once":44}],29:[function(_dereq_,module,exports){
+},{"./once":46}],31:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -2616,7 +2676,7 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":38}],30:[function(_dereq_,module,exports){
+},{"./enumerate":40}],32:[function(_dereq_,module,exports){
 'use strict';
 
 var isWhitelistedDomain = _dereq_('../is-whitelisted-domain');
@@ -2648,7 +2708,7 @@ module.exports = {
   checkOrigin: checkOrigin
 };
 
-},{"../is-whitelisted-domain":41}],31:[function(_dereq_,module,exports){
+},{"../is-whitelisted-domain":43}],33:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../enumerate');
@@ -2657,7 +2717,7 @@ module.exports = enumerate([
   'CONFIGURATION_REQUEST'
 ], 'bus:');
 
-},{"../enumerate":38}],32:[function(_dereq_,module,exports){
+},{"../enumerate":40}],34:[function(_dereq_,module,exports){
 'use strict';
 
 var bus = _dereq_('framebus');
@@ -2788,7 +2848,7 @@ BraintreeBus.events = events;
 
 module.exports = BraintreeBus;
 
-},{"../braintree-error":29,"./check-origin":30,"./events":31,"framebus":14}],33:[function(_dereq_,module,exports){
+},{"../braintree-error":31,"./check-origin":32,"./events":33,"framebus":16}],35:[function(_dereq_,module,exports){
 'use strict';
 
 function _classesOf(element) {
@@ -2827,10 +2887,10 @@ module.exports = {
   toggle: toggle
 };
 
-},{}],34:[function(_dereq_,module,exports){
+},{}],36:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.20.0";
+var VERSION = "3.20.1";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -2844,7 +2904,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],35:[function(_dereq_,module,exports){
+},{}],37:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -2862,7 +2922,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"./braintree-error":29,"./errors":39}],36:[function(_dereq_,module,exports){
+},{"./braintree-error":31,"./errors":41}],38:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/polyfill').atob;
@@ -2911,7 +2971,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":45}],37:[function(_dereq_,module,exports){
+},{"../lib/polyfill":47}],39:[function(_dereq_,module,exports){
 'use strict';
 
 var batchExecuteFunctions = _dereq_('./batch-execute-functions');
@@ -2948,7 +3008,7 @@ Destructor.prototype.teardown = function (callback) {
 
 module.exports = Destructor;
 
-},{"./batch-execute-functions":28}],38:[function(_dereq_,module,exports){
+},{"./batch-execute-functions":30}],40:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -2962,7 +3022,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],39:[function(_dereq_,module,exports){
+},{}],41:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -2995,7 +3055,7 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":29}],40:[function(_dereq_,module,exports){
+},{"./braintree-error":31}],42:[function(_dereq_,module,exports){
 'use strict';
 
 function EventEmitter() {
@@ -3025,7 +3085,7 @@ EventEmitter.prototype._emit = function (event) {
 
 module.exports = EventEmitter;
 
-},{}],41:[function(_dereq_,module,exports){
+},{}],43:[function(_dereq_,module,exports){
 'use strict';
 
 var parser;
@@ -3060,14 +3120,14 @@ function isWhitelistedDomain(url) {
 
 module.exports = isWhitelistedDomain;
 
-},{}],42:[function(_dereq_,module,exports){
+},{}],44:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],43:[function(_dereq_,module,exports){
+},{}],45:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -3076,9 +3136,9 @@ module.exports = function (obj) {
   });
 };
 
-},{}],44:[function(_dereq_,module,exports){
-arguments[4][10][0].apply(exports,arguments)
-},{"dup":10}],45:[function(_dereq_,module,exports){
+},{}],46:[function(_dereq_,module,exports){
+arguments[4][12][0].apply(exports,arguments)
+},{"dup":12}],47:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -3119,7 +3179,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],46:[function(_dereq_,module,exports){
+},{}],48:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -3128,7 +3188,7 @@ var Promise = global.Promise || _dereq_('promise-polyfill');
 module.exports = Promise;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":15}],47:[function(_dereq_,module,exports){
+},{"promise-polyfill":17}],49:[function(_dereq_,module,exports){
 'use strict';
 
 function useMin(isDebug) {
@@ -3137,7 +3197,7 @@ function useMin(isDebug) {
 
 module.exports = useMin;
 
-},{}],48:[function(_dereq_,module,exports){
+},{}],50:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {
@@ -3151,5 +3211,5 @@ function uuid() {
 
 module.exports = uuid;
 
-},{}]},{},[22])(22)
+},{}]},{},[24])(24)
 });
