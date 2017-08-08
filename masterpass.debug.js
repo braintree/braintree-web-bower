@@ -1189,7 +1189,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":23,"./check-origin":24,"./events":25,"framebus":18}],27:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.21.1";
+var VERSION = "3.22.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -2029,7 +2029,7 @@ var Promise = _dereq_('../../lib/promise');
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var errors = _dereq_('../shared/errors');
-var VERSION = "3.21.1";
+var VERSION = "3.22.0";
 var methods = _dereq_('../../lib/methods');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var analytics = _dereq_('../../lib/analytics');
@@ -2066,6 +2066,16 @@ var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_
  * @property {string} contact.emailAddress The customer's email address.
  * @property {Masterpass~Address} billingAddress The customer's billing address.
  * @property {Masterpass~Address} shippingAddress The customer's shipping address.
+ * @property {object} binData Information about the card based on the bin.
+ * @property {string} binData.commercial Possible values: 'Yes', 'No', 'Unknown'.
+ * @property {string} binData.countryOfIssuance The country of issuance.
+ * @property {string} binData.debit Possible values: 'Yes', 'No', 'Unknown'.
+ * @property {string} binData.durbinRegulated Possible values: 'Yes', 'No', 'Unknown'.
+ * @property {string} binData.healthcare Possible values: 'Yes', 'No', 'Unknown'.
+ * @property {string} binData.issuingBank The issuing bank.
+ * @property {string} binData.payroll Possible values: 'Yes', 'No', 'Unknown'.
+ * @property {string} binData.prepaid Possible values: 'Yes', 'No', 'Unknown'.
+ * @property {string} binData.productId The product id.
  */
 
 /**
@@ -2384,7 +2394,7 @@ module.exports = wrapPromise.wrapPrototype(Masterpass);
 var BraintreeError = _dereq_('../lib/braintree-error');
 var browserDetection = _dereq_('./shared/browser-detection');
 var Masterpass = _dereq_('./external/masterpass');
-var VERSION = "3.21.1";
+var VERSION = "3.22.0";
 var errors = _dereq_('./shared/errors');
 var sharedErrors = _dereq_('../lib/errors');
 var Promise = _dereq_('../lib/promise');
