@@ -474,7 +474,7 @@ var fraudnet = _dereq_('./fraudnet');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var methods = _dereq_('../lib/methods');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
-var VERSION = "3.22.0";
+var VERSION = "3.22.1";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -665,6 +665,7 @@ function Kount(options) {
 
   if (previouslyInitializedDeviceData) {
     this.deviceData = previouslyInitializedDeviceData;
+    this._isCached = true;
     return;
   }
 
@@ -689,8 +690,11 @@ Kount.setCachedDeviceData = function (merchantId, data) {
 };
 
 Kount.prototype.teardown = function () {
-  sjcl.random.stopCollectors();
-  this._removeIframe();
+  if (!this._isCached) {
+    sjcl.random.stopCollectors();
+
+    this._removeIframe();
+  }
 };
 
 Kount.prototype._removeIframe = function () {

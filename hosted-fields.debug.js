@@ -1089,7 +1089,7 @@ var EventEmitter = _dereq_('../../lib/event-emitter');
 var injectFrame = _dereq_('./inject-frame');
 var analytics = _dereq_('../../lib/analytics');
 var whitelistedFields = constants.whitelistedFields;
-var VERSION = "3.22.0";
+var VERSION = "3.22.1";
 var methods = _dereq_('../../lib/methods');
 var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
 var sharedErrors = _dereq_('../../lib/errors');
@@ -2137,7 +2137,7 @@ var HostedFields = _dereq_('./external/hosted-fields');
 var supportsInputFormatting = _dereq_('restricted-input/supports-input-formatting');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.22.0";
+var VERSION = "3.22.1";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -2346,7 +2346,7 @@ module.exports = {
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.22.0";
+var VERSION = "3.22.1";
 
 var constants = {
   VERSION: VERSION,
@@ -2968,7 +2968,7 @@ module.exports = {
 },{}],38:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.22.0";
+var VERSION = "3.22.1";
 var PLATFORM = 'web';
 
 module.exports = {
