@@ -516,7 +516,7 @@ module.exports = function (obj) {
 },{}],10:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.22.1";
+var VERSION = "3.22.2";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -780,7 +780,7 @@ module.exports = {
 var BraintreeError = _dereq_('../lib/braintree-error');
 var errors = _dereq_('./errors');
 var USBankAccount = _dereq_('./us-bank-account');
-var VERSION = "3.22.1";
+var VERSION = "3.22.2";
 var sharedErrors = _dereq_('../lib/errors');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');

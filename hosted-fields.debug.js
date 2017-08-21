@@ -288,6 +288,17 @@ function clone(x) {
 
   if (!x) { return null; }
 
+  // TODO: in the next major version, we should
+  // consider removing these pattern properties.
+  // They are not useful extnerally and can be
+  // confusing because the exactPattern does not
+  // always match (for instance, Maestro cards
+  // can start with 62, but the exact pattern
+  // does not include that since it would
+  // exclude UnionPay and Discover cards
+  // when it is not sure whether or not
+  // the card is a UnionPay, Discover or
+  // Maestro card).
   prefixPattern = x.prefixPattern.source;
   exactPattern = x.exactPattern.source;
   dupe = JSON.parse(JSON.stringify(x));
@@ -343,7 +354,7 @@ types[DINERS_CLUB] = {
   prefixPattern: /^(3|3[0689]|30[0-5])$/,
   exactPattern: /^3(0[0-5]|[689])\d*$/,
   gaps: [4, 10],
-  lengths: [14],
+  lengths: [14, 16, 19],
   code: {
     name: CVV,
     size: 3
@@ -393,7 +404,7 @@ types[MAESTRO] = {
   niceType: 'Maestro',
   type: MAESTRO,
   prefixPattern: /^(5|5[06-9]|6\d*)$/,
-  exactPattern: /^5[06-9]\d*$/,
+  exactPattern: /^(5[06-9]|6[37])\d*$/,
   gaps: [4, 8, 12],
   lengths: [12, 13, 14, 15, 16, 17, 18, 19],
   code: {
@@ -1089,7 +1100,7 @@ var EventEmitter = _dereq_('../../lib/event-emitter');
 var injectFrame = _dereq_('./inject-frame');
 var analytics = _dereq_('../../lib/analytics');
 var whitelistedFields = constants.whitelistedFields;
-var VERSION = "3.22.1";
+var VERSION = "3.22.2";
 var methods = _dereq_('../../lib/methods');
 var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
 var sharedErrors = _dereq_('../../lib/errors');
@@ -2137,7 +2148,7 @@ var HostedFields = _dereq_('./external/hosted-fields');
 var supportsInputFormatting = _dereq_('restricted-input/supports-input-formatting');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.22.1";
+var VERSION = "3.22.2";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -2346,7 +2357,7 @@ module.exports = {
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.22.1";
+var VERSION = "3.22.2";
 
 var constants = {
   VERSION: VERSION,
@@ -2968,7 +2979,7 @@ module.exports = {
 },{}],38:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.22.1";
+var VERSION = "3.22.2";
 var PLATFORM = 'web';
 
 module.exports = {

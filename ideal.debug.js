@@ -853,7 +853,7 @@ var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../../lib/convert-to-braintree-error');
 var errors = _dereq_('../shared/errors');
-var VERSION = "3.22.1";
+var VERSION = "3.22.2";
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var methods = _dereq_('../../lib/methods');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -909,7 +909,7 @@ Ideal.prototype._initialize = function () {
       frameService.create({
         name: 'braintreeideallanding',
         height: 550,
-        width: 500,
+        width: 960,
         dispatchFrameUrl: self._assetsUrl + '/html/dispatch-frame' + useMin(self._isDebug) + '.html',
         openFrameUrl: self._assetsUrl + '/html/ideal-issuers-frame' + useMin(self._isDebug) + '.html',
         state: {bankData: response.data}
@@ -1205,7 +1205,7 @@ module.exports = Ideal;
 var BraintreeError = _dereq_('../lib/braintree-error');
 var browserDetection = _dereq_('./shared/browser-detection');
 var Ideal = _dereq_('./external/ideal');
-var VERSION = "3.22.1";
+var VERSION = "3.22.2";
 var errors = _dereq_('./shared/errors');
 var sharedErrors = _dereq_('../lib/errors');
 var analytics = _dereq_('../lib/analytics');
@@ -1702,7 +1702,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":29,"./check-origin":30,"./events":31,"framebus":18}],33:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.22.1";
+var VERSION = "3.22.2";
 var PLATFORM = 'web';
 
 module.exports = {

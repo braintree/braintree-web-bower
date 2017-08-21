@@ -758,7 +758,7 @@ module.exports = BraintreeError;
 },{"./enumerate":28}],26:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.22.1";
+var VERSION = "3.22.2";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -1027,7 +1027,7 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Venmo = _dereq_('./venmo');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.22.1";
+var VERSION = "3.22.2";
 
 /**
  * @static
@@ -1142,7 +1142,7 @@ var querystring = _dereq_('../lib/querystring');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.22.1";
+var VERSION = "3.22.2";
 
 /**
  * Venmo tokenize payload.
@@ -1187,6 +1187,7 @@ Venmo.prototype._initialize = function () {
   params['x-success'] = currentUrl + '#venmoSuccess=1';
   params['x-cancel'] = currentUrl + '#venmoCancel=1';
   params['x-error'] = currentUrl + '#venmoError=1';
+  params.ua = global.navigator.userAgent;
   /* eslint-disable camelcase */
   params.braintree_merchant_id = venmoConfiguration.merchantId;
   params.braintree_access_token = venmoConfiguration.accessToken;

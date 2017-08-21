@@ -496,7 +496,7 @@ module.exports = BraintreeError;
 },{"./enumerate":11}],9:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.22.1";
+var VERSION = "3.22.2";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -704,7 +704,7 @@ var VisaCheckout = _dereq_('./visa-checkout');
 var analytics = _dereq_('../lib/analytics');
 var sharedErrors = _dereq_('../lib/errors');
 var errors = _dereq_('./errors');
-var VERSION = "3.22.1";
+var VERSION = "3.22.2";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 

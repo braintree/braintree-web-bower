@@ -1017,7 +1017,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":13,"./check-origin":14,"./events":15,"framebus":9}],17:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.22.1";
+var VERSION = "3.22.2";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -1311,7 +1311,7 @@ var uuid = _dereq_('../../lib/uuid');
 var deferred = _dereq_('../../lib/deferred');
 var errors = _dereq_('../shared/errors');
 var events = _dereq_('../shared/events');
-var VERSION = "3.22.1";
+var VERSION = "3.22.2";
 var iFramer = _dereq_('@braintree/iframer');
 var Promise = _dereq_('../../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -1509,6 +1509,8 @@ ThreeDSecure.prototype._handleLookupResponse = function (options) {
   } else {
     this._verifyCardCallback(null, {
       nonce: lookupResponse.paymentMethod.nonce,
+      liabilityShiftPossible: lookupResponse.threeDSecureInfo.liabilityShiftPossible,
+      liabilityShifted: lookupResponse.threeDSecureInfo.liabilityShifted,
       verificationDetails: lookupResponse.threeDSecureInfo
     });
   }
@@ -1635,7 +1637,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
 var sharedErrors = _dereq_('../lib/errors');
-var VERSION = "3.22.1";
+var VERSION = "3.22.2";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
