@@ -343,6 +343,53 @@ module.exports = wrapPromise;
 },{}],6:[function(_dereq_,module,exports){
 'use strict';
 
+var BraintreeError = _dereq_('./braintree-error');
+var Promise = _dereq_('./promise');
+var sharedErrors = _dereq_('./errors');
+var VERSION = "3.23.0";
+
+function basicComponentVerification(options) {
+  var client, clientVersion, name;
+
+  if (!options) {
+    return Promise.reject(new BraintreeError({
+      type: sharedErrors.INVALID_USE_OF_INTERNAL_FUNCTION.type,
+      code: sharedErrors.INVALID_USE_OF_INTERNAL_FUNCTION.code,
+      message: 'Options must be passed to basicComponentVerification function.'
+    }));
+  }
+
+  name = options.name;
+  client = options.client;
+
+  if (client == null) {
+    return Promise.reject(new BraintreeError({
+      type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
+      code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
+      message: 'options.client is required when instantiating ' + name + '.'
+    }));
+  }
+
+  clientVersion = client.getVersion();
+
+  if (clientVersion !== VERSION) {
+    return Promise.reject(new BraintreeError({
+      type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
+      code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
+      message: 'Client (version ' + clientVersion + ') and ' + name + ' (version ' + VERSION + ') components must be from the same SDK version.'
+    }));
+  }
+
+  return Promise.resolve();
+}
+
+module.exports = {
+  verify: basicComponentVerification
+};
+
+},{"./braintree-error":7,"./errors":9,"./promise":10}],7:[function(_dereq_,module,exports){
+'use strict';
+
 var enumerate = _dereq_('./enumerate');
 
 /**
@@ -425,7 +472,7 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":7}],7:[function(_dereq_,module,exports){
+},{"./enumerate":8}],8:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -439,12 +486,16 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],8:[function(_dereq_,module,exports){
+},{}],9:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
 
 module.exports = {
+  INVALID_USE_OF_INTERNAL_FUNCTION: {
+    type: BraintreeError.types.INTERNAL,
+    code: 'INVALID_USE_OF_INTERNAL_FUNCTION'
+  },
   CALLBACK_REQUIRED: {
     type: BraintreeError.types.MERCHANT,
     code: 'CALLBACK_REQUIRED'
@@ -472,7 +523,7 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":6}],9:[function(_dereq_,module,exports){
+},{"./braintree-error":7}],10:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -481,18 +532,16 @@ var Promise = global.Promise || _dereq_('promise-polyfill');
 module.exports = Promise;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":5}],10:[function(_dereq_,module,exports){
+},{"promise-polyfill":5}],11:[function(_dereq_,module,exports){
 'use strict';
 /**
  * @module braintree-web/vault-manager
  * @description Manages customer's payment methods.
  */
 
-var BraintreeError = _dereq_('../lib/braintree-error');
+var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var VaultManager = _dereq_('./vault-manager');
-var sharedErrors = _dereq_('../lib/errors');
-var VERSION = "3.22.2";
-var Promise = _dereq_('../lib/promise');
+var VERSION = "3.23.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -504,26 +553,12 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
  * @returns {void}
  */
 function create(options) {
-  var clientVersion;
-
-  if (options.client == null) {
-    return Promise.reject(new BraintreeError({
-      type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
-      code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
-      message: 'options.client is required when instantiating Vault Manager.'
-    }));
-  }
-
-  clientVersion = options.client.getVersion();
-  if (clientVersion !== VERSION) {
-    return Promise.reject(new BraintreeError({
-      type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
-      code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
-      message: 'Client (version ' + clientVersion + ') and Vault Manager (version ' + VERSION + ') components must be from the same SDK version.'
-    }));
-  }
-
-  return Promise.resolve(new VaultManager(options));
+  return basicComponentVerification.verify({
+    name: 'Vault Manager',
+    client: options.client
+  }).then(function () {
+    return new VaultManager(options);
+  });
 }
 
 module.exports = {
@@ -535,7 +570,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/braintree-error":6,"../lib/errors":8,"../lib/promise":9,"./vault-manager":11,"@braintree/wrap-promise":4}],11:[function(_dereq_,module,exports){
+},{"../lib/basic-component-verification":6,"./vault-manager":12,"@braintree/wrap-promise":4}],12:[function(_dereq_,module,exports){
 'use strict';
 
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -548,6 +583,7 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
  * @property {object} paymentMethod.details Any additional details about the payment method. Varies depending on the type of payment method.
  * @property {string} paymentMethod.type A constant indicating the type of payment method.
  * @property {?string} paymentMethod.description Additional description about the payment method.
+ * @property {?object} paymentMethod.binData Bin data about the payment method.
  *
  */
 
@@ -608,10 +644,14 @@ function formatPaymentMethodPayload(paymentMethod) {
     formattedPaymentMethod.description = paymentMethod.description;
   }
 
+  if (paymentMethod.binData) {
+    formattedPaymentMethod.binData = paymentMethod.binData;
+  }
+
   return formattedPaymentMethod;
 }
 
 module.exports = wrapPromise.wrapPrototype(VaultManager);
 
-},{"@braintree/wrap-promise":4}]},{},[10])(10)
+},{"@braintree/wrap-promise":4}]},{},[11])(11)
 });

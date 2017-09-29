@@ -374,7 +374,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":9,"./create-authorization-data":11,"./json-clone":14}],7:[function(_dereq_,module,exports){
+},{"./constants":10,"./create-authorization-data":12,"./json-clone":15}],7:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('./constants');
@@ -408,7 +408,54 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":6,"./constants":9}],8:[function(_dereq_,module,exports){
+},{"./add-metadata":6,"./constants":10}],8:[function(_dereq_,module,exports){
+'use strict';
+
+var BraintreeError = _dereq_('./braintree-error');
+var Promise = _dereq_('./promise');
+var sharedErrors = _dereq_('./errors');
+var VERSION = "3.23.0";
+
+function basicComponentVerification(options) {
+  var client, clientVersion, name;
+
+  if (!options) {
+    return Promise.reject(new BraintreeError({
+      type: sharedErrors.INVALID_USE_OF_INTERNAL_FUNCTION.type,
+      code: sharedErrors.INVALID_USE_OF_INTERNAL_FUNCTION.code,
+      message: 'Options must be passed to basicComponentVerification function.'
+    }));
+  }
+
+  name = options.name;
+  client = options.client;
+
+  if (client == null) {
+    return Promise.reject(new BraintreeError({
+      type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
+      code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
+      message: 'options.client is required when instantiating ' + name + '.'
+    }));
+  }
+
+  clientVersion = client.getVersion();
+
+  if (clientVersion !== VERSION) {
+    return Promise.reject(new BraintreeError({
+      type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
+      code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
+      message: 'Client (version ' + clientVersion + ') and ' + name + ' (version ' + VERSION + ') components must be from the same SDK version.'
+    }));
+  }
+
+  return Promise.resolve();
+}
+
+module.exports = {
+  verify: basicComponentVerification
+};
+
+},{"./braintree-error":9,"./errors":14,"./promise":17}],9:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -493,10 +540,10 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":12}],9:[function(_dereq_,module,exports){
+},{"./enumerate":13}],10:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.22.2";
+var VERSION = "3.23.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -510,7 +557,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],10:[function(_dereq_,module,exports){
+},{}],11:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -532,7 +579,7 @@ function convertToBraintreeError(originalErr, btErrorObject) {
 
 module.exports = convertToBraintreeError;
 
-},{"./braintree-error":8}],11:[function(_dereq_,module,exports){
+},{"./braintree-error":9}],12:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/polyfill').atob;
@@ -581,7 +628,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":15}],12:[function(_dereq_,module,exports){
+},{"../lib/polyfill":16}],13:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -595,12 +642,16 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],13:[function(_dereq_,module,exports){
+},{}],14:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
 
 module.exports = {
+  INVALID_USE_OF_INTERNAL_FUNCTION: {
+    type: BraintreeError.types.INTERNAL,
+    code: 'INVALID_USE_OF_INTERNAL_FUNCTION'
+  },
   CALLBACK_REQUIRED: {
     type: BraintreeError.types.MERCHANT,
     code: 'CALLBACK_REQUIRED'
@@ -628,14 +679,14 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":8}],14:[function(_dereq_,module,exports){
+},{"./braintree-error":9}],15:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],15:[function(_dereq_,module,exports){
+},{}],16:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -676,7 +727,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],16:[function(_dereq_,module,exports){
+},{}],17:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -685,7 +736,7 @@ var Promise = global.Promise || _dereq_('promise-polyfill');
 module.exports = Promise;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":5}],17:[function(_dereq_,module,exports){
+},{"promise-polyfill":5}],18:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -738,7 +789,7 @@ module.exports = {
   }
 };
 
-},{"../lib/braintree-error":8}],18:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":9}],19:[function(_dereq_,module,exports){
 'use strict';
 /**
  * @module braintree-web/paypal-checkout
@@ -747,12 +798,12 @@ module.exports = {
 
 var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
+var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var errors = _dereq_('./errors');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var PayPalCheckout = _dereq_('./paypal-checkout');
-var sharedErrors = _dereq_('../lib/errors');
-var VERSION = "3.22.2";
+var VERSION = "3.23.0";
 
 /**
  * @static
@@ -803,45 +854,31 @@ var VERSION = "3.22.2";
  * @returns {Promise|void} Returns a promise if no callback is provided.
  */
 function create(options) {
-  var config, clientVersion;
+  return basicComponentVerification.verify({
+    name: 'PayPal Checkout',
+    client: options.client
+  }).then(function () {
+    var config = options.client.getConfiguration();
 
-  if (options.client == null) {
-    return Promise.reject(new BraintreeError({
-      type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
-      code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
-      message: 'options.client is required when instantiating PayPal Checkout.'
-    }));
-  }
+    if (!config.gatewayConfiguration.paypalEnabled) {
+      return Promise.reject(new BraintreeError(errors.PAYPAL_NOT_ENABLED));
+    }
 
-  config = options.client.getConfiguration();
-  clientVersion = options.client.getVersion();
+    if (!config.gatewayConfiguration.paypal.clientId) {
+      return Promise.reject(new BraintreeError(errors.PAYPAL_SANDBOX_ACCOUNT_NOT_LINKED));
+    }
 
-  if (clientVersion !== VERSION) {
-    return Promise.reject(new BraintreeError({
-      type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
-      code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
-      message: 'Client (version ' + clientVersion + ') and PayPal Checkout (version ' + VERSION + ') components must be from the same SDK version.'
-    }));
-  }
+    analytics.sendEvent(options.client, 'paypal-checkout.initialized');
 
-  if (!config.gatewayConfiguration.paypalEnabled) {
-    return Promise.reject(new BraintreeError(errors.PAYPAL_NOT_ENABLED));
-  }
-
-  if (!config.gatewayConfiguration.paypal.clientId) {
-    return Promise.reject(new BraintreeError(errors.PAYPAL_SANDBOX_ACCOUNT_NOT_LINKED));
-  }
-
-  analytics.sendEvent(options.client, 'paypal-checkout.initialized');
-
-  return Promise.resolve(new PayPalCheckout(options));
+    return new PayPalCheckout(options);
+  });
 }
 
 /**
  * @static
  * @function isSupported
  * @description Returns true if PayPal Checkout [supports this browser](index.html#browser-support-webviews).
- * @deprecated Previously, this method checked for Popup support in the brower. Checkout.js now falls back to a modal if popups are not supported.
+ * @deprecated Previously, this method checked for Popup support in the browser. Checkout.js now falls back to a modal if popups are not supported.
  * @example
  * if (braintree.paypalCheckout.isSupported()) {
  *   // Add PayPal button to the page
@@ -864,7 +901,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/analytics":7,"../lib/braintree-error":8,"../lib/errors":13,"../lib/promise":16,"./errors":17,"./paypal-checkout":19,"@braintree/wrap-promise":4}],19:[function(_dereq_,module,exports){
+},{"../lib/analytics":7,"../lib/basic-component-verification":8,"../lib/braintree-error":9,"../lib/promise":17,"./errors":18,"./paypal-checkout":20,"@braintree/wrap-promise":4}],20:[function(_dereq_,module,exports){
 'use strict';
 
 var analytics = _dereq_('../lib/analytics');
@@ -938,9 +975,8 @@ function PayPalCheckout(options) {
  * @param {object} options All options for the PayPalCheckout component.
  * @param {string} options.flow Set to 'checkout' for one-time payment flow, or 'vault' for Vault flow. If 'vault' is used with a client token generated with a customer ID, the PayPal account will be added to that customer as a saved payment method.
  * @param {string} [options.intent=authorize]
- * Checkout flows only.
  * * `authorize` - Submits the transaction for authorization but not settlement.
- * * `order` - Validates the transaction without an authorization (i.e. without holding funds). Useful for authorizing and capturing funds up to 90 days after the order has been placed.
+ * * `order` - Validates the transaction without an authorization (i.e. without holding funds). Useful for authorizing and capturing funds up to 90 days after the order has been placed. Only available for Checkout flow.
  * * `sale` - Payment will be immediately submitted for settlement upon creating a transaction.
  * @param {boolean} [options.offerCredit=false] Offers PayPal Credit as the default funding instrument for the transaction. If the customer isn't pre-approved for PayPal Credit, they will be prompted to apply for it.
  * @param {string|number} [options.amount] The amount of the transaction. Required when using the Checkout flow.
@@ -1220,7 +1256,7 @@ PayPalCheckout.prototype._formatTokenizePayload = function (response) {
 
 module.exports = wrapPromise.wrapPrototype(PayPalCheckout);
 
-},{"../lib/analytics":7,"../lib/braintree-error":8,"../lib/convert-to-braintree-error":10,"../lib/promise":16,"../paypal/shared/constants":20,"./errors":17,"@braintree/wrap-promise":4}],20:[function(_dereq_,module,exports){
+},{"../lib/analytics":7,"../lib/braintree-error":9,"../lib/convert-to-braintree-error":11,"../lib/promise":17,"../paypal/shared/constants":21,"./errors":18,"@braintree/wrap-promise":4}],21:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -1231,5 +1267,5 @@ module.exports = {
   }
 };
 
-},{}]},{},[18])(18)
+},{}]},{},[19])(19)
 });

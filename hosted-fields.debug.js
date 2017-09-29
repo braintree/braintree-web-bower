@@ -1065,7 +1065,7 @@ function _isValid(attribute, value) {
 
 module.exports = attributeValidationError;
 
-},{"../../lib/braintree-error":33,"../shared/constants":27,"../shared/errors":28}],22:[function(_dereq_,module,exports){
+},{"../../lib/braintree-error":34,"../shared/constants":27,"../shared/errors":28}],22:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('../shared/constants');
@@ -1079,7 +1079,7 @@ module.exports = function composeUrl(assetsUrl, componentId, isDebug) {
     componentId;
 };
 
-},{"../../lib/use-min":51,"../shared/constants":27}],23:[function(_dereq_,module,exports){
+},{"../../lib/use-min":52,"../shared/constants":27}],23:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1100,7 +1100,6 @@ var EventEmitter = _dereq_('../../lib/event-emitter');
 var injectFrame = _dereq_('./inject-frame');
 var analytics = _dereq_('../../lib/analytics');
 var whitelistedFields = constants.whitelistedFields;
-var VERSION = "3.22.2";
 var methods = _dereq_('../../lib/methods');
 var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
 var sharedErrors = _dereq_('../../lib/errors');
@@ -1393,29 +1392,13 @@ function performBlurFixForIos(container) {
  * @classdesc This class represents a Hosted Fields component produced by {@link module:braintree-web/hosted-fields.create|braintree-web/hosted-fields.create}. Instances of this class have methods for interacting with the input fields within Hosted Fields' iframes.
  */
 function HostedFields(options) {
-  var failureTimeout, clientVersion, clientConfig;
+  var failureTimeout, clientConfig;
   var self = this;
   var fields = {};
   var fieldCount = 0;
   var componentId = uuid();
 
-  if (!options.client) {
-    throw new BraintreeError({
-      type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
-      code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
-      message: 'options.client is required when instantiating Hosted Fields.'
-    });
-  }
-
   clientConfig = options.client.getConfiguration();
-  clientVersion = options.client.getVersion();
-  if (clientVersion !== VERSION) {
-    throw new BraintreeError({
-      type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
-      code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
-      message: 'Client (version ' + clientVersion + ') and Hosted Fields (version ' + VERSION + ') components must be from the same SDK version.'
-    });
-  }
 
   if (!options.fields) {
     throw new BraintreeError({
@@ -1662,7 +1645,11 @@ HostedFields.prototype.teardown = function () {
  * @param {boolean} [options.vault=false] When true, will vault the tokenized card. Cards will only be vaulted when using a client created with a client token that includes a customer ID.
  * @param {string} [options.cardholderName] When supplied, the cardholder name to be tokenized with the contents of the fields.
  * @param {string} [options.billingAddress.postalCode] When supplied, this postal code will be tokenized along with the contents of the fields. If a postal code is provided as part of the Hosted Fields configuration, the value of the field will be tokenized and this value will be ignored.
+ * @param {string} [options.billingAddress.firstName] When supplied, this customer first name will be tokenized along with the contents of the fields.
+ * @param {string} [options.billingAddress.lastName] When supplied, this customer last name will be tokenized along with the contents of the fields.
+ * @param {string} [options.billingAddress.company] When supplied, this company name will be tokenized along with the contents of the fields.
  * @param {string} [options.billingAddress.streetAddress] When supplied, this street address will be tokenized along with the contents of the fields.
+ * @param {string} [options.billingAddress.extendedAddress] When supplied, this extended address will be tokenized along with the contents of the fields.
  * @param {string} [options.billingAddress.countryCodeNumeric] When supplied, this numeric country code will be tokenized along with the contents of the fields.
  * @param {string} [options.billingAddress.countryCodeAlpha2] When supplied, this alpha 2 representation of a country will be tokenized along with the contents of the fields.
  * @param {string} [options.billingAddress.countryCodeAlpha3] When supplied, this alpha 3 representation of a country will be tokenized along with the contents of the fields.
@@ -1750,7 +1737,11 @@ HostedFields.prototype.teardown = function () {
  * @example <caption>Tokenize a card with additional billing address options</caption>
  * hostedFieldsInstance.tokenize({
  *   billingAddress: {
+ *     firstName: 'First',
+ *     lastName: 'Last',
+ *     company: 'Company',
  *     streetAddress: '123 Street',
+ *     extendedAddress: 'Unit 1',
  *     // passing just one of the country options is sufficient to
  *     // associate the card details with a particular country
  *     // valid country names and codes can be found here:
@@ -2123,7 +2114,7 @@ HostedFields.prototype.getState = function () {
 module.exports = wrapPromise.wrapPrototype(HostedFields);
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../lib/analytics":31,"../../lib/braintree-error":33,"../../lib/bus":36,"../../lib/classlist":37,"../../lib/constants":38,"../../lib/convert-methods-to-error":39,"../../lib/destructor":41,"../../lib/errors":43,"../../lib/event-emitter":44,"../../lib/methods":47,"../../lib/promise":50,"../../lib/uuid":52,"../shared/browser-detection":26,"../shared/constants":27,"../shared/errors":28,"../shared/find-parent-tags":29,"./attribute-validation-error":21,"./compose-url":22,"./inject-frame":24,"@braintree/iframer":8,"@braintree/wrap-promise":15,"credit-card-type":16}],24:[function(_dereq_,module,exports){
+},{"../../lib/analytics":31,"../../lib/braintree-error":34,"../../lib/bus":37,"../../lib/classlist":38,"../../lib/constants":39,"../../lib/convert-methods-to-error":40,"../../lib/destructor":42,"../../lib/errors":44,"../../lib/event-emitter":45,"../../lib/methods":48,"../../lib/promise":51,"../../lib/uuid":53,"../shared/browser-detection":26,"../shared/constants":27,"../shared/errors":28,"../shared/find-parent-tags":29,"./attribute-validation-error":21,"./compose-url":22,"./inject-frame":24,"@braintree/iframer":8,"@braintree/wrap-promise":15,"credit-card-type":16}],24:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function injectFrame(frame, container) {
@@ -2145,10 +2136,11 @@ module.exports = function injectFrame(frame, container) {
 /** @module braintree-web/hosted-fields */
 
 var HostedFields = _dereq_('./external/hosted-fields');
+var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var supportsInputFormatting = _dereq_('restricted-input/supports-input-formatting');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.22.2";
+var VERSION = "3.23.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -2281,13 +2273,16 @@ var VERSION = "3.22.2";
  * }, callback);
  */
 function create(options) {
-  var integration;
+  return basicComponentVerification.verify({
+    name: 'Hosted Fields',
+    client: options.client
+  }).then(function () {
+    var integration = new HostedFields(options);
 
-  return new Promise(function (resolve) {
-    integration = new HostedFields(options);
-
-    integration.on('ready', function () {
-      resolve(integration);
+    return new Promise(function (resolve) {
+      integration.on('ready', function () {
+        resolve(integration);
+      });
     });
   });
 }
@@ -2342,7 +2337,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/promise":50,"./external/hosted-fields":23,"@braintree/wrap-promise":15,"restricted-input/supports-input-formatting":20}],26:[function(_dereq_,module,exports){
+},{"../lib/basic-component-verification":32,"../lib/promise":51,"./external/hosted-fields":23,"@braintree/wrap-promise":15,"restricted-input/supports-input-formatting":20}],26:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -2357,7 +2352,7 @@ module.exports = {
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.22.2";
+var VERSION = "3.23.0";
 
 var constants = {
   VERSION: VERSION,
@@ -2476,7 +2471,7 @@ constants.events = enumerate([
 
 module.exports = constants;
 
-},{"../../lib/enumerate":42,"./errors":28}],28:[function(_dereq_,module,exports){
+},{"../../lib/enumerate":43,"./errors":28}],28:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../lib/braintree-error');
@@ -2548,7 +2543,7 @@ module.exports = {
   }
 };
 
-},{"../../lib/braintree-error":33}],29:[function(_dereq_,module,exports){
+},{"../../lib/braintree-error":34}],29:[function(_dereq_,module,exports){
 'use strict';
 
 function findParentTags(element, tag) {
@@ -2602,7 +2597,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":38,"./create-authorization-data":40,"./json-clone":46}],31:[function(_dereq_,module,exports){
+},{"./constants":39,"./create-authorization-data":41,"./json-clone":47}],31:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('./constants');
@@ -2636,7 +2631,54 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":30,"./constants":38}],32:[function(_dereq_,module,exports){
+},{"./add-metadata":30,"./constants":39}],32:[function(_dereq_,module,exports){
+'use strict';
+
+var BraintreeError = _dereq_('./braintree-error');
+var Promise = _dereq_('./promise');
+var sharedErrors = _dereq_('./errors');
+var VERSION = "3.23.0";
+
+function basicComponentVerification(options) {
+  var client, clientVersion, name;
+
+  if (!options) {
+    return Promise.reject(new BraintreeError({
+      type: sharedErrors.INVALID_USE_OF_INTERNAL_FUNCTION.type,
+      code: sharedErrors.INVALID_USE_OF_INTERNAL_FUNCTION.code,
+      message: 'Options must be passed to basicComponentVerification function.'
+    }));
+  }
+
+  name = options.name;
+  client = options.client;
+
+  if (client == null) {
+    return Promise.reject(new BraintreeError({
+      type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
+      code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
+      message: 'options.client is required when instantiating ' + name + '.'
+    }));
+  }
+
+  clientVersion = client.getVersion();
+
+  if (clientVersion !== VERSION) {
+    return Promise.reject(new BraintreeError({
+      type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
+      code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
+      message: 'Client (version ' + clientVersion + ') and ' + name + ' (version ' + VERSION + ') components must be from the same SDK version.'
+    }));
+  }
+
+  return Promise.resolve();
+}
+
+module.exports = {
+  verify: basicComponentVerification
+};
+
+},{"./braintree-error":34,"./errors":44,"./promise":51}],33:[function(_dereq_,module,exports){
 'use strict';
 
 var once = _dereq_('./once');
@@ -2680,7 +2722,7 @@ module.exports = function (functions, cb) {
   }
 };
 
-},{"./once":48}],33:[function(_dereq_,module,exports){
+},{"./once":49}],34:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -2765,7 +2807,7 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":42}],34:[function(_dereq_,module,exports){
+},{"./enumerate":43}],35:[function(_dereq_,module,exports){
 'use strict';
 
 var isWhitelistedDomain = _dereq_('../is-whitelisted-domain');
@@ -2797,7 +2839,7 @@ module.exports = {
   checkOrigin: checkOrigin
 };
 
-},{"../is-whitelisted-domain":45}],35:[function(_dereq_,module,exports){
+},{"../is-whitelisted-domain":46}],36:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../enumerate');
@@ -2806,7 +2848,7 @@ module.exports = enumerate([
   'CONFIGURATION_REQUEST'
 ], 'bus:');
 
-},{"../enumerate":42}],36:[function(_dereq_,module,exports){
+},{"../enumerate":43}],37:[function(_dereq_,module,exports){
 'use strict';
 
 var bus = _dereq_('framebus');
@@ -2937,7 +2979,7 @@ BraintreeBus.events = events;
 
 module.exports = BraintreeBus;
 
-},{"../braintree-error":33,"./check-origin":34,"./events":35,"framebus":17}],37:[function(_dereq_,module,exports){
+},{"../braintree-error":34,"./check-origin":35,"./events":36,"framebus":17}],38:[function(_dereq_,module,exports){
 'use strict';
 
 function _classesOf(element) {
@@ -2976,10 +3018,10 @@ module.exports = {
   toggle: toggle
 };
 
-},{}],38:[function(_dereq_,module,exports){
+},{}],39:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.22.2";
+var VERSION = "3.23.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -2993,7 +3035,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],39:[function(_dereq_,module,exports){
+},{}],40:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -3011,7 +3053,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"./braintree-error":33,"./errors":43}],40:[function(_dereq_,module,exports){
+},{"./braintree-error":34,"./errors":44}],41:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/polyfill').atob;
@@ -3060,7 +3102,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":49}],41:[function(_dereq_,module,exports){
+},{"../lib/polyfill":50}],42:[function(_dereq_,module,exports){
 'use strict';
 
 var batchExecuteFunctions = _dereq_('./batch-execute-functions');
@@ -3097,7 +3139,7 @@ Destructor.prototype.teardown = function (callback) {
 
 module.exports = Destructor;
 
-},{"./batch-execute-functions":32}],42:[function(_dereq_,module,exports){
+},{"./batch-execute-functions":33}],43:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -3111,12 +3153,16 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],43:[function(_dereq_,module,exports){
+},{}],44:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
 
 module.exports = {
+  INVALID_USE_OF_INTERNAL_FUNCTION: {
+    type: BraintreeError.types.INTERNAL,
+    code: 'INVALID_USE_OF_INTERNAL_FUNCTION'
+  },
   CALLBACK_REQUIRED: {
     type: BraintreeError.types.MERCHANT,
     code: 'CALLBACK_REQUIRED'
@@ -3144,7 +3190,7 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":33}],44:[function(_dereq_,module,exports){
+},{"./braintree-error":34}],45:[function(_dereq_,module,exports){
 'use strict';
 
 function EventEmitter() {
@@ -3174,7 +3220,7 @@ EventEmitter.prototype._emit = function (event) {
 
 module.exports = EventEmitter;
 
-},{}],45:[function(_dereq_,module,exports){
+},{}],46:[function(_dereq_,module,exports){
 'use strict';
 
 var parser;
@@ -3209,14 +3255,14 @@ function isWhitelistedDomain(url) {
 
 module.exports = isWhitelistedDomain;
 
-},{}],46:[function(_dereq_,module,exports){
+},{}],47:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],47:[function(_dereq_,module,exports){
+},{}],48:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -3225,9 +3271,9 @@ module.exports = function (obj) {
   });
 };
 
-},{}],48:[function(_dereq_,module,exports){
+},{}],49:[function(_dereq_,module,exports){
 arguments[4][13][0].apply(exports,arguments)
-},{"dup":13}],49:[function(_dereq_,module,exports){
+},{"dup":13}],50:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -3268,7 +3314,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],50:[function(_dereq_,module,exports){
+},{}],51:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -3277,7 +3323,7 @@ var Promise = global.Promise || _dereq_('promise-polyfill');
 module.exports = Promise;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":18}],51:[function(_dereq_,module,exports){
+},{"promise-polyfill":18}],52:[function(_dereq_,module,exports){
 'use strict';
 
 function useMin(isDebug) {
@@ -3286,7 +3332,7 @@ function useMin(isDebug) {
 
 module.exports = useMin;
 
-},{}],52:[function(_dereq_,module,exports){
+},{}],53:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {

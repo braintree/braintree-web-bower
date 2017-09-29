@@ -362,7 +362,7 @@ module.exports = {
   }
 };
 
-},{"../lib/braintree-error":11}],7:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":12}],7:[function(_dereq_,module,exports){
 'use strict';
 
 function setup() {
@@ -472,12 +472,12 @@ module.exports = {
 var kount = _dereq_('./kount');
 var fraudnet = _dereq_('./fraudnet');
 var BraintreeError = _dereq_('../lib/braintree-error');
+var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var methods = _dereq_('../lib/methods');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
-var VERSION = "3.22.2";
+var VERSION = "3.23.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var sharedErrors = _dereq_('../lib/errors');
 var errors = _dereq_('./errors');
 
 /**
@@ -493,6 +493,14 @@ var errors = _dereq_('./errors');
  * @name deviceData
  * @type string
  * @description JSON string to pass with server transactions.
+ * @instance
+ */
+
+/**
+ * @memberof DataCollector
+ * @name rawDeviceData
+ * @type object
+ * @description The device data as an object instead of a string.
  * @instance
  */
 
@@ -549,68 +557,57 @@ var errors = _dereq_('./errors');
  * @returns {Promise|void} Returns a promise that resolves the {@link DataCollector} instance if no callback is provided.
  */
 function create(options) {
-  var data, kountInstance, fraudnetInstance, config, clientVersion;
   var result = {};
   var instances = [];
   var teardown = createTeardownMethod(result, instances);
 
-  if (options.client == null) {
-    return Promise.reject(new BraintreeError({
-      type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
-      code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
-      message: 'options.client is required when instantiating Data Collector.'
-    }));
-  }
+  return basicComponentVerification.verify({
+    name: 'Data Collector',
+    client: options.client
+  }).then(function () {
+    var data, kountInstance, fraudnetInstance;
+    var config = options.client.getConfiguration();
 
-  config = options.client.getConfiguration();
-  clientVersion = options.client.getVersion();
+    if (options.kount === true) {
+      if (!config.gatewayConfiguration.kount) {
+        return Promise.reject(new BraintreeError(errors.DATA_COLLECTOR_KOUNT_NOT_ENABLED));
+      }
 
-  if (clientVersion !== VERSION) {
-    return Promise.reject(new BraintreeError({
-      type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
-      code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
-      message: 'Client (version ' + clientVersion + ') and Data Collector (version ' + VERSION + ') components must be from the same SDK version.'
-    }));
-  }
+      try {
+        kountInstance = kount.setup({
+          environment: config.gatewayConfiguration.environment,
+          merchantId: config.gatewayConfiguration.kount.kountMerchantId
+        });
+      } catch (err) {
+        return Promise.reject(new BraintreeError({
+          type: errors.DATA_COLLECTOR_KOUNT_ERROR.type,
+          code: errors.DATA_COLLECTOR_KOUNT_ERROR.code,
+          message: err.message
+        }));
+      }
 
-  if (options.kount === true) {
-    if (!config.gatewayConfiguration.kount) {
-      return Promise.reject(new BraintreeError(errors.DATA_COLLECTOR_KOUNT_NOT_ENABLED));
+      data = kountInstance.deviceData;
+      instances.push(kountInstance);
+    } else {
+      data = {};
     }
 
-    try {
-      kountInstance = kount.setup({
-        environment: config.gatewayConfiguration.environment,
-        merchantId: config.gatewayConfiguration.kount.kountMerchantId
-      });
-    } catch (err) {
-      return Promise.reject(new BraintreeError({
-        type: errors.DATA_COLLECTOR_KOUNT_ERROR.type,
-        code: errors.DATA_COLLECTOR_KOUNT_ERROR.code,
-        message: err.message
-      }));
+    if (options.paypal === true) {
+      fraudnetInstance = fraudnet.setup();
+      data.correlation_id = fraudnetInstance.sessionId; // eslint-disable-line camelcase
+      instances.push(fraudnetInstance);
     }
 
-    data = kountInstance.deviceData;
-    instances.push(kountInstance);
-  } else {
-    data = {};
-  }
+    if (instances.length === 0) {
+      return Promise.reject(new BraintreeError(errors.DATA_COLLECTOR_REQUIRES_CREATE_OPTIONS));
+    }
 
-  if (options.paypal === true) {
-    fraudnetInstance = fraudnet.setup();
-    data.correlation_id = fraudnetInstance.sessionId; // eslint-disable-line camelcase
-    instances.push(fraudnetInstance);
-  }
+    result.deviceData = JSON.stringify(data);
+    result.rawDeviceData = data;
+    result.teardown = teardown;
 
-  if (instances.length === 0) {
-    return Promise.reject(new BraintreeError(errors.DATA_COLLECTOR_REQUIRES_CREATE_OPTIONS));
-  }
-
-  result.deviceData = JSON.stringify(data);
-  result.teardown = teardown;
-
-  return Promise.resolve(result);
+    return result;
+  });
 }
 
 function createTeardownMethod(result, instances) {
@@ -638,7 +635,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/braintree-error":11,"../lib/convert-methods-to-error":13,"../lib/errors":15,"../lib/methods":16,"../lib/promise":17,"./errors":6,"./fraudnet":7,"./kount":9,"@braintree/wrap-promise":4}],9:[function(_dereq_,module,exports){
+},{"../lib/basic-component-verification":11,"../lib/braintree-error":12,"../lib/convert-methods-to-error":14,"../lib/methods":17,"../lib/promise":18,"./errors":6,"./fraudnet":7,"./kount":9,"@braintree/wrap-promise":4}],9:[function(_dereq_,module,exports){
 'use strict';
 
 var sjcl = _dereq_('./vendor/sjcl');
@@ -759,7 +756,7 @@ module.exports = {
   environmentUrls: environmentUrls
 };
 
-},{"../lib/camel-case-to-snake-case":12,"./vendor/sjcl":10}],10:[function(_dereq_,module,exports){
+},{"../lib/camel-case-to-snake-case":13,"./vendor/sjcl":10}],10:[function(_dereq_,module,exports){
 "use strict";var sjcl={cipher:{},hash:{},keyexchange:{},mode:{},misc:{},codec:{},exception:{corrupt:function(a){this.toString=function(){return"CORRUPT: "+this.message};this.message=a},invalid:function(a){this.toString=function(){return"INVALID: "+this.message};this.message=a},bug:function(a){this.toString=function(){return"BUG: "+this.message};this.message=a},notReady:function(a){this.toString=function(){return"NOT READY: "+this.message};this.message=a}}};
 sjcl.cipher.aes=function(a){this.l[0][0][0]||this.G();var b,c,d,e,f=this.l[0][4],g=this.l[1];b=a.length;var k=1;if(4!==b&&6!==b&&8!==b)throw new sjcl.exception.invalid("invalid aes key size");this.b=[d=a.slice(0),e=[]];for(a=b;a<4*b+28;a++){c=d[a-1];if(0===a%b||8===b&&4===a%b)c=f[c>>>24]<<24^f[c>>16&255]<<16^f[c>>8&255]<<8^f[c&255],0===a%b&&(c=c<<8^c>>>24^k<<24,k=k<<1^283*(k>>7));d[a]=d[a-b]^c}for(b=0;a;b++,a--)c=d[b&3?a:a-4],e[b]=4>=a||4>b?c:g[0][f[c>>>24]]^g[1][f[c>>16&255]]^g[2][f[c>>8&255]]^g[3][f[c&
 255]]};
@@ -770,7 +767,7 @@ function t(a,b,c){if(4!==b.length)throw new sjcl.exception.invalid("invalid aes 
 sjcl.bitArray={bitSlice:function(a,b,c){a=sjcl.bitArray.M(a.slice(b/32),32-(b&31)).slice(1);return void 0===c?a:sjcl.bitArray.clamp(a,c-b)},extract:function(a,b,c){var d=Math.floor(-b-c&31);return((b+c-1^b)&-32?a[b/32|0]<<32-d^a[b/32+1|0]>>>d:a[b/32|0]>>>d)&(1<<c)-1},concat:function(a,b){if(0===a.length||0===b.length)return a.concat(b);var c=a[a.length-1],d=sjcl.bitArray.getPartial(c);return 32===d?a.concat(b):sjcl.bitArray.M(b,d,c|0,a.slice(0,a.length-1))},bitLength:function(a){var b=a.length;return 0===
 b?0:32*(b-1)+sjcl.bitArray.getPartial(a[b-1])},clamp:function(a,b){if(32*a.length<b)return a;a=a.slice(0,Math.ceil(b/32));var c=a.length;b=b&31;0<c&&b&&(a[c-1]=sjcl.bitArray.partial(b,a[c-1]&2147483648>>b-1,1));return a},partial:function(a,b,c){return 32===a?b:(c?b|0:b<<32-a)+0x10000000000*a},getPartial:function(a){return Math.round(a/0x10000000000)||32},equal:function(a,b){if(sjcl.bitArray.bitLength(a)!==sjcl.bitArray.bitLength(b))return!1;var c=0,d;for(d=0;d<a.length;d++)c|=a[d]^b[d];return 0===
 c},M:function(a,b,c,d){var e;e=0;for(void 0===d&&(d=[]);32<=b;b-=32)d.push(c),c=0;if(0===b)return d.concat(a);for(e=0;e<a.length;e++)d.push(c|a[e]>>>b),c=a[e]<<32-b;e=a.length?a[a.length-1]:0;a=sjcl.bitArray.getPartial(e);d.push(sjcl.bitArray.partial(b+a&31,32<b+a?c:d.pop(),1));return d},Y:function(a,b){return[a[0]^b[0],a[1]^b[1],a[2]^b[2],a[3]^b[3]]},byteswapM:function(a){var b,c;for(b=0;b<a.length;++b)c=a[b],a[b]=c>>>24|c>>>8&0xff00|(c&0xff00)<<8|c<<24;return a}};
-sjcl.codec.utf8String={fromBits:function(a){var b="",c=sjcl.bitArray.bitLength(a),d,e;for(d=0;d<c/8;d++)0===(d&3)&&(e=a[d/4]),b+=String.fromCharCode(e>>>24),e<<=8;return decodeURIComponent(escape(b))},toBits:function(a){a=unescape(encodeURIComponent(a));var b=[],c,d=0;for(c=0;c<a.length;c++)d=d<<8|a.charCodeAt(c),3===(c&3)&&(b.push(d),d=0);c&3&&b.push(sjcl.bitArray.partial(8*(c&3),d));return b}};
+sjcl.codec.utf8String={fromBits:function(a){var b="",c=sjcl.bitArray.bitLength(a),d,e;for(d=0;d<c/8;d++)0===(d&3)&&(e=a[d/4]),b+=String.fromCharCode(e>>>8>>>8>>>8),e<<=8;return decodeURIComponent(escape(b))},toBits:function(a){a=unescape(encodeURIComponent(a));var b=[],c,d=0;for(c=0;c<a.length;c++)d=d<<8|a.charCodeAt(c),3===(c&3)&&(b.push(d),d=0);c&3&&b.push(sjcl.bitArray.partial(8*(c&3),d));return b}};
 sjcl.codec.hex={fromBits:function(a){var b="",c;for(c=0;c<a.length;c++)b+=((a[c]|0)+0xf00000000000).toString(16).substr(4);return b.substr(0,sjcl.bitArray.bitLength(a)/4)},toBits:function(a){var b,c=[],d;a=a.replace(/\s|0x/g,"");d=a.length;a=a+"00000000";for(b=0;b<a.length;b+=8)c.push(parseInt(a.substr(b,8),16)^0);return sjcl.bitArray.clamp(c,4*d)}};sjcl.hash.sha256=function(a){this.b[0]||this.G();a?(this.u=a.u.slice(0),this.o=a.o.slice(0),this.h=a.h):this.reset()};sjcl.hash.sha256.hash=function(a){return(new sjcl.hash.sha256).update(a).finalize()};
 sjcl.hash.sha256.prototype={blockSize:512,reset:function(){this.u=this.K.slice(0);this.o=[];this.h=0;return this},update:function(a){"string"===typeof a&&(a=sjcl.codec.utf8String.toBits(a));var b,c=this.o=sjcl.bitArray.concat(this.o,a);b=this.h;a=this.h=b+sjcl.bitArray.bitLength(a);if(0x1fffffffffffff<a)throw new sjcl.exception.invalid("Cannot hash more than 2^53 - 1 bits");if("undefined"!==typeof Uint32Array){var d=new Uint32Array(c),e=0;for(b=512+b-(512+b&0x1ff);b<=a;b+=512)u(this,d.subarray(16*e,
 16*(e+1))),e+=1;c.splice(0,16*e)}else for(b=512+b-(512+b&0x1ff);b<=a;b+=512)u(this,c.splice(0,16));return this},finalize:function(){var a,b=this.o,c=this.u,b=sjcl.bitArray.concat(b,[sjcl.bitArray.partial(1,1)]);for(a=b.length+2;a&15;a++)b.push(0);b.push(Math.floor(this.h/0x100000000));for(b.push(this.h|0);b.length;)u(this,b.splice(0,16));this.reset();return c},K:[],b:[],G:function(){function a(a){return 0x100000000*(a-Math.floor(a))|0}for(var b=0,c=2,d,e;64>b;c++){e=!0;for(d=2;d*d<=c;d++)if(0===c%d){e=
@@ -792,6 +789,53 @@ a:try{var D,E,F,G;if(G="undefined"!==typeof module&&module.exports){var H;try{H=
 else break a;sjcl.random.addEntropy(F,1024,"crypto['getRandomValues']")}}catch(a){"undefined"!==typeof window&&window.console&&(console.log("There was an error collecting entropy from the browser:"),console.log(a))}"undefined"!==typeof module&&module.exports&&(module.exports=sjcl);"function"===typeof define&&define([],function(){return sjcl});
 
 },{"crypto":undefined}],11:[function(_dereq_,module,exports){
+'use strict';
+
+var BraintreeError = _dereq_('./braintree-error');
+var Promise = _dereq_('./promise');
+var sharedErrors = _dereq_('./errors');
+var VERSION = "3.23.0";
+
+function basicComponentVerification(options) {
+  var client, clientVersion, name;
+
+  if (!options) {
+    return Promise.reject(new BraintreeError({
+      type: sharedErrors.INVALID_USE_OF_INTERNAL_FUNCTION.type,
+      code: sharedErrors.INVALID_USE_OF_INTERNAL_FUNCTION.code,
+      message: 'Options must be passed to basicComponentVerification function.'
+    }));
+  }
+
+  name = options.name;
+  client = options.client;
+
+  if (client == null) {
+    return Promise.reject(new BraintreeError({
+      type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
+      code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
+      message: 'options.client is required when instantiating ' + name + '.'
+    }));
+  }
+
+  clientVersion = client.getVersion();
+
+  if (clientVersion !== VERSION) {
+    return Promise.reject(new BraintreeError({
+      type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
+      code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
+      message: 'Client (version ' + clientVersion + ') and ' + name + ' (version ' + VERSION + ') components must be from the same SDK version.'
+    }));
+  }
+
+  return Promise.resolve();
+}
+
+module.exports = {
+  verify: basicComponentVerification
+};
+
+},{"./braintree-error":12,"./errors":16,"./promise":18}],12:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -876,7 +920,7 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":14}],12:[function(_dereq_,module,exports){
+},{"./enumerate":15}],13:[function(_dereq_,module,exports){
 'use strict';
 
 // Taken from https://github.com/sindresorhus/decamelize/blob/95980ab6fb44c40eaca7792bdf93aff7c210c805/index.js
@@ -896,7 +940,7 @@ module.exports = function (obj) {
   }, {});
 };
 
-},{}],13:[function(_dereq_,module,exports){
+},{}],14:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -914,7 +958,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"./braintree-error":11,"./errors":15}],14:[function(_dereq_,module,exports){
+},{"./braintree-error":12,"./errors":16}],15:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -928,12 +972,16 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],15:[function(_dereq_,module,exports){
+},{}],16:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
 
 module.exports = {
+  INVALID_USE_OF_INTERNAL_FUNCTION: {
+    type: BraintreeError.types.INTERNAL,
+    code: 'INVALID_USE_OF_INTERNAL_FUNCTION'
+  },
   CALLBACK_REQUIRED: {
     type: BraintreeError.types.MERCHANT,
     code: 'CALLBACK_REQUIRED'
@@ -961,7 +1009,7 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":11}],16:[function(_dereq_,module,exports){
+},{"./braintree-error":12}],17:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -970,7 +1018,7 @@ module.exports = function (obj) {
   });
 };
 
-},{}],17:[function(_dereq_,module,exports){
+},{}],18:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 

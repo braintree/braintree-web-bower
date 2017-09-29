@@ -636,7 +636,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":26,"./create-authorization-data":27,"./json-clone":30}],24:[function(_dereq_,module,exports){
+},{"./constants":27,"./create-authorization-data":28,"./json-clone":31}],24:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('./constants');
@@ -670,7 +670,54 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":23,"./constants":26}],25:[function(_dereq_,module,exports){
+},{"./add-metadata":23,"./constants":27}],25:[function(_dereq_,module,exports){
+'use strict';
+
+var BraintreeError = _dereq_('./braintree-error');
+var Promise = _dereq_('./promise');
+var sharedErrors = _dereq_('./errors');
+var VERSION = "3.23.0";
+
+function basicComponentVerification(options) {
+  var client, clientVersion, name;
+
+  if (!options) {
+    return Promise.reject(new BraintreeError({
+      type: sharedErrors.INVALID_USE_OF_INTERNAL_FUNCTION.type,
+      code: sharedErrors.INVALID_USE_OF_INTERNAL_FUNCTION.code,
+      message: 'Options must be passed to basicComponentVerification function.'
+    }));
+  }
+
+  name = options.name;
+  client = options.client;
+
+  if (client == null) {
+    return Promise.reject(new BraintreeError({
+      type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
+      code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
+      message: 'options.client is required when instantiating ' + name + '.'
+    }));
+  }
+
+  clientVersion = client.getVersion();
+
+  if (clientVersion !== VERSION) {
+    return Promise.reject(new BraintreeError({
+      type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
+      code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
+      message: 'Client (version ' + clientVersion + ') and ' + name + ' (version ' + VERSION + ') components must be from the same SDK version.'
+    }));
+  }
+
+  return Promise.resolve();
+}
+
+module.exports = {
+  verify: basicComponentVerification
+};
+
+},{"./braintree-error":26,"./errors":30,"./promise":33}],26:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -755,10 +802,10 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":28}],26:[function(_dereq_,module,exports){
+},{"./enumerate":29}],27:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.22.2";
+var VERSION = "3.23.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -772,7 +819,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],27:[function(_dereq_,module,exports){
+},{}],28:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/polyfill').atob;
@@ -821,7 +868,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":31}],28:[function(_dereq_,module,exports){
+},{"../lib/polyfill":32}],29:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -835,12 +882,16 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],29:[function(_dereq_,module,exports){
+},{}],30:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
 
 module.exports = {
+  INVALID_USE_OF_INTERNAL_FUNCTION: {
+    type: BraintreeError.types.INTERNAL,
+    code: 'INVALID_USE_OF_INTERNAL_FUNCTION'
+  },
   CALLBACK_REQUIRED: {
     type: BraintreeError.types.MERCHANT,
     code: 'CALLBACK_REQUIRED'
@@ -868,14 +919,14 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":25}],30:[function(_dereq_,module,exports){
+},{"./braintree-error":26}],31:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],31:[function(_dereq_,module,exports){
+},{}],32:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -916,7 +967,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],32:[function(_dereq_,module,exports){
+},{}],33:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -925,7 +976,7 @@ var Promise = global.Promise || _dereq_('promise-polyfill');
 module.exports = Promise;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":22}],33:[function(_dereq_,module,exports){
+},{"promise-polyfill":22}],34:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1016,18 +1067,18 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],34:[function(_dereq_,module,exports){
+},{}],35:[function(_dereq_,module,exports){
 'use strict';
 /** @module braintree-web/venmo */
 
 var analytics = _dereq_('../lib/analytics');
+var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var errors = _dereq_('./shared/errors');
-var sharedErrors = _dereq_('../lib/errors');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Venmo = _dereq_('./venmo');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.22.2";
+var VERSION = "3.23.0";
 
 /**
  * @static
@@ -1047,36 +1098,23 @@ var VERSION = "3.22.2";
  * @returns {Promise|void} Returns the Venmo instance.
  */
 function create(options) {
-  var configuration, clientVersion, instance;
+  return basicComponentVerification.verify({
+    name: 'Venmo',
+    client: options.client
+  }).then(function () {
+    var instance;
+    var configuration = options.client.getConfiguration();
 
-  if (options.client == null) {
-    return Promise.reject(new BraintreeError({
-      type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
-      code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
-      message: 'options.client is required when instantiating Venmo.'
-    }));
-  }
+    if (!configuration.gatewayConfiguration.payWithVenmo) {
+      return Promise.reject(new BraintreeError(errors.VENMO_NOT_ENABLED));
+    }
 
-  configuration = options.client.getConfiguration();
-  clientVersion = options.client.getVersion();
+    instance = new Venmo(options);
 
-  if (clientVersion !== VERSION) {
-    return Promise.reject(new BraintreeError({
-      type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
-      code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
-      message: 'Client (version ' + clientVersion + ') and Venmo (version ' + VERSION + ') components must be from the same SDK version.'
-    }));
-  }
+    analytics.sendEvent(options.client, 'venmo.initialized');
 
-  if (!configuration.gatewayConfiguration.payWithVenmo) {
-    return Promise.reject(new BraintreeError(errors.VENMO_NOT_ENABLED));
-  }
-
-  instance = new Venmo(options);
-
-  analytics.sendEvent(options.client, 'venmo.initialized');
-
-  return instance._initialize();
+    return instance._initialize();
+  });
 }
 
 module.exports = {
@@ -1088,7 +1126,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/analytics":24,"../lib/braintree-error":25,"../lib/errors":29,"../lib/promise":32,"./shared/errors":36,"./venmo":37,"@braintree/wrap-promise":21}],35:[function(_dereq_,module,exports){
+},{"../lib/analytics":24,"../lib/basic-component-verification":25,"../lib/braintree-error":26,"../lib/promise":33,"./shared/errors":37,"./venmo":38,"@braintree/wrap-promise":21}],36:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -1097,7 +1135,7 @@ module.exports = {
   VENMO_OPEN_URL: 'https://venmo.com/braintree/checkout'
 };
 
-},{}],36:[function(_dereq_,module,exports){
+},{}],37:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../lib/braintree-error');
@@ -1130,7 +1168,7 @@ module.exports = {
   }
 };
 
-},{"../../lib/braintree-error":25}],37:[function(_dereq_,module,exports){
+},{"../../lib/braintree-error":26}],38:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1142,7 +1180,7 @@ var querystring = _dereq_('../lib/querystring');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.22.2";
+var VERSION = "3.23.0";
 
 /**
  * Venmo tokenize payload.
@@ -1387,5 +1425,5 @@ function documentVisibilityChangeEventName() {
 module.exports = wrapPromise.wrapPrototype(Venmo);
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../lib/analytics":24,"../lib/braintree-error":25,"../lib/promise":32,"../lib/querystring":33,"./shared/constants":35,"./shared/errors":36,"@braintree/browser-detection":1,"@braintree/wrap-promise":21}]},{},[34])(34)
+},{"../lib/analytics":24,"../lib/braintree-error":26,"../lib/promise":33,"../lib/querystring":34,"./shared/constants":36,"./shared/errors":37,"@braintree/browser-detection":1,"@braintree/wrap-promise":21}]},{},[35])(35)
 });

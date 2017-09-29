@@ -1,4 +1,4 @@
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}(g.braintree || (g.braintree = {})).unionpay = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}(g.braintree || (g.braintree = {})).paymentRequest = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 'use strict';
 
 var setAttributes = _dereq_('./lib/set-attributes');
@@ -723,7 +723,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":18,"./create-authorization-data":20,"./json-clone":24}],12:[function(_dereq_,module,exports){
+},{"./constants":19,"./create-authorization-data":21,"./json-clone":25}],12:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('./constants');
@@ -757,7 +757,32 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":11,"./constants":18}],13:[function(_dereq_,module,exports){
+},{"./add-metadata":11,"./constants":19}],13:[function(_dereq_,module,exports){
+'use strict';
+
+var assignNormalized = typeof Object.assign === 'function' ? Object.assign : assignPolyfill;
+
+function assignPolyfill(destination) {
+  var i, source, key;
+
+  for (i = 1; i < arguments.length; i++) {
+    source = arguments[i];
+    for (key in source) {
+      if (source.hasOwnProperty(key)) {
+        destination[key] = source[key];
+      }
+    }
+  }
+
+  return destination;
+}
+
+module.exports = {
+  assign: assignNormalized,
+  _assign: assignPolyfill
+};
+
+},{}],14:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -804,7 +829,7 @@ module.exports = {
   verify: basicComponentVerification
 };
 
-},{"./braintree-error":14,"./errors":22,"./promise":27}],14:[function(_dereq_,module,exports){
+},{"./braintree-error":15,"./errors":23,"./promise":28}],15:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -889,7 +914,7 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":21}],15:[function(_dereq_,module,exports){
+},{"./enumerate":22}],16:[function(_dereq_,module,exports){
 'use strict';
 
 var isWhitelistedDomain = _dereq_('../is-whitelisted-domain');
@@ -921,7 +946,7 @@ module.exports = {
   checkOrigin: checkOrigin
 };
 
-},{"../is-whitelisted-domain":23}],16:[function(_dereq_,module,exports){
+},{"../is-whitelisted-domain":24}],17:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../enumerate');
@@ -930,7 +955,7 @@ module.exports = enumerate([
   'CONFIGURATION_REQUEST'
 ], 'bus:');
 
-},{"../enumerate":21}],17:[function(_dereq_,module,exports){
+},{"../enumerate":22}],18:[function(_dereq_,module,exports){
 'use strict';
 
 var bus = _dereq_('framebus');
@@ -1061,7 +1086,7 @@ BraintreeBus.events = events;
 
 module.exports = BraintreeBus;
 
-},{"../braintree-error":14,"./check-origin":15,"./events":16,"framebus":9}],18:[function(_dereq_,module,exports){
+},{"../braintree-error":15,"./check-origin":16,"./events":17,"framebus":9}],19:[function(_dereq_,module,exports){
 'use strict';
 
 var VERSION = "3.23.0";
@@ -1078,7 +1103,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],19:[function(_dereq_,module,exports){
+},{}],20:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -1096,7 +1121,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"./braintree-error":14,"./errors":22}],20:[function(_dereq_,module,exports){
+},{"./braintree-error":15,"./errors":23}],21:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/polyfill').atob;
@@ -1145,7 +1170,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":26}],21:[function(_dereq_,module,exports){
+},{"../lib/polyfill":27}],22:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -1159,7 +1184,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],22:[function(_dereq_,module,exports){
+},{}],23:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -1196,7 +1221,7 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":14}],23:[function(_dereq_,module,exports){
+},{"./braintree-error":15}],24:[function(_dereq_,module,exports){
 'use strict';
 
 var parser;
@@ -1231,14 +1256,14 @@ function isWhitelistedDomain(url) {
 
 module.exports = isWhitelistedDomain;
 
-},{}],24:[function(_dereq_,module,exports){
+},{}],25:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],25:[function(_dereq_,module,exports){
+},{}],26:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -1247,7 +1272,7 @@ module.exports = function (obj) {
   });
 };
 
-},{}],26:[function(_dereq_,module,exports){
+},{}],27:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1288,7 +1313,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],27:[function(_dereq_,module,exports){
+},{}],28:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1297,7 +1322,7 @@ var Promise = global.Promise || _dereq_('promise-polyfill');
 module.exports = Promise;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":10}],28:[function(_dereq_,module,exports){
+},{"promise-polyfill":10}],29:[function(_dereq_,module,exports){
 'use strict';
 
 function useMin(isDebug) {
@@ -1306,7 +1331,7 @@ function useMin(isDebug) {
 
 module.exports = useMin;
 
-},{}],29:[function(_dereq_,module,exports){
+},{}],30:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {
@@ -1320,52 +1345,405 @@ function uuid() {
 
 module.exports = uuid;
 
-},{}],30:[function(_dereq_,module,exports){
+},{}],31:[function(_dereq_,module,exports){
 'use strict';
-/**
- * @module braintree-web/unionpay
- * @description This module allows you to accept UnionPay payments. *It is currently in beta and is subject to change.*
- */
 
-var UnionPay = _dereq_('./shared/unionpay');
-var basicComponentVerification = _dereq_('../lib/basic-component-verification');
-var BraintreeError = _dereq_('../lib/braintree-error');
-var analytics = _dereq_('../lib/analytics');
-var errors = _dereq_('./shared/errors');
+var analytics = _dereq_('../../lib/analytics');
+var assign = _dereq_('../../lib/assign').assign;
+var Bus = _dereq_('../../lib/bus');
+var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
+var iFramer = _dereq_('@braintree/iframer');
+var uuid = _dereq_('../../lib/uuid');
+var useMin = _dereq_('../../lib/use-min');
+var methods = _dereq_('../../lib/methods');
+var Promise = _dereq_('../../lib/promise');
+var BraintreeError = _dereq_('../../lib/braintree-error');
 var VERSION = "3.23.0";
-var Promise = _dereq_('../lib/promise');
+var events = _dereq_('../shared/constants').events;
+var errors = _dereq_('../shared/constants').errors;
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
+var CARD_TYPE_MAPPINGS = {
+  Visa: 'visa',
+  Mastercard: 'mastercard',
+  'American Express': 'amex',
+  'Diners Club': 'diners',
+  Discover: 'discover',
+  JCB: 'jcb',
+  UnionPay: 'unionpay',
+  Maestro: 'maestro'
+};
+
+var BRAINTREE_PAY_WITH_GOOGLE_MERCHANT_ID = '18278000977346790994';
+
+function composeUrl(assetsUrl, componentId, isDebug) {
+  return assetsUrl + '/web/' + VERSION + '/html/payment-request-frame' + useMin(isDebug) + '.html#' + componentId;
+}
+
 /**
-* @static
-* @function create
-* @param {object} options Creation options:
-* @param {Client} options.client A {@link Client} instance.
-* @param {callback} [callback] The second argument, `data`, is the {@link UnionPay} instance. If no callback is provided, `create` returns a promise that resolves with the {@link UnionPay} instance.
-* @returns {Promise|void} Returns a promise if no callback is provided.
-* @example
-* braintree.unionpay.create({ client: clientInstance }, function (createErr, unionpayInstance) {
-*   if (createErr) {
-*     console.error(createErr);
-*     return;
-*   }
-*   // ...
-* });
-*/
+ * @class PaymentRequestComponent
+ * @param {object} options The Payment Request Component {@link module:braintree-web/payment-request.create create} options.
+ * @description <strong>Do not use this constructor directly. Use {@link module:braintree-web/payment-request.create|braintree-web.payment-request.create} instead.</strong>
+ * @classdesc This class represents a Payment Request component produced by {@link module:braintree-web/payment-request.create|braintree-web/payment-request.create}. Instances of this class have methods for initializing a Payment Request.
+ */
+function PaymentRequestComponent(options) {
+  var enabledPaymentMethods = options.enabledPaymentMethods || {};
+
+  this._componentId = uuid();
+  this._client = options.client;
+  this._analyticsName = 'payment-request';
+  this._enabledPaymentMethods = {
+    basicCard: enabledPaymentMethods.basicCard !== false,
+    payWithGoogle: enabledPaymentMethods.payWithGoogle !== false
+  };
+  this._supportedPaymentMethods = this._constructDefaultSupportedPaymentMethods();
+  this._defaultSupportedPaymentMethods = Object.keys(this._supportedPaymentMethods).map(function (key) {
+    return this._supportedPaymentMethods[key];
+  }.bind(this));
+  this._bus = new Bus({channel: this._componentId});
+}
+
+PaymentRequestComponent.prototype._constructDefaultSupportedPaymentMethods = function () {
+  var configuration = this._client.getConfiguration();
+  var isProduction = configuration.gatewayConfiguration.environment === 'production';
+  var metadata = configuration.analyticsMetadata;
+  var androidPayConfiguration = configuration.gatewayConfiguration.androidPay;
+  var cardConfiguration = configuration.gatewayConfiguration.creditCards;
+  var supportedPaymentMethods = {};
+
+  if (this._enabledPaymentMethods.basicCard && cardConfiguration && cardConfiguration.supportedCardTypes.length > 0) {
+    supportedPaymentMethods.basicCard = {
+      supportedMethods: ['basic-card'],
+      data: {
+        supportedNetworks: cardConfiguration.supportedCardTypes.map(function (cardType) {
+          return CARD_TYPE_MAPPINGS[cardType];
+        })
+      }
+    };
+  }
+
+  if (this._enabledPaymentMethods.payWithGoogle && androidPayConfiguration && androidPayConfiguration.enabled) {
+    supportedPaymentMethods.payWithGoogle = {
+      supportedMethods: ['https://google.com/pay'],
+      data: {
+        merchantId: BRAINTREE_PAY_WITH_GOOGLE_MERCHANT_ID,
+        apiVersion: 1,
+        environment: isProduction ? 'PRODUCTION' : 'TEST',
+        allowedPaymentMethods: ['CARD', 'TOKENIZED_CARD'],
+        paymentMethodTokenizationParameters: {
+          tokenizationType: 'PAYMENT_GATEWAY',
+          parameters: {
+            gateway: 'braintree',
+            'braintree:merchantId': configuration.gatewayConfiguration.merchantId,
+            'braintree:authorizationFingerprint': androidPayConfiguration.googleAuthorizationFingerprint,
+            'braintree:apiVersion': 'v1',
+            'braintree:sdkVersion': VERSION,
+            'braintree:metadata': JSON.stringify({
+              source: metadata.source,
+              integration: metadata.integration,
+              sessionId: metadata.sessionId,
+              version: VERSION,
+              platform: metadata.platform
+            })
+          }
+        },
+        cardRequirements: {
+          allowedCardNetworks: androidPayConfiguration.supportedNetworks.map(function (card) { return card.toUpperCase(); })
+        }
+      }
+    };
+  }
+
+  return supportedPaymentMethods;
+};
+
+PaymentRequestComponent.prototype.initialize = function () {
+  var clientConfiguration = this._client.getConfiguration();
+
+  this._frame = iFramer({
+    allowPaymentRequest: true,
+    name: 'braintree-payment-request-frame',
+    'class': 'braintree-payment-request-frame',
+    height: 0,
+    width: 0,
+    style: {
+      position: 'absolute',
+      left: '-9999px'
+    }
+  });
+
+  if (this._defaultSupportedPaymentMethods.length === 0) {
+    return Promise.reject(new BraintreeError(errors.PAYMENT_REQUEST_NO_VALID_SUPPORTED_PAYMENT_METHODS));
+  }
+
+  return new Promise(function (resolve) {
+    this._bus.on(events.FRAME_READY, function (reply) {
+      reply(this._client);
+    }.bind(this));
+    this._bus.on(events.FRAME_CAN_MAKE_REQUESTS, function () {
+      analytics.sendEvent(this._client, this._analyticsName + '.initialized');
+      resolve(this);
+    }.bind(this));
+
+    // TODO - We may need to apply the same setTimeout hack that Hosted Fields
+    // uses for iframes to load correctly in Edge. See:
+    // https://github.com/braintree/braintree-web/blob/0c951e5f9859c606652485de14188b6bd6656677/src/hosted-fields/external/hosted-fields.js#L449-L469
+    this._frame.src = composeUrl(clientConfiguration.gatewayConfiguration.assetsUrl, this._componentId, clientConfiguration.isDebug);
+    document.body.appendChild(this._frame);
+  }.bind(this));
+};
+
+/**
+ * Create an object to pass into tokenize to specify a custom configuration. If no overrides are provided, the default configuration will be provided.
+ * @public
+ * @param {string} type The supported payment method type. Possible values are `basicCard` and `payWithGoogle`.
+ * If no type is provided, the function will throw an error. If the type provided is not an enabled payemnt method for the merchant account , the function will throw an error.
+ * @param {object} [overrides] The configuration overrides for the [data property on the supported payment methods objects](https://developers.google.com/web/fundamentals/payments/deep-dive-into-payment-request). If not passed in, the default configuration for the specified type will be provided. If a property is not provided, the value from the default configruation will be used.
+ * @example <caption>Getting the default configuration for a specified type</caption>
+ * var configuration = paymentRequestInstance.createSupportedPaymentMethodsConfiguration('basicCard');
+ *
+ * configuration.supportedMethods; // ['basic-card']
+ * configuration.data.supportedNetworks; // ['visa', 'mastercard', 'amex'] <- whatever the supported card networks for the merchant account are
+ * @example <caption>Specifying overrides</caption>
+ * var configuration = paymentRequestInstance.createSupportedPaymentMethodsConfiguration('basicCard', {
+ *   supportedNetworks: ['visa'],
+ *   supportedTypes: ['credit', 'debit']
+ * });
+ *
+ * configuration.supportedMethods; // ['basic-card']
+ * configuration.data.supportedNetworks; // ['visa']
+ * configuration.data.supportedTypes; // ['credit', 'debit']
+ * @returns {object} Returns a configuration object for use in the tokenize function.
+ */
+PaymentRequestComponent.prototype.createSupportedPaymentMethodsConfiguration = function (type, overrides) {
+  var configuration;
+
+  if (!type) {
+    throw new BraintreeError(errors.PAYMENT_REQUEST_CREATE_SUPPORTED_PAYMENT_METHODS_CONFIGURATION_MUST_INCLUDE_TYPE);
+  }
+
+  if (!this._enabledPaymentMethods[type]) {
+    throw new BraintreeError(errors.PAYMENT_REQUEST_CREATE_SUPPORTED_PAYMENT_METHODS_CONFIGURATION_TYPE_NOT_ENABLED);
+  }
+
+  configuration = assign({}, this._supportedPaymentMethods[type]);
+  configuration.data = assign({}, configuration.data, overrides);
+
+  return configuration;
+};
+
+/**
+ * Tokenizes a Payment Request
+ * @public
+ * @param {object} configuration The payment details.
+ * @param {object} configuration.details The payment details. For details on this object, see [Google's PaymentRequest API documentation](https://developers.google.com/web/fundamentals/discovery-and-monetization/payment-request/deep-dive-into-payment-request#defining_payment_details).
+ * @param {array} [configuration.supportedPaymentMethods] The supported payment methods. If not passed in, the supported payment methods from the merchant account that generated the authorization for the client will be used. For details on this array, see [Google's PaymentRequest API documentation](https://developers.google.com/web/fundamentals/discovery-and-monetization/payment-request/deep-dive-into-payment-request#defining_supported_payment_methods).
+ * @param {object} [configuration.options] Additional payment request options. For details on this object, see [Google's PaymentRequest API documentation](https://developers.google.com/web/fundamentals/discovery-and-monetization/payment-request/deep-dive-into-payment-request#defining_options_optional). **Note:** `requestShipping` is not supported by Braintree at this time.
+ * @param {callback} [callback] The second argument, <code>data</code>, is a {@link PaymentRequest~paymentPayload|paymentPayload}. If no callback is provided, `tokenize` returns a function that resolves with a {@link PaymentRequest~paymentPayload|paymentPayload}.
+ * @example
+ * paymentRequestInstance.tokenize({
+ *   details: {
+ *     total: {
+ *       label: 'Price',
+ *       amount: {
+ *         currency: 'USD',
+ *         value: '100.00'
+ *       }
+ *     }
+ *   }
+ * }).then(function (payload) {
+ *   // send payload.nonce to server
+ *
+ *   // examine the raw response (with card details removed for security) from the payment request
+ *   console.log(payload.details.rawPaymentResponse);
+ * }).catch(function (err) {
+ *   if (err.code === 'PAYMENT_REQUEST_CANCELED') {
+ *     // payment request was canceled by user
+ *   } else {
+ *     // an error occurred while processing
+ *   }
+ * });
+ * @example <caption>Tokenize only Visa cards</caption>
+ * var basicCardConfiguration = paymentRequestInstance.createSupportedPaymentMethodsConfiguration('basicCard', {
+ *   supportedNetworks: ['visa']
+ * };
+ *
+ * paymentRequestInstance.tokenize({
+ *   supportedPaymentMethods: [basicCardConfiguration],
+ *   details: {
+ *     total: {
+ *       label: 'Price',
+ *       amount: {
+ *         currency: 'USD',
+ *         value: '100.00'
+ *       }
+ *     }
+ *   }
+ * }).then(function (payload) {
+ *   // send payload.nonce to your server
+ * });
+ * @example <caption>Include payment request options</caption>
+ * paymentRequestInstance.tokenize({
+ *   details: {
+ *     total: {
+ *       label: 'Price',
+ *       amount: {
+ *         currency: 'USD',
+ *         value: '100.00'
+ *       }
+ *     }
+ *   },
+ *   options: {
+ *     requestPayerName: true,
+ *     requestPayerPhone: true,
+ *     requestPayerEmail: true
+ *   }
+ * }).then(function (payload) {
+ *   // send payload.nonce to your server
+ *   // collect shipping information from payload
+ *   console.log(payload.details.rawPaymentResponse.shippingAddress);
+ * });
+ * @returns {Promise|void} Returns a promise if no callback is provided.
+ */
+PaymentRequestComponent.prototype.tokenize = function (configuration) {
+  return new Promise(function (resolve, reject) {
+    this._bus.emit(events.PAYMENT_REQUEST_INITIALIZED, {
+      supportedPaymentMethods: configuration.supportedPaymentMethods || this._defaultSupportedPaymentMethods,
+      details: configuration.details,
+      options: configuration.options
+    });
+
+    this._bus.on(events.PAYMENT_REQUEST_SUCCESSFUL, function (payload) {
+      analytics.sendEvent(this._client, this._analyticsName + '.tokenize.succeeded');
+      resolve(payload);
+    }.bind(this));
+
+    this._bus.on(events.PAYMENT_REQUEST_FAILED, function (error) {
+      var formattedError;
+
+      if (error.name === 'AbortError') {
+        formattedError = new BraintreeError({
+          type: errors.PAYMENT_REQUEST_CANCELED.type,
+          code: errors.PAYMENT_REQUEST_CANCELED.code,
+          message: errors.PAYMENT_REQUEST_CANCELED.message,
+          details: {
+            originalError: error
+          }
+        });
+        analytics.sendEvent(this._client, this._analyticsName + '.tokenize.canceled');
+      } else if (error.name === 'PAYMENT_REQUEST_INITIALIZATION_FAILED') {
+        formattedError = new BraintreeError({
+          type: errors.PAYMENT_REQUEST_INITIALIZATION_MISCONFIGURED.type,
+          code: errors.PAYMENT_REQUEST_INITIALIZATION_MISCONFIGURED.code,
+          message: errors.PAYMENT_REQUEST_INITIALIZATION_MISCONFIGURED.message,
+          details: {
+            originalError: error
+          }
+        });
+      } else if (error.name === 'BRAINTREE_GATEWAY_PAY_WITH_GOOGLE_TOKENIZATION_ERROR') {
+        formattedError = new BraintreeError({
+          type: errors.PAYMENT_REQUEST_PAY_WITH_GOOGLE_FAILED_TO_TOKENIZE.type,
+          code: errors.PAYMENT_REQUEST_PAY_WITH_GOOGLE_FAILED_TO_TOKENIZE.code,
+          message: errors.PAYMENT_REQUEST_PAY_WITH_GOOGLE_FAILED_TO_TOKENIZE.message,
+          details: {
+            originalError: error
+          }
+        });
+      } else if (error.name === 'BRAINTREE_GATEWAY_PAY_WITH_GOOGLE_PARSING_ERROR') {
+        formattedError = new BraintreeError({
+          type: errors.PAYMENT_REQUEST_PAY_WITH_GOOGLE_PARSING_ERROR.type,
+          code: errors.PAYMENT_REQUEST_PAY_WITH_GOOGLE_PARSING_ERROR.code,
+          message: errors.PAYMENT_REQUEST_PAY_WITH_GOOGLE_PARSING_ERROR.message,
+          details: {
+            originalError: error
+          }
+        });
+      } else {
+        formattedError = new BraintreeError({
+          code: errors.PAYMENT_REQUEST_NOT_COMPLETED.code,
+          type: error.type || BraintreeError.types.CUSTOMER,
+          message: errors.PAYMENT_REQUEST_NOT_COMPLETED.message,
+          details: {
+            originalError: error
+          }
+        });
+        analytics.sendEvent(this._client, this._analyticsName + '.tokenize.failed');
+      }
+      reject(formattedError);
+    }.bind(this));
+  }.bind(this));
+};
+
+/**
+ * Cleanly remove anything set up by {@link module:braintree-web/payment-request.create|create}.
+ * @public
+ * @param {callback} [callback] Called on completion.
+ * @example
+ * paymentRequestInstance.teardown();
+ * @example <caption>With callback</caption>
+ * paymentRequestInstance.teardown(function () {
+ *   // teardown is complete
+ * });
+ * @returns {Promise|void} Returns a promise if no callback is provided.
+ */
+PaymentRequestComponent.prototype.teardown = function () {
+  this._bus.teardown();
+  this._frame.parentNode.removeChild(this._frame);
+
+  convertMethodsToError(this, methods(PaymentRequestComponent.prototype));
+
+  analytics.sendEvent(this._client, this._analyticsName + '.teardown-completed');
+
+  return Promise.resolve();
+};
+
+module.exports = wrapPromise.wrapPrototype(PaymentRequestComponent);
+
+},{"../../lib/analytics":12,"../../lib/assign":13,"../../lib/braintree-error":15,"../../lib/bus":18,"../../lib/convert-methods-to-error":20,"../../lib/methods":26,"../../lib/promise":28,"../../lib/use-min":29,"../../lib/uuid":30,"../shared/constants":33,"@braintree/iframer":1,"@braintree/wrap-promise":8}],32:[function(_dereq_,module,exports){
+'use strict';
+/** @module braintree-web/payment-request */
+
+var PaymentRequestComponent = _dereq_('./external/payment-request');
+var basicComponentVerification = _dereq_('../lib/basic-component-verification');
+var wrapPromise = _dereq_('@braintree/wrap-promise');
+var VERSION = "3.23.0";
+
+/**
+ * @static
+ * @function create
+ * @param {object} options Creation options:
+ * @param {Client} options.client A {@link Client} instance.
+ * @param {object} [options.enabledPaymentMethods] An object representing which payment methods to display.
+ * @param {boolean} [options.enabledPaymentMethods.basicCard=true] Whether or not to display credit card as an option in the Payment Request dialog. If left blank or set to true, credit cards will be displayed in the dialog if the merchant account is set up to process credit cards.
+ * @param {boolean} [options.enabledPaymentMethods.googlePayment=true] Whether or not to display Pay with Google as an option in the Payment Request dialog. If left blank or set to true, Pay with Google will be displayed in the dialog if the merchant account is set up to process Pay with Google.
+ * @param {callback} [callback] The second argument, `data`, is the {@link PaymentRequestComponent} instance. If no callback is provided, `create` returns a promise that resolves with the {@link PaymentRequestComponent} instance.
+ * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @example
+ * if (window.PaymentRequest) {
+ *   braintree.paymentRequest.create({
+ *     client: clientInstance
+ *   }, cb);
+ * } else {
+ *   // fall back to Hosted Fields if browser does not support Payment Request API
+ *   braintree.hostedFields.create(hostedFieldsOptions, cb);
+ * }
+ * @example <caption>Explicitly turning off credit cards from Payment Request API dialog</caption>
+ * braintree.paymentRequest.create({
+ *   client: clientInstance,
+ *   enabledPaymentMethods: {
+ *     googlePayment: true,
+ *     basicCard: false
+ *   }
+ * }, cb);
+ */
 function create(options) {
   return basicComponentVerification.verify({
-    name: 'UnionPay',
+    name: 'Payment Request',
     client: options.client
   }).then(function () {
-    var config = options.client.getConfiguration();
+    var paymentRequestInstance = new PaymentRequestComponent(options);
 
-    if (!config.gatewayConfiguration.unionPay || config.gatewayConfiguration.unionPay.enabled !== true) {
-      return Promise.reject(new BraintreeError(errors.UNIONPAY_NOT_ENABLED));
-    }
-
-    analytics.sendEvent(options.client, 'unionpay.initialized');
-
-    return new UnionPay(options);
+    return paymentRequestInstance.initialize();
   });
 }
 
@@ -1378,607 +1756,65 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/analytics":12,"../lib/basic-component-verification":13,"../lib/braintree-error":14,"../lib/promise":27,"./shared/errors":32,"./shared/unionpay":33,"@braintree/wrap-promise":8}],31:[function(_dereq_,module,exports){
+},{"../lib/basic-component-verification":14,"./external/payment-request":31,"@braintree/wrap-promise":8}],33:[function(_dereq_,module,exports){
 'use strict';
 
+var BraintreeError = _dereq_('../../lib/braintree-error');
 var enumerate = _dereq_('../../lib/enumerate');
 
-module.exports = {
-  events: enumerate([
-    'HOSTED_FIELDS_FETCH_CAPABILITIES',
-    'HOSTED_FIELDS_ENROLL',
-    'HOSTED_FIELDS_TOKENIZE'
-  ], 'union-pay:'),
-  HOSTED_FIELDS_FRAME_NAME: 'braintreeunionpayhostedfields'
-};
+var constants = {};
 
-},{"../../lib/enumerate":21}],32:[function(_dereq_,module,exports){
-'use strict';
+constants.events = enumerate([
+  'FRAME_READY',
+  'FRAME_CAN_MAKE_REQUESTS',
+  'PAYMENT_REQUEST_INITIALIZED',
+  'PAYMENT_REQUEST_FAILED',
+  'PAYMENT_REQUEST_SUCCESSFUL'
+], 'payment-request:');
 
-var BraintreeError = _dereq_('../../lib/braintree-error');
-
-module.exports = {
-  UNIONPAY_NOT_ENABLED: {
+constants.errors = {
+  PAYMENT_REQUEST_NO_VALID_SUPPORTED_PAYMENT_METHODS: {
     type: BraintreeError.types.MERCHANT,
-    code: 'UNIONPAY_NOT_ENABLED',
-    message: 'UnionPay is not enabled for this merchant.'
+    code: 'PAYMENT_REQUEST_NO_VALID_SUPPORTED_PAYMENT_METHODS',
+    message: 'There are no supported payment methods associated with this account.'
   },
-  UNIONPAY_HOSTED_FIELDS_INSTANCE_INVALID: {
-    type: BraintreeError.types.MERCHANT,
-    code: 'UNIONPAY_HOSTED_FIELDS_INSTANCE_INVALID',
-    message: 'Found an invalid Hosted Fields instance. Please use a valid Hosted Fields instance.'
-  },
-  UNIONPAY_HOSTED_FIELDS_INSTANCE_REQUIRED: {
-    type: BraintreeError.types.MERCHANT,
-    code: 'UNIONPAY_HOSTED_FIELDS_INSTANCE_REQUIRED',
-    message: 'Could not find the Hosted Fields instance.'
-  },
-  UNIONPAY_CARD_OR_HOSTED_FIELDS_INSTANCE_REQUIRED: {
-    type: BraintreeError.types.MERCHANT,
-    code: 'UNIONPAY_CARD_OR_HOSTED_FIELDS_INSTANCE_REQUIRED',
-    message: 'A card or a Hosted Fields instance is required. Please supply a card or a Hosted Fields instance.'
-  },
-  UNIONPAY_CARD_AND_HOSTED_FIELDS_INSTANCES: {
-    type: BraintreeError.types.MERCHANT,
-    code: 'UNIONPAY_CARD_AND_HOSTED_FIELDS_INSTANCES',
-    message: 'Please supply either a card or a Hosted Fields instance, not both.'
-  },
-  UNIONPAY_EXPIRATION_DATE_INCOMPLETE: {
-    type: BraintreeError.types.MERCHANT,
-    code: 'UNIONPAY_EXPIRATION_DATE_INCOMPLETE',
-    message: 'You must supply expiration month and year or neither.'
-  },
-  UNIONPAY_ENROLLMENT_CUSTOMER_INPUT_INVALID: {
+  PAYMENT_REQUEST_CANCELED: {
     type: BraintreeError.types.CUSTOMER,
-    code: 'UNIONPAY_ENROLLMENT_CUSTOMER_INPUT_INVALID',
-    message: 'Enrollment failed due to user input error.'
+    code: 'PAYMENT_REQUEST_CANCELED',
+    message: 'Payment request was canceled.'
   },
-  UNIONPAY_ENROLLMENT_NETWORK_ERROR: {
-    type: BraintreeError.types.NETWORK,
-    code: 'UNIONPAY_ENROLLMENT_NETWORK_ERROR',
-    message: 'Could not enroll UnionPay card.'
-  },
-  UNIONPAY_FETCH_CAPABILITIES_NETWORK_ERROR: {
-    type: BraintreeError.types.NETWORK,
-    code: 'UNIONPAY_FETCH_CAPABILITIES_NETWORK_ERROR',
-    message: 'Could not fetch card capabilities.'
-  },
-  UNIONPAY_TOKENIZATION_NETWORK_ERROR: {
-    type: BraintreeError.types.NETWORK,
-    code: 'UNIONPAY_TOKENIZATION_NETWORK_ERROR',
-    message: 'A tokenization network error occurred.'
-  },
-  UNIONPAY_MISSING_MOBILE_PHONE_DATA: {
+  PAYMENT_REQUEST_INITIALIZATION_MISCONFIGURED: {
     type: BraintreeError.types.MERCHANT,
-    code: 'UNIONPAY_MISSING_MOBILE_PHONE_DATA',
-    message: 'A `mobile` with `countryCode` and `number` is required.'
+    code: 'PAYMENT_REQUEST_INITIALIZATION_MISCONFIGURED',
+    message: 'Something went wrong when configuring the payment request.'
   },
-  UNIONPAY_FAILED_TOKENIZATION: {
-    type: BraintreeError.types.CUSTOMER,
-    code: 'UNIONPAY_FAILED_TOKENIZATION',
-    message: 'The supplied card data failed tokenization.'
+  PAYMENT_REQUEST_PAY_WITH_GOOGLE_FAILED_TO_TOKENIZE: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'PAYMENT_REQUEST_PAY_WITH_GOOGLE_FAILED_TO_TOKENIZE',
+    message: 'Something went wrong when tokenizing the Pay with Google card.'
+  },
+  PAYMENT_REQUEST_PAY_WITH_GOOGLE_PARSING_ERROR: {
+    type: BraintreeError.types.UNKNOWN,
+    code: 'PAYMENT_REQUEST_PAY_WITH_GOOGLE_PARSING_ERROR',
+    message: 'Something went wrong when tokenizing the Pay with Google card.'
+  },
+  PAYMENT_REQUEST_NOT_COMPLETED: {
+    code: 'PAYMENT_REQUEST_NOT_COMPLETED',
+    message: 'Payment request could not be completed.'
+  },
+  PAYMENT_REQUEST_CREATE_SUPPORTED_PAYMENT_METHODS_CONFIGURATION_MUST_INCLUDE_TYPE: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'PAYMENT_REQUEST_CREATE_SUPPORTED_PAYMENT_METHODS_CONFIGURATION_MUST_INCLUDE_TYPE',
+    message: 'createSupportedPaymentMethodsConfiguration must include a type parameter.'
+  },
+  PAYMENT_REQUEST_CREATE_SUPPORTED_PAYMENT_METHODS_CONFIGURATION_TYPE_NOT_ENABLED: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'PAYMENT_REQUEST_CREATE_SUPPORTED_PAYMENT_METHODS_CONFIGURATION_TYPE_NOT_ENABLED',
+    message: 'createSupportedPaymentMethodsConfiguration type parameter must be valid or enabled.'
   }
 };
 
-},{"../../lib/braintree-error":14}],33:[function(_dereq_,module,exports){
-'use strict';
+module.exports = constants;
 
-var analytics = _dereq_('../../lib/analytics');
-var BraintreeError = _dereq_('../../lib/braintree-error');
-var Bus = _dereq_('../../lib/bus');
-var constants = _dereq_('./constants');
-var useMin = _dereq_('../../lib/use-min');
-var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
-var errors = _dereq_('./errors');
-var events = constants.events;
-var iFramer = _dereq_('@braintree/iframer');
-var methods = _dereq_('../../lib/methods');
-var VERSION = "3.23.0";
-var uuid = _dereq_('../../lib/uuid');
-var Promise = _dereq_('../../lib/promise');
-var wrapPromise = _dereq_('@braintree/wrap-promise');
-
-/**
- * @class
- * @param {object} options See {@link module:braintree-web/unionpay.create|unionpay.create}.
- * @description <strong>You cannot use this constructor directly. Use {@link module:braintree-web/unionpay.create|braintree-web.unionpay.create} instead.</strong>
- * @classdesc This class represents a UnionPay component. Instances of this class have methods for {@link UnionPay#fetchCapabilities fetching capabilities} of UnionPay cards, {@link UnionPay#enroll enrolling} a UnionPay card, and {@link UnionPay#tokenize tokenizing} a UnionPay card.
- */
-function UnionPay(options) {
-  this._options = options;
-}
-
-/**
- * @typedef {object} UnionPay~fetchCapabilitiesPayload
- * @property {boolean} isUnionPay Determines if this card is a UnionPay card.
- * @property {boolean} isDebit Determines if this card is a debit card. This property is only present if `isUnionPay` is `true`.
- * @property {object} unionPay UnionPay specific properties. This property is only present if `isUnionPay` is `true`.
- * @property {boolean} unionPay.supportsTwoStepAuthAndCapture Determines if the card allows for an authorization, but settling the transaction later.
- * @property {boolean} unionPay.isSupported Determines if Braintree can process this UnionPay card. When false, Braintree cannot process this card and the user should use a different card.
- */
-
-/**
- * Fetches the capabilities of a card, including whether or not the SMS enrollment process is required.
- * @public
- * @param {object} options UnionPay {@link UnionPay#fetchCapabilities fetchCapabilities} options
- * @param {object} [options.card] The card from which to fetch capabilities. Note that this will only have one property, `number`. Required if you are not using the `hostedFields` option.
- * @param {string} options.card.number Card number.
- * @param {HostedFields} [options.hostedFields] The Hosted Fields instance used to collect card data. Required if you are not using the `card` option.
- * @param {callback} [callback] The second argument, <code>data</code>, is a {@link UnionPay#fetchCapabilitiesPayload fetchCapabilitiesPayload}. If no callback is provided, `fetchCapabilities` returns a promise that resolves with a {@link UnionPay#fetchCapabilitiesPayload fetchCapabilitiesPayload}.
- * @example <caption>With raw card data</caption>
- * unionpayInstance.fetchCapabilities({
- *   card: {
- *     number: '4111111111111111'
- *   }
- * }, function (fetchErr, cardCapabilities) {
- *   if (fetchErr) {
- *     console.error(fetchErr);
- *     return;
- *   }
- *
- *   if (cardCapabilities.isUnionPay) {
- *     if (cardCapabilities.unionPay && !cardCapabilities.unionPay.isSupported) {
- *       // Braintree cannot process this UnionPay card.
- *       // Ask the user for a different card.
- *       return;
- *     }
- *
- *     if (cardCapabilities.isDebit) {
- *       // CVV and expiration date are not required
- *     } else {
- *       // CVV and expiration date are required
- *     }
- *
- *     // Show mobile phone number field for enrollment
- *   }
- * });
- * @example <caption>With Hosted Fields</caption>
- * // Fetch capabilities on `validityChange` inside of the Hosted Fields `create` callback
- * hostedFieldsInstance.on('validityChange', function (event) {
- *   // Only attempt to fetch capabilities when a valid card number has been entered
- *   if (event.emittedBy === 'number' && event.fields.number.isValid) {
- *     unionpayInstance.fetchCapabilities({
- *       hostedFields: hostedFieldsInstance
- *     }, function (fetchErr, cardCapabilities) {
- *       if (fetchErr) {
- *         console.error(fetchErr);
- *         return;
- *       }
- *
- *       if (cardCapabilities.isUnionPay) {
- *         if (cardCapabilities.unionPay && !cardCapabilities.unionPay.isSupported) {
- *           // Braintree cannot process this UnionPay card.
- *           // Ask the user for a different card.
- *           return;
- *         }
- *         if (cardCapabilities.isDebit) {
- *           // CVV and expiration date are not required
- *           // Hide the containers with your `cvv` and `expirationDate` fields
- *         } else {
- *           // CVV and expiration date are required
- *         }
- *       } else {
- *         // Not a UnionPay card
- *         // When form is complete, tokenize using your Hosted Fields instance
- *       }
- *
- *       // Show your own mobile country code and phone number inputs for enrollment
- *     });
- *   });
- * });
- * @returns {Promise|void} Returns a promise if no callback is provided.
- */
-UnionPay.prototype.fetchCapabilities = function (options) {
-  var self = this;
-  var client = this._options.client;
-  var cardNumber = options.card ? options.card.number : null;
-  var hostedFields = options.hostedFields;
-
-  if (cardNumber && hostedFields) {
-    return Promise.reject(new BraintreeError(errors.UNIONPAY_CARD_AND_HOSTED_FIELDS_INSTANCES));
-  } else if (cardNumber) {
-    return client.request({
-      method: 'get',
-      endpoint: 'payment_methods/credit_cards/capabilities',
-      data: {
-        _meta: {source: 'unionpay'},
-        creditCard: {
-          number: cardNumber
-        }
-      }
-    }).then(function (response) {
-      analytics.sendEvent(client, 'unionpay.capabilities-received');
-      return response;
-    }).catch(function (err) {
-      var status = err.details && err.details.httpStatus;
-
-      analytics.sendEvent(client, 'unionpay.capabilities-failed');
-
-      if (status === 403) {
-        return Promise.reject(err);
-      }
-      return Promise.reject(new BraintreeError({
-        type: errors.UNIONPAY_FETCH_CAPABILITIES_NETWORK_ERROR.type,
-        code: errors.UNIONPAY_FETCH_CAPABILITIES_NETWORK_ERROR.code,
-        message: errors.UNIONPAY_FETCH_CAPABILITIES_NETWORK_ERROR.message,
-        details: {
-          originalError: err
-        }
-      }));
-    });
-  } else if (hostedFields) {
-    if (!hostedFields._bus) {
-      return Promise.reject(new BraintreeError(errors.UNIONPAY_HOSTED_FIELDS_INSTANCE_INVALID));
-    }
-
-    return new Promise(function (resolve, reject) {
-      self._initializeHostedFields(function () {
-        self._bus.emit(events.HOSTED_FIELDS_FETCH_CAPABILITIES, {hostedFields: hostedFields}, function (response) {
-          if (response.err) {
-            reject(new BraintreeError(response.err));
-            return;
-          }
-
-          resolve(response.payload);
-        });
-      });
-    });
-  }
-
-  return Promise.reject(new BraintreeError(errors.UNIONPAY_CARD_OR_HOSTED_FIELDS_INSTANCE_REQUIRED));
-};
-
-/**
- * @typedef {object} UnionPay~enrollPayload
- * @property {string} enrollmentId UnionPay enrollment ID. This value should be passed to `tokenize`.
- * @property {boolean} smsCodeRequired UnionPay `smsCodeRequired` flag.
- * </p><b>true</b> - the user will receive an SMS code that needs to be supplied for tokenization.
- * </p><b>false</b> - the card can be immediately tokenized.
- */
-
-/**
- * Enrolls a UnionPay card. Use {@link UnionPay#fetchCapabilities|fetchCapabilities} to determine if the SMS enrollment process is required.
- * @public
- * @param {object} options UnionPay enrollment options:
- * @param {object} [options.card] The card to enroll. Required if you are not using the `hostedFields` option.
- * @param {string} options.card.number The card number.
- * @param {string} [options.card.expirationDate] The card's expiration date. May be in the form `MM/YY` or `MM/YYYY`. When defined `expirationMonth` and `expirationYear` are ignored.
- * @param {string} [options.card.expirationMonth] The card's expiration month. This should be used with the `expirationYear` parameter. When `expirationDate` is defined this parameter is ignored.
- * @param {string} [options.card.expirationYear] The card's expiration year. This should be used with the `expirationMonth` parameter. When `expirationDate` is defined this parameter is ignored.
- * @param {HostedFields} [options.hostedFields] The Hosted Fields instance used to collect card data. Required if you are not using the `card` option.
- * @param {object} options.mobile The mobile information collected from the customer.
- * @param {string} options.mobile.countryCode The country code of the customer's mobile phone number.
- * @param {string} options.mobile.number The customer's mobile phone number.
- * @param {callback} [callback] The second argument, <code>data</code>, is a {@link UnionPay~enrollPayload|enrollPayload}. If no callback is provided, `enroll` returns a promise that resolves with {@link UnionPay~enrollPayload|enrollPayload}.
- * @example <caption>With raw card data</caption>
- * unionpayInstance.enroll({
- *   card: {
- *     number: '4111111111111111',
- *     expirationMonth: '12',
- *     expirationYear: '2038'
- *   },
- *   mobile: {
- *     countryCode: '62',
- *     number: '111111111111'
- *   }
- * }, function (enrollErr, response) {
- *   if (enrollErr) {
- *      console.error(enrollErr);
- *      return;
- *   }
- *
- *   if (response.smsCodeRequired) {
- *     // If smsCodeRequired, wait for SMS auth code from customer
- *     // Then use response.enrollmentId during {@link UnionPay#tokenize}
- *   } else {
- *     // SMS code is not required from the user.
- *     // {@link UnionPay#tokenize} can be called immediately
- * });
- * @example <caption>With Hosted Fields</caption>
- * unionpayInstance.enroll({
- *   hostedFields: hostedFields,
- *   mobile: {
- *     countryCode: '62',
- *     number: '111111111111'
- *   }
- * }, function (enrollErr, response) {
- *   if (enrollErr) {
- *     console.error(enrollErr);
- *     return;
- *   }
- *
- *   if (response.smsCodeRequired) {
- *     // If smsCodeRequired, wait for SMS auth code from customer
- *     // Then use response.enrollmentId during {@link UnionPay#tokenize}
- *   } else {
- *     // SMS code is not required from the user.
- *     // {@link UnionPay#tokenize} can be called immediately
- *   }
- * });
- * @returns {void}
- */
-UnionPay.prototype.enroll = function (options) {
-  var self = this;
-  var client = this._options.client;
-  var card = options.card;
-  var mobile = options.mobile;
-  var hostedFields = options.hostedFields;
-  var data;
-
-  if (!mobile) {
-    return Promise.reject(new BraintreeError(errors.UNIONPAY_MISSING_MOBILE_PHONE_DATA));
-  }
-
-  if (hostedFields) {
-    if (!hostedFields._bus) {
-      return Promise.reject(new BraintreeError(errors.UNIONPAY_HOSTED_FIELDS_INSTANCE_INVALID));
-    } else if (card) {
-      return Promise.reject(new BraintreeError(errors.UNIONPAY_CARD_AND_HOSTED_FIELDS_INSTANCES));
-    }
-
-    return new Promise(function (resolve, reject) {
-      self._initializeHostedFields(function () {
-        self._bus.emit(events.HOSTED_FIELDS_ENROLL, {hostedFields: hostedFields, mobile: mobile}, function (response) {
-          if (response.err) {
-            reject(new BraintreeError(response.err));
-            return;
-          }
-
-          resolve(response.payload);
-        });
-      });
-    });
-  } else if (card && card.number) {
-    data = {
-      _meta: {source: 'unionpay'},
-      unionPayEnrollment: {
-        number: card.number,
-        mobileCountryCode: mobile.countryCode,
-        mobileNumber: mobile.number
-      }
-    };
-
-    if (card.expirationDate) {
-      data.unionPayEnrollment.expirationDate = card.expirationDate;
-    } else if (card.expirationMonth || card.expirationYear) {
-      if (card.expirationMonth && card.expirationYear) {
-        data.unionPayEnrollment.expirationYear = card.expirationYear;
-        data.unionPayEnrollment.expirationMonth = card.expirationMonth;
-      } else {
-        return Promise.reject(new BraintreeError(errors.UNIONPAY_EXPIRATION_DATE_INCOMPLETE));
-      }
-    }
-
-    return client.request({
-      method: 'post',
-      endpoint: 'union_pay_enrollments',
-      data: data
-    }).then(function (response) {
-      analytics.sendEvent(client, 'unionpay.enrollment-succeeded');
-      return {
-        enrollmentId: response.unionPayEnrollmentId,
-        smsCodeRequired: response.smsCodeRequired
-      };
-    }).catch(function (err) {
-      var error;
-      var status = err.details && err.details.httpStatus;
-
-      if (status === 403) {
-        error = err;
-      } else if (status < 500) {
-        error = new BraintreeError(errors.UNIONPAY_ENROLLMENT_CUSTOMER_INPUT_INVALID);
-        error.details = {originalError: err};
-      } else {
-        error = new BraintreeError(errors.UNIONPAY_ENROLLMENT_NETWORK_ERROR);
-        error.details = {originalError: err};
-      }
-
-      analytics.sendEvent(client, 'unionpay.enrollment-failed');
-      return Promise.reject(error);
-    });
-  }
-
-  return Promise.reject(new BraintreeError(errors.UNIONPAY_CARD_OR_HOSTED_FIELDS_INSTANCE_REQUIRED));
-};
-
-/**
- * @typedef {object} UnionPay~tokenizePayload
- * @property {string} nonce The payment method nonce.
- * @property {string} type Always <code>CreditCard</code>.
- * @property {object} details Additional account details:
- * @property {string} details.cardType Type of card, ex: Visa, MasterCard.
- * @property {string} details.lastTwo Last two digits of card number.
- * @property {string} description A human-readable description.
- */
-
-/**
- * Tokenizes a UnionPay card and returns a nonce payload.
- * @public
- * @param {object} options UnionPay tokenization options:
- * @param {object} [options.card] The card to enroll. Required if you are not using the `hostedFields` option.
- * @param {string} options.card.number The card number.
- * @param {string} [options.card.expirationDate] The card's expiration date. May be in the form `MM/YY` or `MM/YYYY`. When defined `expirationMonth` and `expirationYear` are ignored.
- * @param {string} [options.card.expirationMonth] The card's expiration month. This should be used with the `expirationYear` parameter. When `expirationDate` is defined this parameter is ignored.
- * @param {string} [options.card.expirationYear] The card's expiration year. This should be used with the `expirationMonth` parameter. When `expirationDate` is defined this parameter is ignored.
- * @param {string} [options.card.cvv] The card's security number.
- * @param {HostedFields} [options.hostedFields] The Hosted Fields instance used to collect card data. Required if you are not using the `card` option.
- * @param {string} options.enrollmentId The enrollment ID from {@link UnionPay#enroll}.
- * @param {string} [options.smsCode] The SMS code received from the user if {@link UnionPay#enroll} payload have `smsCodeRequired`. if `smsCodeRequired` is false, smsCode should not be passed.
- * @param {callback} [callback] The second argument, <code>data</code>, is a {@link UnionPay~tokenizePayload|tokenizePayload}. If no callback is provided, `tokenize` returns a promise that resolves with a {@link UnionPay~tokenizePayload|tokenizePayload}.
- * @example <caption>With raw card data</caption>
- * unionpayInstance.tokenize({
- *   card: {
- *     number: '4111111111111111',
- *     expirationMonth: '12',
- *     expirationYear: '2038',
- *     cvv: '123'
- *   },
- *   enrollmentId: enrollResponse.enrollmentId, // Returned from enroll
- *   smsCode: '11111' // Received by customer's phone, if SMS enrollment was required. Otherwise it should be omitted
- * }, function (tokenizeErr, response) {
- *   if (tokenizeErr) {
- *     console.error(tokenizeErr);
- *     return;
- *   }
- *
- *   // Send response.nonce to your server
- * });
- * @example <caption>With Hosted Fields</caption>
- * unionpayInstance.tokenize({
- *   hostedFields: hostedFieldsInstance,
- *   enrollmentId: enrollResponse.enrollmentId, // Returned from enroll
- *   smsCode: '11111' // Received by customer's phone, if SMS enrollment was required. Otherwise it should be omitted
- * }, function (tokenizeErr, response) {
- *   if (tokenizeErr) {
- *     console.error(tokenizeErr);
- *     return;
- *   }
- *
- *   // Send response.nonce to your server
- * });
- * @returns {Promise|void} Returns a promise if no callback is provided.
- */
-UnionPay.prototype.tokenize = function (options) {
-  var data;
-  var self = this;
-  var client = this._options.client;
-  var card = options.card;
-  var hostedFields = options.hostedFields;
-
-  if (card && hostedFields) {
-    return Promise.reject(new BraintreeError(errors.UNIONPAY_CARD_AND_HOSTED_FIELDS_INSTANCES));
-  } else if (card) {
-    data = {
-      _meta: {source: 'unionpay'},
-      creditCard: {
-        number: options.card.number,
-        options: {
-          unionPayEnrollment: {
-            id: options.enrollmentId
-          }
-        }
-      }
-    };
-
-    if (options.smsCode) {
-      data.creditCard.options.unionPayEnrollment.smsCode = options.smsCode;
-    }
-
-    if (card.expirationDate) {
-      data.creditCard.expirationDate = card.expirationDate;
-    } else if (card.expirationMonth && card.expirationYear) {
-      data.creditCard.expirationYear = card.expirationYear;
-      data.creditCard.expirationMonth = card.expirationMonth;
-    }
-
-    if (options.card.cvv) {
-      data.creditCard.cvv = options.card.cvv;
-    }
-
-    return client.request({
-      method: 'post',
-      endpoint: 'payment_methods/credit_cards',
-      data: data
-    }).then(function (response) {
-      var tokenizedCard = response.creditCards[0];
-
-      delete tokenizedCard.consumed;
-      delete tokenizedCard.threeDSecureInfo;
-
-      analytics.sendEvent(client, 'unionpay.nonce-received');
-      return tokenizedCard;
-    }).catch(function (err) {
-      var error;
-      var status = err.details && err.details.httpStatus;
-
-      analytics.sendEvent(client, 'unionpay.nonce-failed');
-
-      if (status === 403) {
-        error = err;
-      } else if (status < 500) {
-        error = new BraintreeError(errors.UNIONPAY_FAILED_TOKENIZATION);
-        error.details = {originalError: err};
-      } else {
-        error = new BraintreeError(errors.UNIONPAY_TOKENIZATION_NETWORK_ERROR);
-        error.details = {originalError: err};
-      }
-
-      return Promise.reject(error);
-    });
-  } else if (hostedFields) {
-    if (!hostedFields._bus) {
-      return Promise.reject(new BraintreeError(errors.UNIONPAY_HOSTED_FIELDS_INSTANCE_INVALID));
-    }
-
-    return new Promise(function (resolve, reject) {
-      self._initializeHostedFields(function () {
-        self._bus.emit(events.HOSTED_FIELDS_TOKENIZE, options, function (response) {
-          if (response.err) {
-            reject(new BraintreeError(response.err));
-            return;
-          }
-
-          resolve(response.payload);
-        });
-      });
-    });
-  }
-
-  return Promise.reject(new BraintreeError(errors.UNIONPAY_CARD_OR_HOSTED_FIELDS_INSTANCE_REQUIRED));
-};
-
-/**
- * Cleanly remove anything set up by {@link module:braintree-web/unionpay.create|create}. This only needs to be called when using UnionPay with Hosted Fields.
- * @public
- * @param {callback} [callback] Called on completion. If no callback is provided, returns a promise.
- * @example
- * unionpayInstance.teardown();
- * @returns {Promise|void} Returns a promise if no callback is provided.
- */
-UnionPay.prototype.teardown = function () {
-  if (this._bus) {
-    this._hostedFieldsFrame.parentNode.removeChild(this._hostedFieldsFrame);
-    this._bus.teardown();
-  }
-
-  convertMethodsToError(this, methods(UnionPay.prototype));
-
-  return Promise.resolve();
-};
-
-UnionPay.prototype._initializeHostedFields = function (callback) {
-  var assetsUrl, isDebug;
-  var componentId = uuid();
-
-  if (this._bus) {
-    callback();
-    return;
-  }
-
-  assetsUrl = this._options.client.getConfiguration().gatewayConfiguration.assetsUrl;
-  isDebug = this._options.client.getConfiguration().isDebug;
-
-  this._bus = new Bus({
-    channel: componentId,
-    merchantUrl: location.href
-  });
-  this._hostedFieldsFrame = iFramer({
-    name: constants.HOSTED_FIELDS_FRAME_NAME + '_' + componentId,
-    src: assetsUrl + '/web/' + VERSION + '/html/unionpay-hosted-fields-frame' + useMin(isDebug) + '.html',
-    height: 0,
-    width: 0
-  });
-
-  this._bus.on(Bus.events.CONFIGURATION_REQUEST, function (reply) {
-    reply(this._options.client);
-
-    callback();
-  }.bind(this));
-
-  document.body.appendChild(this._hostedFieldsFrame);
-};
-
-module.exports = wrapPromise.wrapPrototype(UnionPay);
-
-},{"../../lib/analytics":12,"../../lib/braintree-error":14,"../../lib/bus":17,"../../lib/convert-methods-to-error":19,"../../lib/methods":25,"../../lib/promise":27,"../../lib/use-min":28,"../../lib/uuid":29,"./constants":31,"./errors":32,"@braintree/iframer":1,"@braintree/wrap-promise":8}]},{},[30])(30)
+},{"../../lib/braintree-error":15,"../../lib/enumerate":22}]},{},[32])(32)
 });

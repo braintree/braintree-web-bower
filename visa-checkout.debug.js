@@ -374,7 +374,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":9,"./create-authorization-data":10,"./json-clone":13}],7:[function(_dereq_,module,exports){
+},{"./constants":10,"./create-authorization-data":11,"./json-clone":14}],7:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('./constants');
@@ -408,7 +408,54 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":6,"./constants":9}],8:[function(_dereq_,module,exports){
+},{"./add-metadata":6,"./constants":10}],8:[function(_dereq_,module,exports){
+'use strict';
+
+var BraintreeError = _dereq_('./braintree-error');
+var Promise = _dereq_('./promise');
+var sharedErrors = _dereq_('./errors');
+var VERSION = "3.23.0";
+
+function basicComponentVerification(options) {
+  var client, clientVersion, name;
+
+  if (!options) {
+    return Promise.reject(new BraintreeError({
+      type: sharedErrors.INVALID_USE_OF_INTERNAL_FUNCTION.type,
+      code: sharedErrors.INVALID_USE_OF_INTERNAL_FUNCTION.code,
+      message: 'Options must be passed to basicComponentVerification function.'
+    }));
+  }
+
+  name = options.name;
+  client = options.client;
+
+  if (client == null) {
+    return Promise.reject(new BraintreeError({
+      type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
+      code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
+      message: 'options.client is required when instantiating ' + name + '.'
+    }));
+  }
+
+  clientVersion = client.getVersion();
+
+  if (clientVersion !== VERSION) {
+    return Promise.reject(new BraintreeError({
+      type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
+      code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
+      message: 'Client (version ' + clientVersion + ') and ' + name + ' (version ' + VERSION + ') components must be from the same SDK version.'
+    }));
+  }
+
+  return Promise.resolve();
+}
+
+module.exports = {
+  verify: basicComponentVerification
+};
+
+},{"./braintree-error":9,"./errors":13,"./promise":16}],9:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -493,10 +540,10 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":11}],9:[function(_dereq_,module,exports){
+},{"./enumerate":12}],10:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.22.2";
+var VERSION = "3.23.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -510,7 +557,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],10:[function(_dereq_,module,exports){
+},{}],11:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/polyfill').atob;
@@ -559,7 +606,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":14}],11:[function(_dereq_,module,exports){
+},{"../lib/polyfill":15}],12:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -573,12 +620,16 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],12:[function(_dereq_,module,exports){
+},{}],13:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
 
 module.exports = {
+  INVALID_USE_OF_INTERNAL_FUNCTION: {
+    type: BraintreeError.types.INTERNAL,
+    code: 'INVALID_USE_OF_INTERNAL_FUNCTION'
+  },
   CALLBACK_REQUIRED: {
     type: BraintreeError.types.MERCHANT,
     code: 'CALLBACK_REQUIRED'
@@ -606,14 +657,14 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":8}],13:[function(_dereq_,module,exports){
+},{"./braintree-error":9}],14:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],14:[function(_dereq_,module,exports){
+},{}],15:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -654,7 +705,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],15:[function(_dereq_,module,exports){
+},{}],16:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -663,7 +714,7 @@ var Promise = global.Promise || _dereq_('promise-polyfill');
 module.exports = Promise;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":5}],16:[function(_dereq_,module,exports){
+},{"promise-polyfill":5}],17:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -691,7 +742,7 @@ module.exports = {
   }
 };
 
-},{"../lib/braintree-error":8}],17:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":9}],18:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -699,12 +750,12 @@ module.exports = {
  * @description Processes Visa Checkout. *This component is currently in beta and is subject to change.*
  */
 
+var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var VisaCheckout = _dereq_('./visa-checkout');
 var analytics = _dereq_('../lib/analytics');
-var sharedErrors = _dereq_('../lib/errors');
 var errors = _dereq_('./errors');
-var VERSION = "3.22.2";
+var VERSION = "3.23.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -717,32 +768,18 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
  * @returns {Promise|void} Returns a promise if no callback is provided.
  */
 function create(options) {
-  var clientVersion;
+  return basicComponentVerification.verify({
+    name: 'Visa Checkout',
+    client: options.client
+  }).then(function () {
+    if (!options.client.getConfiguration().gatewayConfiguration.visaCheckout) {
+      return Promise.reject(new BraintreeError(errors.VISA_CHECKOUT_NOT_ENABLED));
+    }
 
-  if (options.client == null) {
-    return Promise.reject(new BraintreeError({
-      type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
-      code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
-      message: 'options.client is required when instantiating Visa Checkout.'
-    }));
-  }
+    analytics.sendEvent(options.client, 'visacheckout.initialized');
 
-  clientVersion = options.client.getVersion();
-  if (clientVersion !== VERSION) {
-    return Promise.reject(new BraintreeError({
-      type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
-      code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
-      message: 'Client (version ' + clientVersion + ') and Visa Checkout (version ' + VERSION + ') components must be from the same SDK version.'
-    }));
-  }
-
-  if (!options.client.getConfiguration().gatewayConfiguration.visaCheckout) {
-    return Promise.reject(new BraintreeError(errors.VISA_CHECKOUT_NOT_ENABLED));
-  }
-
-  analytics.sendEvent(options.client, 'visacheckout.initialized');
-
-  return Promise.resolve(new VisaCheckout(options));
+    return new VisaCheckout(options);
+  });
 }
 
 module.exports = {
@@ -754,7 +791,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/analytics":7,"../lib/braintree-error":8,"../lib/errors":12,"../lib/promise":15,"./errors":16,"./visa-checkout":18,"@braintree/wrap-promise":4}],18:[function(_dereq_,module,exports){
+},{"../lib/analytics":7,"../lib/basic-component-verification":8,"../lib/braintree-error":9,"../lib/promise":16,"./errors":17,"./visa-checkout":19,"@braintree/wrap-promise":4}],19:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -953,5 +990,5 @@ VisaCheckout.prototype.tokenize = function (payment) {
 
 module.exports = wrapPromise.wrapPrototype(VisaCheckout);
 
-},{"../lib/analytics":7,"../lib/braintree-error":8,"../lib/json-clone":13,"../lib/promise":15,"./errors":16,"@braintree/wrap-promise":4}]},{},[17])(17)
+},{"../lib/analytics":7,"../lib/braintree-error":9,"../lib/json-clone":14,"../lib/promise":16,"./errors":17,"@braintree/wrap-promise":4}]},{},[18])(18)
 });

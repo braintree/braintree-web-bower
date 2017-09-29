@@ -374,7 +374,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":10,"./create-authorization-data":12,"./json-clone":15}],7:[function(_dereq_,module,exports){
+},{"./constants":11,"./create-authorization-data":13,"./json-clone":16}],7:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('./constants');
@@ -408,7 +408,54 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":6,"./constants":10}],8:[function(_dereq_,module,exports){
+},{"./add-metadata":6,"./constants":11}],8:[function(_dereq_,module,exports){
+'use strict';
+
+var BraintreeError = _dereq_('./braintree-error');
+var Promise = _dereq_('./promise');
+var sharedErrors = _dereq_('./errors');
+var VERSION = "3.23.0";
+
+function basicComponentVerification(options) {
+  var client, clientVersion, name;
+
+  if (!options) {
+    return Promise.reject(new BraintreeError({
+      type: sharedErrors.INVALID_USE_OF_INTERNAL_FUNCTION.type,
+      code: sharedErrors.INVALID_USE_OF_INTERNAL_FUNCTION.code,
+      message: 'Options must be passed to basicComponentVerification function.'
+    }));
+  }
+
+  name = options.name;
+  client = options.client;
+
+  if (client == null) {
+    return Promise.reject(new BraintreeError({
+      type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
+      code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
+      message: 'options.client is required when instantiating ' + name + '.'
+    }));
+  }
+
+  clientVersion = client.getVersion();
+
+  if (clientVersion !== VERSION) {
+    return Promise.reject(new BraintreeError({
+      type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
+      code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
+      message: 'Client (version ' + clientVersion + ') and ' + name + ' (version ' + VERSION + ') components must be from the same SDK version.'
+    }));
+  }
+
+  return Promise.resolve();
+}
+
+module.exports = {
+  verify: basicComponentVerification
+};
+
+},{"./braintree-error":9,"./errors":15,"./promise":20}],9:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -493,7 +540,7 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":13}],9:[function(_dereq_,module,exports){
+},{"./enumerate":14}],10:[function(_dereq_,module,exports){
 'use strict';
 
 // Taken from https://github.com/sindresorhus/decamelize/blob/95980ab6fb44c40eaca7792bdf93aff7c210c805/index.js
@@ -513,10 +560,10 @@ module.exports = function (obj) {
   }, {});
 };
 
-},{}],10:[function(_dereq_,module,exports){
+},{}],11:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.22.2";
+var VERSION = "3.23.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -530,7 +577,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],11:[function(_dereq_,module,exports){
+},{}],12:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -548,7 +595,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"./braintree-error":8,"./errors":14}],12:[function(_dereq_,module,exports){
+},{"./braintree-error":9,"./errors":15}],13:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/polyfill').atob;
@@ -597,7 +644,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":18}],13:[function(_dereq_,module,exports){
+},{"../lib/polyfill":19}],14:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -611,12 +658,16 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],14:[function(_dereq_,module,exports){
+},{}],15:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
 
 module.exports = {
+  INVALID_USE_OF_INTERNAL_FUNCTION: {
+    type: BraintreeError.types.INTERNAL,
+    code: 'INVALID_USE_OF_INTERNAL_FUNCTION'
+  },
   CALLBACK_REQUIRED: {
     type: BraintreeError.types.MERCHANT,
     code: 'CALLBACK_REQUIRED'
@@ -644,14 +695,14 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":8}],15:[function(_dereq_,module,exports){
+},{"./braintree-error":9}],16:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],16:[function(_dereq_,module,exports){
+},{}],17:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -660,9 +711,9 @@ module.exports = function (obj) {
   });
 };
 
-},{}],17:[function(_dereq_,module,exports){
+},{}],18:[function(_dereq_,module,exports){
 arguments[4][2][0].apply(exports,arguments)
-},{"dup":2}],18:[function(_dereq_,module,exports){
+},{"dup":2}],19:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -703,7 +754,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],19:[function(_dereq_,module,exports){
+},{}],20:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -712,14 +763,14 @@ var Promise = global.Promise || _dereq_('promise-polyfill');
 module.exports = Promise;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":5}],20:[function(_dereq_,module,exports){
+},{"promise-polyfill":5}],21:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   PLAID_LINK_JS: 'https://cdn.plaid.com/link/v2/stable/link-initialize.js'
 };
 
-},{}],21:[function(_dereq_,module,exports){
+},{}],22:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -770,17 +821,18 @@ module.exports = {
   }
 };
 
-},{"../lib/braintree-error":8}],22:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":9}],23:[function(_dereq_,module,exports){
 'use strict';
 /**
  * @module braintree-web/us-bank-account
  * @description This module is for accepting payments of US bank accounts.
  */
 
+var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var errors = _dereq_('./errors');
 var USBankAccount = _dereq_('./us-bank-account');
-var VERSION = "3.22.2";
+var VERSION = "3.23.0";
 var sharedErrors = _dereq_('../lib/errors');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -794,36 +846,24 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
  * @returns {Promise|void} Returns a promise if no callback is provided.
  */
 function create(options) {
-  var clientVersion, braintreeApi, usBankAccount;
+  return basicComponentVerification.verify({
+    name: 'US Bank Account',
+    client: options.client
+  }).then(function () {
+    var usBankAccount;
+    var braintreeApi = options.client.getConfiguration().gatewayConfiguration.braintreeApi;
 
-  if (options.client == null) {
-    return Promise.reject(new BraintreeError({
-      type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
-      code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
-      message: 'options.client is required when instantiating US Bank Account.'
-    }));
-  }
+    if (!braintreeApi) {
+      return Promise.reject(new BraintreeError(sharedErrors.BRAINTREE_API_ACCESS_RESTRICTED));
+    }
 
-  clientVersion = options.client.getVersion();
-  if (clientVersion !== VERSION) {
-    return Promise.reject(new BraintreeError({
-      type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
-      code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
-      message: 'Client (version ' + clientVersion + ') and US Bank Account (version ' + VERSION + ') components must be from the same SDK version.'
-    }));
-  }
+    usBankAccount = options.client.getConfiguration().gatewayConfiguration.usBankAccount;
+    if (!usBankAccount) {
+      return Promise.reject(new BraintreeError(errors.US_BANK_ACCOUNT_NOT_ENABLED));
+    }
 
-  braintreeApi = options.client.getConfiguration().gatewayConfiguration.braintreeApi;
-  if (!braintreeApi) {
-    return Promise.reject(new BraintreeError(sharedErrors.BRAINTREE_API_ACCESS_RESTRICTED));
-  }
-
-  usBankAccount = options.client.getConfiguration().gatewayConfiguration.usBankAccount;
-  if (!usBankAccount) {
-    return Promise.reject(new BraintreeError(errors.US_BANK_ACCOUNT_NOT_ENABLED));
-  }
-
-  return Promise.resolve(new USBankAccount(options));
+    return new USBankAccount(options);
+  });
 }
 
 module.exports = {
@@ -835,7 +875,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/braintree-error":8,"../lib/errors":14,"../lib/promise":19,"./errors":21,"./us-bank-account":23,"@braintree/wrap-promise":4}],23:[function(_dereq_,module,exports){
+},{"../lib/basic-component-verification":8,"../lib/braintree-error":9,"../lib/errors":15,"../lib/promise":20,"./errors":22,"./us-bank-account":24,"@braintree/wrap-promise":4}],24:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1257,5 +1297,5 @@ USBankAccount.prototype.teardown = function () {
 module.exports = wrapPromise.wrapPrototype(USBankAccount);
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../lib/analytics":7,"../lib/braintree-error":8,"../lib/camel-case-to-snake-case":9,"../lib/convert-methods-to-error":11,"../lib/errors":14,"../lib/methods":16,"../lib/once":17,"../lib/promise":19,"./constants":20,"./errors":21,"@braintree/wrap-promise":4}]},{},[22])(22)
+},{"../lib/analytics":7,"../lib/braintree-error":9,"../lib/camel-case-to-snake-case":10,"../lib/convert-methods-to-error":12,"../lib/errors":15,"../lib/methods":17,"../lib/once":18,"../lib/promise":20,"./constants":21,"./errors":22,"@braintree/wrap-promise":4}]},{},[23])(23)
 });

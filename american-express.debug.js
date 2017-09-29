@@ -468,7 +468,7 @@ AmericanExpress.prototype.getExpressCheckoutProfile = function (options) {
 
 module.exports = wrapPromise.wrapPrototype(AmericanExpress);
 
-},{"../lib/assign":9,"../lib/braintree-error":10,"../lib/promise":13,"./errors":7,"@braintree/wrap-promise":4}],7:[function(_dereq_,module,exports){
+},{"../lib/assign":9,"../lib/braintree-error":11,"../lib/promise":14,"./errors":7,"@braintree/wrap-promise":4}],7:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -484,18 +484,16 @@ module.exports = {
   }
 };
 
-},{"../lib/braintree-error":10}],8:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":11}],8:[function(_dereq_,module,exports){
 'use strict';
 /**
  * @module braintree-web/american-express
  * @description This module is for use with Amex Express Checkout. To accept American Express cards, use Hosted Fields.
  */
 
-var BraintreeError = _dereq_('../lib/braintree-error');
 var AmericanExpress = _dereq_('./american-express');
-var sharedErrors = _dereq_('../lib/errors');
-var VERSION = "3.22.2";
-var Promise = _dereq_('../lib/promise');
+var basicComponentVerification = _dereq_('../lib/basic-component-verification');
+var VERSION = "3.23.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -507,26 +505,12 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
  * @returns {Promise|void} Returns a promise if no callback is provided.
  */
 function create(options) {
-  var clientVersion;
-
-  if (options.client == null) {
-    return Promise.reject(new BraintreeError({
-      type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
-      code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
-      message: 'options.client is required when instantiating American Express.'
-    }));
-  }
-
-  clientVersion = options.client.getVersion();
-  if (clientVersion !== VERSION) {
-    return Promise.reject(new BraintreeError({
-      type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
-      code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
-      message: 'Client (version ' + clientVersion + ') and American Express (version ' + VERSION + ') components must be from the same SDK version.'
-    }));
-  }
-
-  return Promise.resolve(new AmericanExpress(options));
+  return basicComponentVerification.verify({
+    name: 'American Express',
+    client: options.client
+  }).then(function () {
+    return new AmericanExpress(options);
+  });
 }
 
 module.exports = {
@@ -538,7 +522,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/braintree-error":10,"../lib/errors":12,"../lib/promise":13,"./american-express":6,"@braintree/wrap-promise":4}],9:[function(_dereq_,module,exports){
+},{"../lib/basic-component-verification":10,"./american-express":6,"@braintree/wrap-promise":4}],9:[function(_dereq_,module,exports){
 'use strict';
 
 var assignNormalized = typeof Object.assign === 'function' ? Object.assign : assignPolyfill;
@@ -564,6 +548,53 @@ module.exports = {
 };
 
 },{}],10:[function(_dereq_,module,exports){
+'use strict';
+
+var BraintreeError = _dereq_('./braintree-error');
+var Promise = _dereq_('./promise');
+var sharedErrors = _dereq_('./errors');
+var VERSION = "3.23.0";
+
+function basicComponentVerification(options) {
+  var client, clientVersion, name;
+
+  if (!options) {
+    return Promise.reject(new BraintreeError({
+      type: sharedErrors.INVALID_USE_OF_INTERNAL_FUNCTION.type,
+      code: sharedErrors.INVALID_USE_OF_INTERNAL_FUNCTION.code,
+      message: 'Options must be passed to basicComponentVerification function.'
+    }));
+  }
+
+  name = options.name;
+  client = options.client;
+
+  if (client == null) {
+    return Promise.reject(new BraintreeError({
+      type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
+      code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
+      message: 'options.client is required when instantiating ' + name + '.'
+    }));
+  }
+
+  clientVersion = client.getVersion();
+
+  if (clientVersion !== VERSION) {
+    return Promise.reject(new BraintreeError({
+      type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
+      code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
+      message: 'Client (version ' + clientVersion + ') and ' + name + ' (version ' + VERSION + ') components must be from the same SDK version.'
+    }));
+  }
+
+  return Promise.resolve();
+}
+
+module.exports = {
+  verify: basicComponentVerification
+};
+
+},{"./braintree-error":11,"./errors":13,"./promise":14}],11:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -648,7 +679,7 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":11}],11:[function(_dereq_,module,exports){
+},{"./enumerate":12}],12:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -662,12 +693,16 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],12:[function(_dereq_,module,exports){
+},{}],13:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
 
 module.exports = {
+  INVALID_USE_OF_INTERNAL_FUNCTION: {
+    type: BraintreeError.types.INTERNAL,
+    code: 'INVALID_USE_OF_INTERNAL_FUNCTION'
+  },
   CALLBACK_REQUIRED: {
     type: BraintreeError.types.MERCHANT,
     code: 'CALLBACK_REQUIRED'
@@ -695,7 +730,7 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":10}],13:[function(_dereq_,module,exports){
+},{"./braintree-error":11}],14:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
