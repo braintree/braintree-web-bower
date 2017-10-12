@@ -414,7 +414,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.23.0";
+var VERSION = "3.24.0";
 
 function basicComponentVerification(options) {
   var client, clientVersion, name;
@@ -563,7 +563,7 @@ module.exports = function (obj) {
 },{}],11:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.23.0";
+var VERSION = "3.24.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -826,13 +826,15 @@ module.exports = {
 /**
  * @module braintree-web/us-bank-account
  * @description This module is for accepting payments of US bank accounts.
+ *
+ * **Note:** This component is currently in beta and the API may include breaking changes when upgrading. Please review the [Changelog](https://github.com/braintree/braintree-web/blob/master/CHANGELOG.md) for upgrade steps whenever you upgrade the version of braintree-web.
  */
 
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var errors = _dereq_('./errors');
 var USBankAccount = _dereq_('./us-bank-account');
-var VERSION = "3.23.0";
+var VERSION = "3.24.0";
 var sharedErrors = _dereq_('../lib/errors');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -902,6 +904,8 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
  * @class
  * @param {object} options See {@link module:braintree-web/us-bank-account.create|us-bank-account.create}.
  * @classdesc This class represents a US Bank Account component. Instances of this class can tokenize raw bank details or present a bank login. <strong>You cannot use this constructor directly. Use {@link module:braintree-web/us-bank-account.create|braintree.us-bank-account.create} instead.</strong>
+ *
+ * **Note:** This component is currently in beta and the API may include breaking changes when upgrading. Please review the [Changelog](https://github.com/braintree/braintree-web/blob/master/CHANGELOG.md) for upgrade steps whenever you upgrade the version of braintree-web.
  */
 function USBankAccount(options) {
   this._client = options.client;

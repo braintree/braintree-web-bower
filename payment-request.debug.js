@@ -788,7 +788,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.23.0";
+var VERSION = "3.24.0";
 
 function basicComponentVerification(options) {
   var client, clientVersion, name;
@@ -1089,7 +1089,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":15,"./check-origin":16,"./events":17,"framebus":9}],19:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.23.0";
+var VERSION = "3.24.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -1358,10 +1358,31 @@ var useMin = _dereq_('../../lib/use-min');
 var methods = _dereq_('../../lib/methods');
 var Promise = _dereq_('../../lib/promise');
 var BraintreeError = _dereq_('../../lib/braintree-error');
-var VERSION = "3.23.0";
+var VERSION = "3.24.0";
 var events = _dereq_('../shared/constants').events;
 var errors = _dereq_('../shared/constants').errors;
 var wrapPromise = _dereq_('@braintree/wrap-promise');
+
+/**
+ * @typedef {object} PaymentRequestComponent~tokenizePayload
+ * @property {string} nonce The payment method nonce.
+ * @property {object} details Additional account details.
+ * @property {string} details.cardType Type of card, ex: Visa, MasterCard.
+ * @property {string} details.lastTwo Last two digits of card number.
+ * @property {object} details.rawPaymentResponse The raw payment response from the payment request, with sensitive card details removed.
+ * @property {string} description A human-readable description.
+ * @property {string} type The payment method type, `CreditCard` or `AndroidPayCard`.
+ * @property {object} binData Information about the card based on the bin.
+ * @property {string} binData.commercial Possible values: 'Yes', 'No', 'Unknown'.
+ * @property {string} binData.countryOfIssuance The country of issuance.
+ * @property {string} binData.debit Possible values: 'Yes', 'No', 'Unknown'.
+ * @property {string} binData.durbinRegulated Possible values: 'Yes', 'No', 'Unknown'.
+ * @property {string} binData.healthcare Possible values: 'Yes', 'No', 'Unknown'.
+ * @property {string} binData.issuingBank The issuing bank.
+ * @property {string} binData.payroll Possible values: 'Yes', 'No', 'Unknown'.
+ * @property {string} binData.prepaid Possible values: 'Yes', 'No', 'Unknown'.
+ * @property {string} binData.productId The product id.
+ */
 
 var CARD_TYPE_MAPPINGS = {
   Visa: 'visa',
@@ -1384,7 +1405,10 @@ function composeUrl(assetsUrl, componentId, isDebug) {
  * @class PaymentRequestComponent
  * @param {object} options The Payment Request Component {@link module:braintree-web/payment-request.create create} options.
  * @description <strong>Do not use this constructor directly. Use {@link module:braintree-web/payment-request.create|braintree-web.payment-request.create} instead.</strong>
+ *
  * @classdesc This class represents a Payment Request component produced by {@link module:braintree-web/payment-request.create|braintree-web/payment-request.create}. Instances of this class have methods for initializing a Payment Request.
+ *
+ * **Note:** This component is currently in beta and the API may include breaking changes when upgrading. Please review the [Changelog](https://github.com/braintree/braintree-web/blob/master/CHANGELOG.md) for upgrade steps whenever you upgrade the version of braintree-web.
  */
 function PaymentRequestComponent(options) {
   var enabledPaymentMethods = options.enabledPaymentMethods || {};
@@ -1452,6 +1476,10 @@ PaymentRequestComponent.prototype._constructDefaultSupportedPaymentMethods = fun
         }
       }
     };
+
+    if (configuration.authorizationType === 'TOKENIZATION_KEY') {
+      supportedPaymentMethods.payWithGoogle.data.paymentMethodTokenizationParameters.parameters['braintree:clientKey'] = configuration.authorization;
+    }
   }
 
   return supportedPaymentMethods;
@@ -1538,8 +1566,10 @@ PaymentRequestComponent.prototype.createSupportedPaymentMethodsConfiguration = f
  * @param {object} configuration The payment details.
  * @param {object} configuration.details The payment details. For details on this object, see [Google's PaymentRequest API documentation](https://developers.google.com/web/fundamentals/discovery-and-monetization/payment-request/deep-dive-into-payment-request#defining_payment_details).
  * @param {array} [configuration.supportedPaymentMethods] The supported payment methods. If not passed in, the supported payment methods from the merchant account that generated the authorization for the client will be used. For details on this array, see [Google's PaymentRequest API documentation](https://developers.google.com/web/fundamentals/discovery-and-monetization/payment-request/deep-dive-into-payment-request#defining_supported_payment_methods).
- * @param {object} [configuration.options] Additional payment request options. For details on this object, see [Google's PaymentRequest API documentation](https://developers.google.com/web/fundamentals/discovery-and-monetization/payment-request/deep-dive-into-payment-request#defining_options_optional). **Note:** `requestShipping` is not supported by Braintree at this time.
- * @param {callback} [callback] The second argument, <code>data</code>, is a {@link PaymentRequest~paymentPayload|paymentPayload}. If no callback is provided, `tokenize` returns a function that resolves with a {@link PaymentRequest~paymentPayload|paymentPayload}.
+ * @param {object} [configuration.options] Additional payment request options. For details on this object, see [Google's PaymentRequest API documentation](https://developers.google.com/web/fundamentals/discovery-and-monetization/payment-request/deep-dive-into-payment-request#defining_options_optional).
+ *
+ * **Note:** `requestShipping` is not supported by Braintree at this time.
+ * @param {callback} [callback] The second argument, <code>data</code>, is a {@link PaymentRequest~paymentPayload|paymentPayload}. If no callback is provided, `tokenize` returns a function that resolves with a {@link PaymentRequestComponent~tokenizePayload|tokenizePayload}.
  * @example
  * paymentRequestInstance.tokenize({
  *   details: {
@@ -1615,7 +1645,17 @@ PaymentRequestComponent.prototype.tokenize = function (configuration) {
 
     this._bus.on(events.PAYMENT_REQUEST_SUCCESSFUL, function (payload) {
       analytics.sendEvent(this._client, this._analyticsName + '.tokenize.succeeded');
-      resolve(payload);
+      resolve({
+        nonce: payload.nonce,
+        type: payload.type,
+        description: payload.description,
+        details: {
+          rawPaymentResponse: payload.details.rawPaymentResponse,
+          cardType: payload.details.cardType,
+          lastTwo: payload.details.lastTwo
+        },
+        binData: payload.binData
+      });
     }.bind(this));
 
     this._bus.on(events.PAYMENT_REQUEST_FAILED, function (error) {
@@ -1701,12 +1741,17 @@ module.exports = wrapPromise.wrapPrototype(PaymentRequestComponent);
 
 },{"../../lib/analytics":12,"../../lib/assign":13,"../../lib/braintree-error":15,"../../lib/bus":18,"../../lib/convert-methods-to-error":20,"../../lib/methods":26,"../../lib/promise":28,"../../lib/use-min":29,"../../lib/uuid":30,"../shared/constants":33,"@braintree/iframer":1,"@braintree/wrap-promise":8}],32:[function(_dereq_,module,exports){
 'use strict';
-/** @module braintree-web/payment-request */
+/**
+ * @module braintree-web/payment-request
+ * @description A component to integrate with the Payment Request API.
+ *
+ * **Note:** This component is currently in beta and the API may include breaking changes when upgrading. Please review the [Changelog](https://github.com/braintree/braintree-web/blob/master/CHANGELOG.md) for upgrade steps whenever you upgrade the version of braintree-web.
+ * */
 
 var PaymentRequestComponent = _dereq_('./external/payment-request');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.23.0";
+var VERSION = "3.24.0";
 
 /**
  * @static
@@ -1715,7 +1760,7 @@ var VERSION = "3.23.0";
  * @param {Client} options.client A {@link Client} instance.
  * @param {object} [options.enabledPaymentMethods] An object representing which payment methods to display.
  * @param {boolean} [options.enabledPaymentMethods.basicCard=true] Whether or not to display credit card as an option in the Payment Request dialog. If left blank or set to true, credit cards will be displayed in the dialog if the merchant account is set up to process credit cards.
- * @param {boolean} [options.enabledPaymentMethods.googlePayment=true] Whether or not to display Pay with Google as an option in the Payment Request dialog. If left blank or set to true, Pay with Google will be displayed in the dialog if the merchant account is set up to process Pay with Google.
+ * @param {boolean} [options.enabledPaymentMethods.payWithGoogle=true] Whether or not to display Pay with Google as an option in the Payment Request dialog. If left blank or set to true, Pay with Google will be displayed in the dialog if the merchant account is set up to process Pay with Google.
  * @param {callback} [callback] The second argument, `data`, is the {@link PaymentRequestComponent} instance. If no callback is provided, `create` returns a promise that resolves with the {@link PaymentRequestComponent} instance.
  * @returns {Promise|void} Returns a promise if no callback is provided.
  * @example
@@ -1731,7 +1776,7 @@ var VERSION = "3.23.0";
  * braintree.paymentRequest.create({
  *   client: clientInstance,
  *   enabledPaymentMethods: {
- *     googlePayment: true,
+ *     payWithGoogle: true,
  *     basicCard: false
  *   }
  * }, cb);
