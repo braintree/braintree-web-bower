@@ -283,27 +283,14 @@ var testOrder = [
   MAESTRO
 ];
 
-function clone(x) {
-  var prefixPattern, exactPattern, dupe;
+function clone(originalObject) {
+  var dupe;
 
-  if (!x) { return null; }
+  if (!originalObject) { return null; }
 
-  // TODO: in the next major version, we should
-  // consider removing these pattern properties.
-  // They are not useful extnerally and can be
-  // confusing because the exactPattern does not
-  // always match (for instance, Maestro cards
-  // can start with 62, but the exact pattern
-  // does not include that since it would
-  // exclude UnionPay and Discover cards
-  // when it is not sure whether or not
-  // the card is a UnionPay, Discover or
-  // Maestro card).
-  prefixPattern = x.prefixPattern.source;
-  exactPattern = x.exactPattern.source;
-  dupe = JSON.parse(JSON.stringify(x));
-  dupe.prefixPattern = prefixPattern;
-  dupe.exactPattern = exactPattern;
+  dupe = JSON.parse(JSON.stringify(originalObject));
+  delete dupe.prefixPattern;
+  delete dupe.exactPattern;
 
   return dupe;
 }
@@ -322,7 +309,7 @@ types[VISA] = {
 };
 
 types[MASTERCARD] = {
-  niceType: 'MasterCard',
+  niceType: 'Mastercard',
   type: MASTERCARD,
   prefixPattern: /^(5|5[1-5]|2|22|222|222[1-9]|2[3-6]|27|27[0-2]|2720)$/,
   exactPattern: /^(5[1-5]|222[1-9]|2[3-6]|27[0-1]|2720)\d*$/,
@@ -2140,7 +2127,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var supportsInputFormatting = _dereq_('restricted-input/supports-input-formatting');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.24.0";
+var VERSION = "3.24.1";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -2352,7 +2339,7 @@ module.exports = {
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.24.0";
+var VERSION = "3.24.1";
 
 var constants = {
   VERSION: VERSION,
@@ -2637,7 +2624,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.24.0";
+var VERSION = "3.24.1";
 
 function basicComponentVerification(options) {
   var client, clientVersion, name;
@@ -3021,7 +3008,7 @@ module.exports = {
 },{}],39:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.24.0";
+var VERSION = "3.24.1";
 var PLATFORM = 'web';
 
 module.exports = {

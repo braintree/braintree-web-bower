@@ -1,43 +1,4 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}(g.braintree || (g.braintree = {})).googlePayment = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
-'use strict';
-
-var isAndroid = _dereq_('./is-android');
-var isChrome = _dereq_('./is-chrome');
-var isIe = _dereq_('./is-ie');
-var isIe9 = _dereq_('./is-ie9');
-var isIe10 = _dereq_('./is-ie10');
-var isIe11 = _dereq_('./is-ie11');
-var isEdge = _dereq_('./is-edge');
-var isIos = _dereq_('./is-ios');
-var isIosFirefox = _dereq_('./is-ios-firefox');
-var isIosSafari = _dereq_('./is-ios-safari');
-var isIosUIWebview = _dereq_('./is-ios-uiwebview');
-var isIosWebview = _dereq_('./is-ios-webview');
-var isIosWKWebview = _dereq_('./is-ios-wkwebview');
-var isMobileFirefox = _dereq_('./is-mobile-firefox');
-var isSamsungBrowser = _dereq_('./is-samsung');
-var supportsPopups = _dereq_('./supports-popups');
-
-module.exports = {
-  isAndroid: isAndroid,
-  isChrome: isChrome,
-  isIe: isIe,
-  isIe9: isIe9,
-  isIe10: isIe10,
-  isIe11: isIe11,
-  isEdge: isEdge,
-  isIos: isIos,
-  isIosFirefox: isIosFirefox,
-  isIosSafari: isIosSafari,
-  isIosUIWebview: isIosUIWebview,
-  isIosWebview: isIosWebview,
-  isIosWKWebview: isIosWKWebview,
-  isMobileFirefox: isMobileFirefox,
-  isSamsungBrowser: isSamsungBrowser,
-  supportsPopups: supportsPopups
-};
-
-},{"./is-android":2,"./is-chrome":3,"./is-edge":4,"./is-ie":5,"./is-ie10":6,"./is-ie11":7,"./is-ie9":8,"./is-ios":14,"./is-ios-firefox":9,"./is-ios-safari":10,"./is-ios-uiwebview":11,"./is-ios-webview":12,"./is-ios-wkwebview":13,"./is-mobile-firefox":15,"./is-samsung":16,"./supports-popups":17}],2:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -47,7 +8,7 @@ module.exports = function isAndroid(ua) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],3:[function(_dereq_,module,exports){
+},{}],2:[function(_dereq_,module,exports){
 'use strict';
 
 var isEdge = _dereq_('./is-edge');
@@ -58,7 +19,7 @@ module.exports = function isChrome(ua) {
   return (ua.indexOf('Chrome') !== -1 || ua.indexOf('CriOS') !== -1) && !isEdge(ua) && !isSamsung(ua);
 };
 
-},{"./is-edge":4,"./is-samsung":16}],4:[function(_dereq_,module,exports){
+},{"./is-edge":3,"./is-samsung":4}],3:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function isEdge(ua) {
@@ -66,139 +27,7 @@ module.exports = function isEdge(ua) {
   return ua.indexOf('Edge/') !== -1;
 };
 
-},{}],5:[function(_dereq_,module,exports){
-(function (global){
-'use strict';
-
-var isIE11 = _dereq_('./is-ie11');
-
-module.exports = function isIE(ua) {
-  ua = ua || global.navigator.userAgent;
-  return ua.indexOf('MSIE') !== -1 || isIE11(ua);
-};
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./is-ie11":7}],6:[function(_dereq_,module,exports){
-'use strict';
-
-module.exports = function isIe10(ua) {
-  ua = ua || navigator.userAgent;
-  return ua.indexOf('MSIE 10') !== -1;
-};
-
-},{}],7:[function(_dereq_,module,exports){
-'use strict';
-
-module.exports = function isIe11(ua) {
-  ua = ua || navigator.userAgent;
-  return ua.indexOf('Trident/7') !== -1;
-};
-
-},{}],8:[function(_dereq_,module,exports){
-'use strict';
-
-module.exports = function isIe9(ua) {
-  ua = ua || navigator.userAgent;
-  return ua.indexOf('MSIE 9') !== -1;
-};
-
-},{}],9:[function(_dereq_,module,exports){
-(function (global){
-'use strict';
-
-module.exports = function isIosFirefox(ua) {
-  ua = ua || global.navigator.userAgent;
-  return /FxiOS/i.test(ua);
-};
-
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],10:[function(_dereq_,module,exports){
-'use strict';
-
-var isIos = _dereq_('./is-ios');
-var webkitRegexp = /webkit/i;
-
-function isWebkit(ua) {
-  return ua.match(webkitRegexp);
-}
-
-module.exports = function isIosSafari(ua) {
-  ua = ua || navigator.userAgent;
-
-  return isIos(ua) && isWebkit(ua) && ua.indexOf('CriOS') === -1;
-};
-
-},{"./is-ios":14}],11:[function(_dereq_,module,exports){
-(function (global){
-'use strict';
-
-var isIosWebview = _dereq_('./is-ios-webview');
-
-module.exports = function isIosUIWebview(ua, statusBarVisible) {
-  statusBarVisible = typeof statusBarVisible !== 'undefined' ? statusBarVisible : global.statusbar.visible;
-  return isIosWebview(ua) && !statusBarVisible;
-};
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./is-ios-webview":12}],12:[function(_dereq_,module,exports){
-(function (global){
-'use strict';
-
-var isIos = _dereq_('./is-ios');
-
-// The Google Search iOS app is technically a webview and doesn't support popups.
-function isGoogleSearchApp(ua) {
-  return /\bGSA\b/.test(ua);
-}
-
-module.exports = function isIosWebview(ua) {
-  ua = ua || global.navigator.userAgent;
-  if (isIos(ua)) {
-    if (isGoogleSearchApp(ua)) {
-      return true;
-    }
-    return /.+AppleWebKit(?!.*Safari)/.test(ua);
-  }
-  return false;
-};
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./is-ios":14}],13:[function(_dereq_,module,exports){
-(function (global){
-'use strict';
-
-var isIosWebview = _dereq_('./is-ios-webview');
-
-module.exports = function isIosWKWebview(ua, statusBarVisible) {
-  statusBarVisible = typeof statusBarVisible !== 'undefined' ? statusBarVisible : global.statusbar.visible;
-  return isIosWebview(ua) && statusBarVisible;
-};
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./is-ios-webview":12}],14:[function(_dereq_,module,exports){
-(function (global){
-'use strict';
-
-module.exports = function isIos(ua) {
-  ua = ua || global.navigator.userAgent;
-  return /iPhone|iPod|iPad/i.test(ua);
-};
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],15:[function(_dereq_,module,exports){
-(function (global){
-'use strict';
-
-var isIosFirefox = _dereq_('./is-ios-firefox');
-
-module.exports = function isMobileFirefox(ua) {
-  ua = ua || global.navigator.userAgent;
-  return isIosFirefox(ua) || /iPhone|iPod|iPad|Mobile|Tablet/i.test(ua) && /Firefox/i.test(ua);
-};
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./is-ios-firefox":9}],16:[function(_dereq_,module,exports){
+},{}],4:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -208,23 +37,17 @@ module.exports = function isSamsungBrowser(ua) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],17:[function(_dereq_,module,exports){
+},{}],5:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
-var MINIMUM_SUPPORTED_CHROME_IOS_VERSION = 48;
-
-var isAndroid = _dereq_('./is-android');
-var isIosFirefox = _dereq_('./is-ios-firefox');
-var isIosWebview = _dereq_('./is-ios-webview');
 var isChrome = _dereq_('./is-chrome');
-var isSamsungBrowser = _dereq_('./is-samsung');
 
-function isUnsupportedIosChrome(ua) {
-  var match, version;
+var MINIMUM_SUPPORTED_CHROME_VERSION = 61;
 
-  ua = ua || global.navigator.userAgent;
-  match = ua.match(/CriOS\/(\d+)\./);
+function isSupportedChromeVersion(ua) {
+  var version;
+  var match = ua.match(/Chrome\/(\d+)\./);
 
   if (!match) {
     return false;
@@ -232,35 +55,30 @@ function isUnsupportedIosChrome(ua) {
 
   version = parseInt(match[1], 10);
 
-  return version < MINIMUM_SUPPORTED_CHROME_IOS_VERSION;
+  return version >= MINIMUM_SUPPORTED_CHROME_VERSION;
 }
 
-function isOperaMini(ua) {
+module.exports = function supportsPaymentRequestApi(ua) {
   ua = ua || global.navigator.userAgent;
-  return ua.indexOf('Opera Mini') > -1;
-}
 
-function isAndroidWebview(ua) {
-  var androidWebviewRegExp = /Version\/[\d\.]+/;
-
-  ua = ua || global.navigator.userAgent;
-  if (isAndroid(ua)) {
-    return androidWebviewRegExp.test(ua) && !isOperaMini(ua);
+  if (!global.PaymentRequest) {
+    return false;
   }
-  return false;
-}
 
-function isOldSamsungBrowserOrSamsungWebview(ua) {
-  return !isChrome(ua) && !isSamsungBrowser(ua) && /samsung/i.test(ua);
-}
+  if (!isChrome(ua)) {
+    // if browser is not chrome based, but has Payment Request API
+    // this means that it implimented the API after it was finalized
+    return true;
+  }
 
-module.exports = function supportsPopups(ua) {
-  ua = ua || global.navigator.userAgent;
-  return !(isIosWebview(ua) || isIosFirefox(ua) || isAndroidWebview(ua) || isOperaMini(ua) || isUnsupportedIosChrome(ua) || isOldSamsungBrowserOrSamsungWebview(ua));
+  // Chrome introduce the Payment Request API in some versions of
+  // Android Chrome as early as Chrome v53, but it was not
+  // finalized until v61
+  return isSupportedChromeVersion(ua);
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./is-android":2,"./is-chrome":3,"./is-ios-firefox":9,"./is-ios-webview":12,"./is-samsung":16}],18:[function(_dereq_,module,exports){
+},{"./is-chrome":2}],6:[function(_dereq_,module,exports){
 'use strict';
 
 var setAttributes = _dereq_('./lib/set-attributes');
@@ -285,7 +103,7 @@ module.exports = function createFrame(options) {
   return iframe;
 };
 
-},{"./lib/assign":19,"./lib/default-attributes":20,"./lib/set-attributes":21}],19:[function(_dereq_,module,exports){
+},{"./lib/assign":7,"./lib/default-attributes":8,"./lib/set-attributes":9}],7:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function assign(target) {
@@ -302,7 +120,7 @@ module.exports = function assign(target) {
   return target;
 }
 
-},{}],20:[function(_dereq_,module,exports){
+},{}],8:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -312,7 +130,7 @@ module.exports = {
   scrolling: 'no'
 };
 
-},{}],21:[function(_dereq_,module,exports){
+},{}],9:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function setAttributes(element, attributes) {
@@ -331,7 +149,7 @@ module.exports = function setAttributes(element, attributes) {
   }
 };
 
-},{}],22:[function(_dereq_,module,exports){
+},{}],10:[function(_dereq_,module,exports){
 'use strict';
 
 function deferred(fn) {
@@ -347,7 +165,7 @@ function deferred(fn) {
 
 module.exports = deferred;
 
-},{}],23:[function(_dereq_,module,exports){
+},{}],11:[function(_dereq_,module,exports){
 'use strict';
 
 function once(fn) {
@@ -363,7 +181,7 @@ function once(fn) {
 
 module.exports = once;
 
-},{}],24:[function(_dereq_,module,exports){
+},{}],12:[function(_dereq_,module,exports){
 'use strict';
 
 function promiseOrCallback(promise, callback) { // eslint-disable-line consistent-return
@@ -382,7 +200,7 @@ function promiseOrCallback(promise, callback) { // eslint-disable-line consisten
 
 module.exports = promiseOrCallback;
 
-},{}],25:[function(_dereq_,module,exports){
+},{}],13:[function(_dereq_,module,exports){
 'use strict';
 
 var deferred = _dereq_('./lib/deferred');
@@ -438,7 +256,7 @@ wrapPromise.wrapPrototype = function (target, options) {
 
 module.exports = wrapPromise;
 
-},{"./lib/deferred":22,"./lib/once":23,"./lib/promise-or-callback":24}],26:[function(_dereq_,module,exports){
+},{"./lib/deferred":10,"./lib/once":11,"./lib/promise-or-callback":12}],14:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 (function (root, factory) {
@@ -716,7 +534,7 @@ module.exports = wrapPromise;
 });
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],27:[function(_dereq_,module,exports){
+},{}],15:[function(_dereq_,module,exports){
 (function (root) {
 
   // Store setTimeout reference so promise-polyfill will be unaffected by
@@ -951,7 +769,18 @@ module.exports = wrapPromise;
 
 })(this);
 
-},{}],28:[function(_dereq_,module,exports){
+},{}],16:[function(_dereq_,module,exports){
+'use strict';
+
+var supportsPaymentRequestApi = _dereq_('@braintree/browser-detection/supports-payment-request-api');
+var isAndroid = _dereq_('@braintree/browser-detection/is-android');
+
+module.exports = {
+  isAndroid: isAndroid,
+  supportsPaymentRequestApi: supportsPaymentRequestApi
+};
+
+},{"@braintree/browser-detection/is-android":1,"@braintree/browser-detection/supports-payment-request-api":5}],17:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -1106,7 +935,7 @@ GooglePayment.prototype.tokenize = function (configuration) {
 
 module.exports = wrapPromise.wrapPrototype(GooglePayment);
 
-},{"../lib/braintree-error":34,"../lib/promise":47,"../payment-request/external/payment-request":50,"@braintree/wrap-promise":25}],29:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":23,"../lib/promise":36,"../payment-request/external/payment-request":39,"@braintree/wrap-promise":13}],18:[function(_dereq_,module,exports){
 'use strict';
 /**
  * @module braintree-web/google-payment
@@ -1117,11 +946,11 @@ module.exports = wrapPromise.wrapPrototype(GooglePayment);
 
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var BraintreeError = _dereq_('../lib/braintree-error');
-var browserDetection = _dereq_('@braintree/browser-detection');
+var browserDetection = _dereq_('./browser-detection');
 var GooglePayment = _dereq_('./google-payment');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.24.0";
+var VERSION = "3.24.1";
 
 /**
  * @static
@@ -1174,9 +1003,9 @@ function create(options) {
  * @returns {Boolean} Returns true if Pay with Google supports this browser.
  */
 function isSupported() {
-  // TODO - We should limit this to android chrome for now
-  // Once it works in Desktop Chrome, we can revert to this or specify a specific version of Chrome
-  return Boolean(window.PaymentRequest && browserDetection.isChrome());
+  // TODO - We limit this to android chrome for now
+  // Once it works in Desktop Chrome, we can just check that it's Chrome
+  return Boolean(browserDetection.supportsPaymentRequestApi() && browserDetection.isAndroid());
 }
 
 module.exports = {
@@ -1189,7 +1018,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/basic-component-verification":33,"../lib/braintree-error":34,"../lib/promise":47,"./google-payment":28,"@braintree/browser-detection":1,"@braintree/wrap-promise":25}],30:[function(_dereq_,module,exports){
+},{"../lib/basic-component-verification":22,"../lib/braintree-error":23,"../lib/promise":36,"./browser-detection":16,"./google-payment":17,"@braintree/wrap-promise":13}],19:[function(_dereq_,module,exports){
 'use strict';
 
 var createAuthorizationData = _dereq_('./create-authorization-data');
@@ -1223,7 +1052,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":38,"./create-authorization-data":40,"./json-clone":44}],31:[function(_dereq_,module,exports){
+},{"./constants":27,"./create-authorization-data":29,"./json-clone":33}],20:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('./constants');
@@ -1257,7 +1086,7 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":30,"./constants":38}],32:[function(_dereq_,module,exports){
+},{"./add-metadata":19,"./constants":27}],21:[function(_dereq_,module,exports){
 'use strict';
 
 var assignNormalized = typeof Object.assign === 'function' ? Object.assign : assignPolyfill;
@@ -1282,13 +1111,13 @@ module.exports = {
   _assign: assignPolyfill
 };
 
-},{}],33:[function(_dereq_,module,exports){
+},{}],22:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.24.0";
+var VERSION = "3.24.1";
 
 function basicComponentVerification(options) {
   var client, clientVersion, name;
@@ -1329,7 +1158,7 @@ module.exports = {
   verify: basicComponentVerification
 };
 
-},{"./braintree-error":34,"./errors":42,"./promise":47}],34:[function(_dereq_,module,exports){
+},{"./braintree-error":23,"./errors":31,"./promise":36}],23:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -1414,7 +1243,7 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":41}],35:[function(_dereq_,module,exports){
+},{"./enumerate":30}],24:[function(_dereq_,module,exports){
 'use strict';
 
 var isWhitelistedDomain = _dereq_('../is-whitelisted-domain');
@@ -1446,7 +1275,7 @@ module.exports = {
   checkOrigin: checkOrigin
 };
 
-},{"../is-whitelisted-domain":43}],36:[function(_dereq_,module,exports){
+},{"../is-whitelisted-domain":32}],25:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../enumerate');
@@ -1455,7 +1284,7 @@ module.exports = enumerate([
   'CONFIGURATION_REQUEST'
 ], 'bus:');
 
-},{"../enumerate":41}],37:[function(_dereq_,module,exports){
+},{"../enumerate":30}],26:[function(_dereq_,module,exports){
 'use strict';
 
 var bus = _dereq_('framebus');
@@ -1586,10 +1415,10 @@ BraintreeBus.events = events;
 
 module.exports = BraintreeBus;
 
-},{"../braintree-error":34,"./check-origin":35,"./events":36,"framebus":26}],38:[function(_dereq_,module,exports){
+},{"../braintree-error":23,"./check-origin":24,"./events":25,"framebus":14}],27:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.24.0";
+var VERSION = "3.24.1";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -1603,7 +1432,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],39:[function(_dereq_,module,exports){
+},{}],28:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -1621,7 +1450,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"./braintree-error":34,"./errors":42}],40:[function(_dereq_,module,exports){
+},{"./braintree-error":23,"./errors":31}],29:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/polyfill').atob;
@@ -1670,7 +1499,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":46}],41:[function(_dereq_,module,exports){
+},{"../lib/polyfill":35}],30:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -1684,7 +1513,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],42:[function(_dereq_,module,exports){
+},{}],31:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -1721,7 +1550,7 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":34}],43:[function(_dereq_,module,exports){
+},{"./braintree-error":23}],32:[function(_dereq_,module,exports){
 'use strict';
 
 var parser;
@@ -1756,14 +1585,14 @@ function isWhitelistedDomain(url) {
 
 module.exports = isWhitelistedDomain;
 
-},{}],44:[function(_dereq_,module,exports){
+},{}],33:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],45:[function(_dereq_,module,exports){
+},{}],34:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -1772,7 +1601,7 @@ module.exports = function (obj) {
   });
 };
 
-},{}],46:[function(_dereq_,module,exports){
+},{}],35:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1813,7 +1642,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],47:[function(_dereq_,module,exports){
+},{}],36:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1822,7 +1651,7 @@ var Promise = global.Promise || _dereq_('promise-polyfill');
 module.exports = Promise;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":27}],48:[function(_dereq_,module,exports){
+},{"promise-polyfill":15}],37:[function(_dereq_,module,exports){
 'use strict';
 
 function useMin(isDebug) {
@@ -1831,7 +1660,7 @@ function useMin(isDebug) {
 
 module.exports = useMin;
 
-},{}],49:[function(_dereq_,module,exports){
+},{}],38:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {
@@ -1845,7 +1674,7 @@ function uuid() {
 
 module.exports = uuid;
 
-},{}],50:[function(_dereq_,module,exports){
+},{}],39:[function(_dereq_,module,exports){
 'use strict';
 
 var analytics = _dereq_('../../lib/analytics');
@@ -1858,7 +1687,7 @@ var useMin = _dereq_('../../lib/use-min');
 var methods = _dereq_('../../lib/methods');
 var Promise = _dereq_('../../lib/promise');
 var BraintreeError = _dereq_('../../lib/braintree-error');
-var VERSION = "3.24.0";
+var VERSION = "3.24.1";
 var events = _dereq_('../shared/constants').events;
 var errors = _dereq_('../shared/constants').errors;
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -2239,7 +2068,7 @@ PaymentRequestComponent.prototype.teardown = function () {
 
 module.exports = wrapPromise.wrapPrototype(PaymentRequestComponent);
 
-},{"../../lib/analytics":31,"../../lib/assign":32,"../../lib/braintree-error":34,"../../lib/bus":37,"../../lib/convert-methods-to-error":39,"../../lib/methods":45,"../../lib/promise":47,"../../lib/use-min":48,"../../lib/uuid":49,"../shared/constants":51,"@braintree/iframer":18,"@braintree/wrap-promise":25}],51:[function(_dereq_,module,exports){
+},{"../../lib/analytics":20,"../../lib/assign":21,"../../lib/braintree-error":23,"../../lib/bus":26,"../../lib/convert-methods-to-error":28,"../../lib/methods":34,"../../lib/promise":36,"../../lib/use-min":37,"../../lib/uuid":38,"../shared/constants":40,"@braintree/iframer":6,"@braintree/wrap-promise":13}],40:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../lib/braintree-error');
@@ -2299,5 +2128,5 @@ constants.errors = {
 
 module.exports = constants;
 
-},{"../../lib/braintree-error":34,"../../lib/enumerate":41}]},{},[29])(29)
+},{"../../lib/braintree-error":23,"../../lib/enumerate":30}]},{},[18])(18)
 });
