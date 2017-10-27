@@ -414,7 +414,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.24.1";
+var VERSION = "3.25.0";
 
 function basicComponentVerification(options) {
   var client, clientVersion, name;
@@ -563,7 +563,7 @@ module.exports = function (obj) {
 },{}],11:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.24.1";
+var VERSION = "3.25.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -834,7 +834,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var errors = _dereq_('./errors');
 var USBankAccount = _dereq_('./us-bank-account');
-var VERSION = "3.24.1";
+var VERSION = "3.25.0";
 var sharedErrors = _dereq_('../lib/errors');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');

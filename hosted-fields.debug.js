@@ -1100,6 +1100,7 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
  * @property {string} nonce The payment method nonce.
  * @property {object} details Additional account details.
  * @property {string} details.cardType Type of card, ex: Visa, MasterCard.
+ * @property {string} details.lastFour Last four digits of card number.
  * @property {string} details.lastTwo Last two digits of card number.
  * @property {string} description A human-readable description.
  * @property {string} type The payment method type, always `CreditCard`.
@@ -1922,6 +1923,32 @@ HostedFields.prototype.setAttribute = function (options) {
 };
 
 /**
+ * Sets a visually hidden message (for screenreaders) on a {@link module:braintree-web/hosted-fields~field field}.
+ *
+ * @public
+ * @param {object} options The options for the attribute you wish to set.
+ * @param {string} options.field The field to which you wish to add an attribute. Must be a valid {@link module:braintree-web/hosted-fields~field field}.
+ * @param {string} options.message The message to set.
+ *
+ * @example <caption>Set an error message on a field</caption>
+ * hostedFieldsInstance.setMessage({
+ *   field: 'number',
+ *   message: 'Invalid card number'
+ * });
+ *
+ * @example <caption>Remove the message on a field</caption>
+ * hostedFieldsInstance.setMessage({
+ *   field: 'number',
+ *   message: ''
+ * });
+ *
+ * @returns {void}
+ */
+HostedFields.prototype.setMessage = function (options) {
+  this._bus.emit(events.SET_MESSAGE, options.field, options.message);
+};
+
+/**
  * Removes a supported attribute from a {@link module:braintree-web/hosted-fields~field field}.
  *
  * @public
@@ -2127,7 +2154,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var supportsInputFormatting = _dereq_('restricted-input/supports-input-formatting');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.24.1";
+var VERSION = "3.25.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -2142,6 +2169,7 @@ var VERSION = "3.24.1";
  * @property {string[]} [select.options] An array of 12 strings, one per month. This can only be used for the `expirationMonth` field. For example, the array can look like `['01 - January', '02 - February', ...]`.
  * @property {number} [maxlength] This option applies only to the CVV and postal code fields. Will be used as the `maxlength` attribute of the input if it is less than the default. The primary use cases for the `maxlength` option are: limiting the length of the CVV input for CVV-only verifications when the card type is known and limiting the length of the postal code input when cards are coming from a known region.
  * @property {number} [minlength=3] This option applies only to the postal code field. Will be used as the `minlength` attribute of the input. The default value is 3, representing the Icelandic postal code length. This option's primary use case is to increase the `minlength`, e.g. for US customers, the postal code `minlength` can be set to 5.
+ * @property {string} [prefill] A value to prefill the field with. For example, when creating an update card form, you can prefill the expiration date fields with the old expiration date data.
  */
 
 /**
@@ -2258,6 +2286,27 @@ var VERSION = "3.24.1";
  *     }
  *   }
  * }, callback);
+ * @example <caption>Creating an expiration date update form with prefilled data</caption>
+ * var storedCreditCardInformation = {
+ *   // get this info from your server
+ *   // with a payment method lookup
+ *   month: '09',
+ *   year: '2017'
+ * };
+ *
+ * braintree.hostedFields.create({
+ *   client: clientInstance,
+ *   fields: {
+ *     expirationMonth: {
+ *       selector: '#expiration-month',
+ *       prefill: storedCreditCardInformation.month
+ *     },
+ *     expirationMonth: {
+ *       selector: '#expiration-year',
+ *       prefill: storedCreditCardInformation.year
+ *     }
+ *   }
+ * }, callback);
  */
 function create(options) {
   return basicComponentVerification.verify({
@@ -2339,7 +2388,7 @@ module.exports = {
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.24.1";
+var VERSION = "3.25.0";
 
 var constants = {
   VERSION: VERSION,
@@ -2453,7 +2502,8 @@ constants.events = enumerate([
   'SET_ATTRIBUTE',
   'REMOVE_ATTRIBUTE',
   'CLEAR_FIELD',
-  'AUTOFILL_EXPIRATION_DATE'
+  'AUTOFILL_EXPIRATION_DATE',
+  'SET_MESSAGE'
 ], 'hosted-fields:');
 
 module.exports = constants;
@@ -2624,7 +2674,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.24.1";
+var VERSION = "3.25.0";
 
 function basicComponentVerification(options) {
   var client, clientVersion, name;
@@ -3008,7 +3058,7 @@ module.exports = {
 },{}],39:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.24.1";
+var VERSION = "3.25.0";
 var PLATFORM = 'web';
 
 module.exports = {

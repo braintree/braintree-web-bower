@@ -950,7 +950,7 @@ var browserDetection = _dereq_('./browser-detection');
 var GooglePayment = _dereq_('./google-payment');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.24.1";
+var VERSION = "3.25.0";
 
 /**
  * @static
@@ -1117,7 +1117,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.24.1";
+var VERSION = "3.25.0";
 
 function basicComponentVerification(options) {
   var client, clientVersion, name;
@@ -1418,7 +1418,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":23,"./check-origin":24,"./events":25,"framebus":14}],27:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.24.1";
+var VERSION = "3.25.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -1687,7 +1687,7 @@ var useMin = _dereq_('../../lib/use-min');
 var methods = _dereq_('../../lib/methods');
 var Promise = _dereq_('../../lib/promise');
 var BraintreeError = _dereq_('../../lib/braintree-error');
-var VERSION = "3.24.1";
+var VERSION = "3.25.0";
 var events = _dereq_('../shared/constants').events;
 var errors = _dereq_('../shared/constants').errors;
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -1697,6 +1697,7 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
  * @property {string} nonce The payment method nonce.
  * @property {object} details Additional account details.
  * @property {string} details.cardType Type of card, ex: Visa, MasterCard.
+ * @property {string} details.lastFour Last four digits of card number.
  * @property {string} details.lastTwo Last two digits of card number.
  * @property {object} details.rawPaymentResponse The raw payment response from the payment request, with sensitive card details removed.
  * @property {string} description A human-readable description.
@@ -1981,6 +1982,7 @@ PaymentRequestComponent.prototype.tokenize = function (configuration) {
         details: {
           rawPaymentResponse: payload.details.rawPaymentResponse,
           cardType: payload.details.cardType,
+          lastFour: payload.details.lastFour,
           lastTwo: payload.details.lastTwo
         },
         binData: payload.binData
