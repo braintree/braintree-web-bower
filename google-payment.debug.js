@@ -935,7 +935,7 @@ GooglePayment.prototype.tokenize = function (configuration) {
 
 module.exports = wrapPromise.wrapPrototype(GooglePayment);
 
-},{"../lib/braintree-error":23,"../lib/promise":36,"../payment-request/external/payment-request":39,"@braintree/wrap-promise":13}],18:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":23,"../lib/promise":35,"../payment-request/external/payment-request":39,"@braintree/wrap-promise":13}],18:[function(_dereq_,module,exports){
 'use strict';
 /**
  * @module braintree-web/google-payment
@@ -950,7 +950,7 @@ var browserDetection = _dereq_('./browser-detection');
 var GooglePayment = _dereq_('./google-payment');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.25.0";
+var VERSION = "3.26.0";
 
 /**
  * @static
@@ -959,14 +959,6 @@ var VERSION = "3.25.0";
  * @param {Client} options.client A {@link Client} instance.
  * @param {callback} [callback] The second argument, `data`, is the {@link GooglePayment} instance. If no callback is provided, `create` returns a promise that resolves with the {@link GooglePayment} instance.
  * @returns {Promise|void} Returns a promise if no callback is provided.
- * @example
- * if (braintree.googlePayment.isSupported()) {
- *   braintree.googlePayment.create({
- *     client: clientInstance
- *   }, function (err, instance) {
- *      // set up Pay with Google button
- *   });
- * }
  */
 function create(options) {
   return basicComponentVerification.verify({
@@ -1018,7 +1010,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/basic-component-verification":22,"../lib/braintree-error":23,"../lib/promise":36,"./browser-detection":16,"./google-payment":17,"@braintree/wrap-promise":13}],19:[function(_dereq_,module,exports){
+},{"../lib/basic-component-verification":22,"../lib/braintree-error":23,"../lib/promise":35,"./browser-detection":16,"./google-payment":17,"@braintree/wrap-promise":13}],19:[function(_dereq_,module,exports){
 'use strict';
 
 var createAuthorizationData = _dereq_('./create-authorization-data');
@@ -1117,7 +1109,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.25.0";
+var VERSION = "3.26.0";
 
 function basicComponentVerification(options) {
   var client, clientVersion, name;
@@ -1158,7 +1150,7 @@ module.exports = {
   verify: basicComponentVerification
 };
 
-},{"./braintree-error":23,"./errors":31,"./promise":36}],23:[function(_dereq_,module,exports){
+},{"./braintree-error":23,"./errors":31,"./promise":35}],23:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -1418,7 +1410,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":23,"./check-origin":24,"./events":25,"framebus":14}],27:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.25.0";
+var VERSION = "3.26.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -1453,7 +1445,7 @@ module.exports = function (instance, methodNames) {
 },{"./braintree-error":23,"./errors":31}],29:[function(_dereq_,module,exports){
 'use strict';
 
-var atob = _dereq_('../lib/polyfill').atob;
+var atob = _dereq_('../lib/vendor/polyfill').atob;
 
 var apiUrls = {
   production: 'https://api.braintreegateway.com:443',
@@ -1499,7 +1491,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":35}],30:[function(_dereq_,module,exports){
+},{"../lib/vendor/polyfill":37}],30:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -1507,6 +1499,7 @@ function enumerate(values, prefix) {
 
   return values.reduce(function (enumeration, value) {
     enumeration[value] = prefix + value;
+
     return enumeration;
   }, {});
 }
@@ -1605,6 +1598,24 @@ module.exports = function (obj) {
 (function (global){
 'use strict';
 
+var Promise = global.Promise || _dereq_('promise-polyfill');
+
+module.exports = Promise;
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"promise-polyfill":15}],36:[function(_dereq_,module,exports){
+'use strict';
+
+function useMin(isDebug) {
+  return isDebug ? '' : '.min';
+}
+
+module.exports = useMin;
+
+},{}],37:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+
 var atobNormalized = typeof global.atob === 'function' ? global.atob : atob;
 
 function atob(base64String) {
@@ -1642,24 +1653,6 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],36:[function(_dereq_,module,exports){
-(function (global){
-'use strict';
-
-var Promise = global.Promise || _dereq_('promise-polyfill');
-
-module.exports = Promise;
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":15}],37:[function(_dereq_,module,exports){
-'use strict';
-
-function useMin(isDebug) {
-  return isDebug ? '' : '.min';
-}
-
-module.exports = useMin;
-
 },{}],38:[function(_dereq_,module,exports){
 'use strict';
 
@@ -1682,12 +1675,12 @@ var assign = _dereq_('../../lib/assign').assign;
 var Bus = _dereq_('../../lib/bus');
 var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
 var iFramer = _dereq_('@braintree/iframer');
-var uuid = _dereq_('../../lib/uuid');
+var uuid = _dereq_('../../lib/vendor/uuid');
 var useMin = _dereq_('../../lib/use-min');
 var methods = _dereq_('../../lib/methods');
 var Promise = _dereq_('../../lib/promise');
 var BraintreeError = _dereq_('../../lib/braintree-error');
-var VERSION = "3.25.0";
+var VERSION = "3.26.0";
 var events = _dereq_('../shared/constants').events;
 var errors = _dereq_('../shared/constants').errors;
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -2070,7 +2063,7 @@ PaymentRequestComponent.prototype.teardown = function () {
 
 module.exports = wrapPromise.wrapPrototype(PaymentRequestComponent);
 
-},{"../../lib/analytics":20,"../../lib/assign":21,"../../lib/braintree-error":23,"../../lib/bus":26,"../../lib/convert-methods-to-error":28,"../../lib/methods":34,"../../lib/promise":36,"../../lib/use-min":37,"../../lib/uuid":38,"../shared/constants":40,"@braintree/iframer":6,"@braintree/wrap-promise":13}],40:[function(_dereq_,module,exports){
+},{"../../lib/analytics":20,"../../lib/assign":21,"../../lib/braintree-error":23,"../../lib/bus":26,"../../lib/convert-methods-to-error":28,"../../lib/methods":34,"../../lib/promise":35,"../../lib/use-min":36,"../../lib/vendor/uuid":38,"../shared/constants":40,"@braintree/iframer":6,"@braintree/wrap-promise":13}],40:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../lib/braintree-error');

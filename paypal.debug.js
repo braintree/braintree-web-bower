@@ -935,7 +935,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.25.0";
+var VERSION = "3.26.0";
 
 function basicComponentVerification(options) {
   var client, clientVersion, name;
@@ -976,7 +976,7 @@ module.exports = {
   verify: basicComponentVerification
 };
 
-},{"./braintree-error":24,"./errors":34,"./promise":51}],24:[function(_dereq_,module,exports){
+},{"./braintree-error":24,"./errors":34,"./promise":50}],24:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -1236,7 +1236,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":24,"./check-origin":25,"./events":26,"framebus":18}],28:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.25.0";
+var VERSION = "3.26.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -1293,7 +1293,7 @@ module.exports = convertToBraintreeError;
 },{"./braintree-error":24}],31:[function(_dereq_,module,exports){
 'use strict';
 
-var atob = _dereq_('../lib/polyfill').atob;
+var atob = _dereq_('../lib/vendor/polyfill').atob;
 
 var apiUrls = {
   production: 'https://api.braintreegateway.com:443',
@@ -1339,7 +1339,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":50}],32:[function(_dereq_,module,exports){
+},{"../lib/vendor/polyfill":53}],32:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (fn) {
@@ -1361,6 +1361,7 @@ function enumerate(values, prefix) {
 
   return values.reduce(function (enumeration, value) {
     enumeration[value] = prefix + value;
+
     return enumeration;
   }, {});
 }
@@ -1415,7 +1416,7 @@ var Bus = _dereq_('../../bus');
 var events = _dereq_('../shared/events');
 var errors = _dereq_('../shared/errors');
 var constants = _dereq_('../shared/constants');
-var uuid = _dereq_('../../uuid');
+var uuid = _dereq_('../../vendor/uuid');
 var iFramer = _dereq_('@braintree/iframer');
 var BraintreeError = _dereq_('../../braintree-error');
 var browserDetection = _dereq_('../shared/browser-detection');
@@ -1533,6 +1534,7 @@ FrameService.prototype.open = function (options, callback) {
     if (callback) {
       callback(new BraintreeError(errors.FRAME_SERVICE_FRAME_OPEN_FAILED));
     }
+
     return;
   }
   this._pollForPopupClose();
@@ -1632,7 +1634,7 @@ FrameService.prototype._getFrameForEnvironment = function (options) {
 module.exports = FrameService;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../braintree-error":24,"../../bus":27,"../../uuid":54,"../shared/browser-detection":42,"../shared/constants":43,"../shared/errors":44,"../shared/events":45,"./../../assign":22,"./strategies/modal":37,"./strategies/popup":40,"./strategies/popup-bridge":38,"@braintree/iframer":10}],36:[function(_dereq_,module,exports){
+},{"../../braintree-error":24,"../../bus":27,"../../vendor/uuid":54,"../shared/browser-detection":42,"../shared/constants":43,"../shared/errors":44,"../shared/events":45,"./../../assign":22,"./strategies/modal":37,"./strategies/popup":40,"./strategies/popup-bridge":38,"@braintree/iframer":10}],36:[function(_dereq_,module,exports){
 'use strict';
 
 var FrameService = _dereq_('./frame-service');
@@ -1786,6 +1788,7 @@ PopupBridge.prototype.initialize = function (callback) {
     if (err || popupDismissed) {
       // User clicked "Done" button of browser view
       callback(new BraintreeError(errors.FRAME_SERVICE_FRAME_CLOSED));
+
       return;
     }
     // User completed popup flow (includes success and cancel cases)
@@ -1910,7 +1913,7 @@ function left(width) {
 }
 
 function center(windowMetric, popupMetric, offset) {
-  return (windowMetric - popupMetric) / 2 + offset;
+  return ((windowMetric - popupMetric) / 2) + offset;
 }
 
 module.exports = {
@@ -2028,53 +2031,12 @@ arguments[4][15][0].apply(exports,arguments)
 (function (global){
 'use strict';
 
-var atobNormalized = typeof global.atob === 'function' ? global.atob : atob;
-
-function atob(base64String) {
-  var a, b, c, b1, b2, b3, b4, i;
-  var base64Matcher = new RegExp('^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})([=]{1,2})?$');
-  var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
-  var result = '';
-
-  if (!base64Matcher.test(base64String)) {
-    throw new Error('Non base64 encoded input passed to window.atob polyfill');
-  }
-
-  i = 0;
-  do {
-    b1 = characters.indexOf(base64String.charAt(i++));
-    b2 = characters.indexOf(base64String.charAt(i++));
-    b3 = characters.indexOf(base64String.charAt(i++));
-    b4 = characters.indexOf(base64String.charAt(i++));
-
-    a = (b1 & 0x3F) << 2 | b2 >> 4 & 0x3;
-    b = (b2 & 0xF) << 4 | b3 >> 2 & 0xF;
-    c = (b3 & 0x3) << 6 | b4 & 0x3F;
-
-    result += String.fromCharCode(a) + (b ? String.fromCharCode(b) : '') + (c ? String.fromCharCode(c) : '');
-  } while (i < base64String.length);
-
-  return result;
-}
-
-module.exports = {
-  atob: function (base64String) {
-    return atobNormalized.call(global, base64String);
-  },
-  _atob: atob
-};
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],51:[function(_dereq_,module,exports){
-(function (global){
-'use strict';
-
 var Promise = global.Promise || _dereq_('promise-polyfill');
 
 module.exports = Promise;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":19}],52:[function(_dereq_,module,exports){
+},{"promise-polyfill":19}],51:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -2088,10 +2050,12 @@ function _notEmpty(obj) {
   return false;
 }
 
+/* eslint-disable no-mixed-operators */
 function _isArray(value) {
   return value && typeof value === 'object' && typeof value.length === 'number' &&
     Object.prototype.toString.call(value) === '[object Array]' || false;
 }
+/* eslint-enable no-mixed-operators */
 
 function parse(url) {
   var query, params;
@@ -2110,6 +2074,7 @@ function parse(url) {
     var value = decodeURIComponent(parts[1]);
 
     toReturn[key] = value;
+
     return toReturn;
   }, {});
 
@@ -2165,7 +2130,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],53:[function(_dereq_,module,exports){
+},{}],52:[function(_dereq_,module,exports){
 'use strict';
 
 function useMin(isDebug) {
@@ -2174,6 +2139,47 @@ function useMin(isDebug) {
 
 module.exports = useMin;
 
+},{}],53:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+
+var atobNormalized = typeof global.atob === 'function' ? global.atob : atob;
+
+function atob(base64String) {
+  var a, b, c, b1, b2, b3, b4, i;
+  var base64Matcher = new RegExp('^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})([=]{1,2})?$');
+  var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+  var result = '';
+
+  if (!base64Matcher.test(base64String)) {
+    throw new Error('Non base64 encoded input passed to window.atob polyfill');
+  }
+
+  i = 0;
+  do {
+    b1 = characters.indexOf(base64String.charAt(i++));
+    b2 = characters.indexOf(base64String.charAt(i++));
+    b3 = characters.indexOf(base64String.charAt(i++));
+    b4 = characters.indexOf(base64String.charAt(i++));
+
+    a = (b1 & 0x3F) << 2 | b2 >> 4 & 0x3;
+    b = (b2 & 0xF) << 4 | b3 >> 2 & 0xF;
+    c = (b3 & 0x3) << 6 | b4 & 0x3F;
+
+    result += String.fromCharCode(a) + (b ? String.fromCharCode(b) : '') + (c ? String.fromCharCode(c) : '');
+  } while (i < base64String.length);
+
+  return result;
+}
+
+module.exports = {
+  atob: function (base64String) {
+    return atobNormalized.call(global, base64String);
+  },
+  _atob: atob
+};
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],54:[function(_dereq_,module,exports){
 'use strict';
 
@@ -2197,7 +2203,7 @@ var BraintreeError = _dereq_('../../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../../lib/convert-to-braintree-error');
 var useMin = _dereq_('../../lib/use-min');
 var once = _dereq_('../../lib/once');
-var VERSION = "3.25.0";
+var VERSION = "3.26.0";
 var constants = _dereq_('../shared/constants');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
@@ -2452,6 +2458,7 @@ PayPal.prototype.tokenize = function (options, callback) {
 
     if (callback) {
       callback(optionError);
+
       return this._frameService.createNoopHandler();
     }
 
@@ -2780,7 +2787,7 @@ PayPal.prototype.teardown = wrapPromise(function () {
 module.exports = PayPal;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../lib/analytics":21,"../../lib/braintree-error":24,"../../lib/constants":28,"../../lib/convert-methods-to-error":29,"../../lib/convert-to-braintree-error":30,"../../lib/deferred":32,"../../lib/frame-service/external":36,"../../lib/methods":48,"../../lib/once":49,"../../lib/promise":51,"../../lib/querystring":52,"../../lib/use-min":53,"../shared/constants":57,"../shared/errors":58,"@braintree/wrap-promise":17}],56:[function(_dereq_,module,exports){
+},{"../../lib/analytics":21,"../../lib/braintree-error":24,"../../lib/constants":28,"../../lib/convert-methods-to-error":29,"../../lib/convert-to-braintree-error":30,"../../lib/deferred":32,"../../lib/frame-service/external":36,"../../lib/methods":48,"../../lib/once":49,"../../lib/promise":50,"../../lib/querystring":51,"../../lib/use-min":52,"../shared/constants":57,"../shared/errors":58,"@braintree/wrap-promise":17}],56:[function(_dereq_,module,exports){
 'use strict';
 /**
  * @module braintree-web/paypal
@@ -2793,7 +2800,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var errors = _dereq_('./shared/errors');
 var PayPal = _dereq_('./external/paypal');
-var VERSION = "3.25.0";
+var VERSION = "3.26.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var Promise = _dereq_('../lib/promise');
 
@@ -2867,6 +2874,7 @@ function create(options) {
     analytics.sendEvent(options.client, 'paypal.initialized');
 
     pp = new PayPal(options);
+
     return pp._initialize();
   });
 }
@@ -2897,7 +2905,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/analytics":21,"../lib/basic-component-verification":23,"../lib/braintree-error":24,"../lib/promise":51,"./external/paypal":55,"./shared/errors":58,"@braintree/wrap-promise":17}],57:[function(_dereq_,module,exports){
+},{"../lib/analytics":21,"../lib/basic-component-verification":23,"../lib/braintree-error":24,"../lib/promise":50,"./external/paypal":55,"./shared/errors":58,"@braintree/wrap-promise":17}],57:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {

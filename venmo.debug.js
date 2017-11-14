@@ -502,7 +502,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.25.0";
+var VERSION = "3.26.0";
 
 function basicComponentVerification(options) {
   var client, clientVersion, name;
@@ -543,7 +543,7 @@ module.exports = {
   verify: basicComponentVerification
 };
 
-},{"./braintree-error":17,"./errors":21,"./promise":24}],17:[function(_dereq_,module,exports){
+},{"./braintree-error":17,"./errors":21,"./promise":23}],17:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -631,7 +631,7 @@ module.exports = BraintreeError;
 },{"./enumerate":20}],18:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.25.0";
+var VERSION = "3.26.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -648,7 +648,7 @@ module.exports = {
 },{}],19:[function(_dereq_,module,exports){
 'use strict';
 
-var atob = _dereq_('../lib/polyfill').atob;
+var atob = _dereq_('../lib/vendor/polyfill').atob;
 
 var apiUrls = {
   production: 'https://api.braintreegateway.com:443',
@@ -694,7 +694,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":23}],20:[function(_dereq_,module,exports){
+},{"../lib/vendor/polyfill":25}],20:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -702,6 +702,7 @@ function enumerate(values, prefix) {
 
   return values.reduce(function (enumeration, value) {
     enumeration[value] = prefix + value;
+
     return enumeration;
   }, {});
 }
@@ -756,53 +757,12 @@ module.exports = function (value) {
 (function (global){
 'use strict';
 
-var atobNormalized = typeof global.atob === 'function' ? global.atob : atob;
-
-function atob(base64String) {
-  var a, b, c, b1, b2, b3, b4, i;
-  var base64Matcher = new RegExp('^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})([=]{1,2})?$');
-  var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
-  var result = '';
-
-  if (!base64Matcher.test(base64String)) {
-    throw new Error('Non base64 encoded input passed to window.atob polyfill');
-  }
-
-  i = 0;
-  do {
-    b1 = characters.indexOf(base64String.charAt(i++));
-    b2 = characters.indexOf(base64String.charAt(i++));
-    b3 = characters.indexOf(base64String.charAt(i++));
-    b4 = characters.indexOf(base64String.charAt(i++));
-
-    a = (b1 & 0x3F) << 2 | b2 >> 4 & 0x3;
-    b = (b2 & 0xF) << 4 | b3 >> 2 & 0xF;
-    c = (b3 & 0x3) << 6 | b4 & 0x3F;
-
-    result += String.fromCharCode(a) + (b ? String.fromCharCode(b) : '') + (c ? String.fromCharCode(c) : '');
-  } while (i < base64String.length);
-
-  return result;
-}
-
-module.exports = {
-  atob: function (base64String) {
-    return atobNormalized.call(global, base64String);
-  },
-  _atob: atob
-};
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],24:[function(_dereq_,module,exports){
-(function (global){
-'use strict';
-
 var Promise = global.Promise || _dereq_('promise-polyfill');
 
 module.exports = Promise;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":13}],25:[function(_dereq_,module,exports){
+},{"promise-polyfill":13}],24:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -816,10 +776,12 @@ function _notEmpty(obj) {
   return false;
 }
 
+/* eslint-disable no-mixed-operators */
 function _isArray(value) {
   return value && typeof value === 'object' && typeof value.length === 'number' &&
     Object.prototype.toString.call(value) === '[object Array]' || false;
 }
+/* eslint-enable no-mixed-operators */
 
 function parse(url) {
   var query, params;
@@ -838,6 +800,7 @@ function parse(url) {
     var value = decodeURIComponent(parts[1]);
 
     toReturn[key] = value;
+
     return toReturn;
   }, {});
 
@@ -893,6 +856,47 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],25:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+
+var atobNormalized = typeof global.atob === 'function' ? global.atob : atob;
+
+function atob(base64String) {
+  var a, b, c, b1, b2, b3, b4, i;
+  var base64Matcher = new RegExp('^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})([=]{1,2})?$');
+  var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+  var result = '';
+
+  if (!base64Matcher.test(base64String)) {
+    throw new Error('Non base64 encoded input passed to window.atob polyfill');
+  }
+
+  i = 0;
+  do {
+    b1 = characters.indexOf(base64String.charAt(i++));
+    b2 = characters.indexOf(base64String.charAt(i++));
+    b3 = characters.indexOf(base64String.charAt(i++));
+    b4 = characters.indexOf(base64String.charAt(i++));
+
+    a = (b1 & 0x3F) << 2 | b2 >> 4 & 0x3;
+    b = (b2 & 0xF) << 4 | b3 >> 2 & 0xF;
+    c = (b3 & 0x3) << 6 | b4 & 0x3F;
+
+    result += String.fromCharCode(a) + (b ? String.fromCharCode(b) : '') + (c ? String.fromCharCode(c) : '');
+  } while (i < base64String.length);
+
+  return result;
+}
+
+module.exports = {
+  atob: function (base64String) {
+    return atobNormalized.call(global, base64String);
+  },
+  _atob: atob
+};
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],26:[function(_dereq_,module,exports){
 'use strict';
 /** @module braintree-web/venmo */
@@ -904,7 +908,7 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Venmo = _dereq_('./venmo');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.25.0";
+var VERSION = "3.26.0";
 
 /**
  * @static
@@ -952,7 +956,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/analytics":15,"../lib/basic-component-verification":16,"../lib/braintree-error":17,"../lib/promise":24,"./shared/errors":29,"./venmo":30,"@braintree/wrap-promise":12}],27:[function(_dereq_,module,exports){
+},{"../lib/analytics":15,"../lib/basic-component-verification":16,"../lib/braintree-error":17,"../lib/promise":23,"./shared/errors":29,"./venmo":30,"@braintree/wrap-promise":12}],27:[function(_dereq_,module,exports){
 'use strict';
 
 var isAndroid = _dereq_('@braintree/browser-detection/is-android');
@@ -1025,7 +1029,7 @@ var querystring = _dereq_('../lib/querystring');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.25.0";
+var VERSION = "3.26.0";
 
 /**
  * Venmo tokenize payload.
@@ -1096,7 +1100,7 @@ Venmo.prototype.isBrowserSupported = function () {
   var supportsReturnToSameTab = browserDetection.isIosSafari() || isAndroidChrome;
   var supportsReturnToNewTab = isIosChrome || browserDetection.isSamsungBrowser() || browserDetection.isMobileFirefox();
 
-  return supportsReturnToSameTab || this._allowNewBrowserTab && supportsReturnToNewTab;
+  return supportsReturnToSameTab || (this._allowNewBrowserTab && supportsReturnToNewTab);
 };
 
 /**
@@ -1232,6 +1236,7 @@ function getFragmentParameters() {
     var value = decodeURIComponent(parts[1]);
 
     toReturn[key] = value;
+
     return toReturn;
   }, {});
 }
@@ -1270,5 +1275,5 @@ function documentVisibilityChangeEventName() {
 module.exports = wrapPromise.wrapPrototype(Venmo);
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../lib/analytics":15,"../lib/braintree-error":17,"../lib/promise":24,"../lib/querystring":25,"./shared/browser-detection":27,"./shared/constants":28,"./shared/errors":29,"@braintree/wrap-promise":12}]},{},[26])(26)
+},{"../lib/analytics":15,"../lib/braintree-error":17,"../lib/promise":23,"../lib/querystring":24,"./shared/browser-detection":27,"./shared/constants":28,"./shared/errors":29,"@braintree/wrap-promise":12}]},{},[26])(26)
 });

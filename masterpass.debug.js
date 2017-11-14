@@ -935,7 +935,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.25.0";
+var VERSION = "3.26.0";
 
 function basicComponentVerification(options) {
   var client, clientVersion, name;
@@ -976,7 +976,7 @@ module.exports = {
   verify: basicComponentVerification
 };
 
-},{"./braintree-error":24,"./errors":33,"./promise":49}],24:[function(_dereq_,module,exports){
+},{"./braintree-error":24,"./errors":33,"./promise":48}],24:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -1236,7 +1236,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":24,"./check-origin":25,"./events":26,"framebus":18}],28:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.25.0";
+var VERSION = "3.26.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -1293,7 +1293,7 @@ module.exports = convertToBraintreeError;
 },{"./braintree-error":24}],31:[function(_dereq_,module,exports){
 'use strict';
 
-var atob = _dereq_('../lib/polyfill').atob;
+var atob = _dereq_('../lib/vendor/polyfill').atob;
 
 var apiUrls = {
   production: 'https://api.braintreegateway.com:443',
@@ -1339,7 +1339,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":48}],32:[function(_dereq_,module,exports){
+},{"../lib/vendor/polyfill":49}],32:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -1347,6 +1347,7 @@ function enumerate(values, prefix) {
 
   return values.reduce(function (enumeration, value) {
     enumeration[value] = prefix + value;
+
     return enumeration;
   }, {});
 }
@@ -1401,7 +1402,7 @@ var Bus = _dereq_('../../bus');
 var events = _dereq_('../shared/events');
 var errors = _dereq_('../shared/errors');
 var constants = _dereq_('../shared/constants');
-var uuid = _dereq_('../../uuid');
+var uuid = _dereq_('../../vendor/uuid');
 var iFramer = _dereq_('@braintree/iframer');
 var BraintreeError = _dereq_('../../braintree-error');
 var browserDetection = _dereq_('../shared/browser-detection');
@@ -1519,6 +1520,7 @@ FrameService.prototype.open = function (options, callback) {
     if (callback) {
       callback(new BraintreeError(errors.FRAME_SERVICE_FRAME_OPEN_FAILED));
     }
+
     return;
   }
   this._pollForPopupClose();
@@ -1618,7 +1620,7 @@ FrameService.prototype._getFrameForEnvironment = function (options) {
 module.exports = FrameService;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../braintree-error":24,"../../bus":27,"../../uuid":50,"../shared/browser-detection":41,"../shared/constants":42,"../shared/errors":43,"../shared/events":44,"./../../assign":22,"./strategies/modal":36,"./strategies/popup":39,"./strategies/popup-bridge":37,"@braintree/iframer":10}],35:[function(_dereq_,module,exports){
+},{"../../braintree-error":24,"../../bus":27,"../../vendor/uuid":50,"../shared/browser-detection":41,"../shared/constants":42,"../shared/errors":43,"../shared/events":44,"./../../assign":22,"./strategies/modal":36,"./strategies/popup":39,"./strategies/popup-bridge":37,"@braintree/iframer":10}],35:[function(_dereq_,module,exports){
 'use strict';
 
 var FrameService = _dereq_('./frame-service');
@@ -1772,6 +1774,7 @@ PopupBridge.prototype.initialize = function (callback) {
     if (err || popupDismissed) {
       // User clicked "Done" button of browser view
       callback(new BraintreeError(errors.FRAME_SERVICE_FRAME_CLOSED));
+
       return;
     }
     // User completed popup flow (includes success and cancel cases)
@@ -1896,7 +1899,7 @@ function left(width) {
 }
 
 function center(windowMetric, popupMetric, offset) {
-  return (windowMetric - popupMetric) / 2 + offset;
+  return ((windowMetric - popupMetric) / 2) + offset;
 }
 
 module.exports = {
@@ -2012,6 +2015,15 @@ module.exports = function (obj) {
 (function (global){
 'use strict';
 
+var Promise = global.Promise || _dereq_('promise-polyfill');
+
+module.exports = Promise;
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"promise-polyfill":19}],49:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+
 var atobNormalized = typeof global.atob === 'function' ? global.atob : atob;
 
 function atob(base64String) {
@@ -2049,16 +2061,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],49:[function(_dereq_,module,exports){
-(function (global){
-'use strict';
-
-var Promise = global.Promise || _dereq_('promise-polyfill');
-
-module.exports = Promise;
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":19}],50:[function(_dereq_,module,exports){
+},{}],50:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {
@@ -2080,7 +2083,7 @@ var Promise = _dereq_('../../lib/promise');
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var errors = _dereq_('../shared/errors');
-var VERSION = "3.25.0";
+var VERSION = "3.26.0";
 var methods = _dereq_('../../lib/methods');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var analytics = _dereq_('../../lib/analytics');
@@ -2311,10 +2314,12 @@ Masterpass.prototype._createFrameOpenHandler = function (resolve, reject) {
       if (popupBridgeErr) {
         analytics.sendEvent(self._client, 'masterpass.tokenization.closed-popupbridge.by-user');
         reject(convertToBraintreeError(popupBridgeErr, errors.MASTERPASS_POPUP_CLOSED));
+
         return;
       } else if (!payload.queryItems) {
         analytics.sendEvent(self._client, 'masterpass.tokenization.failed-popupbridge');
         reject(new BraintreeError(errors.MASTERPASS_FLOW_FAILED));
+
         return;
       }
 
@@ -2329,18 +2334,21 @@ Masterpass.prototype._createFrameOpenHandler = function (resolve, reject) {
       if (frameServiceErr.code === 'FRAME_SERVICE_FRAME_CLOSED') {
         analytics.sendEvent(self._client, 'masterpass.tokenization.closed.by-user');
         reject(new BraintreeError(errors.MASTERPASS_POPUP_CLOSED));
+
         return;
       }
 
       if (frameServiceErr.code === 'FRAME_SERVICE_FRAME_OPEN_FAILED') {
         analytics.sendEvent(self._client, 'masterpass.tokenization.failed.to-open');
         reject(new BraintreeError(errors.MASTERPASS_POPUP_OPEN_FAILED));
+
         return;
       }
 
       analytics.sendEvent(self._client, 'masterpass.tokenization.failed');
       self._closeWindow();
       reject(convertToBraintreeError(frameServiceErr, errors.MASTERPASS_FLOW_FAILED));
+
       return;
     }
 
@@ -2354,6 +2362,7 @@ Masterpass.prototype._tokenizeMasterpass = function (payload) {
   if (payload.mpstatus !== 'success') {
     analytics.sendEvent(self._client, 'masterpass.tokenization.closed.by-user');
     self._closeWindow();
+
     return Promise.reject(new BraintreeError(errors.MASTERPASS_POPUP_CLOSED));
   }
 
@@ -2368,6 +2377,7 @@ Masterpass.prototype._tokenizeMasterpass = function (payload) {
     } else {
       analytics.sendEvent(self._client, 'masterpass.tokenization.success');
     }
+
     return response.masterpassCards[0];
   }).catch(function (tokenizeErr) {
     self._closeWindow();
@@ -2440,7 +2450,7 @@ function hasMissingOption(options) {
 module.exports = wrapPromise.wrapPrototype(Masterpass);
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../lib/analytics":21,"../../lib/braintree-error":24,"../../lib/constants":28,"../../lib/convert-methods-to-error":29,"../../lib/convert-to-braintree-error":30,"../../lib/frame-service/external":35,"../../lib/methods":47,"../../lib/promise":49,"../shared/constants":54,"../shared/errors":55,"@braintree/wrap-promise":17}],52:[function(_dereq_,module,exports){
+},{"../../lib/analytics":21,"../../lib/braintree-error":24,"../../lib/constants":28,"../../lib/convert-methods-to-error":29,"../../lib/convert-to-braintree-error":30,"../../lib/frame-service/external":35,"../../lib/methods":47,"../../lib/promise":48,"../shared/constants":54,"../shared/errors":55,"@braintree/wrap-promise":17}],52:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 /** @module braintree-web/masterpass
@@ -2451,7 +2461,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var browserDetection = _dereq_('./shared/browser-detection');
 var Masterpass = _dereq_('./external/masterpass');
-var VERSION = "3.25.0";
+var VERSION = "3.26.0";
 var errors = _dereq_('./shared/errors');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -2526,7 +2536,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../lib/basic-component-verification":23,"../lib/braintree-error":24,"../lib/promise":49,"./external/masterpass":51,"./shared/browser-detection":53,"./shared/errors":55,"@braintree/wrap-promise":17}],53:[function(_dereq_,module,exports){
+},{"../lib/basic-component-verification":23,"../lib/braintree-error":24,"../lib/promise":48,"./external/masterpass":51,"./shared/browser-detection":53,"./shared/errors":55,"@braintree/wrap-promise":17}],53:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {

@@ -414,7 +414,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.25.0";
+var VERSION = "3.26.0";
 
 function basicComponentVerification(options) {
   var client, clientVersion, name;
@@ -455,7 +455,7 @@ module.exports = {
   verify: basicComponentVerification
 };
 
-},{"./braintree-error":9,"./errors":13,"./promise":16}],9:[function(_dereq_,module,exports){
+},{"./braintree-error":9,"./errors":13,"./promise":15}],9:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -543,7 +543,7 @@ module.exports = BraintreeError;
 },{"./enumerate":12}],10:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.25.0";
+var VERSION = "3.26.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -560,7 +560,7 @@ module.exports = {
 },{}],11:[function(_dereq_,module,exports){
 'use strict';
 
-var atob = _dereq_('../lib/polyfill').atob;
+var atob = _dereq_('../lib/vendor/polyfill').atob;
 
 var apiUrls = {
   production: 'https://api.braintreegateway.com:443',
@@ -606,7 +606,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":15}],12:[function(_dereq_,module,exports){
+},{"../lib/vendor/polyfill":16}],12:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -614,6 +614,7 @@ function enumerate(values, prefix) {
 
   return values.reduce(function (enumeration, value) {
     enumeration[value] = prefix + value;
+
     return enumeration;
   }, {});
 }
@@ -668,6 +669,15 @@ module.exports = function (value) {
 (function (global){
 'use strict';
 
+var Promise = global.Promise || _dereq_('promise-polyfill');
+
+module.exports = Promise;
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"promise-polyfill":5}],16:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+
 var atobNormalized = typeof global.atob === 'function' ? global.atob : atob;
 
 function atob(base64String) {
@@ -705,16 +715,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],16:[function(_dereq_,module,exports){
-(function (global){
-'use strict';
-
-var Promise = global.Promise || _dereq_('promise-polyfill');
-
-module.exports = Promise;
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":5}],17:[function(_dereq_,module,exports){
+},{}],17:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -755,7 +756,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var VisaCheckout = _dereq_('./visa-checkout');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./errors');
-var VERSION = "3.25.0";
+var VERSION = "3.26.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -791,7 +792,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/analytics":7,"../lib/basic-component-verification":8,"../lib/braintree-error":9,"../lib/promise":16,"./errors":17,"./visa-checkout":19,"@braintree/wrap-promise":4}],19:[function(_dereq_,module,exports){
+},{"../lib/analytics":7,"../lib/basic-component-verification":8,"../lib/braintree-error":9,"../lib/promise":15,"./errors":17,"./visa-checkout":19,"@braintree/wrap-promise":4}],19:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -894,21 +895,6 @@ function transformCardTypes(cardTypes) {
  * @param {object} [options.settings.payment] The payment object used to initialize Visa Checkout.
  * @param {string[]} [options.settings.payment.cardBrands] The card brands that Visa Checkout will allow the customer to pay with. When not supplied, Braintree will set this property.
  * @returns {object} `initOptions` The `initOptions` that Visa Checkout should be initialized with.
- * @example
- * <caption>Applying Braintree properties to initOptions</caption>
- * var baseInitOptions = {
- *    paymentRequest: {
- *      currencyCode: 'USD',
- *      subtotal: '1.00',
- *      total: '1.00'
- *    }
- *  };
- *
- *  var initOptions = visaCheckoutInstance.createInitOptions(baseInitOptions);
- *
- *  console.log('initOptions with Braintree properties', initOptions);
- *
- *  V.init(initOptions);
  */
 VisaCheckout.prototype.createInitOptions = function (options) {
   var initOptions;
@@ -942,16 +928,6 @@ VisaCheckout.prototype.createInitOptions = function (options) {
  * @param {string} payment.encPaymentData The encrypted payment data.
  * @param {callback} [callback] The second argument, <code>tokenizePayload</code> is a {@link VisaCheckout~tokenizePayload|tokenizePayload}. If no callback is provided, `tokenize` returns a promise that resolves with the {@link VisaCheckout~tokenizePayload|tokenizePayload}.
  * @returns {Promise|void} Returns a promise if no callback is provided.
- * @example
- * V.on('payment.success', function (payment) {
- *   visaCheckoutInstance.tokenize(payment, function (err, tokenizePayload) {
- *     if (err) {
- *       console.error('There was an error tokenizing Visa Checkout', err);
- *       return;
- *     }
- *     console.log('Send tokenizePayload.nonce to your server here!', tokenizePayload);
- *   });
- * });
  */
 VisaCheckout.prototype.tokenize = function (payment) {
   var self = this;
@@ -975,9 +951,11 @@ VisaCheckout.prototype.tokenize = function (payment) {
     }
   }).then(function (response) {
     analytics.sendEvent(self._client, 'visacheckout.tokenize.succeeded');
+
     return response.visaCheckoutCards[0];
   }).catch(function (err) {
     analytics.sendEvent(self._client, 'visacheckout.tokenize.failed');
+
     return Promise.reject(new BraintreeError({
       type: errors.VISA_CHECKOUT_TOKENIZATION.type,
       code: errors.VISA_CHECKOUT_TOKENIZATION.code,
@@ -991,5 +969,5 @@ VisaCheckout.prototype.tokenize = function (payment) {
 
 module.exports = wrapPromise.wrapPrototype(VisaCheckout);
 
-},{"../lib/analytics":7,"../lib/braintree-error":9,"../lib/json-clone":14,"../lib/promise":16,"./errors":17,"@braintree/wrap-promise":4}]},{},[18])(18)
+},{"../lib/analytics":7,"../lib/braintree-error":9,"../lib/json-clone":14,"../lib/promise":15,"./errors":17,"@braintree/wrap-promise":4}]},{},[18])(18)
 });

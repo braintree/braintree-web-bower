@@ -788,7 +788,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.25.0";
+var VERSION = "3.26.0";
 
 function basicComponentVerification(options) {
   var client, clientVersion, name;
@@ -829,7 +829,7 @@ module.exports = {
   verify: basicComponentVerification
 };
 
-},{"./braintree-error":15,"./errors":24,"./promise":30}],15:[function(_dereq_,module,exports){
+},{"./braintree-error":15,"./errors":24,"./promise":29}],15:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -1089,7 +1089,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":15,"./check-origin":16,"./events":17,"framebus":9}],19:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.25.0";
+var VERSION = "3.26.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -1124,7 +1124,7 @@ module.exports = function (instance, methodNames) {
 },{"./braintree-error":15,"./errors":24}],21:[function(_dereq_,module,exports){
 'use strict';
 
-var atob = _dereq_('../lib/polyfill').atob;
+var atob = _dereq_('../lib/vendor/polyfill').atob;
 
 var apiUrls = {
   production: 'https://api.braintreegateway.com:443',
@@ -1170,7 +1170,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":29}],22:[function(_dereq_,module,exports){
+},{"../lib/vendor/polyfill":31}],22:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (fn) {
@@ -1192,6 +1192,7 @@ function enumerate(values, prefix) {
 
   return values.reduce(function (enumeration, value) {
     enumeration[value] = prefix + value;
+
     return enumeration;
   }, {});
 }
@@ -1241,6 +1242,7 @@ module.exports = {
 
 function isHTTPS(protocol) {
   protocol = protocol || global.location.protocol;
+
   return protocol === 'https:';
 }
 
@@ -1304,6 +1306,24 @@ module.exports = function (obj) {
 (function (global){
 'use strict';
 
+var Promise = global.Promise || _dereq_('promise-polyfill');
+
+module.exports = Promise;
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"promise-polyfill":10}],30:[function(_dereq_,module,exports){
+'use strict';
+
+function useMin(isDebug) {
+  return isDebug ? '' : '.min';
+}
+
+module.exports = useMin;
+
+},{}],31:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+
 var atobNormalized = typeof global.atob === 'function' ? global.atob : atob;
 
 function atob(base64String) {
@@ -1341,24 +1361,6 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],30:[function(_dereq_,module,exports){
-(function (global){
-'use strict';
-
-var Promise = global.Promise || _dereq_('promise-polyfill');
-
-module.exports = Promise;
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":10}],31:[function(_dereq_,module,exports){
-'use strict';
-
-function useMin(isDebug) {
-  return isDebug ? '' : '.min';
-}
-
-module.exports = useMin;
-
 },{}],32:[function(_dereq_,module,exports){
 'use strict';
 
@@ -1384,11 +1386,11 @@ var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
 var constants = _dereq_('../shared/constants');
 var useMin = _dereq_('../../lib/use-min');
 var Bus = _dereq_('../../lib/bus');
-var uuid = _dereq_('../../lib/uuid');
+var uuid = _dereq_('../../lib/vendor/uuid');
 var deferred = _dereq_('../../lib/deferred');
 var errors = _dereq_('../shared/errors');
 var events = _dereq_('../shared/events');
-var VERSION = "3.25.0";
+var VERSION = "3.26.0";
 var iFramer = _dereq_('@braintree/iframer');
 var Promise = _dereq_('../../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -1548,6 +1550,7 @@ ThreeDSecure.prototype.verifyCard = function (options) {
     });
   }).catch(function (err) {
     self._verifyCardInProgress = false;
+
     return Promise.reject(err);
   });
 };
@@ -1718,7 +1721,7 @@ ThreeDSecure.prototype.teardown = function () {
 
 module.exports = wrapPromise.wrapPrototype(ThreeDSecure);
 
-},{"../../lib/analytics":12,"../../lib/assign":13,"../../lib/braintree-error":15,"../../lib/bus":18,"../../lib/convert-methods-to-error":20,"../../lib/deferred":22,"../../lib/methods":28,"../../lib/promise":30,"../../lib/use-min":31,"../../lib/uuid":32,"../shared/constants":35,"../shared/errors":36,"../shared/events":37,"@braintree/iframer":1,"@braintree/wrap-promise":8}],34:[function(_dereq_,module,exports){
+},{"../../lib/analytics":12,"../../lib/assign":13,"../../lib/braintree-error":15,"../../lib/bus":18,"../../lib/convert-methods-to-error":20,"../../lib/deferred":22,"../../lib/methods":28,"../../lib/promise":29,"../../lib/use-min":30,"../../lib/vendor/uuid":32,"../shared/constants":35,"../shared/errors":36,"../shared/events":37,"@braintree/iframer":1,"@braintree/wrap-promise":8}],34:[function(_dereq_,module,exports){
 'use strict';
 /** @module braintree-web/three-d-secure */
 
@@ -1728,7 +1731,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.25.0";
+var VERSION = "3.26.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -1739,10 +1742,6 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
  * @param {Client} options.client A {@link Client} instance.
  * @param {callback} [callback] The second argument, `data`, is the {@link ThreeDSecure} instance. If no callback is provided, it returns a promise that resolves the {@link ThreeDSecure} instance.
  * @returns {Promise|void} Returns a promise if no callback is provided.
- * @example
- * braintree.threeDSecure.create({
- *   client: client
- * }, callback);
  */
 function create(options) {
   return basicComponentVerification.verify({
@@ -1785,7 +1784,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/analytics":12,"../lib/basic-component-verification":14,"../lib/braintree-error":15,"../lib/is-https":25,"../lib/promise":30,"./external/three-d-secure":33,"./shared/errors":36,"@braintree/wrap-promise":8}],35:[function(_dereq_,module,exports){
+},{"../lib/analytics":12,"../lib/basic-component-verification":14,"../lib/braintree-error":15,"../lib/is-https":25,"../lib/promise":29,"./external/three-d-secure":33,"./shared/errors":36,"@braintree/wrap-promise":8}],35:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {

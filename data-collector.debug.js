@@ -475,7 +475,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var methods = _dereq_('../lib/methods');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
-var VERSION = "3.25.0";
+var VERSION = "3.26.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var errors = _dereq_('./errors');
@@ -531,29 +531,6 @@ var errors = _dereq_('./errors');
  * **Note:** the data sent to Kount is asynchronous and may not have completed by the time the data collector create call is complete. In most cases, this will not matter, but if you create the data collector instance and immediately navigate away from the page, the device information may fail to be sent to Kount.
  * @param {boolean} [options.paypal] If true, PayPal fraud data collection is enabled.
  * @param {callback} [callback] The second argument, `data`, is the {@link DataCollector} instance.
- * @example
- * var createClient = require('braintree-web/client').create;
- * var createDataCollector = require('braintree-web/data-collector').create;
- *
- * createClient({
- *   authorization: CLIENT_AUTHORIZATION
- * }, function (clientErr, clientInstance) {
- *   if (err) {
- *     // handle client error
- *     return;
- *   }
- *   createDataCollector({
- *     client: clientInstance,
- *     kount: true
- *   }, function (dataCollectorErr, dataCollectorInstance) {
- *     if (dataCollectorErr) {
- *       // handle data collector error
- *       return;
- *     }
- *     // data collector is set up
- *   });
- * });
- *
  * @returns {Promise|void} Returns a promise that resolves the {@link DataCollector} instance if no callback is provided.
  */
 function create(options) {
@@ -663,6 +640,7 @@ function Kount(options) {
   if (previouslyInitializedDeviceData) {
     this.deviceData = previouslyInitializedDeviceData;
     this._isCached = true;
+
     return;
   }
 
@@ -794,7 +772,7 @@ else break a;sjcl.random.addEntropy(F,1024,"crypto['getRandomValues']")}}catch(a
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.25.0";
+var VERSION = "3.26.0";
 
 function basicComponentVerification(options) {
   var client, clientVersion, name;
@@ -966,6 +944,7 @@ function enumerate(values, prefix) {
 
   return values.reduce(function (enumeration, value) {
     enumeration[value] = prefix + value;
+
     return enumeration;
   }, {});
 }

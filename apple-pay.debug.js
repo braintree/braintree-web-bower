@@ -525,6 +525,7 @@ ApplePay.prototype.performValidation = function (options) {
     }
   }).then(function (response) {
     analytics.sendEvent(self._client, 'applepay.performValidation.succeeded');
+
     return Promise.resolve(response);
   }).catch(function (err) {
     analytics.sendEvent(self._client, 'applepay.performValidation.failed');
@@ -613,6 +614,7 @@ ApplePay.prototype.tokenize = function (options) {
     }
   }).then(function (response) {
     analytics.sendEvent(self._client, 'applepay.tokenize.succeeded');
+
     return Promise.resolve(response.applePayCards[0]);
   }).catch(function (err) {
     analytics.sendEvent(self._client, 'applepay.tokenize.failed');
@@ -631,7 +633,7 @@ ApplePay.prototype.tokenize = function (options) {
 module.exports = wrapPromise.wrapPrototype(ApplePay);
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../lib/analytics":10,"../lib/braintree-error":12,"../lib/promise":19,"./errors":7,"@braintree/wrap-promise":4}],7:[function(_dereq_,module,exports){
+},{"../lib/analytics":10,"../lib/braintree-error":12,"../lib/promise":18,"./errors":7,"@braintree/wrap-promise":4}],7:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -682,7 +684,7 @@ var ApplePay = _dereq_('./apple-pay');
 var analytics = _dereq_('../lib/analytics');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var errors = _dereq_('./errors');
-var VERSION = "3.25.0";
+var VERSION = "3.26.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -718,7 +720,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/analytics":10,"../lib/basic-component-verification":11,"../lib/braintree-error":12,"../lib/promise":19,"./apple-pay":6,"./errors":7,"@braintree/wrap-promise":4}],9:[function(_dereq_,module,exports){
+},{"../lib/analytics":10,"../lib/basic-component-verification":11,"../lib/braintree-error":12,"../lib/promise":18,"./apple-pay":6,"./errors":7,"@braintree/wrap-promise":4}],9:[function(_dereq_,module,exports){
 'use strict';
 
 var createAuthorizationData = _dereq_('./create-authorization-data');
@@ -792,7 +794,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.25.0";
+var VERSION = "3.26.0";
 
 function basicComponentVerification(options) {
   var client, clientVersion, name;
@@ -833,7 +835,7 @@ module.exports = {
   verify: basicComponentVerification
 };
 
-},{"./braintree-error":12,"./errors":16,"./promise":19}],12:[function(_dereq_,module,exports){
+},{"./braintree-error":12,"./errors":16,"./promise":18}],12:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -921,7 +923,7 @@ module.exports = BraintreeError;
 },{"./enumerate":15}],13:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.25.0";
+var VERSION = "3.26.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -938,7 +940,7 @@ module.exports = {
 },{}],14:[function(_dereq_,module,exports){
 'use strict';
 
-var atob = _dereq_('../lib/polyfill').atob;
+var atob = _dereq_('../lib/vendor/polyfill').atob;
 
 var apiUrls = {
   production: 'https://api.braintreegateway.com:443',
@@ -984,7 +986,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":18}],15:[function(_dereq_,module,exports){
+},{"../lib/vendor/polyfill":19}],15:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -992,6 +994,7 @@ function enumerate(values, prefix) {
 
   return values.reduce(function (enumeration, value) {
     enumeration[value] = prefix + value;
+
     return enumeration;
   }, {});
 }
@@ -1046,6 +1049,15 @@ module.exports = function (value) {
 (function (global){
 'use strict';
 
+var Promise = global.Promise || _dereq_('promise-polyfill');
+
+module.exports = Promise;
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"promise-polyfill":5}],19:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+
 var atobNormalized = typeof global.atob === 'function' ? global.atob : atob;
 
 function atob(base64String) {
@@ -1083,14 +1095,5 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],19:[function(_dereq_,module,exports){
-(function (global){
-'use strict';
-
-var Promise = global.Promise || _dereq_('promise-polyfill');
-
-module.exports = Promise;
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":5}]},{},[8])(8)
+},{}]},{},[8])(8)
 });

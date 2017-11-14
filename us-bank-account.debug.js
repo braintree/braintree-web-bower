@@ -414,7 +414,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.25.0";
+var VERSION = "3.26.0";
 
 function basicComponentVerification(options) {
   var client, clientVersion, name;
@@ -455,7 +455,7 @@ module.exports = {
   verify: basicComponentVerification
 };
 
-},{"./braintree-error":9,"./errors":15,"./promise":20}],9:[function(_dereq_,module,exports){
+},{"./braintree-error":9,"./errors":15,"./promise":19}],9:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -563,7 +563,7 @@ module.exports = function (obj) {
 },{}],11:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.25.0";
+var VERSION = "3.26.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -598,7 +598,7 @@ module.exports = function (instance, methodNames) {
 },{"./braintree-error":9,"./errors":15}],13:[function(_dereq_,module,exports){
 'use strict';
 
-var atob = _dereq_('../lib/polyfill').atob;
+var atob = _dereq_('../lib/vendor/polyfill').atob;
 
 var apiUrls = {
   production: 'https://api.braintreegateway.com:443',
@@ -644,7 +644,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":19}],14:[function(_dereq_,module,exports){
+},{"../lib/vendor/polyfill":20}],14:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -652,6 +652,7 @@ function enumerate(values, prefix) {
 
   return values.reduce(function (enumeration, value) {
     enumeration[value] = prefix + value;
+
     return enumeration;
   }, {});
 }
@@ -717,6 +718,15 @@ arguments[4][2][0].apply(exports,arguments)
 (function (global){
 'use strict';
 
+var Promise = global.Promise || _dereq_('promise-polyfill');
+
+module.exports = Promise;
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"promise-polyfill":5}],20:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+
 var atobNormalized = typeof global.atob === 'function' ? global.atob : atob;
 
 function atob(base64String) {
@@ -754,16 +764,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],20:[function(_dereq_,module,exports){
-(function (global){
-'use strict';
-
-var Promise = global.Promise || _dereq_('promise-polyfill');
-
-module.exports = Promise;
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":5}],21:[function(_dereq_,module,exports){
+},{}],21:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -834,7 +835,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var errors = _dereq_('./errors');
 var USBankAccount = _dereq_('./us-bank-account');
-var VERSION = "3.25.0";
+var VERSION = "3.26.0";
 var sharedErrors = _dereq_('../lib/errors');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -877,7 +878,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/basic-component-verification":8,"../lib/braintree-error":9,"../lib/errors":15,"../lib/promise":20,"./errors":22,"./us-bank-account":24,"@braintree/wrap-promise":4}],24:[function(_dereq_,module,exports){
+},{"../lib/basic-component-verification":8,"../lib/braintree-error":9,"../lib/errors":15,"../lib/promise":19,"./errors":22,"./us-bank-account":24,"@braintree/wrap-promise":4}],24:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1138,6 +1139,7 @@ USBankAccount.prototype._tokenizeBankLogin = function (options) {
     self._loadPlaid(function (plaidLoadErr, plaid) {
       if (plaidLoadErr) {
         reject(plaidLoadErr);
+
         return;
       }
 
@@ -1209,6 +1211,7 @@ function errorFrom(err) {
     error = new BraintreeError(errors.US_BANK_ACCOUNT_TOKENIZATION_NETWORK_ERROR);
   }
   error.details = {originalError: err};
+
   return error;
 }
 
@@ -1228,6 +1231,7 @@ USBankAccount.prototype._loadPlaid = function (callback) {
 
   if (global.Plaid) {
     callback(null, global.Plaid);
+
     return;
   }
 
@@ -1301,5 +1305,5 @@ USBankAccount.prototype.teardown = function () {
 module.exports = wrapPromise.wrapPrototype(USBankAccount);
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../lib/analytics":7,"../lib/braintree-error":9,"../lib/camel-case-to-snake-case":10,"../lib/convert-methods-to-error":12,"../lib/errors":15,"../lib/methods":17,"../lib/once":18,"../lib/promise":20,"./constants":21,"./errors":22,"@braintree/wrap-promise":4}]},{},[23])(23)
+},{"../lib/analytics":7,"../lib/braintree-error":9,"../lib/camel-case-to-snake-case":10,"../lib/convert-methods-to-error":12,"../lib/errors":15,"../lib/methods":17,"../lib/once":18,"../lib/promise":19,"./constants":21,"./errors":22,"@braintree/wrap-promise":4}]},{},[23])(23)
 });

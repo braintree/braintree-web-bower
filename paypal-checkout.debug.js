@@ -414,7 +414,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.25.0";
+var VERSION = "3.26.0";
 
 function basicComponentVerification(options) {
   var client, clientVersion, name;
@@ -455,7 +455,7 @@ module.exports = {
   verify: basicComponentVerification
 };
 
-},{"./braintree-error":9,"./errors":14,"./promise":17}],9:[function(_dereq_,module,exports){
+},{"./braintree-error":9,"./errors":14,"./promise":16}],9:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -543,7 +543,7 @@ module.exports = BraintreeError;
 },{"./enumerate":13}],10:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.25.0";
+var VERSION = "3.26.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -582,7 +582,7 @@ module.exports = convertToBraintreeError;
 },{"./braintree-error":9}],12:[function(_dereq_,module,exports){
 'use strict';
 
-var atob = _dereq_('../lib/polyfill').atob;
+var atob = _dereq_('../lib/vendor/polyfill').atob;
 
 var apiUrls = {
   production: 'https://api.braintreegateway.com:443',
@@ -628,7 +628,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/polyfill":16}],13:[function(_dereq_,module,exports){
+},{"../lib/vendor/polyfill":17}],13:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -636,6 +636,7 @@ function enumerate(values, prefix) {
 
   return values.reduce(function (enumeration, value) {
     enumeration[value] = prefix + value;
+
     return enumeration;
   }, {});
 }
@@ -690,6 +691,15 @@ module.exports = function (value) {
 (function (global){
 'use strict';
 
+var Promise = global.Promise || _dereq_('promise-polyfill');
+
+module.exports = Promise;
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"promise-polyfill":5}],17:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+
 var atobNormalized = typeof global.atob === 'function' ? global.atob : atob;
 
 function atob(base64String) {
@@ -727,16 +737,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],17:[function(_dereq_,module,exports){
-(function (global){
-'use strict';
-
-var Promise = global.Promise || _dereq_('promise-polyfill');
-
-module.exports = Promise;
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":5}],18:[function(_dereq_,module,exports){
+},{}],18:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -803,7 +804,7 @@ var errors = _dereq_('./errors');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var PayPalCheckout = _dereq_('./paypal-checkout');
-var VERSION = "3.25.0";
+var VERSION = "3.26.0";
 
 /**
  * @static
@@ -901,7 +902,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/analytics":7,"../lib/basic-component-verification":8,"../lib/braintree-error":9,"../lib/promise":17,"./errors":18,"./paypal-checkout":20,"@braintree/wrap-promise":4}],20:[function(_dereq_,module,exports){
+},{"../lib/analytics":7,"../lib/basic-component-verification":8,"../lib/braintree-error":9,"../lib/promise":16,"./errors":18,"./paypal-checkout":20,"@braintree/wrap-promise":4}],20:[function(_dereq_,module,exports){
 'use strict';
 
 var analytics = _dereq_('../lib/analytics');
@@ -1102,19 +1103,6 @@ PayPalCheckout.prototype.createPayment = function (options) {
  * @param {string} [tokenizeOptions.paymentId] Payment ID returned by PayPal `onAuthorize` callback.
  * @param {string} [tokenizeOptions.billingToken] Billing Token returned by PayPal `onAuthorize` callback.
  * @param {callback} [callback] The second argument, <code>payload</code>, is a {@link PayPalCheckout~tokenizePayload|tokenizePayload}. If no callback is provided, the promise resolves with a {@link PayPalCheckout~tokenizePayload|tokenizePayload}.
- * @example
- * // this paypal object is created by checkout.js
- * // see https://github.com/paypal/paypal-checkout
- * paypal.Button.render({
- *   onAuthorize: function (data, actions) {
- *     return paypalCheckoutInstance.tokenizePayment(data).then(function (payload) {
- *       // Submit payload.nonce to your server
- *     }).catch(function (err) {
- *       // handle error
- *     });
- *   },
- *   // Add other options, e.g. payment, env, locale
- * }, '#paypal-button');
  * @returns {Promise|void} Returns a promise if no callback is provided.
  */
 PayPalCheckout.prototype.tokenizePayment = function (tokenizeOptions) {
@@ -1256,7 +1244,7 @@ PayPalCheckout.prototype._formatTokenizePayload = function (response) {
 
 module.exports = wrapPromise.wrapPrototype(PayPalCheckout);
 
-},{"../lib/analytics":7,"../lib/braintree-error":9,"../lib/convert-to-braintree-error":11,"../lib/promise":17,"../paypal/shared/constants":21,"./errors":18,"@braintree/wrap-promise":4}],21:[function(_dereq_,module,exports){
+},{"../lib/analytics":7,"../lib/braintree-error":9,"../lib/convert-to-braintree-error":11,"../lib/promise":16,"../paypal/shared/constants":21,"./errors":18,"@braintree/wrap-promise":4}],21:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
