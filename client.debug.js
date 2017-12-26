@@ -21,6 +21,14 @@ module.exports = function isIe11(ua) {
 },{}],3:[function(_dereq_,module,exports){
 'use strict';
 
+module.exports = function isIe9(ua) {
+  ua = ua || navigator.userAgent;
+  return ua.indexOf('MSIE 9') !== -1;
+};
+
+},{}],4:[function(_dereq_,module,exports){
+'use strict';
+
 function deferred(fn) {
   return function () {
     // IE9 doesn't support passing arguments to setTimeout so we have to emulate it.
@@ -34,7 +42,7 @@ function deferred(fn) {
 
 module.exports = deferred;
 
-},{}],4:[function(_dereq_,module,exports){
+},{}],5:[function(_dereq_,module,exports){
 'use strict';
 
 function once(fn) {
@@ -50,7 +58,7 @@ function once(fn) {
 
 module.exports = once;
 
-},{}],5:[function(_dereq_,module,exports){
+},{}],6:[function(_dereq_,module,exports){
 'use strict';
 
 function promiseOrCallback(promise, callback) { // eslint-disable-line consistent-return
@@ -69,7 +77,7 @@ function promiseOrCallback(promise, callback) { // eslint-disable-line consisten
 
 module.exports = promiseOrCallback;
 
-},{}],6:[function(_dereq_,module,exports){
+},{}],7:[function(_dereq_,module,exports){
 'use strict';
 
 var deferred = _dereq_('./lib/deferred');
@@ -125,7 +133,7 @@ wrapPromise.wrapPrototype = function (target, options) {
 
 module.exports = wrapPromise;
 
-},{"./lib/deferred":3,"./lib/once":4,"./lib/promise-or-callback":5}],7:[function(_dereq_,module,exports){
+},{"./lib/deferred":4,"./lib/once":5,"./lib/promise-or-callback":6}],8:[function(_dereq_,module,exports){
 (function (root) {
 
   // Store setTimeout reference so promise-polyfill will be unaffected by
@@ -360,18 +368,21 @@ module.exports = wrapPromise;
 
 })(this);
 
-},{}],8:[function(_dereq_,module,exports){
+},{}],9:[function(_dereq_,module,exports){
 'use strict';
 
 var isIe = _dereq_('@braintree/browser-detection/is-ie');
+var isIe9 = _dereq_('@braintree/browser-detection/is-ie9');
 
 module.exports = {
-  isIe: isIe
+  isIe: isIe,
+  isIe9: isIe9
 };
 
-},{"@braintree/browser-detection/is-ie":1}],9:[function(_dereq_,module,exports){
+},{"@braintree/browser-detection/is-ie":1,"@braintree/browser-detection/is-ie9":3}],10:[function(_dereq_,module,exports){
 'use strict';
 
+var GraphQL = _dereq_('./request/graphql');
 var request = _dereq_('./request');
 var isWhitelistedDomain = _dereq_('../lib/is-whitelisted-domain');
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -381,6 +392,7 @@ var Promise = _dereq_('../lib/promise');
 var once = _dereq_('../lib/once');
 var deferred = _dereq_('../lib/deferred');
 var assign = _dereq_('../lib/assign').assign;
+var analytics = _dereq_('../lib/analytics');
 var constants = _dereq_('./constants');
 var errors = _dereq_('./errors');
 var sharedErrors = _dereq_('../lib/errors');
@@ -458,6 +470,12 @@ function Client(configuration) {
         message: 'braintreeApi URL is on an invalid domain.'
       });
     }
+  }
+
+  if (gatewayConfiguration.graphQL) {
+    this._graphQL = new GraphQL({
+      graphQL: gatewayConfiguration.graphQL
+    });
   }
 }
 
@@ -578,6 +596,7 @@ Client.prototype.request = function (options, callback) {
 
     requestOptions = {
       method: options.method,
+      graphQL: self._graphQL,
       timeout: options.timeout
     };
 
@@ -607,6 +626,9 @@ Client.prototype.request = function (options, callback) {
     }
 
     requestOptions.url = baseUrl + options.endpoint;
+    requestOptions.sendAnalyticsEvent = function (kind) {
+      analytics.sendEvent(self, kind);
+    };
 
     self._request(requestOptions, function (err, data, status) {
       var resolvedData, requestError;
@@ -693,14 +715,14 @@ Client.prototype.getVersion = function () {
 
 module.exports = Client;
 
-},{"../lib/add-metadata":21,"../lib/assign":22,"../lib/braintree-error":23,"../lib/constants":24,"../lib/convert-to-braintree-error":25,"../lib/deferred":27,"../lib/errors":29,"../lib/is-whitelisted-domain":30,"../lib/once":32,"../lib/promise":33,"./constants":10,"./errors":11,"./request":16}],10:[function(_dereq_,module,exports){
+},{"../lib/add-metadata":29,"../lib/analytics":30,"../lib/assign":31,"../lib/braintree-error":32,"../lib/constants":33,"../lib/convert-to-braintree-error":34,"../lib/deferred":36,"../lib/errors":38,"../lib/is-whitelisted-domain":39,"../lib/once":41,"../lib/promise":42,"./constants":11,"./errors":12,"./request":23,"./request/graphql":21}],11:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   BRAINTREE_API_VERSION_HEADER: '2017-04-03'
 };
 
-},{}],11:[function(_dereq_,module,exports){
+},{}],12:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -755,7 +777,7 @@ module.exports = {
   }
 };
 
-},{"../lib/braintree-error":23}],12:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":32}],13:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -839,13 +861,13 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../lib/braintree-error":23,"../lib/constants":24,"../lib/create-authorization-data":26,"../lib/promise":33,"../lib/vendor/uuid":36,"./errors":11,"./request":16,"@braintree/wrap-promise":6}],13:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":32,"../lib/constants":33,"../lib/create-authorization-data":35,"../lib/promise":42,"../lib/vendor/uuid":45,"./errors":12,"./request":23,"@braintree/wrap-promise":7}],14:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Client = _dereq_('./client');
 var getConfiguration = _dereq_('./get-configuration').getConfiguration;
-var VERSION = "3.26.0";
+var VERSION = "3.27.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -914,8 +936,7 @@ module.exports = {
   _clearCache: clearCache
 };
 
-},{"../lib/braintree-error":23,"../lib/errors":29,"../lib/promise":33,"./client":9,"./get-configuration":12,"@braintree/wrap-promise":6}],14:[function(_dereq_,module,exports){
-(function (global){
+},{"../lib/braintree-error":32,"../lib/errors":38,"../lib/promise":42,"./client":10,"./get-configuration":13,"@braintree/wrap-promise":7}],15:[function(_dereq_,module,exports){
 'use strict';
 
 var querystring = _dereq_('../../lib/querystring');
@@ -923,30 +944,48 @@ var browserDetection = _dereq_('../browser-detection');
 var assign = _dereq_('../../lib/assign').assign;
 var prepBody = _dereq_('./prep-body');
 var parseBody = _dereq_('./parse-body');
-var isXHRAvailable = global.XMLHttpRequest && 'withCredentials' in new global.XMLHttpRequest();
+var xhr = _dereq_('./xhr');
+var isXHRAvailable = xhr.isAvailable;
+var GraphQLRequest = _dereq_('./graphql/request');
+var DefaultRequest = _dereq_('./default-request');
 
 var MAX_TCP_RETRYCOUNT = 1;
 var TCP_PRECONNECT_BUG_STATUS_CODE = 408;
-
-function getRequestObject() {
-  return isXHRAvailable ? new XMLHttpRequest() : new XDomainRequest();
-}
 
 function requestShouldRetry(status) {
   return (!status || status === TCP_PRECONNECT_BUG_STATUS_CODE) && browserDetection.isIe();
 }
 
+function graphQLRequestShouldRetryWithClientApi(body) {
+  var errorType = body.errors &&
+      body.errors[0] &&
+      body.errors[0].extensions &&
+      body.errors[0].extensions.errorType;
+
+  return errorType === 'unknown_error';
+}
+
 function _requestWithRetry(options, tcpRetryCount, cb) {
-  var status, resBody;
-  var method = options.method;
+  var status, resBody, ajaxRequest, body, method, headers, parsedBody;
   var url = options.url;
-  var body = options.data;
+  var graphQL = options.graphQL;
   var timeout = options.timeout;
-  var headers = assign({
-    'Content-Type': 'application/json'
-  }, options.headers);
-  var req = getRequestObject();
+  var req = xhr.getRequestObject();
   var callback = cb;
+  var isGraphQLRequest = Boolean(graphQL && graphQL.isGraphQLRequest(url, options.data));
+
+  options.headers = assign({'Content-Type': 'application/json'}, options.headers);
+
+  if (isGraphQLRequest) {
+    ajaxRequest = new GraphQLRequest(options);
+  } else {
+    ajaxRequest = new DefaultRequest(options);
+  }
+
+  url = ajaxRequest.getUrl();
+  body = ajaxRequest.getBody();
+  method = ajaxRequest.getMethod();
+  headers = ajaxRequest.getHeaders();
 
   if (method === 'GET') {
     url = querystring.queryify(url, body);
@@ -957,10 +996,29 @@ function _requestWithRetry(options, tcpRetryCount, cb) {
     req.onreadystatechange = function () {
       if (req.readyState !== 4) { return; }
 
-      status = req.status;
-      resBody = parseBody(req.responseText);
+      if (req.status === 0 && isGraphQLRequest) {
+        // If a merchant experiences a connection
+        // issue to the GraphQL endpoint (possibly
+        // due to a Content Security Policy), retry
+        // the request against the old client API.
+        delete options.graphQL;
+        _requestWithRetry(options, tcpRetryCount, cb);
+
+        return;
+      }
+
+      parsedBody = parseBody(req.responseText);
+      resBody = ajaxRequest.adaptResponseBody(parsedBody);
+      status = ajaxRequest.determineStatus(req.status, parsedBody);
 
       if (status >= 400 || status < 200) {
+        if (isGraphQLRequest && graphQLRequestShouldRetryWithClientApi(parsedBody)) {
+          delete options.graphQL;
+          _requestWithRetry(options, tcpRetryCount, cb);
+
+          return;
+        }
+
         if (tcpRetryCount < MAX_TCP_RETRYCOUNT && requestShouldRetry(status)) {
           tcpRetryCount++;
           _requestWithRetry(options, tcpRetryCount, cb);
@@ -995,7 +1053,26 @@ function _requestWithRetry(options, tcpRetryCount, cb) {
     };
   }
 
-  req.open(method, url, true);
+  try {
+    req.open(method, url, true);
+  } catch (requestOpenError) {
+    // If a merchant has a Content Security Policy and they have
+    // not whitelisted our endpoints, some browsers may
+    // synchronously throw an error. If it is not a GraphQL
+    // request, we throw the error. If it is a GraphQL request
+    // we remove the GraphQL option and try the request against
+    // the old client API.
+    if (!isGraphQLRequest) {
+      throw requestOpenError;
+    }
+
+    delete options.graphQL;
+
+    _requestWithRetry(options, tcpRetryCount, cb);
+
+    return;
+  }
+
   req.timeout = timeout;
 
   if (isXHRAvailable) {
@@ -1017,8 +1094,43 @@ module.exports = {
   request: request
 };
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../lib/assign":22,"../../lib/querystring":34,"../browser-detection":8,"./parse-body":19,"./prep-body":20}],15:[function(_dereq_,module,exports){
+},{"../../lib/assign":31,"../../lib/querystring":43,"../browser-detection":9,"./default-request":16,"./graphql/request":22,"./parse-body":26,"./prep-body":27,"./xhr":28}],16:[function(_dereq_,module,exports){
+'use strict';
+
+function DefaultRequest(options) {
+  this._url = options.url;
+  this._data = options.data;
+  this._method = options.method;
+  this._headers = options.headers;
+}
+
+DefaultRequest.prototype.getUrl = function () {
+  return this._url;
+};
+
+DefaultRequest.prototype.getBody = function () {
+  return this._data;
+};
+
+DefaultRequest.prototype.getMethod = function () {
+  return this._method;
+};
+
+DefaultRequest.prototype.getHeaders = function () {
+  return this._headers;
+};
+
+DefaultRequest.prototype.adaptResponseBody = function (parsedBody) {
+  return parsedBody;
+};
+
+DefaultRequest.prototype.determineStatus = function (status) {
+  return status;
+};
+
+module.exports = DefaultRequest;
+
+},{}],17:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1027,7 +1139,469 @@ module.exports = function getUserAgent() {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],16:[function(_dereq_,module,exports){
+},{}],18:[function(_dereq_,module,exports){
+'use strict';
+
+var errorResponseAdapter = _dereq_('./error');
+
+function creditCardTokenizationResponseAdapter(responseBody) {
+  var adaptedResponse;
+
+  if (responseBody.data && !responseBody.errors) {
+    if (responseBody.data.tokenizeCreditCard) {
+      adaptedResponse = adaptTokenizeCreditCardResponseBody(responseBody);
+    } else if (responseBody.data.tokenizeCvv) {
+      adaptedResponse = adaptTokenizeCvvResponseBody(responseBody);
+    }
+  } else {
+    adaptedResponse = errorResponseAdapter(responseBody);
+  }
+
+  return adaptedResponse;
+}
+
+function adaptTokenizeCreditCardResponseBody(body) {
+  var data = body.data.tokenizeCreditCard;
+  var creditCard = data.creditCard;
+  var lastTwo = creditCard.last4.substr(2, 4);
+  var response = {
+    creditCards: [
+      {
+        binData: creditCard.binData,
+        consumed: false,
+        description: 'ending in ' + lastTwo,
+        nonce: data.token,
+        details: {
+          cardType: creditCard.brand,
+          lastFour: creditCard.last4,
+          lastTwo: lastTwo
+        },
+        type: 'CreditCard',
+        threeDSecureInfo: null
+      }
+    ]
+  };
+
+  return response;
+}
+
+function adaptTokenizeCvvResponseBody(body) {
+  var data = body.data.tokenizeCvv;
+  var response = {
+    creditCards: [
+      {
+        consumed: false,
+        description: '',
+        nonce: data.token,
+        details: {
+          cardType: 'Unknown',
+          lastFour: '',
+          lastTwo: ''
+        },
+        type: 'CreditCard',
+        threeDSecureInfo: null
+      }
+    ]
+  };
+
+  return response;
+}
+
+module.exports = creditCardTokenizationResponseAdapter;
+
+},{"./error":19}],19:[function(_dereq_,module,exports){
+'use strict';
+
+function errorResponseAdapter(responseBody) {
+  var response;
+  var errorType = responseBody.errors &&
+    responseBody.errors[0] &&
+    responseBody.errors[0].extensions &&
+    responseBody.errors[0].extensions.errorType;
+
+  if (errorType === 'user_error') {
+    response = userErrorResponseAdapter(responseBody);
+  } else if (errorType) {
+    response = errorWithTypeResponseAdapter(responseBody);
+  } else {
+    response = {error: {message: 'There was a problem serving your request'}, fieldErrors: []};
+  }
+
+  return response;
+}
+
+function errorWithTypeResponseAdapter(responseBody) {
+  return {error: {message: responseBody.errors[0].message}, fieldErrors: []};
+}
+
+function userErrorResponseAdapter(responseBody) {
+  var error = responseBody.errors[0];
+  var message = error.extensions.legacyMessage;
+  var errorDetails = error.extensions.errorDetails;
+  var fieldErrors = buildFieldErrors(errorDetails);
+
+  return {error: {message: message}, fieldErrors: fieldErrors};
+}
+
+function buildFieldErrors(errorDetails) {
+  var fieldErrors = [];
+
+  errorDetails.forEach(function (detail) {
+    addFieldError(detail.inputPath.slice(1), detail, fieldErrors);
+  });
+
+  return fieldErrors;
+}
+
+function addFieldError(inputPath, errorDetail, fieldErrors) {
+  var fieldError;
+  var legacyCode = errorDetail.legacyCode;
+  var inputField = inputPath[0];
+
+  if (inputPath.length === 1) {
+    fieldErrors.push({
+      code: legacyCode,
+      field: inputField,
+      message: errorDetail.message
+    });
+
+    return;
+  }
+
+  fieldErrors.forEach(function (candidate) {
+    if (candidate.field === inputField) {
+      fieldError = candidate;
+    }
+  });
+
+  if (!fieldError) {
+    fieldError = {field: inputField, fieldErrors: []};
+    fieldErrors.push(fieldError);
+  }
+
+  addFieldError(inputPath.slice(1), errorDetail, fieldError.fieldErrors);
+}
+
+module.exports = errorResponseAdapter;
+
+},{}],20:[function(_dereq_,module,exports){
+'use strict';
+
+var assign = _dereq_('../../../../lib/assign').assign;
+
+var CREDIT_CARD_TOKENIZATION_MUTATION = 'mutation TokenizeCreditCard($input: TokenizeCreditCardInput!) { ' +
+'  tokenizeCreditCard(input: $input) { ' +
+'    token ' +
+'    creditCard { ' +
+'      brand ' +
+'      last4 ' +
+'      binData { ' +
+'        prepaid ' +
+'        healthcare ' +
+'        debit ' +
+'        durbinRegulated ' +
+'        commercial ' +
+'        payroll ' +
+'        issuingBank ' +
+'        countryOfIssuance ' +
+'        productId ' +
+'      } ' +
+'    } ' +
+'  } ' +
+'}';
+
+var CVV_ONLY_TOKENIZATION_MUTATION = 'mutation TokenizeCvv($input: TokenizeCvvInput!) { ' +
+'  tokenizeCvv(input: $input) { ' +
+'    token' +
+'  } ' +
+'}';
+
+function createCreditCardTokenizationBody(body) {
+  var cc = body.creditCard;
+  var billingAddress = cc && cc.billingAddress;
+  var expDate = cc && cc.expirationDate;
+  var expirationMonth = cc && (cc.expirationMonth || (expDate && expDate.split('/')[0].trim()));
+  var expirationYear = cc && (cc.expirationYear || (expDate && expDate.split('/')[1].trim()));
+  var variables = {
+    input: {
+      creditCard: {
+        number: cc && cc.number,
+        expirationMonth: expirationMonth,
+        expirationYear: expirationYear,
+        cvv: cc && cc.cvv,
+        cardholderName: cc && cc.cardholderName
+      },
+      options: {}
+    }
+  };
+
+  if (billingAddress) {
+    variables.input.creditCard.billingAddress = billingAddress;
+  }
+
+  variables.input = addValidationRule(body, variables.input);
+
+  return variables;
+}
+
+function addValidationRule(body, input) {
+  var validate;
+
+  if (body.creditCard && body.creditCard.options && typeof body.creditCard.options.validate === 'boolean') {
+    validate = body.creditCard.options.validate;
+  } else if ((body.authorizationFingerprint && body.tokenizationKey) || body.authorizationFingerprint) {
+    validate = true;
+  } else if (body.tokenizationKey) {
+    validate = false;
+  }
+
+  if (typeof validate === 'boolean') {
+    input.options = assign({
+      validate: validate
+    }, input.options);
+  }
+
+  return input;
+}
+
+function createCvvTokenizationBody(body) {
+  var variables = {
+    input: {
+      cvv: body.creditCard && body.creditCard.cvv
+    }
+  };
+
+  return variables;
+}
+
+function creditCardTokenization(body) {
+  var query, variables, operationName;
+
+  if (body.creditCard && !body.creditCard.number && body.creditCard.cvv) {
+    query = CVV_ONLY_TOKENIZATION_MUTATION;
+    variables = createCvvTokenizationBody(body);
+    operationName = 'TokenizeCvv';
+  } else {
+    query = CREDIT_CARD_TOKENIZATION_MUTATION;
+    variables = createCreditCardTokenizationBody(body);
+    operationName = 'TokenizeCreditCard';
+  }
+
+  return JSON.stringify({
+    query: query,
+    variables: variables,
+    operationName: operationName
+  });
+}
+
+module.exports = creditCardTokenization;
+
+},{"../../../../lib/assign":31}],21:[function(_dereq_,module,exports){
+'use strict';
+
+var browserDetection = _dereq_('../../browser-detection');
+
+var features = {
+  tokenize_credit_cards: 'payment_methods/credit_cards' // eslint-disable-line camelcase
+};
+
+var blacklistedInputPaths = [
+  'creditCard.options.unionPayEnrollment'
+];
+
+function GraphQL(config) {
+  this._config = config.graphQL;
+}
+
+GraphQL.prototype.getGraphQLEndpoint = function () {
+  return this._config.url;
+};
+
+GraphQL.prototype.isGraphQLRequest = function (url, body) {
+  var featureEnabled;
+  var path = this.getClientApiPath(url);
+
+  if (!this._isGraphQLEnabled() || !path || browserDetection.isIe9()) {
+    return false;
+  }
+
+  featureEnabled = this._config.features.some(function (feature) {
+    return features[feature] === path;
+  });
+
+  if (containsBlacklistedKeys(body)) {
+    return false;
+  }
+
+  return featureEnabled;
+};
+
+GraphQL.prototype.getClientApiPath = function (url) {
+  var path;
+  var clientApiPrefix = '/client_api/v1/';
+  var pathParts = url.split(clientApiPrefix);
+
+  if (pathParts.length > 1) {
+    path = pathParts[1].split('?')[0];
+  }
+
+  return path;
+};
+
+GraphQL.prototype._isGraphQLEnabled = function () {
+  return Boolean(this._config);
+};
+
+function containsBlacklistedKeys(body) {
+  return blacklistedInputPaths.some(function (keys) {
+    var value = keys.split('.').reduce(function (accumulator, key) {
+      return accumulator && accumulator[key];
+    }, body);
+
+    return value !== undefined; // eslint-disable-line no-undefined
+  });
+}
+
+module.exports = GraphQL;
+
+},{"../../browser-detection":9}],22:[function(_dereq_,module,exports){
+'use strict';
+
+var BRAINTREE_VERSION = '2017-12-15';
+
+var assign = _dereq_('../../../lib/assign').assign;
+
+var creditCardTokenizationBodyGenerator = _dereq_('./generators/credit-card-tokenization');
+var creditCardTokenizationResponseAdapter = _dereq_('./adapters/credit-card-tokenization');
+
+var generators = {
+  'payment_methods/credit_cards': creditCardTokenizationBodyGenerator
+};
+var adapters = {
+  'payment_methods/credit_cards': creditCardTokenizationResponseAdapter
+};
+
+function GraphQLRequest(options) {
+  var clientApiPath = options.graphQL.getClientApiPath(options.url);
+
+  this._graphQL = options.graphQL;
+  this._data = options.data;
+  this._method = options.method;
+  this._headers = options.headers;
+  this._sendAnalyticsEvent = options.sendAnalyticsEvent || Function.prototype;
+
+  this._generator = generators[clientApiPath];
+  this._adapter = adapters[clientApiPath];
+
+  this._sendAnalyticsEvent('graphql.init');
+}
+
+GraphQLRequest.prototype.getUrl = function () {
+  return this._graphQL.getGraphQLEndpoint();
+};
+
+GraphQLRequest.prototype.getBody = function () {
+  var formattedBody = formatBodyKeys(this._data);
+
+  return this._generator(formattedBody);
+};
+
+GraphQLRequest.prototype.getMethod = function () {
+  return 'POST';
+};
+
+GraphQLRequest.prototype.getHeaders = function () {
+  var authorization, headers;
+
+  if (this._data.authorizationFingerprint) {
+    this._sendAnalyticsEvent('graphql.authorization-fingerprint');
+    authorization = this._data.authorizationFingerprint;
+  } else {
+    this._sendAnalyticsEvent('graphql.tokenization-key');
+    authorization = this._data.tokenizationKey;
+  }
+
+  headers = {
+    Authorization: 'Bearer ' + authorization,
+    'Braintree-Version': BRAINTREE_VERSION
+  };
+
+  return assign({}, this._headers, headers);
+};
+
+GraphQLRequest.prototype.adaptResponseBody = function (parsedBody) {
+  return this._adapter(parsedBody);
+};
+
+GraphQLRequest.prototype.determineStatus = function (httpStatus, parsedResponse) {
+  var status, errorType;
+
+  if (httpStatus === 200) {
+    errorType = parsedResponse.errors &&
+      parsedResponse.errors[0] &&
+      parsedResponse.errors[0].extensions &&
+      parsedResponse.errors[0].extensions.errorType;
+
+    if (parsedResponse.data && !parsedResponse.errors) {
+      status = 200;
+    } else if (errorType === 'user_error') {
+      status = 422;
+    } else if (errorType === 'developer_error') {
+      status = 403;
+    } else if (errorType === 'unknown_error') {
+      status = 500;
+    } else if (isCoercionOrValidationError(errorType, parsedResponse)) {
+      status = 403;
+    } else {
+      status = 500;
+    }
+  } else if (!httpStatus) {
+    status = 500;
+  } else {
+    status = httpStatus;
+  }
+
+  this._sendAnalyticsEvent('graphql.status.' + httpStatus);
+  this._sendAnalyticsEvent('graphql.determinedStatus.' + status);
+
+  return status;
+};
+
+function isCoercionOrValidationError(errorType, parsedResponse) {
+  return !errorType && parsedResponse.errors[0].message;
+}
+
+function snakeCaseToCamelCase(snakeString) {
+  if (snakeString.indexOf('_') === -1) {
+    return snakeString;
+  }
+
+  return snakeString.toLowerCase().replace(/(\_\w)/g, function (match) {
+    return match[1].toUpperCase();
+  });
+}
+
+function formatBodyKeys(originalBody) {
+  var body = {};
+
+  Object.keys(originalBody).forEach(function (key) {
+    var camelCaseKey = snakeCaseToCamelCase(key);
+
+    if (typeof originalBody[key] === 'object') {
+      body[camelCaseKey] = formatBodyKeys(originalBody[key]);
+    } else if (typeof originalBody[key] === 'number') {
+      body[camelCaseKey] = String(originalBody[key]);
+    } else {
+      body[camelCaseKey] = originalBody[key];
+    }
+  });
+
+  return body;
+}
+
+module.exports = GraphQLRequest;
+
+},{"../../../lib/assign":31,"./adapters/credit-card-tokenization":18,"./generators/credit-card-tokenization":20}],23:[function(_dereq_,module,exports){
 'use strict';
 
 var ajaxIsAvaliable;
@@ -1058,7 +1632,7 @@ module.exports = function (options, cb) {
   }
 };
 
-},{"../../lib/once":32,"./ajax-driver":14,"./get-user-agent":15,"./is-http":17,"./jsonp-driver":18}],17:[function(_dereq_,module,exports){
+},{"../../lib/once":41,"./ajax-driver":15,"./get-user-agent":17,"./is-http":24,"./jsonp-driver":25}],24:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1067,7 +1641,7 @@ module.exports = function () {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],18:[function(_dereq_,module,exports){
+},{}],25:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1179,7 +1753,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../lib/querystring":34,"../../lib/vendor/uuid":36}],19:[function(_dereq_,module,exports){
+},{"../../lib/querystring":43,"../../lib/vendor/uuid":45}],26:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (body) {
@@ -1190,7 +1764,7 @@ module.exports = function (body) {
   return body;
 };
 
-},{}],20:[function(_dereq_,module,exports){
+},{}],27:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (method, body) {
@@ -1205,7 +1779,23 @@ module.exports = function (method, body) {
   return body;
 };
 
-},{}],21:[function(_dereq_,module,exports){
+},{}],28:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+
+var isXHRAvailable = global.XMLHttpRequest && 'withCredentials' in new global.XMLHttpRequest();
+
+function getRequestObject() {
+  return isXHRAvailable ? new XMLHttpRequest() : new XDomainRequest();
+}
+
+module.exports = {
+  isAvailable: isXHRAvailable,
+  getRequestObject: getRequestObject
+};
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],29:[function(_dereq_,module,exports){
 'use strict';
 
 var createAuthorizationData = _dereq_('./create-authorization-data');
@@ -1239,7 +1829,41 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":24,"./create-authorization-data":26,"./json-clone":31}],22:[function(_dereq_,module,exports){
+},{"./constants":33,"./create-authorization-data":35,"./json-clone":40}],30:[function(_dereq_,module,exports){
+'use strict';
+
+var constants = _dereq_('./constants');
+var addMetadata = _dereq_('./add-metadata');
+
+function _millisToSeconds(millis) {
+  return Math.floor(millis / 1000);
+}
+
+function sendAnalyticsEvent(client, kind, callback) {
+  var configuration = client.getConfiguration();
+  var request = client._request;
+  var timestamp = _millisToSeconds(Date.now());
+  var url = configuration.gatewayConfiguration.analytics.url;
+  var data = {
+    analytics: [{
+      kind: constants.ANALYTICS_PREFIX + kind,
+      timestamp: timestamp
+    }]
+  };
+
+  request({
+    url: url,
+    method: 'post',
+    data: addMetadata(configuration, data),
+    timeout: constants.ANALYTICS_REQUEST_TIMEOUT_MS
+  }, callback);
+}
+
+module.exports = {
+  sendEvent: sendAnalyticsEvent
+};
+
+},{"./add-metadata":29,"./constants":33}],31:[function(_dereq_,module,exports){
 'use strict';
 
 var assignNormalized = typeof Object.assign === 'function' ? Object.assign : assignPolyfill;
@@ -1264,7 +1888,7 @@ module.exports = {
   _assign: assignPolyfill
 };
 
-},{}],23:[function(_dereq_,module,exports){
+},{}],32:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -1349,10 +1973,10 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":28}],24:[function(_dereq_,module,exports){
+},{"./enumerate":37}],33:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.26.0";
+var VERSION = "3.27.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -1366,7 +1990,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],25:[function(_dereq_,module,exports){
+},{}],34:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -1388,7 +2012,7 @@ function convertToBraintreeError(originalErr, btErrorObject) {
 
 module.exports = convertToBraintreeError;
 
-},{"./braintree-error":23}],26:[function(_dereq_,module,exports){
+},{"./braintree-error":32}],35:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/vendor/polyfill').atob;
@@ -1437,7 +2061,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/vendor/polyfill":35}],27:[function(_dereq_,module,exports){
+},{"../lib/vendor/polyfill":44}],36:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (fn) {
@@ -1451,7 +2075,7 @@ module.exports = function (fn) {
   };
 };
 
-},{}],28:[function(_dereq_,module,exports){
+},{}],37:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -1466,7 +2090,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],29:[function(_dereq_,module,exports){
+},{}],38:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -1503,7 +2127,7 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":23}],30:[function(_dereq_,module,exports){
+},{"./braintree-error":32}],39:[function(_dereq_,module,exports){
 'use strict';
 
 var parser;
@@ -1538,16 +2162,16 @@ function isWhitelistedDomain(url) {
 
 module.exports = isWhitelistedDomain;
 
-},{}],31:[function(_dereq_,module,exports){
+},{}],40:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],32:[function(_dereq_,module,exports){
-arguments[4][4][0].apply(exports,arguments)
-},{"dup":4}],33:[function(_dereq_,module,exports){
+},{}],41:[function(_dereq_,module,exports){
+arguments[4][5][0].apply(exports,arguments)
+},{"dup":5}],42:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1556,7 +2180,7 @@ var Promise = global.Promise || _dereq_('promise-polyfill');
 module.exports = Promise;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":7}],34:[function(_dereq_,module,exports){
+},{"promise-polyfill":8}],43:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1650,7 +2274,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],35:[function(_dereq_,module,exports){
+},{}],44:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1691,7 +2315,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],36:[function(_dereq_,module,exports){
+},{}],45:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {
@@ -1705,5 +2329,5 @@ function uuid() {
 
 module.exports = uuid;
 
-},{}]},{},[13])(13)
+},{}]},{},[14])(14)
 });

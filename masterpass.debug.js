@@ -935,7 +935,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.26.0";
+var VERSION = "3.27.0";
 
 function basicComponentVerification(options) {
   var client, clientVersion, name;
@@ -1236,7 +1236,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":24,"./check-origin":25,"./events":26,"framebus":18}],28:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.26.0";
+var VERSION = "3.27.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -1608,10 +1608,10 @@ FrameService.prototype._getFrameForEnvironment = function (options) {
 
   var initOptions = assign({}, this._options, options);
 
-  if (usePopup) {
-    return new Popup(initOptions);
-  } else if (popupBridgeExists) {
+  if (popupBridgeExists) {
     return new PopupBridge(initOptions);
+  } else if (usePopup) {
+    return new Popup(initOptions);
   }
 
   return new Modal(initOptions);
@@ -2083,7 +2083,7 @@ var Promise = _dereq_('../../lib/promise');
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var errors = _dereq_('../shared/errors');
-var VERSION = "3.26.0";
+var VERSION = "3.27.0";
 var methods = _dereq_('../../lib/methods');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var analytics = _dereq_('../../lib/analytics');
@@ -2366,10 +2366,23 @@ Masterpass.prototype._tokenizeMasterpass = function (payload) {
     return Promise.reject(new BraintreeError(errors.MASTERPASS_POPUP_CLOSED));
   }
 
+  if (isMissingRequiredPayload(payload)) {
+    analytics.sendEvent(self._client, 'masterpass.tokenization.closed.missing-payload');
+    self._closeWindow();
+
+    return Promise.reject(new BraintreeError(errors.MASTERPASS_POPUP_MISSING_REQUIRED_PARAMETERS));
+  }
+
   return self._client.request({
     endpoint: 'payment_methods/masterpass_cards',
     method: 'post',
-    data: formatTokenizeData(payload)
+    data: {
+      masterpassCard: {
+        checkoutResourceUrl: payload.checkout_resource_url,
+        requestToken: payload.oauth_token,
+        verifierToken: payload.oauth_verifier
+      }
+    }
   }).then(function (response) {
     self._closeWindow();
     if (global.popupBridge) {
@@ -2391,15 +2404,14 @@ Masterpass.prototype._tokenizeMasterpass = function (payload) {
   });
 };
 
-function formatTokenizeData(payload) {
-  // Converts null values that can be returned as strings
-  return {
-    masterpassCard: {
-      checkoutResourceUrl: payload.checkout_resource_url,
-      requestToken: payload.oauth_token,
-      verifierToken: payload.oauth_verifier === 'null' ? null : payload.oauth_verifier
-    }
-  };
+function isMissingRequiredPayload(payload) {
+  return [
+    payload.oauth_verifier,
+    payload.oauth_token,
+    payload.checkout_resource_url
+  ].some(function (element) {
+    return element == null || element === 'null';
+  });
 }
 
 Masterpass.prototype._closeWindow = function () {
@@ -2461,7 +2473,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var browserDetection = _dereq_('./shared/browser-detection');
 var Masterpass = _dereq_('./external/masterpass');
-var VERSION = "3.26.0";
+var VERSION = "3.27.0";
 var errors = _dereq_('./shared/errors');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -2593,6 +2605,11 @@ module.exports = {
     type: BraintreeError.types.MERCHANT,
     code: 'MASTERPASS_POPUP_OPEN_FAILED',
     message: 'Masterpass popup failed to open. Make sure to tokenize in response to a user action, such as a click.'
+  },
+  MASTERPASS_POPUP_MISSING_REQUIRED_PARAMETERS: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'MASTERPASS_POPUP_MISSING_REQUIRED_PARAMETERS',
+    message: 'Masterpass popup failed to return all required parameters needed to continue tokenization.'
   },
   MASTERPASS_POPUP_CLOSED: {
     type: BraintreeError.types.CUSTOMER,

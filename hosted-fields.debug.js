@@ -1525,6 +1525,7 @@ function HostedFields(options) {
 
   failureTimeout = setTimeout(function () {
     analytics.sendEvent(self._client, 'custom.hosted-fields.load.timed-out');
+    self._emit('timeout');
   }, INTEGRATION_TIMEOUT_MS);
 
   this._bus.on(events.FRAME_READY, function (reply) {
@@ -1638,6 +1639,8 @@ HostedFields.prototype.teardown = function () {
  * @param {string} [options.billingAddress.company] When supplied, this company name will be tokenized along with the contents of the fields.
  * @param {string} [options.billingAddress.streetAddress] When supplied, this street address will be tokenized along with the contents of the fields.
  * @param {string} [options.billingAddress.extendedAddress] When supplied, this extended address will be tokenized along with the contents of the fields.
+ * @param {string} [options.billingAddress.locality] When supplied, this locality (the city) will be tokenized along with the contents of the fields.
+ * @param {string} [options.billingAddress.region] When supplied, this region (the state) will be tokenized along with the contents of the fields.
  * @param {string} [options.billingAddress.countryCodeNumeric] When supplied, this numeric country code will be tokenized along with the contents of the fields.
  * @param {string} [options.billingAddress.countryCodeAlpha2] When supplied, this alpha 2 representation of a country will be tokenized along with the contents of the fields.
  * @param {string} [options.billingAddress.countryCodeAlpha3] When supplied, this alpha 3 representation of a country will be tokenized along with the contents of the fields.
@@ -2151,10 +2154,12 @@ module.exports = function injectFrame(frame, container) {
 
 var HostedFields = _dereq_('./external/hosted-fields');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
+var errors = _dereq_('./shared/errors');
 var supportsInputFormatting = _dereq_('restricted-input/supports-input-formatting');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
+var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.26.0";
+var VERSION = "3.27.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -2168,7 +2173,9 @@ var VERSION = "3.26.0";
  * @property {object|boolean} [select] If truthy, this field becomes a `<select>` dropdown list. This can only be used for `expirationMonth` and `expirationYear` fields. If you do not use a `placeholder` property for the field, the current month/year will be the default selected value.
  * @property {string[]} [select.options] An array of 12 strings, one per month. This can only be used for the `expirationMonth` field. For example, the array can look like `['01 - January', '02 - February', ...]`.
  * @property {number} [maxlength] This option applies only to the CVV and postal code fields. Will be used as the `maxlength` attribute of the input if it is less than the default. The primary use cases for the `maxlength` option are: limiting the length of the CVV input for CVV-only verifications when the card type is known and limiting the length of the postal code input when cards are coming from a known region.
- * @property {number} [minlength=3] This option applies only to the postal code field. Will be used as the `minlength` attribute of the input. The default value is 3, representing the Icelandic postal code length. This option's primary use case is to increase the `minlength`, e.g. for US customers, the postal code `minlength` can be set to 5.
+ * @property {number} [minlength=3] This option applies only to the cvv and postal code fields. Will be used as the `minlength` attribute of the input.
+ * For postal code fields, the default value is 3, representing the Icelandic postal code length. This option's primary use case is to increase the `minlength`, e.g. for US customers, the postal code `minlength` can be set to 5.
+ * For cvv fields, the default value is 3. The `minlength` attribute only applies to integrations capturing a cvv without a number field.
  * @property {string} [prefill] A value to prefill the field with. For example, when creating an update card form, you can prefill the expiration date fields with the old expiration date data.
  */
 
@@ -2315,9 +2322,12 @@ function create(options) {
   }).then(function () {
     var integration = new HostedFields(options);
 
-    return new Promise(function (resolve) {
+    return new Promise(function (resolve, reject) {
       integration.on('ready', function () {
         resolve(integration);
+      });
+      integration.on('timeout', function () {
+        reject(new BraintreeError(errors.HOSTED_FIELDS_TIMEOUT));
       });
     });
   });
@@ -2373,7 +2383,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/basic-component-verification":32,"../lib/promise":50,"./external/hosted-fields":23,"@braintree/wrap-promise":15,"restricted-input/supports-input-formatting":20}],26:[function(_dereq_,module,exports){
+},{"../lib/basic-component-verification":32,"../lib/braintree-error":34,"../lib/promise":50,"./external/hosted-fields":23,"./shared/errors":28,"@braintree/wrap-promise":15,"restricted-input/supports-input-formatting":20}],26:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -2388,7 +2398,7 @@ module.exports = {
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.26.0";
+var VERSION = "3.27.0";
 
 var constants = {
   VERSION: VERSION,
@@ -2514,6 +2524,11 @@ module.exports = constants;
 var BraintreeError = _dereq_('../../lib/braintree-error');
 
 module.exports = {
+  HOSTED_FIELDS_TIMEOUT: {
+    type: BraintreeError.types.UNKNOWN,
+    code: 'HOSTED_FIELDS_TIMEOUT',
+    message: 'Hosted Fields timed out when attempting to set up.'
+  },
   HOSTED_FIELDS_INVALID_FIELD_KEY: {
     type: BraintreeError.types.MERCHANT,
     code: 'HOSTED_FIELDS_INVALID_FIELD_KEY'
@@ -2674,7 +2689,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.26.0";
+var VERSION = "3.27.0";
 
 function basicComponentVerification(options) {
   var client, clientVersion, name;
@@ -3060,7 +3075,7 @@ module.exports = {
 },{}],39:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.26.0";
+var VERSION = "3.27.0";
 var PLATFORM = 'web';
 
 module.exports = {

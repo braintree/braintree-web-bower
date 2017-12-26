@@ -723,7 +723,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":19,"./create-authorization-data":21,"./json-clone":25}],12:[function(_dereq_,module,exports){
+},{"./constants":19,"./create-authorization-data":21,"./json-clone":26}],12:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('./constants');
@@ -788,7 +788,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.26.0";
+var VERSION = "3.27.0";
 
 function basicComponentVerification(options) {
   var client, clientVersion, name;
@@ -829,7 +829,7 @@ module.exports = {
   verify: basicComponentVerification
 };
 
-},{"./braintree-error":15,"./errors":23,"./promise":27}],15:[function(_dereq_,module,exports){
+},{"./braintree-error":15,"./errors":23,"./promise":28}],15:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -946,7 +946,7 @@ module.exports = {
   checkOrigin: checkOrigin
 };
 
-},{"../is-whitelisted-domain":24}],17:[function(_dereq_,module,exports){
+},{"../is-whitelisted-domain":25}],17:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../enumerate');
@@ -1089,7 +1089,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":15,"./check-origin":16,"./events":17,"framebus":9}],19:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.26.0";
+var VERSION = "3.27.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -1170,7 +1170,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/vendor/polyfill":29}],22:[function(_dereq_,module,exports){
+},{"../lib/vendor/polyfill":30}],22:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -1225,6 +1225,36 @@ module.exports = {
 },{"./braintree-error":15}],24:[function(_dereq_,module,exports){
 'use strict';
 
+function EventEmitter() {
+  this._events = {};
+}
+
+EventEmitter.prototype.on = function (event, callback) {
+  if (this._events[event]) {
+    this._events[event].push(callback);
+  } else {
+    this._events[event] = [callback];
+  }
+};
+
+EventEmitter.prototype._emit = function (event) {
+  var i, args;
+  var callbacks = this._events[event];
+
+  if (!callbacks) { return; }
+
+  args = Array.prototype.slice.call(arguments, 1);
+
+  for (i = 0; i < callbacks.length; i++) {
+    callbacks[i].apply(null, args);
+  }
+};
+
+module.exports = EventEmitter;
+
+},{}],25:[function(_dereq_,module,exports){
+'use strict';
+
 var parser;
 var legalHosts = {
   'paypal.com': 1,
@@ -1257,14 +1287,14 @@ function isWhitelistedDomain(url) {
 
 module.exports = isWhitelistedDomain;
 
-},{}],25:[function(_dereq_,module,exports){
+},{}],26:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],26:[function(_dereq_,module,exports){
+},{}],27:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -1273,7 +1303,7 @@ module.exports = function (obj) {
   });
 };
 
-},{}],27:[function(_dereq_,module,exports){
+},{}],28:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1282,7 +1312,7 @@ var Promise = global.Promise || _dereq_('promise-polyfill');
 module.exports = Promise;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":10}],28:[function(_dereq_,module,exports){
+},{"promise-polyfill":10}],29:[function(_dereq_,module,exports){
 'use strict';
 
 function useMin(isDebug) {
@@ -1291,7 +1321,7 @@ function useMin(isDebug) {
 
 module.exports = useMin;
 
-},{}],29:[function(_dereq_,module,exports){
+},{}],30:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1332,7 +1362,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],30:[function(_dereq_,module,exports){
+},{}],31:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {
@@ -1346,7 +1376,7 @@ function uuid() {
 
 module.exports = uuid;
 
-},{}],31:[function(_dereq_,module,exports){
+},{}],32:[function(_dereq_,module,exports){
 'use strict';
 
 var analytics = _dereq_('../../lib/analytics');
@@ -1358,8 +1388,9 @@ var uuid = _dereq_('../../lib/vendor/uuid');
 var useMin = _dereq_('../../lib/use-min');
 var methods = _dereq_('../../lib/methods');
 var Promise = _dereq_('../../lib/promise');
+var EventEmitter = _dereq_('../../lib/event-emitter');
 var BraintreeError = _dereq_('../../lib/braintree-error');
-var VERSION = "3.26.0";
+var VERSION = "3.27.0";
 var events = _dereq_('../shared/constants').events;
 var errors = _dereq_('../shared/constants').errors;
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -1386,6 +1417,63 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
  * @property {string} binData.productId The product id.
  */
 
+/**
+ * @typedef {object} PaymentRequestComponent~shippingEventObject
+ * @description The event payload sent from {@link PaymentRequestComponent#on|on}.
+ * @property {object} target An object which contains data about the event.
+ * @property {function} updateWith A method to call with the updated Payment Request details.
+ */
+
+/**
+ * @name PaymentRequestComponent#on
+ * @function
+ * @param {string} event The name of the event to which you are subscribing.
+ * @param {function} handler A callback to handle the event.
+ * @description Subscribes a handler function to a named event. `event` should be {@link PaymentRequestComponent#event:shippingAddressChange|shippingAddressChange} or {@link PaymentRequestComponent#event:shippingOptionChange|shippingOptionChange}. For convenience, you can also listen on `shippingaddresschange` or `shippingoptionchange` to match the event listeners in the [Payment Request API documentation](https://developers.google.com/web/fundamentals/payments/deep-dive-into-payment-request#shipping_in_payment_request_api). Events will emit a {@link PaymentRequestComponent~shippingEventObject|shippingEventObject}.
+ * @example
+ * <caption>Listening to a Payment Request event, in this case 'shippingAddressChange'</caption>
+ * braintree.paymentRequest.create({ ... }, function (createErr, paymentRequestInstance) {
+ *   paymentRequestInstance.on('shippingAddressChange', function (event) {
+ *     console.log(event.target.shippingAddress);
+ *   });
+ * });
+ * @returns {void}
+ */
+
+/**
+ * This event is emitted when the customer selects a shipping address.
+ * @event PaymentRequestComponent#shippingAddressChange
+ * @type {PaymentRequestComponent~shippingEventObject}
+ * @example
+ * <caption>Listening to a shipping address change event</caption>
+ * braintree.paymentRequest.create({ ... }, function (createErr, paymentRequestInstance) {
+ *   paymentRequestInstance.on('shippingAddressChange', function (event) {
+ *     // validate event.target.shippingAddress if needed
+ *
+ *     event.updateWith(paymentRequestDetails);
+ *   });
+ * });
+ */
+
+/**
+ * This event is emitted when the customer selects a shipping option.
+ * @event PaymentRequestComponent#shippingOptionChange
+ * @type {PaymentRequestComponent~shippingEventObject}
+ * @example
+ * <caption>Listening to a shipping option change event</caption>
+ * braintree.paymentRequest.create({ ... }, function (createErr, paymentRequestInstance) {
+ *   paymentRequestInstance.on('shippingOptionChange', function (event) {
+ *     // validate event.target.shippingOption if needed
+ *
+ *     paymentRequestDetails.shippingOptions.forEach(function (option) {
+ *       option.selected = option.id === event.target.shippingOption;
+ *     });
+ *
+ *     event.updateWith(paymentRequestDetails);
+ *   });
+ * });
+ */
+
 var CARD_TYPE_MAPPINGS = {
   Visa: 'visa',
   Mastercard: 'mastercard',
@@ -1400,7 +1488,11 @@ var CARD_TYPE_MAPPINGS = {
 var BRAINTREE_PAY_WITH_GOOGLE_MERCHANT_ID = '18278000977346790994';
 
 function composeUrl(assetsUrl, componentId, isDebug) {
-  return assetsUrl + '/web/' + VERSION + '/html/payment-request-frame' + useMin(isDebug) + '.html#' + componentId;
+  var baseUrl = assetsUrl;
+
+  // endRemoveIf(production)
+
+  return baseUrl + '/web/' + VERSION + '/html/payment-request-frame' + useMin(isDebug) + '.html#' + componentId;
 }
 
 /**
@@ -1415,6 +1507,8 @@ function composeUrl(assetsUrl, componentId, isDebug) {
 function PaymentRequestComponent(options) {
   var enabledPaymentMethods = options.enabledPaymentMethods || {};
 
+  EventEmitter.call(this);
+
   this._componentId = uuid();
   this._client = options.client;
   this._analyticsName = 'payment-request';
@@ -1428,6 +1522,10 @@ function PaymentRequestComponent(options) {
   }.bind(this));
   this._bus = new Bus({channel: this._componentId});
 }
+
+PaymentRequestComponent.prototype = Object.create(EventEmitter.prototype, {
+  constructor: PaymentRequestComponent
+});
 
 PaymentRequestComponent.prototype._constructDefaultSupportedPaymentMethods = function () {
   var configuration = this._client.getConfiguration();
@@ -1489,6 +1587,7 @@ PaymentRequestComponent.prototype._constructDefaultSupportedPaymentMethods = fun
 
 PaymentRequestComponent.prototype.initialize = function () {
   var clientConfiguration = this._client.getConfiguration();
+  var self = this;
 
   this._frame = iFramer({
     allowPaymentRequest: true,
@@ -1507,20 +1606,46 @@ PaymentRequestComponent.prototype.initialize = function () {
   }
 
   return new Promise(function (resolve) {
-    this._bus.on(events.FRAME_READY, function (reply) {
-      reply(this._client);
-    }.bind(this));
-    this._bus.on(events.FRAME_CAN_MAKE_REQUESTS, function () {
-      analytics.sendEvent(this._client, this._analyticsName + '.initialized');
-      resolve(this);
-    }.bind(this));
+    self._bus.on(events.FRAME_READY, function (reply) {
+      reply(self._client);
+    });
+    self._bus.on(events.FRAME_CAN_MAKE_REQUESTS, function () {
+      analytics.sendEvent(self._client, self._analyticsName + '.initialized');
+      self._bus.on(events.SHIPPING_ADDRESS_CHANGE, function (shippingAddress) {
+        var shippingAddressChangeEvent = {
+          target: {
+            shippingAddress: shippingAddress
+          },
+          updateWith: function (paymentDetails) {
+            self._bus.emit(events.UPDATE_SHIPPING_ADDRESS, paymentDetails);
+          }
+        };
+
+        self._emit('shippingAddressChange', shippingAddressChangeEvent);
+        self._emit('shippingaddresschange', shippingAddressChangeEvent);
+      });
+      self._bus.on(events.SHIPPING_OPTION_CHANGE, function (shippingOption) {
+        var shippingOptionChangeEvent = {
+          target: {
+            shippingOption: shippingOption
+          },
+          updateWith: function (paymentDetails) {
+            self._bus.emit(events.UPDATE_SHIPPING_OPTION, paymentDetails);
+          }
+        };
+
+        self._emit('shippingOptionChange', shippingOptionChangeEvent);
+        self._emit('shippingoptionchange', shippingOptionChangeEvent);
+      });
+      resolve(self);
+    });
 
     // TODO - We may need to apply the same setTimeout hack that Hosted Fields
     // uses for iframes to load correctly in Edge. See:
     // https://github.com/braintree/braintree-web/blob/0c951e5f9859c606652485de14188b6bd6656677/src/hosted-fields/external/hosted-fields.js#L449-L469
-    this._frame.src = composeUrl(clientConfiguration.gatewayConfiguration.assetsUrl, this._componentId, clientConfiguration.isDebug);
-    document.body.appendChild(this._frame);
-  }.bind(this));
+    self._frame.src = composeUrl(clientConfiguration.gatewayConfiguration.assetsUrl, self._componentId, clientConfiguration.isDebug);
+    document.body.appendChild(self._frame);
+  });
 };
 
 /**
@@ -1569,8 +1694,6 @@ PaymentRequestComponent.prototype.createSupportedPaymentMethodsConfiguration = f
  * @param {object} configuration.details The payment details. For details on this object, see [Google's PaymentRequest API documentation](https://developers.google.com/web/fundamentals/discovery-and-monetization/payment-request/deep-dive-into-payment-request#defining_payment_details).
  * @param {array} [configuration.supportedPaymentMethods] The supported payment methods. If not passed in, the supported payment methods from the merchant account that generated the authorization for the client will be used. For details on this array, see [Google's PaymentRequest API documentation](https://developers.google.com/web/fundamentals/discovery-and-monetization/payment-request/deep-dive-into-payment-request#defining_supported_payment_methods).
  * @param {object} [configuration.options] Additional payment request options. For details on this object, see [Google's PaymentRequest API documentation](https://developers.google.com/web/fundamentals/discovery-and-monetization/payment-request/deep-dive-into-payment-request#defining_options_optional).
- *
- * **Note:** `requestShipping` is not supported by Braintree at this time.
  * @param {callback} [callback] The second argument, <code>data</code>, is a {@link PaymentRequest~paymentPayload|paymentPayload}. If no callback is provided, `tokenize` returns a function that resolves with a {@link PaymentRequestComponent~tokenizePayload|tokenizePayload}.
  * @example
  * paymentRequestInstance.tokenize({
@@ -1629,6 +1752,67 @@ PaymentRequestComponent.prototype.createSupportedPaymentMethodsConfiguration = f
  *     requestPayerName: true,
  *     requestPayerPhone: true,
  *     requestPayerEmail: true
+ *   }
+ * }).then(function (payload) {
+ *   // send payload.nonce to your server
+ *   // collect additional info from the raw response
+ *   console.log(payload.details.rawPaymentResponse);
+ * });
+ * @example <caption>Request Shipping Information</caption>
+ * var shippingOptions = [
+ *   {
+ *     id: 'economy',
+ *     label: 'Economy Shipping (5-7 Days)',
+ *     amount: {
+ *       currency: 'USD',
+ *       value: '0',
+ *     },
+ *   }, {
+ *     id: 'express',
+ *     label: 'Express Shipping (2-3 Days)',
+ *     amount: {
+ *       currency: 'USD',
+ *       value: '5',
+ *     },
+ *   }, {
+ *     id: 'next-day',
+ *     label: 'Next Day Delivery',
+ *     amount: {
+ *       currency: 'USD',
+ *       value: '12',
+ *     },
+ *   },
+ * ];
+ * var paymentDetails = {
+ * 	 total: {
+ *     label: 'Total',
+ *     amount: {
+ *       currency: 'USD',
+ *       value: '10.00',
+ *     }
+ *   },
+ *   shippingOptions: shippingOptions
+ * };
+ *
+ * paymentRequest.on('shippingAddressChange', function (event) {
+ *   // validate shipping address on event.target.shippingAddress
+ *   // make changes to the paymentDetails or shippingOptions if necessary
+ *
+ *   event.updateWith(paymentDetails)
+ * });
+ *
+ * paymentRequest.on('shippingOptionChange', function (event) {
+ *   shippingOptions.forEach(function (option) {
+ *     option.selected = option.id === event.target.shippingOption;
+ *   });
+ *
+ *   event.updateWith(paymentDetails)
+ * });
+ *
+ * paymentRequestInstance.tokenize({
+ *   details: paymentDetails,
+ *   options: {
+ *     requestShipping: true
  *   }
  * }).then(function (payload) {
  *   // send payload.nonce to your server
@@ -1742,7 +1926,7 @@ PaymentRequestComponent.prototype.teardown = function () {
 
 module.exports = wrapPromise.wrapPrototype(PaymentRequestComponent);
 
-},{"../../lib/analytics":12,"../../lib/assign":13,"../../lib/braintree-error":15,"../../lib/bus":18,"../../lib/convert-methods-to-error":20,"../../lib/methods":26,"../../lib/promise":27,"../../lib/use-min":28,"../../lib/vendor/uuid":30,"../shared/constants":33,"@braintree/iframer":1,"@braintree/wrap-promise":8}],32:[function(_dereq_,module,exports){
+},{"../../lib/analytics":12,"../../lib/assign":13,"../../lib/braintree-error":15,"../../lib/bus":18,"../../lib/convert-methods-to-error":20,"../../lib/event-emitter":24,"../../lib/methods":27,"../../lib/promise":28,"../../lib/use-min":29,"../../lib/vendor/uuid":31,"../shared/constants":34,"@braintree/iframer":1,"@braintree/wrap-promise":8}],33:[function(_dereq_,module,exports){
 'use strict';
 /**
  * @module braintree-web/payment-request
@@ -1754,7 +1938,7 @@ module.exports = wrapPromise.wrapPrototype(PaymentRequestComponent);
 var PaymentRequestComponent = _dereq_('./external/payment-request');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.26.0";
+var VERSION = "3.27.0";
 
 /**
  * @static
@@ -1804,7 +1988,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/basic-component-verification":14,"./external/payment-request":31,"@braintree/wrap-promise":8}],33:[function(_dereq_,module,exports){
+},{"../lib/basic-component-verification":14,"./external/payment-request":32,"@braintree/wrap-promise":8}],34:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../lib/braintree-error');
@@ -1816,6 +2000,10 @@ constants.events = enumerate([
   'FRAME_READY',
   'FRAME_CAN_MAKE_REQUESTS',
   'PAYMENT_REQUEST_INITIALIZED',
+  'SHIPPING_ADDRESS_CHANGE',
+  'UPDATE_SHIPPING_ADDRESS',
+  'SHIPPING_OPTION_CHANGE',
+  'UPDATE_SHIPPING_OPTION',
   'PAYMENT_REQUEST_FAILED',
   'PAYMENT_REQUEST_SUCCESSFUL'
 ], 'payment-request:');
@@ -1825,6 +2013,10 @@ constants.errors = {
     type: BraintreeError.types.MERCHANT,
     code: 'PAYMENT_REQUEST_NO_VALID_SUPPORTED_PAYMENT_METHODS',
     message: 'There are no supported payment methods associated with this account.'
+  },
+  PAYMENT_REQUEST_INVALID_UPDATE_WITH_EVENT: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'PAYMENT_REQUEST_INVALID_UPDATE_WITH_EVENT'
   },
   PAYMENT_REQUEST_CANCELED: {
     type: BraintreeError.types.CUSTOMER,
@@ -1864,5 +2056,5 @@ constants.errors = {
 
 module.exports = constants;
 
-},{"../../lib/braintree-error":15,"../../lib/enumerate":22}]},{},[32])(32)
+},{"../../lib/braintree-error":15,"../../lib/enumerate":22}]},{},[33])(33)
 });

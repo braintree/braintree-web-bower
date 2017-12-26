@@ -684,7 +684,7 @@ var ApplePay = _dereq_('./apple-pay');
 var analytics = _dereq_('../lib/analytics');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var errors = _dereq_('./errors');
-var VERSION = "3.26.0";
+var VERSION = "3.27.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -794,7 +794,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.26.0";
+var VERSION = "3.27.0";
 
 function basicComponentVerification(options) {
   var client, clientVersion, name;
@@ -923,7 +923,7 @@ module.exports = BraintreeError;
 },{"./enumerate":15}],13:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.26.0";
+var VERSION = "3.27.0";
 var PLATFORM = 'web';
 
 module.exports = {
