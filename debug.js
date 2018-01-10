@@ -888,239 +888,233 @@ module.exports = creditCardType;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],26:[function(_dereq_,module,exports){
-(function (root) {
+'use strict';
 
-  // Store setTimeout reference so promise-polyfill will be unaffected by
-  // other code modifying setTimeout (like sinon.useFakeTimers())
-  var setTimeoutFunc = setTimeout;
+// Store setTimeout reference so promise-polyfill will be unaffected by
+// other code modifying setTimeout (like sinon.useFakeTimers())
+var setTimeoutFunc = setTimeout;
 
-  function noop() {}
-  
-  // Polyfill for Function.prototype.bind
-  function bind(fn, thisArg) {
-    return function () {
-      fn.apply(thisArg, arguments);
-    };
+function noop() {}
+
+// Polyfill for Function.prototype.bind
+function bind(fn, thisArg) {
+  return function() {
+    fn.apply(thisArg, arguments);
+  };
+}
+
+function handle(self, deferred) {
+  while (self._state === 3) {
+    self = self._value;
   }
-
-  function Promise(fn) {
-    if (typeof this !== 'object') throw new TypeError('Promises must be constructed via new');
-    if (typeof fn !== 'function') throw new TypeError('not a function');
-    this._state = 0;
-    this._handled = false;
-    this._value = undefined;
-    this._deferreds = [];
-
-    doResolve(fn, this);
+  if (self._state === 0) {
+    self._deferreds.push(deferred);
+    return;
   }
-
-  function handle(self, deferred) {
-    while (self._state === 3) {
-      self = self._value;
-    }
-    if (self._state === 0) {
-      self._deferreds.push(deferred);
+  self._handled = true;
+  Promise._immediateFn(function() {
+    var cb = self._state === 1 ? deferred.onFulfilled : deferred.onRejected;
+    if (cb === null) {
+      (self._state === 1 ? resolve : reject)(deferred.promise, self._value);
       return;
     }
-    self._handled = true;
-    Promise._immediateFn(function () {
-      var cb = self._state === 1 ? deferred.onFulfilled : deferred.onRejected;
-      if (cb === null) {
-        (self._state === 1 ? resolve : reject)(deferred.promise, self._value);
+    var ret;
+    try {
+      ret = cb(self._value);
+    } catch (e) {
+      reject(deferred.promise, e);
+      return;
+    }
+    resolve(deferred.promise, ret);
+  });
+}
+
+function resolve(self, newValue) {
+  try {
+    // Promise Resolution Procedure: https://github.com/promises-aplus/promises-spec#the-promise-resolution-procedure
+    if (newValue === self)
+      throw new TypeError('A promise cannot be resolved with itself.');
+    if (
+      newValue &&
+      (typeof newValue === 'object' || typeof newValue === 'function')
+    ) {
+      var then = newValue.then;
+      if (newValue instanceof Promise) {
+        self._state = 3;
+        self._value = newValue;
+        finale(self);
+        return;
+      } else if (typeof then === 'function') {
+        doResolve(bind(then, newValue), self);
         return;
       }
-      var ret;
-      try {
-        ret = cb(self._value);
-      } catch (e) {
-        reject(deferred.promise, e);
-        return;
+    }
+    self._state = 1;
+    self._value = newValue;
+    finale(self);
+  } catch (e) {
+    reject(self, e);
+  }
+}
+
+function reject(self, newValue) {
+  self._state = 2;
+  self._value = newValue;
+  finale(self);
+}
+
+function finale(self) {
+  if (self._state === 2 && self._deferreds.length === 0) {
+    Promise._immediateFn(function() {
+      if (!self._handled) {
+        Promise._unhandledRejectionFn(self._value);
       }
-      resolve(deferred.promise, ret);
     });
   }
 
-  function resolve(self, newValue) {
-    try {
-      // Promise Resolution Procedure: https://github.com/promises-aplus/promises-spec#the-promise-resolution-procedure
-      if (newValue === self) throw new TypeError('A promise cannot be resolved with itself.');
-      if (newValue && (typeof newValue === 'object' || typeof newValue === 'function')) {
-        var then = newValue.then;
-        if (newValue instanceof Promise) {
-          self._state = 3;
-          self._value = newValue;
-          finale(self);
-          return;
-        } else if (typeof then === 'function') {
-          doResolve(bind(then, newValue), self);
-          return;
-        }
-      }
-      self._state = 1;
-      self._value = newValue;
-      finale(self);
-    } catch (e) {
-      reject(self, e);
-    }
+  for (var i = 0, len = self._deferreds.length; i < len; i++) {
+    handle(self, self._deferreds[i]);
   }
+  self._deferreds = null;
+}
 
-  function reject(self, newValue) {
-    self._state = 2;
-    self._value = newValue;
-    finale(self);
-  }
+function Handler(onFulfilled, onRejected, promise) {
+  this.onFulfilled = typeof onFulfilled === 'function' ? onFulfilled : null;
+  this.onRejected = typeof onRejected === 'function' ? onRejected : null;
+  this.promise = promise;
+}
 
-  function finale(self) {
-    if (self._state === 2 && self._deferreds.length === 0) {
-      Promise._immediateFn(function() {
-        if (!self._handled) {
-          Promise._unhandledRejectionFn(self._value);
-        }
-      });
-    }
-
-    for (var i = 0, len = self._deferreds.length; i < len; i++) {
-      handle(self, self._deferreds[i]);
-    }
-    self._deferreds = null;
-  }
-
-  function Handler(onFulfilled, onRejected, promise) {
-    this.onFulfilled = typeof onFulfilled === 'function' ? onFulfilled : null;
-    this.onRejected = typeof onRejected === 'function' ? onRejected : null;
-    this.promise = promise;
-  }
-
-  /**
-   * Take a potentially misbehaving resolver function and make sure
-   * onFulfilled and onRejected are only called once.
-   *
-   * Makes no guarantees about asynchrony.
-   */
-  function doResolve(fn, self) {
-    var done = false;
-    try {
-      fn(function (value) {
+/**
+ * Take a potentially misbehaving resolver function and make sure
+ * onFulfilled and onRejected are only called once.
+ *
+ * Makes no guarantees about asynchrony.
+ */
+function doResolve(fn, self) {
+  var done = false;
+  try {
+    fn(
+      function(value) {
         if (done) return;
         done = true;
         resolve(self, value);
-      }, function (reason) {
+      },
+      function(reason) {
         if (done) return;
         done = true;
         reject(self, reason);
-      });
-    } catch (ex) {
-      if (done) return;
-      done = true;
-      reject(self, ex);
-    }
+      }
+    );
+  } catch (ex) {
+    if (done) return;
+    done = true;
+    reject(self, ex);
   }
+}
 
-  Promise.prototype['catch'] = function (onRejected) {
-    return this.then(null, onRejected);
-  };
+function Promise(fn) {
+  if (!(this instanceof Promise))
+    throw new TypeError('Promises must be constructed via new');
+  if (typeof fn !== 'function') throw new TypeError('not a function');
+  this._state = 0;
+  this._handled = false;
+  this._value = undefined;
+  this._deferreds = [];
 
-  Promise.prototype.then = function (onFulfilled, onRejected) {
-    var prom = new (this.constructor)(noop);
+  doResolve(fn, this);
+}
 
-    handle(this, new Handler(onFulfilled, onRejected, prom));
-    return prom;
-  };
+var _proto = Promise.prototype;
+_proto.catch = function(onRejected) {
+  return this.then(null, onRejected);
+};
 
-  Promise.all = function (arr) {
+_proto.then = function(onFulfilled, onRejected) {
+  var prom = new this.constructor(noop);
+
+  handle(this, new Handler(onFulfilled, onRejected, prom));
+  return prom;
+};
+
+Promise.all = function(arr) {
+  return new Promise(function(resolve, reject) {
+    if (!arr || typeof arr.length === 'undefined')
+      throw new TypeError('Promise.all accepts an array');
     var args = Array.prototype.slice.call(arr);
+    if (args.length === 0) return resolve([]);
+    var remaining = args.length;
 
-    return new Promise(function (resolve, reject) {
-      if (args.length === 0) return resolve([]);
-      var remaining = args.length;
-
-      function res(i, val) {
-        try {
-          if (val && (typeof val === 'object' || typeof val === 'function')) {
-            var then = val.then;
-            if (typeof then === 'function') {
-              then.call(val, function (val) {
+    function res(i, val) {
+      try {
+        if (val && (typeof val === 'object' || typeof val === 'function')) {
+          var then = val.then;
+          if (typeof then === 'function') {
+            then.call(
+              val,
+              function(val) {
                 res(i, val);
-              }, reject);
-              return;
-            }
+              },
+              reject
+            );
+            return;
           }
-          args[i] = val;
-          if (--remaining === 0) {
-            resolve(args);
-          }
-        } catch (ex) {
-          reject(ex);
         }
+        args[i] = val;
+        if (--remaining === 0) {
+          resolve(args);
+        }
+      } catch (ex) {
+        reject(ex);
       }
-
-      for (var i = 0; i < args.length; i++) {
-        res(i, args[i]);
-      }
-    });
-  };
-
-  Promise.resolve = function (value) {
-    if (value && typeof value === 'object' && value.constructor === Promise) {
-      return value;
     }
 
-    return new Promise(function (resolve) {
-      resolve(value);
-    });
-  };
-
-  Promise.reject = function (value) {
-    return new Promise(function (resolve, reject) {
-      reject(value);
-    });
-  };
-
-  Promise.race = function (values) {
-    return new Promise(function (resolve, reject) {
-      for (var i = 0, len = values.length; i < len; i++) {
-        values[i].then(resolve, reject);
-      }
-    });
-  };
-
-  // Use polyfill for setImmediate for performance gains
-  Promise._immediateFn = (typeof setImmediate === 'function' && function (fn) { setImmediate(fn); }) ||
-    function (fn) {
-      setTimeoutFunc(fn, 0);
-    };
-
-  Promise._unhandledRejectionFn = function _unhandledRejectionFn(err) {
-    if (typeof console !== 'undefined' && console) {
-      console.warn('Possible Unhandled Promise Rejection:', err); // eslint-disable-line no-console
+    for (var i = 0; i < args.length; i++) {
+      res(i, args[i]);
     }
-  };
+  });
+};
 
-  /**
-   * Set the immediate function to execute callbacks
-   * @param fn {function} Function to execute
-   * @deprecated
-   */
-  Promise._setImmediateFn = function _setImmediateFn(fn) {
-    Promise._immediateFn = fn;
-  };
-
-  /**
-   * Change the function to execute on unhandled rejection
-   * @param {function} fn Function to execute on unhandled rejection
-   * @deprecated
-   */
-  Promise._setUnhandledRejectionFn = function _setUnhandledRejectionFn(fn) {
-    Promise._unhandledRejectionFn = fn;
-  };
-  
-  if (typeof module !== 'undefined' && module.exports) {
-    module.exports = Promise;
-  } else if (!root.Promise) {
-    root.Promise = Promise;
+Promise.resolve = function(value) {
+  if (value && typeof value === 'object' && value.constructor === Promise) {
+    return value;
   }
 
-})(this);
+  return new Promise(function(resolve) {
+    resolve(value);
+  });
+};
+
+Promise.reject = function(value) {
+  return new Promise(function(resolve, reject) {
+    reject(value);
+  });
+};
+
+Promise.race = function(values) {
+  return new Promise(function(resolve, reject) {
+    for (var i = 0, len = values.length; i < len; i++) {
+      values[i].then(resolve, reject);
+    }
+  });
+};
+
+// Use polyfill for setImmediate for performance gains
+Promise._immediateFn =
+  (typeof setImmediate === 'function' &&
+    function(fn) {
+      setImmediate(fn);
+    }) ||
+  function(fn) {
+    setTimeoutFunc(fn, 0);
+  };
+
+Promise._unhandledRejectionFn = function _unhandledRejectionFn(err) {
+  if (typeof console !== 'undefined' && console) {
+    console.warn('Possible Unhandled Promise Rejection:', err); // eslint-disable-line no-console
+  }
+};
+
+module.exports = Promise;
 
 },{}],27:[function(_dereq_,module,exports){
 (function (global){
@@ -1184,6 +1178,8 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var errors = _dereq_('./errors');
 var assign = _dereq_('../lib/assign').assign;
 var Promise = _dereq_('../lib/promise');
+var methods = _dereq_('../lib/methods');
+var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -1303,9 +1299,27 @@ AmericanExpress.prototype.getExpressCheckoutProfile = function (options) {
   });
 };
 
+/**
+ * Cleanly tear down anything set up by {@link module:braintree-web/american-express.create|create}.
+ * @public
+ * @param {callback} [callback] Called once teardown is complete. No data is returned if teardown completes successfully.
+ * @example
+ * americanExpressInstance.teardown();
+ * @example <caption>With callback</caption>
+ * americanExpressInstance.teardown(function () {
+ *   // teardown is complete
+ * });
+ * @returns {Promise|void} Returns a promise if no callback is provided.
+ */
+AmericanExpress.prototype.teardown = function () {
+  convertMethodsToError(this, methods(AmericanExpress.prototype));
+
+  return Promise.resolve();
+};
+
 module.exports = wrapPromise.wrapPrototype(AmericanExpress);
 
-},{"../lib/assign":81,"../lib/braintree-error":84,"../lib/promise":115,"./errors":30,"@braintree/wrap-promise":23}],30:[function(_dereq_,module,exports){
+},{"../lib/assign":81,"../lib/braintree-error":84,"../lib/convert-methods-to-error":91,"../lib/methods":113,"../lib/promise":115,"./errors":30,"@braintree/wrap-promise":23}],30:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -1330,7 +1344,7 @@ module.exports = {
 
 var AmericanExpress = _dereq_('./american-express');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
-var VERSION = "3.27.0";
+var VERSION = "3.28.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -1367,6 +1381,8 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./errors');
 var Promise = _dereq_('../lib/promise');
+var methods = _dereq_('../lib/methods');
+var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -1649,10 +1665,28 @@ ApplePay.prototype.tokenize = function (options) {
   });
 };
 
+/**
+ * Cleanly tear down anything set up by {@link module:braintree-web/apple-pay.create|create}.
+ * @public
+ * @param {callback} [callback] Called once teardown is complete. No data is returned if teardown completes successfully.
+ * @example
+ * applePayInstance.teardown();
+ * @example <caption>With callback</caption>
+ * applePayInstance.teardown(function () {
+ *   // teardown is complete
+ * });
+ * @returns {Promise|void} Returns a promise if no callback is provided.
+ */
+ApplePay.prototype.teardown = function () {
+  convertMethodsToError(this, methods(ApplePay.prototype));
+
+  return Promise.resolve();
+};
+
 module.exports = wrapPromise.wrapPrototype(ApplePay);
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../lib/analytics":80,"../lib/braintree-error":84,"../lib/promise":115,"./errors":33,"@braintree/wrap-promise":23}],33:[function(_dereq_,module,exports){
+},{"../lib/analytics":80,"../lib/braintree-error":84,"../lib/convert-methods-to-error":91,"../lib/methods":113,"../lib/promise":115,"./errors":33,"@braintree/wrap-promise":23}],33:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -1703,7 +1737,7 @@ var ApplePay = _dereq_('./apple-pay');
 var analytics = _dereq_('../lib/analytics');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var errors = _dereq_('./errors');
-var VERSION = "3.27.0";
+var VERSION = "3.28.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -1760,6 +1794,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../lib/convert-to-braintree-error');
 var addMetadata = _dereq_('../lib/add-metadata');
 var Promise = _dereq_('../lib/promise');
+var wrapPromise = _dereq_('@braintree/wrap-promise');
 var once = _dereq_('../lib/once');
 var deferred = _dereq_('../lib/deferred');
 var assign = _dereq_('../lib/assign').assign;
@@ -1768,6 +1803,8 @@ var constants = _dereq_('./constants');
 var errors = _dereq_('./errors');
 var sharedErrors = _dereq_('../lib/errors');
 var VERSION = _dereq_('../lib/constants').VERSION;
+var methods = _dereq_('../lib/methods');
+var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
 
 /**
  * This object is returned by {@link Client#getConfiguration|getConfiguration}. This information is used extensively by other Braintree modules to properly configure themselves.
@@ -2084,9 +2121,29 @@ Client.prototype.getVersion = function () {
   return VERSION;
 };
 
+/**
+ * Cleanly tear down anything set up by {@link module:braintree-web/client.create|create}.
+ * @public
+ * @param {callback} [callback] Called once teardown is complete. No data is returned if teardown completes successfully.
+ * @example
+ * clientInstance.teardown();
+ * @example <caption>With callback</caption>
+ * clientInstance.teardown(function () {
+ *   // teardown is complete
+ * });
+ * @returns {Promise|void} Returns a promise if no callback is provided.
+ */
+Client.prototype.teardown = wrapPromise(function () {
+  var self = this; // eslint-disable-line no-invalid-this
+
+  convertMethodsToError(self, methods(Client.prototype));
+
+  return Promise.resolve();
+});
+
 module.exports = Client;
 
-},{"../lib/add-metadata":79,"../lib/analytics":80,"../lib/assign":81,"../lib/braintree-error":84,"../lib/constants":90,"../lib/convert-to-braintree-error":92,"../lib/deferred":94,"../lib/errors":97,"../lib/is-whitelisted-domain":111,"../lib/once":114,"../lib/promise":115,"./constants":37,"./errors":38,"./request":49,"./request/graphql":47}],37:[function(_dereq_,module,exports){
+},{"../lib/add-metadata":79,"../lib/analytics":80,"../lib/assign":81,"../lib/braintree-error":84,"../lib/constants":90,"../lib/convert-methods-to-error":91,"../lib/convert-to-braintree-error":92,"../lib/deferred":94,"../lib/errors":97,"../lib/is-whitelisted-domain":111,"../lib/methods":113,"../lib/once":114,"../lib/promise":115,"./constants":37,"./errors":38,"./request":49,"./request/graphql":47,"@braintree/wrap-promise":23}],37:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -2238,7 +2295,7 @@ module.exports = {
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Client = _dereq_('./client');
 var getConfiguration = _dereq_('./get-configuration').getConfiguration;
-var VERSION = "3.27.0";
+var VERSION = "3.28.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -2328,7 +2385,7 @@ function requestShouldRetry(status) {
 }
 
 function graphQLRequestShouldRetryWithClientApi(body) {
-  var errorType = body.errors &&
+  var errorType = !body.data && body.errors &&
       body.errors[0] &&
       body.errors[0].extensions &&
       body.errors[0].extensions.errorType;
@@ -3301,7 +3358,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var methods = _dereq_('../lib/methods');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
-var VERSION = "3.27.0";
+var VERSION = "3.28.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var errors = _dereq_('./errors');
@@ -3628,10 +3685,24 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
  */
 
 /**
+ * @name GooglePayment#teardown
+ * @function
+ * @param {callback} [callback] Called on completion.
+ * @description Cleanly remove anything set up by {@link module:braintree-web/google-payment.create|create}.
+ * @example
+ * googlePaymentInstance.teardown();
+ * @example <caption>With callback</caption>
+ * googlePaymentInstance.teardown(function () {
+ *   // teardown is complete
+ * });
+ * @returns {Promise|void} Returns a promise if no callback is provided.
+ */
+
+/**
  * @class GooglePayment
  * @param {object} options Google Payment {@link module:braintree-web/google-payment.create create} options.
  * @description <strong>Do not use this constructor directly. Use {@link module:braintree-web/google-payment.create|braintree-web.google-payment.create} instead.</strong>
- * @classdesc This class represents a Google Payment component produced by {@link module:braintree-web/google-payment.create|braintree-web/google-payment.create}. Instances of this class have methods for initializing the Pay with Google flow.
+ * @classdesc This class represents a Google Payment component produced by {@link module:braintree-web/google-payment.create|braintree-web/google-payment.create}. Instances of this class have methods for initializing the Google Pay flow.
  *
  * **Note:** This component is currently in beta and the API may include breaking changes when upgrading. Please review the [Changelog](https://github.com/braintree/braintree-web/blob/master/CHANGELOG.md) for upgrade steps whenever you upgrade the version of braintree-web.
  */
@@ -3640,7 +3711,7 @@ function GooglePayment(options) {
     client: options.client,
     enabledPaymentMethods: {
       basicCard: false,
-      payWithGoogle: true
+      googlePay: true
     }
   });
 
@@ -3672,15 +3743,15 @@ GooglePayment.prototype = Object.create(PaymentRequestComponent.prototype, {
  * @returns {object} Returns a configuration object for use in the tokenize function.
  */
 GooglePayment.prototype.createSupportedPaymentMethodsConfiguration = function (overrides) {
-  return PaymentRequestComponent.prototype.createSupportedPaymentMethodsConfiguration.call(this, 'payWithGoogle', overrides);
+  return PaymentRequestComponent.prototype.createSupportedPaymentMethodsConfiguration.call(this, 'googlePay', overrides);
 };
 
 /**
- * Initializes a Pay with Google flow and provides a nonce payload.
+ * Initializes a Google Pay flow and provides a nonce payload.
  * @public
  * @param {object} configuration The payment details.
  * @param {object} configuration.details The payment details. For details on this object, see [Google's PaymentRequest API documentation](https://developers.google.com/web/fundamentals/discovery-and-monetization/payment-request/deep-dive-into-payment-request#defining_payment_details).
- * @param {object} [configuration.options] Additional Pay with Google options. For details on this object, see [Google's PaymentRequest API documentation](https://developers.google.com/web/fundamentals/discovery-and-monetization/payment-request/deep-dive-into-payment-request#defining_options_optional).
+ * @param {object} [configuration.options] Additional Google Pay options. For details on this object, see [Google's PaymentRequest API documentation](https://developers.google.com/web/fundamentals/discovery-and-monetization/payment-request/deep-dive-into-payment-request#defining_options_optional).
  *
  * @param {callback} [callback] The second argument, <code>data</code>, is a {@link PaymentRequestComponent.html#~tokenizePayload|tokenizePayload}. If no callback is provided, `tokenize` returns a function that resolves with a {@link PaymentRequestComponent.html#~tokenizePayload|tokenizePayload}.
  * @example
@@ -3698,7 +3769,7 @@ GooglePayment.prototype.createSupportedPaymentMethodsConfiguration = function (o
  *   // send payload.nonce to server
  * }).catch(function (err) {
  *   if (err.code === 'PAYMENT_REQUEST_CANCELED') {
- *     // Pay with Google payment request was canceled by user
+ *     // Google Pay payment request was canceled by user
  *   } else {
  *     // an error occurred while processing
  *   }
@@ -3820,8 +3891,8 @@ GooglePayment.prototype.tokenize = function (configuration) {
     } else {
       return Promise.reject(new BraintreeError({
         type: BraintreeError.types.MERCHANT,
-        code: 'PAY_WITH_GOOGLE_CAN_ONLY_TOKENIZE_WITH_PAY_WITH_GOOGLE',
-        message: 'Only Pay with Google is supported in supportedPaymentMethods.'
+        code: 'GOOGLE_PAYMENT_CAN_ONLY_TOKENIZE_WITH_GOOGLE_PAYMENT',
+        message: 'Only Google Pay is supported in supportedPaymentMethods.'
       }));
     }
   }
@@ -3839,7 +3910,7 @@ module.exports = wrapPromise.wrapPrototype(GooglePayment);
 'use strict';
 /**
  * @module braintree-web/google-payment
- * @description A component to integrate with Pay with Google.
+ * @description A component to integrate with Google Pay.
  *
  * **Note:** This component is currently in beta and the API may include breaking changes when upgrading. Please review the [Changelog](https://github.com/braintree/braintree-web/blob/master/CHANGELOG.md) for upgrade steps whenever you upgrade the version of braintree-web.
  * */
@@ -3850,7 +3921,7 @@ var browserDetection = _dereq_('./browser-detection');
 var GooglePayment = _dereq_('./google-payment');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.27.0";
+var VERSION = "3.28.0";
 
 /**
  * @static
@@ -3862,7 +3933,7 @@ var VERSION = "3.27.0";
  */
 function create(options) {
   return basicComponentVerification.verify({
-    name: 'Pay with Google',
+    name: 'Google Pay',
     client: options.client
   }).then(function () {
     var googlePayment;
@@ -3870,8 +3941,8 @@ function create(options) {
     if (!options.client.getConfiguration().gatewayConfiguration.androidPay) {
       return Promise.reject(new BraintreeError({
         type: BraintreeError.types.MERCHANT,
-        code: 'PAY_WITH_GOOGLE_NOT_ENABLED',
-        message: 'Pay with Google is not enabled for this merchant.'
+        code: 'GOOGLE_PAYMENT_NOT_ENABLED',
+        message: 'Google Pay is not enabled for this merchant.'
       }));
     }
 
@@ -3884,15 +3955,15 @@ function create(options) {
 /**
  * @static
  * @function isSupported
- * @description Returns true if Pay with Google is supported in this browser.
+ * @description Returns true if Google Pay is supported in this browser.
  * @example
  * if (braintree.googlePayment.isSupported()) {
- *    // Add Pay with Google button to page and
- *    // initialize Pay with Google component
+ *    // Add Google Pay button to page and
+ *    // initialize Google Pay component
  * } else {
- *    // Do not initialize Pay with Google component
+ *    // Do not initialize Google Pay component
  * }
- * @returns {Boolean} Returns true if Pay with Google supports this browser.
+ * @returns {Boolean} Returns true if Google Pay supports this browser.
  */
 function isSupported() {
   // TODO - We limit this to android chrome for now
@@ -5056,7 +5127,7 @@ var supportsInputFormatting = _dereq_('restricted-input/supports-input-formattin
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.27.0";
+var VERSION = "3.28.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -5295,7 +5366,7 @@ module.exports = {
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.27.0";
+var VERSION = "3.28.0";
 
 var constants = {
   VERSION: VERSION,
@@ -5529,7 +5600,7 @@ var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../../lib/convert-to-braintree-error');
 var errors = _dereq_('../shared/errors');
-var VERSION = "3.27.0";
+var VERSION = "3.28.0";
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var methods = _dereq_('../../lib/methods');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -5888,7 +5959,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var browserDetection = _dereq_('./shared/browser-detection');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var Ideal = _dereq_('./external/ideal');
-var VERSION = "3.27.0";
+var VERSION = "3.28.0";
 var errors = _dereq_('./shared/errors');
 var sharedErrors = _dereq_('../lib/errors');
 var analytics = _dereq_('../lib/analytics');
@@ -6076,7 +6147,7 @@ var usBankAccount = _dereq_('./us-bank-account');
 var vaultManager = _dereq_('./vault-manager');
 var venmo = _dereq_('./venmo');
 var visaCheckout = _dereq_('./visa-checkout');
-var VERSION = "3.27.0";
+var VERSION = "3.28.0";
 
 module.exports = {
   /** @type {module:braintree-web/american-express} */
@@ -6219,7 +6290,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.27.0";
+var VERSION = "3.28.0";
 
 function basicComponentVerification(options) {
   var client, clientVersion, name;
@@ -6625,7 +6696,7 @@ module.exports = {
 },{}],90:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.27.0";
+var VERSION = "3.28.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -7674,7 +7745,7 @@ var Promise = _dereq_('../../lib/promise');
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var errors = _dereq_('../shared/errors');
-var VERSION = "3.27.0";
+var VERSION = "3.28.0";
 var methods = _dereq_('../../lib/methods');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var analytics = _dereq_('../../lib/analytics');
@@ -8064,7 +8135,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var browserDetection = _dereq_('./shared/browser-detection');
 var Masterpass = _dereq_('./external/masterpass');
-var VERSION = "3.27.0";
+var VERSION = "3.28.0";
 var errors = _dereq_('./shared/errors');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -8234,7 +8305,7 @@ var methods = _dereq_('../../lib/methods');
 var Promise = _dereq_('../../lib/promise');
 var EventEmitter = _dereq_('../../lib/event-emitter');
 var BraintreeError = _dereq_('../../lib/braintree-error');
-var VERSION = "3.27.0";
+var VERSION = "3.28.0";
 var events = _dereq_('../shared/constants').events;
 var errors = _dereq_('../shared/constants').errors;
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -8329,7 +8400,7 @@ var CARD_TYPE_MAPPINGS = {
   Maestro: 'maestro'
 };
 
-var BRAINTREE_PAY_WITH_GOOGLE_MERCHANT_ID = '18278000977346790994';
+var BRAINTREE_GOOGLE_PAY_MERCHANT_ID = '18278000977346790994';
 
 function composeUrl(assetsUrl, componentId, isDebug) {
   var baseUrl = assetsUrl;
@@ -8358,7 +8429,7 @@ function PaymentRequestComponent(options) {
   this._analyticsName = 'payment-request';
   this._enabledPaymentMethods = {
     basicCard: enabledPaymentMethods.basicCard !== false,
-    payWithGoogle: enabledPaymentMethods.payWithGoogle !== false
+    googlePay: enabledPaymentMethods.googlePay !== false
   };
   this._supportedPaymentMethods = this._constructDefaultSupportedPaymentMethods();
   this._defaultSupportedPaymentMethods = Object.keys(this._supportedPaymentMethods).map(function (key) {
@@ -8390,11 +8461,11 @@ PaymentRequestComponent.prototype._constructDefaultSupportedPaymentMethods = fun
     };
   }
 
-  if (this._enabledPaymentMethods.payWithGoogle && androidPayConfiguration && androidPayConfiguration.enabled) {
-    supportedPaymentMethods.payWithGoogle = {
+  if (this._enabledPaymentMethods.googlePay && androidPayConfiguration && androidPayConfiguration.enabled) {
+    supportedPaymentMethods.googlePay = {
       supportedMethods: ['https://google.com/pay'],
       data: {
-        merchantId: BRAINTREE_PAY_WITH_GOOGLE_MERCHANT_ID,
+        merchantId: BRAINTREE_GOOGLE_PAY_MERCHANT_ID,
         apiVersion: 1,
         environment: isProduction ? 'PRODUCTION' : 'TEST',
         allowedPaymentMethods: ['CARD', 'TOKENIZED_CARD'],
@@ -8422,7 +8493,7 @@ PaymentRequestComponent.prototype._constructDefaultSupportedPaymentMethods = fun
     };
 
     if (configuration.authorizationType === 'TOKENIZATION_KEY') {
-      supportedPaymentMethods.payWithGoogle.data.paymentMethodTokenizationParameters.parameters['braintree:clientKey'] = configuration.authorization;
+      supportedPaymentMethods.googlePay.data.paymentMethodTokenizationParameters.parameters['braintree:clientKey'] = configuration.authorization;
     }
   }
 
@@ -8495,7 +8566,7 @@ PaymentRequestComponent.prototype.initialize = function () {
 /**
  * Create an object to pass into tokenize to specify a custom configuration. If no overrides are provided, the default configuration will be provided.
  * @public
- * @param {string} type The supported payment method type. Possible values are `basicCard` and `payWithGoogle`.
+ * @param {string} type The supported payment method type. Possible values are `basicCard` and `googlePay`.
  * If no type is provided, the function will throw an error. If the type provided is not an enabled payemnt method for the merchant account , the function will throw an error.
  * @param {object} [overrides] The configuration overrides for the [data property on the supported payment methods objects](https://developers.google.com/web/fundamentals/payments/deep-dive-into-payment-request). If not passed in, the default configuration for the specified type will be provided. If a property is not provided, the value from the default configruation will be used.
  * @example <caption>Getting the default configuration for a specified type</caption>
@@ -8711,20 +8782,20 @@ PaymentRequestComponent.prototype.tokenize = function (configuration) {
             originalError: error
           }
         });
-      } else if (error.name === 'BRAINTREE_GATEWAY_PAY_WITH_GOOGLE_TOKENIZATION_ERROR') {
+      } else if (error.name === 'BRAINTREE_GATEWAY_GOOGLE_PAYMENT_TOKENIZATION_ERROR') {
         formattedError = new BraintreeError({
-          type: errors.PAYMENT_REQUEST_PAY_WITH_GOOGLE_FAILED_TO_TOKENIZE.type,
-          code: errors.PAYMENT_REQUEST_PAY_WITH_GOOGLE_FAILED_TO_TOKENIZE.code,
-          message: errors.PAYMENT_REQUEST_PAY_WITH_GOOGLE_FAILED_TO_TOKENIZE.message,
+          type: errors.PAYMENT_REQUEST_GOOGLE_PAYMENT_FAILED_TO_TOKENIZE.type,
+          code: errors.PAYMENT_REQUEST_GOOGLE_PAYMENT_FAILED_TO_TOKENIZE.code,
+          message: errors.PAYMENT_REQUEST_GOOGLE_PAYMENT_FAILED_TO_TOKENIZE.message,
           details: {
             originalError: error
           }
         });
-      } else if (error.name === 'BRAINTREE_GATEWAY_PAY_WITH_GOOGLE_PARSING_ERROR') {
+      } else if (error.name === 'BRAINTREE_GATEWAY_GOOGLE_PAYMENT_PARSING_ERROR') {
         formattedError = new BraintreeError({
-          type: errors.PAYMENT_REQUEST_PAY_WITH_GOOGLE_PARSING_ERROR.type,
-          code: errors.PAYMENT_REQUEST_PAY_WITH_GOOGLE_PARSING_ERROR.code,
-          message: errors.PAYMENT_REQUEST_PAY_WITH_GOOGLE_PARSING_ERROR.message,
+          type: errors.PAYMENT_REQUEST_GOOGLE_PAYMENT_PARSING_ERROR.type,
+          code: errors.PAYMENT_REQUEST_GOOGLE_PAYMENT_PARSING_ERROR.code,
+          message: errors.PAYMENT_REQUEST_GOOGLE_PAYMENT_PARSING_ERROR.message,
           details: {
             originalError: error
           }
@@ -8782,7 +8853,7 @@ module.exports = wrapPromise.wrapPrototype(PaymentRequestComponent);
 var PaymentRequestComponent = _dereq_('./external/payment-request');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.27.0";
+var VERSION = "3.28.0";
 
 /**
  * @static
@@ -8791,7 +8862,7 @@ var VERSION = "3.27.0";
  * @param {Client} options.client A {@link Client} instance.
  * @param {object} [options.enabledPaymentMethods] An object representing which payment methods to display.
  * @param {boolean} [options.enabledPaymentMethods.basicCard=true] Whether or not to display credit card as an option in the Payment Request dialog. If left blank or set to true, credit cards will be displayed in the dialog if the merchant account is set up to process credit cards.
- * @param {boolean} [options.enabledPaymentMethods.payWithGoogle=true] Whether or not to display Pay with Google as an option in the Payment Request dialog. If left blank or set to true, Pay with Google will be displayed in the dialog if the merchant account is set up to process Pay with Google.
+ * @param {boolean} [options.enabledPaymentMethods.googlePay=true] Whether or not to display Google Pay as an option in the Payment Request dialog. If left blank or set to true, Google Pay will be displayed in the dialog if the merchant account is set up to process Google Pay.
  * @param {callback} [callback] The second argument, `data`, is the {@link PaymentRequestComponent} instance. If no callback is provided, `create` returns a promise that resolves with the {@link PaymentRequestComponent} instance.
  * @returns {Promise|void} Returns a promise if no callback is provided.
  * @example
@@ -8807,7 +8878,7 @@ var VERSION = "3.27.0";
  * braintree.paymentRequest.create({
  *   client: clientInstance,
  *   enabledPaymentMethods: {
- *     payWithGoogle: true,
+ *     googlePay: true,
  *     basicCard: false
  *   }
  * }, cb);
@@ -8872,15 +8943,15 @@ constants.errors = {
     code: 'PAYMENT_REQUEST_INITIALIZATION_MISCONFIGURED',
     message: 'Something went wrong when configuring the payment request.'
   },
-  PAYMENT_REQUEST_PAY_WITH_GOOGLE_FAILED_TO_TOKENIZE: {
+  PAYMENT_REQUEST_GOOGLE_PAYMENT_FAILED_TO_TOKENIZE: {
     type: BraintreeError.types.MERCHANT,
-    code: 'PAYMENT_REQUEST_PAY_WITH_GOOGLE_FAILED_TO_TOKENIZE',
-    message: 'Something went wrong when tokenizing the Pay with Google card.'
+    code: 'PAYMENT_REQUEST_GOOGLE_PAYMENT_FAILED_TO_TOKENIZE',
+    message: 'Something went wrong when tokenizing the Google Pay card.'
   },
-  PAYMENT_REQUEST_PAY_WITH_GOOGLE_PARSING_ERROR: {
+  PAYMENT_REQUEST_GOOGLE_PAYMENT_PARSING_ERROR: {
     type: BraintreeError.types.UNKNOWN,
-    code: 'PAYMENT_REQUEST_PAY_WITH_GOOGLE_PARSING_ERROR',
-    message: 'Something went wrong when tokenizing the Pay with Google card.'
+    code: 'PAYMENT_REQUEST_GOOGLE_PAYMENT_PARSING_ERROR',
+    message: 'Something went wrong when tokenizing the Google Pay card.'
   },
   PAYMENT_REQUEST_NOT_COMPLETED: {
     code: 'PAYMENT_REQUEST_NOT_COMPLETED',
@@ -8967,7 +9038,7 @@ var errors = _dereq_('./errors');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var PayPalCheckout = _dereq_('./paypal-checkout');
-var VERSION = "3.27.0";
+var VERSION = "3.28.0";
 
 /**
  * @static
@@ -9043,6 +9114,8 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../lib/convert-to-braintree-error');
 var errors = _dereq_('./errors');
 var constants = _dereq_('../paypal/shared/constants');
+var methods = _dereq_('../lib/methods');
+var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
 
 /**
  * PayPal Checkout tokenized payload. Returned in {@link PayPalCheckout#tokenizePayment}'s callback as the second argument, `data`.
@@ -9461,9 +9534,27 @@ PayPalCheckout.prototype._formatTokenizePayload = function (response) {
   return payload;
 };
 
+/**
+ * Cleanly tear down anything set up by {@link module:braintree-web/paypal-checkout.create|create}.
+ * @public
+ * @param {callback} [callback] Called once teardown is complete. No data is returned if teardown completes successfully.
+ * @example
+ * paypalCheckoutInstance.teardown();
+ * @example <caption>With callback</caption>
+ * paypalCheckoutInstance.teardown(function () {
+ *   // teardown is complete
+ * });
+ * @returns {Promise|void} Returns a promise if no callback is provided.
+ */
+PayPalCheckout.prototype.teardown = function () {
+  convertMethodsToError(this, methods(PayPalCheckout.prototype));
+
+  return Promise.resolve();
+};
+
 module.exports = wrapPromise.wrapPrototype(PayPalCheckout);
 
-},{"../lib/analytics":80,"../lib/braintree-error":84,"../lib/convert-to-braintree-error":92,"../lib/promise":115,"../paypal/shared/constants":133,"./errors":128,"@braintree/wrap-promise":23}],131:[function(_dereq_,module,exports){
+},{"../lib/analytics":80,"../lib/braintree-error":84,"../lib/convert-methods-to-error":91,"../lib/convert-to-braintree-error":92,"../lib/methods":113,"../lib/promise":115,"../paypal/shared/constants":133,"./errors":128,"@braintree/wrap-promise":23}],131:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -9472,7 +9563,7 @@ var BraintreeError = _dereq_('../../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../../lib/convert-to-braintree-error');
 var useMin = _dereq_('../../lib/use-min');
 var once = _dereq_('../../lib/once');
-var VERSION = "3.27.0";
+var VERSION = "3.28.0";
 var constants = _dereq_('../shared/constants');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
@@ -10069,7 +10160,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var errors = _dereq_('./shared/errors');
 var PayPal = _dereq_('./external/paypal');
-var VERSION = "3.27.0";
+var VERSION = "3.28.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var Promise = _dereq_('../lib/promise');
 
@@ -10253,7 +10344,7 @@ var uuid = _dereq_('../../lib/vendor/uuid');
 var deferred = _dereq_('../../lib/deferred');
 var errors = _dereq_('../shared/errors');
 var events = _dereq_('../shared/events');
-var VERSION = "3.27.0";
+var VERSION = "3.28.0";
 var iFramer = _dereq_('@braintree/iframer');
 var Promise = _dereq_('../../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -10594,7 +10685,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.27.0";
+var VERSION = "3.28.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -10717,7 +10808,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.27.0";
+var VERSION = "3.28.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -10858,7 +10949,7 @@ var errors = _dereq_('./errors');
 var events = constants.events;
 var iFramer = _dereq_('@braintree/iframer');
 var methods = _dereq_('../../lib/methods');
-var VERSION = "3.27.0";
+var VERSION = "3.28.0";
 var uuid = _dereq_('../../lib/vendor/uuid');
 var Promise = _dereq_('../../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -11309,7 +11400,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var errors = _dereq_('./errors');
 var USBankAccount = _dereq_('./us-bank-account');
-var VERSION = "3.27.0";
+var VERSION = "3.28.0";
 var sharedErrors = _dereq_('../lib/errors');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -11788,7 +11879,7 @@ module.exports = wrapPromise.wrapPrototype(USBankAccount);
 
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var VaultManager = _dereq_('./vault-manager');
-var VERSION = "3.27.0";
+var VERSION = "3.28.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -11820,6 +11911,9 @@ module.exports = {
 },{"../lib/basic-component-verification":82,"./vault-manager":149,"@braintree/wrap-promise":23}],149:[function(_dereq_,module,exports){
 'use strict';
 
+var methods = _dereq_('../lib/methods');
+var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
+var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -11898,9 +11992,27 @@ function formatPaymentMethodPayload(paymentMethod) {
   return formattedPaymentMethod;
 }
 
+/**
+ * Cleanly tear down anything set up by {@link module:braintree-web/vault-manager.create|create}.
+ * @public
+ * @param {callback} [callback] Called once teardown is complete. No data is returned if teardown completes successfully.
+ * @example
+ * vaultManagerInstance.teardown();
+ * @example <caption>With callback</caption>
+ * vaultManagerInstance.teardown(function () {
+ *   // teardown is complete
+ * });
+ * @returns {Promise|void} Returns a promise if no callback is provided.
+ */
+VaultManager.prototype.teardown = function () {
+  convertMethodsToError(this, methods(VaultManager.prototype));
+
+  return Promise.resolve();
+};
+
 module.exports = wrapPromise.wrapPrototype(VaultManager);
 
-},{"@braintree/wrap-promise":23}],150:[function(_dereq_,module,exports){
+},{"../lib/convert-methods-to-error":91,"../lib/methods":113,"../lib/promise":115,"@braintree/wrap-promise":23}],150:[function(_dereq_,module,exports){
 'use strict';
 /** @module braintree-web/venmo */
 
@@ -11911,7 +12023,7 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Venmo = _dereq_('./venmo');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.27.0";
+var VERSION = "3.28.0";
 
 /**
  * @static
@@ -12029,10 +12141,12 @@ var browserDetection = _dereq_('./shared/browser-detection');
 var constants = _dereq_('./shared/constants');
 var errors = _dereq_('./shared/errors');
 var querystring = _dereq_('../lib/querystring');
+var methods = _dereq_('../lib/methods');
+var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.27.0";
+var VERSION = "3.28.0";
 
 /**
  * Venmo tokenize payload.
@@ -12176,13 +12290,13 @@ Venmo.prototype.tokenize = function () {
     // Subscribe to document visibility change events to detect when app switch
     // has returned.
     self._visibilityChangeListener = function () {
-      if (!document.hidden) {
+      if (!global.document.hidden) {
         self._tokenizationInProgress = false;
 
         setTimeout(function () {
           self._processResults().then(resolve).catch(reject).then(function () {
             global.location.hash = self._previousHash;
-            document.removeEventListener(documentVisibilityChangeEventName(), self._visibilityChangeListener);
+            self._removeVisibilityEventListener();
             delete self._visibilityChangeListener;
           });
         }, constants.PROCESS_RESULTS_DELAY);
@@ -12191,9 +12305,32 @@ Venmo.prototype.tokenize = function () {
 
     // Add a brief delay to ignore visibility change events that occur right before app switch
     setTimeout(function () {
-      document.addEventListener(documentVisibilityChangeEventName(), self._visibilityChangeListener);
+      global.document.addEventListener(documentVisibilityChangeEventName(), self._visibilityChangeListener);
     }, constants.DOCUMENT_VISIBILITY_CHANGE_EVENT_DELAY);
   });
+};
+
+/**
+ * Cleanly tear down anything set up by {@link module:braintree-web/venmo.create|create}.
+ * @public
+ * @param {callback} [callback] Called once teardown is complete. No data is returned if teardown completes successfully.
+ * @example
+ * venmoInstance.teardown();
+ * @example <caption>With callback</caption>
+ * venmoInstance.teardown(function () {
+ *   // teardown is complete
+ * });
+ * @returns {Promise|void} Returns a promise if no callback is provided.
+ */
+Venmo.prototype.teardown = function () {
+  this._removeVisibilityEventListener();
+  convertMethodsToError(this, methods(Venmo.prototype));
+
+  return Promise.resolve();
+};
+
+Venmo.prototype._removeVisibilityEventListener = function () {
+  global.document.removeEventListener(documentVisibilityChangeEventName(), this._visibilityChangeListener);
 };
 
 Venmo.prototype._processResults = function () {
@@ -12264,11 +12401,11 @@ function formatTokenizePayload(fragmentParams, venmoAccountData) {
 function documentVisibilityChangeEventName() {
   var visibilityChange;
 
-  if (typeof document.hidden !== 'undefined') { // Opera 12.10 and Firefox 18 and later support
+  if (typeof global.document.hidden !== 'undefined') { // Opera 12.10 and Firefox 18 and later support
     visibilityChange = 'visibilitychange';
-  } else if (typeof document.msHidden !== 'undefined') {
+  } else if (typeof global.document.msHidden !== 'undefined') {
     visibilityChange = 'msvisibilitychange';
-  } else if (typeof document.webkitHidden !== 'undefined') {
+  } else if (typeof global.document.webkitHidden !== 'undefined') {
     visibilityChange = 'webkitvisibilitychange';
   }
 
@@ -12278,7 +12415,7 @@ function documentVisibilityChangeEventName() {
 module.exports = wrapPromise.wrapPrototype(Venmo);
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../lib/analytics":80,"../lib/braintree-error":84,"../lib/promise":115,"../lib/querystring":116,"./shared/browser-detection":151,"./shared/constants":152,"./shared/errors":153,"@braintree/wrap-promise":23}],155:[function(_dereq_,module,exports){
+},{"../lib/analytics":80,"../lib/braintree-error":84,"../lib/convert-methods-to-error":91,"../lib/methods":113,"../lib/promise":115,"../lib/querystring":116,"./shared/browser-detection":151,"./shared/constants":152,"./shared/errors":153,"@braintree/wrap-promise":23}],155:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -12319,7 +12456,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var VisaCheckout = _dereq_('./visa-checkout');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./errors');
-var VERSION = "3.27.0";
+var VERSION = "3.28.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -12362,6 +12499,8 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./errors');
 var jsonClone = _dereq_('../lib/json-clone');
+var methods = _dereq_('../lib/methods');
+var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var cardTypeTransformMap = {
@@ -12530,7 +12669,25 @@ VisaCheckout.prototype.tokenize = function (payment) {
   });
 };
 
+/**
+ * Cleanly tear down anything set up by {@link module:braintree-web/visa-checkout.create|create}.
+ * @public
+ * @param {callback} [callback] Called once teardown is complete. No data is returned if teardown completes successfully.
+ * @example
+ * visaCheckoutInstance.teardown();
+ * @example <caption>With callback</caption>
+ * visaCheckoutInstance.teardown(function () {
+ *   // teardown is complete
+ * });
+ * @returns {Promise|void} Returns a promise if no callback is provided.
+ */
+VisaCheckout.prototype.teardown = function () {
+  convertMethodsToError(this, methods(VisaCheckout.prototype));
+
+  return Promise.resolve();
+};
+
 module.exports = wrapPromise.wrapPrototype(VisaCheckout);
 
-},{"../lib/analytics":80,"../lib/braintree-error":84,"../lib/json-clone":112,"../lib/promise":115,"./errors":155,"@braintree/wrap-promise":23}]},{},[78])(78)
+},{"../lib/analytics":80,"../lib/braintree-error":84,"../lib/convert-methods-to-error":91,"../lib/json-clone":112,"../lib/methods":113,"../lib/promise":115,"./errors":155,"@braintree/wrap-promise":23}]},{},[78])(78)
 });
