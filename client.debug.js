@@ -884,7 +884,7 @@ module.exports = {
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Client = _dereq_('./client');
 var getConfiguration = _dereq_('./get-configuration').getConfiguration;
-var VERSION = "3.28.0";
+var VERSION = "3.28.1";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -1165,11 +1165,7 @@ function creditCardTokenizationResponseAdapter(responseBody) {
   var adaptedResponse;
 
   if (responseBody.data && !responseBody.errors) {
-    if (responseBody.data.tokenizeCreditCard) {
-      adaptedResponse = adaptTokenizeCreditCardResponseBody(responseBody);
-    } else if (responseBody.data.tokenizeCvv) {
-      adaptedResponse = adaptTokenizeCvvResponseBody(responseBody);
-    }
+    adaptedResponse = adaptTokenizeCreditCardResponseBody(responseBody);
   } else {
     adaptedResponse = errorResponseAdapter(responseBody);
   }
@@ -1180,40 +1176,27 @@ function creditCardTokenizationResponseAdapter(responseBody) {
 function adaptTokenizeCreditCardResponseBody(body) {
   var data = body.data.tokenizeCreditCard;
   var creditCard = data.creditCard;
-  var lastTwo = creditCard.last4.substr(2, 4);
-  var response = {
+  var lastTwo = creditCard.last4 ? creditCard.last4.substr(2, 4) : '';
+  var binData = creditCard.binData;
+  var response;
+
+  if (binData) {
+    ['issuingBank', 'countryOfIssuance', 'productId'].forEach(function (key) {
+      if (binData[key] === null) { binData[key] = 'Unknown'; }
+    });
+  }
+
+  response = {
     creditCards: [
       {
-        binData: creditCard.binData,
+        binData: binData,
         consumed: false,
-        description: 'ending in ' + lastTwo,
+        description: lastTwo ? 'ending in ' + lastTwo : '',
         nonce: data.token,
         details: {
-          cardType: creditCard.brand,
-          lastFour: creditCard.last4,
+          cardType: creditCard.brand || 'Unknown',
+          lastFour: creditCard.last4 || '',
           lastTwo: lastTwo
-        },
-        type: 'CreditCard',
-        threeDSecureInfo: null
-      }
-    ]
-  };
-
-  return response;
-}
-
-function adaptTokenizeCvvResponseBody(body) {
-  var data = body.data.tokenizeCvv;
-  var response = {
-    creditCards: [
-      {
-        consumed: false,
-        description: '',
-        nonce: data.token,
-        details: {
-          cardType: 'Unknown',
-          lastFour: '',
-          lastTwo: ''
         },
         type: 'CreditCard',
         threeDSecureInfo: null
@@ -1327,12 +1310,6 @@ var CREDIT_CARD_TOKENIZATION_MUTATION = 'mutation TokenizeCreditCard($input: Tok
 '  } ' +
 '}';
 
-var CVV_ONLY_TOKENIZATION_MUTATION = 'mutation TokenizeCvv($input: TokenizeCvvInput!) { ' +
-'  tokenizeCvv(input: $input) { ' +
-'    token' +
-'  } ' +
-'}';
-
 function createCreditCardTokenizationBody(body) {
   var cc = body.creditCard;
   var billingAddress = cc && cc.billingAddress;
@@ -1381,33 +1358,11 @@ function addValidationRule(body, input) {
   return input;
 }
 
-function createCvvTokenizationBody(body) {
-  var variables = {
-    input: {
-      cvv: body.creditCard && body.creditCard.cvv
-    }
-  };
-
-  return variables;
-}
-
 function creditCardTokenization(body) {
-  var query, variables, operationName;
-
-  if (body.creditCard && !body.creditCard.number && body.creditCard.cvv) {
-    query = CVV_ONLY_TOKENIZATION_MUTATION;
-    variables = createCvvTokenizationBody(body);
-    operationName = 'TokenizeCvv';
-  } else {
-    query = CREDIT_CARD_TOKENIZATION_MUTATION;
-    variables = createCreditCardTokenizationBody(body);
-    operationName = 'TokenizeCreditCard';
-  }
-
   return JSON.stringify({
-    query: query,
-    variables: variables,
-    operationName: operationName
+    query: CREDIT_CARD_TOKENIZATION_MUTATION,
+    variables: createCreditCardTokenizationBody(body),
+    operationName: 'TokenizeCreditCard'
   });
 }
 
@@ -1993,7 +1948,7 @@ module.exports = BraintreeError;
 },{"./enumerate":38}],33:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.28.0";
+var VERSION = "3.28.1";
 var PLATFORM = 'web';
 
 module.exports = {
