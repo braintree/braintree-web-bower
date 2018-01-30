@@ -312,7 +312,7 @@ types[MASTERCARD] = {
   niceType: 'Mastercard',
   type: MASTERCARD,
   prefixPattern: /^(5|5[1-5]|2|22|222|222[1-9]|2[3-6]|27|27[0-2]|2720)$/,
-  exactPattern: /^(5[1-5]|222[1-9]|2[3-6]|27[0-1]|2720)\d*$/,
+  exactPattern: /^(5[1-5]|222[1-9]|22[3-9]|2[3-6]|27[0-1]|2720)\d*$/,
   gaps: [4, 8, 12],
   lengths: [16],
   code: {
@@ -2153,7 +2153,7 @@ var supportsInputFormatting = _dereq_('restricted-input/supports-input-formattin
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.28.1";
+var VERSION = "3.29.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -2392,7 +2392,7 @@ module.exports = {
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.28.1";
+var VERSION = "3.29.0";
 
 var constants = {
   VERSION: VERSION,
@@ -2683,7 +2683,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.28.1";
+var VERSION = "3.29.0";
 
 function basicComponentVerification(options) {
   var client, clientVersion, name;
@@ -3069,7 +3069,7 @@ module.exports = {
 },{}],39:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.28.1";
+var VERSION = "3.29.0";
 var PLATFORM = 'web';
 
 module.exports = {
