@@ -121,6 +121,18 @@ function bind(fn, thisArg) {
   };
 }
 
+function Promise(fn) {
+  if (!(this instanceof Promise))
+    throw new TypeError('Promises must be constructed via new');
+  if (typeof fn !== 'function') throw new TypeError('not a function');
+  this._state = 0;
+  this._handled = false;
+  this._value = undefined;
+  this._deferreds = [];
+
+  doResolve(fn, this);
+}
+
 function handle(self, deferred) {
   while (self._state === 3) {
     self = self._value;
@@ -230,24 +242,11 @@ function doResolve(fn, self) {
   }
 }
 
-function Promise(fn) {
-  if (!(this instanceof Promise))
-    throw new TypeError('Promises must be constructed via new');
-  if (typeof fn !== 'function') throw new TypeError('not a function');
-  this._state = 0;
-  this._handled = false;
-  this._value = undefined;
-  this._deferreds = [];
-
-  doResolve(fn, this);
-}
-
-var _proto = Promise.prototype;
-_proto.catch = function(onRejected) {
+Promise.prototype['catch'] = function(onRejected) {
   return this.then(null, onRejected);
 };
 
-_proto.then = function(onFulfilled, onRejected) {
+Promise.prototype.then = function(onFulfilled, onRejected) {
   var prom = new this.constructor(noop);
 
   handle(this, new Handler(onFulfilled, onRejected, prom));
@@ -518,7 +517,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var GooglePayment = _dereq_('./google-payment');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.29.0";
+var VERSION = "3.30.0";
 
 /**
  * @static
@@ -557,8 +556,8 @@ var VERSION = "3.29.0";
  *     });
  *
  *     paymentsClient.loadPaymentData(paymentDataRequest).then(function (paymentData) {
- *       var result = googlePaymentInstance.parseResponse(paymentData);
- *
+ *       return googlePaymentInstance.parseResponse(paymentData);
+ *     }).then(function (result) {
  *       // send result.nonce to your server
  *     }).catch(function (err) {
  *       // handle err
@@ -566,23 +565,21 @@ var VERSION = "3.29.0";
  *   });
  * });
  * @example <caption>Check Browser and Customer Compatibility</caption>
- * function getPaymentsClient() {
- *   return new google.payments.api.PaymentsClient({
- *     environment: 'TEST' // or 'PRODUCTION'
- *   });
- * }
+ * var paymentsClient = new google.payments.api.PaymentsClient({
+ *   environment: 'TEST' // or 'PRODUCTION'
+ * });
  *
- * function setupGooglePayButton(helper) {
+ * function setupGooglePayButton(googlePaymentInstance) {
  *   var button = document.createElement('button');
  *
  *   button.id = 'google-pay';
  *   button.appendChild(document.createTextNode('Google Pay'));
  *   button.addEventListener('click', function (event) {
- *     var paymentRequestData, paymentsClient;
+ *     var paymentRequestData;
  *
  *     event.preventDefault();
  *
- *     paymentDataRequest = helper.createPaymentDataRequest({
+ *     paymentDataRequest = googlePaymentInstance.createPaymentDataRequest({
  *       merchantId: 'your-merchant-id-from-google',
  *       transactionInfo: {
  *         currencyCode: 'USD',
@@ -590,11 +587,10 @@ var VERSION = "3.29.0";
  *         totalPrice: '100.00' // your amount
  *       }
  *     });
- *     paymentsClient = getPaymentsClient();
  *
  *     paymentsClient.loadPaymentData(paymentDataRequest).then(function (paymentData) {
- *       var result = helper.parseResponse(paymentData);
- *
+ *       return googlePaymentInstance.parseResponse(paymentData);
+*       }).then(function (result) {
  *       // send result.nonce to your server
  *     }).catch(function (err) {
  *       // handle errors
@@ -611,8 +607,6 @@ var VERSION = "3.29.0";
  *     client: clientInstance
  *   });
  * }).then(function (googlePaymentInstance) {
- *   var paymentsClient = getPaymentsClient();
- *
  *   return paymentsClient.isReadyToPay({
  *     allowedPaymentMethods: googlePaymentInstance.createPaymentDataRequest().allowedPaymentMethods
  *   });
@@ -751,7 +745,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.29.0";
+var VERSION = "3.30.0";
 
 function basicComponentVerification(options) {
   var client, clientVersion, name;
@@ -880,7 +874,7 @@ module.exports = BraintreeError;
 },{"./enumerate":16}],13:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.29.0";
+var VERSION = "3.30.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -1016,7 +1010,7 @@ module.exports = {
 },{"./braintree-error":12}],18:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.29.0";
+var VERSION = "3.30.0";
 
 module.exports = function (configuration) {
   var isProduction = configuration.gatewayConfiguration.environment === 'production';

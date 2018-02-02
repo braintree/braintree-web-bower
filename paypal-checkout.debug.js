@@ -121,6 +121,18 @@ function bind(fn, thisArg) {
   };
 }
 
+function Promise(fn) {
+  if (!(this instanceof Promise))
+    throw new TypeError('Promises must be constructed via new');
+  if (typeof fn !== 'function') throw new TypeError('not a function');
+  this._state = 0;
+  this._handled = false;
+  this._value = undefined;
+  this._deferreds = [];
+
+  doResolve(fn, this);
+}
+
 function handle(self, deferred) {
   while (self._state === 3) {
     self = self._value;
@@ -230,24 +242,11 @@ function doResolve(fn, self) {
   }
 }
 
-function Promise(fn) {
-  if (!(this instanceof Promise))
-    throw new TypeError('Promises must be constructed via new');
-  if (typeof fn !== 'function') throw new TypeError('not a function');
-  this._state = 0;
-  this._handled = false;
-  this._value = undefined;
-  this._deferreds = [];
-
-  doResolve(fn, this);
-}
-
-var _proto = Promise.prototype;
-_proto.catch = function(onRejected) {
+Promise.prototype['catch'] = function(onRejected) {
   return this.then(null, onRejected);
 };
 
-_proto.then = function(onFulfilled, onRejected) {
+Promise.prototype.then = function(onFulfilled, onRejected) {
   var prom = new this.constructor(noop);
 
   handle(this, new Handler(onFulfilled, onRejected, prom));
@@ -408,7 +407,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.29.0";
+var VERSION = "3.30.0";
 
 function basicComponentVerification(options) {
   var client, clientVersion, name;
@@ -537,7 +536,7 @@ module.exports = BraintreeError;
 },{"./enumerate":14}],10:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.29.0";
+var VERSION = "3.30.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -825,7 +824,7 @@ var errors = _dereq_('./errors');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var PayPalCheckout = _dereq_('./paypal-checkout');
-var VERSION = "3.29.0";
+var VERSION = "3.30.0";
 
 /**
  * @static

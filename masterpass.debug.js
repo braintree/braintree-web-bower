@@ -617,6 +617,18 @@ function bind(fn, thisArg) {
   };
 }
 
+function Promise(fn) {
+  if (!(this instanceof Promise))
+    throw new TypeError('Promises must be constructed via new');
+  if (typeof fn !== 'function') throw new TypeError('not a function');
+  this._state = 0;
+  this._handled = false;
+  this._value = undefined;
+  this._deferreds = [];
+
+  doResolve(fn, this);
+}
+
 function handle(self, deferred) {
   while (self._state === 3) {
     self = self._value;
@@ -726,24 +738,11 @@ function doResolve(fn, self) {
   }
 }
 
-function Promise(fn) {
-  if (!(this instanceof Promise))
-    throw new TypeError('Promises must be constructed via new');
-  if (typeof fn !== 'function') throw new TypeError('not a function');
-  this._state = 0;
-  this._handled = false;
-  this._value = undefined;
-  this._deferreds = [];
-
-  doResolve(fn, this);
-}
-
-var _proto = Promise.prototype;
-_proto.catch = function(onRejected) {
+Promise.prototype['catch'] = function(onRejected) {
   return this.then(null, onRejected);
 };
 
-_proto.then = function(onFulfilled, onRejected) {
+Promise.prototype.then = function(onFulfilled, onRejected) {
   var prom = new this.constructor(noop);
 
   handle(this, new Handler(onFulfilled, onRejected, prom));
@@ -929,7 +928,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.29.0";
+var VERSION = "3.30.0";
 
 function basicComponentVerification(options) {
   var client, clientVersion, name;
@@ -1230,7 +1229,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":24,"./check-origin":25,"./events":26,"framebus":18}],28:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.29.0";
+var VERSION = "3.30.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -2077,7 +2076,7 @@ var Promise = _dereq_('../../lib/promise');
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var errors = _dereq_('../shared/errors');
-var VERSION = "3.29.0";
+var VERSION = "3.30.0";
 var methods = _dereq_('../../lib/methods');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var analytics = _dereq_('../../lib/analytics');
@@ -2467,7 +2466,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var browserDetection = _dereq_('./shared/browser-detection');
 var Masterpass = _dereq_('./external/masterpass');
-var VERSION = "3.29.0";
+var VERSION = "3.30.0";
 var errors = _dereq_('./shared/errors');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
