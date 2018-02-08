@@ -1,4 +1,4 @@
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}(g.braintree || (g.braintree = {})).venmo = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}(g.braintree || (g.braintree = {})).venmo = f()}})(function(){var define,module,exports;return (function(){function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s}return e})()({1:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -495,7 +495,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.30.0";
+var VERSION = "3.31.0";
 
 function basicComponentVerification(options) {
   var client, clientVersion, name;
@@ -624,7 +624,7 @@ module.exports = BraintreeError;
 },{"./enumerate":21}],18:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.30.0";
+var VERSION = "3.31.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -928,7 +928,8 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Venmo = _dereq_('./venmo');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.30.0";
+var supportsVenmo = _dereq_('./shared/supports-venmo');
+var VERSION = "3.31.0";
 
 /**
  * @static
@@ -967,8 +968,30 @@ function create(options) {
   });
 }
 
+/**
+ * @static
+ * @function isBrowserSupported
+ * @param {object} [options] browser support options:
+ * @param {boolean} [options.allowNewBrowserTab=true] This should be set to false if your payment flow requires returning to the same tab, e.g. single page applications.
+ * @example
+ * if (braintree.venmo.isBrowserSupported()) {
+ *   // set up Venmo
+ * }
+ * @example <caption>Explicitly require browser support returning to the same tab</caption>
+ * if (braintree.venmo.isBrowserSupported({
+ *   allowNewBrowserTab: false
+ * })) {
+ *   // set up Venmo
+ * }
+ * @returns {boolean} Whether or not the browser supports Venmo.
+ */
+function isBrowserSupported(options) {
+  return supportsVenmo.isBrowserSupported(options);
+}
+
 module.exports = {
   create: wrapPromise(create),
+  isBrowserSupported: isBrowserSupported,
   /**
    * @description The current version of the SDK, i.e. `{@pkg version}`.
    * @type {string}
@@ -976,7 +999,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/analytics":15,"../lib/basic-component-verification":16,"../lib/braintree-error":17,"../lib/promise":25,"./shared/errors":31,"./venmo":32,"@braintree/wrap-promise":12}],29:[function(_dereq_,module,exports){
+},{"../lib/analytics":15,"../lib/basic-component-verification":16,"../lib/braintree-error":17,"../lib/promise":25,"./shared/errors":31,"./shared/supports-venmo":32,"./venmo":33,"@braintree/wrap-promise":12}],29:[function(_dereq_,module,exports){
 'use strict';
 
 var isAndroid = _dereq_('@braintree/browser-detection/is-android');
@@ -1038,11 +1061,33 @@ module.exports = {
 };
 
 },{"../../lib/braintree-error":17}],32:[function(_dereq_,module,exports){
+'use strict';
+
+var browserDetection = _dereq_('./browser-detection');
+
+function isBrowserSupported(options) {
+  var isAndroidChrome = browserDetection.isAndroid() && browserDetection.isChrome();
+  var isIosChrome = browserDetection.isIos() && browserDetection.isChrome();
+  var supportsReturnToSameTab = browserDetection.isIosSafari() || isAndroidChrome;
+  var supportsReturnToNewTab = isIosChrome || browserDetection.isSamsungBrowser() || browserDetection.isMobileFirefox();
+
+  options = options || {
+    allowNewBrowserTab: true
+  };
+
+  return supportsReturnToSameTab || (options.allowNewBrowserTab && supportsReturnToNewTab);
+}
+
+module.exports = {
+  isBrowserSupported: isBrowserSupported
+};
+
+},{"./browser-detection":29}],33:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
 var analytics = _dereq_('../lib/analytics');
-var browserDetection = _dereq_('./shared/browser-detection');
+var isBrowserSupported = _dereq_('./shared/supports-venmo');
 var constants = _dereq_('./shared/constants');
 var errors = _dereq_('./shared/errors');
 var querystring = _dereq_('../lib/querystring');
@@ -1051,7 +1096,7 @@ var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.30.0";
+var VERSION = "3.31.0";
 
 /**
  * Venmo tokenize payload.
@@ -1117,12 +1162,9 @@ Venmo.prototype._initialize = function () {
  * @returns {boolean} True if the current browser is supported, false if not.
  */
 Venmo.prototype.isBrowserSupported = function () {
-  var isAndroidChrome = browserDetection.isAndroid() && browserDetection.isChrome();
-  var isIosChrome = browserDetection.isIos() && browserDetection.isChrome();
-  var supportsReturnToSameTab = browserDetection.isIosSafari() || isAndroidChrome;
-  var supportsReturnToNewTab = isIosChrome || browserDetection.isSamsungBrowser() || browserDetection.isMobileFirefox();
-
-  return supportsReturnToSameTab || (this._allowNewBrowserTab && supportsReturnToNewTab);
+  return isBrowserSupported.isBrowserSupported({
+    allowNewBrowserTab: this._allowNewBrowserTab
+  });
 };
 
 /**
@@ -1320,5 +1362,5 @@ function documentVisibilityChangeEventName() {
 module.exports = wrapPromise.wrapPrototype(Venmo);
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../lib/analytics":15,"../lib/braintree-error":17,"../lib/convert-methods-to-error":19,"../lib/methods":24,"../lib/promise":25,"../lib/querystring":26,"./shared/browser-detection":29,"./shared/constants":30,"./shared/errors":31,"@braintree/wrap-promise":12}]},{},[28])(28)
+},{"../lib/analytics":15,"../lib/braintree-error":17,"../lib/convert-methods-to-error":19,"../lib/methods":24,"../lib/promise":25,"../lib/querystring":26,"./shared/constants":30,"./shared/errors":31,"./shared/supports-venmo":32,"@braintree/wrap-promise":12}]},{},[28])(28)
 });

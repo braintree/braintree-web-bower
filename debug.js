@@ -1,4 +1,4 @@
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.braintree = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.braintree = f()}})(function(){var define,module,exports;return (function(){function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s}return e})()({1:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -382,7 +382,9 @@ module.exports = wrapPromise;
 },{"./lib/deferred":19,"./lib/once":20,"./lib/promise-or-callback":21}],23:[function(_dereq_,module,exports){
 'use strict';
 
+var testOrder;
 var types = {};
+var customCards = {};
 var VISA = 'visa';
 var MASTERCARD = 'master-card';
 var AMERICAN_EXPRESS = 'american-express';
@@ -395,7 +397,7 @@ var CVV = 'CVV';
 var CID = 'CID';
 var CVC = 'CVC';
 var CVN = 'CVN';
-var testOrder = [
+var ORIGINAL_TEST_ORDER = [
   VISA,
   MASTERCARD,
   AMERICAN_EXPRESS,
@@ -417,6 +419,8 @@ function clone(originalObject) {
 
   return dupe;
 }
+
+testOrder = clone(ORIGINAL_TEST_ORDER);
 
 types[VISA] = {
   niceType: 'Visa',
@@ -523,6 +527,10 @@ types[MAESTRO] = {
   }
 };
 
+function findType(type) {
+  return customCards[type] || types[type];
+}
+
 function creditCardType(cardNumber) {
   var type, value, i;
   var prefixResults = [];
@@ -534,7 +542,7 @@ function creditCardType(cardNumber) {
 
   for (i = 0; i < testOrder.length; i++) {
     type = testOrder[i];
-    value = types[type];
+    value = findType(type);
 
     if (cardNumber.length === 0) {
       prefixResults.push(clone(value));
@@ -552,7 +560,45 @@ function creditCardType(cardNumber) {
 }
 
 creditCardType.getTypeInfo = function (type) {
-  return clone(types[type]);
+  return clone(findType(type));
+};
+
+function getCardPosition(name, ignoreErrorForNotExisting) {
+  var position = testOrder.indexOf(name);
+
+  if (!ignoreErrorForNotExisting && position === -1) {
+    throw new Error('"' + name + '" is not a supported card type.');
+  }
+
+  return position;
+}
+
+creditCardType.removeCard = function (name) {
+  var position = getCardPosition(name);
+
+  testOrder.splice(position, 1);
+};
+
+creditCardType.addCard = function (config) {
+  var existingCardPosition = getCardPosition(config.type, true);
+
+  customCards[config.type] = config;
+
+  if (existingCardPosition === -1) {
+    testOrder.push(config.type);
+  }
+};
+
+creditCardType.changeOrder = function (name, position) {
+  var currentPosition = getCardPosition(name);
+
+  testOrder.splice(currentPosition, 1);
+  testOrder.splice(position, 0, name);
+};
+
+creditCardType.resetModifications = function () {
+  testOrder = clone(ORIGINAL_TEST_ORDER);
+  customCards = {};
 };
 
 creditCardType.types = {
@@ -1302,7 +1348,7 @@ module.exports = {
 
 var AmericanExpress = _dereq_('./american-express');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
-var VERSION = "3.30.0";
+var VERSION = "3.31.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -1695,7 +1741,7 @@ var ApplePay = _dereq_('./apple-pay');
 var analytics = _dereq_('../lib/analytics');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var errors = _dereq_('./errors');
-var VERSION = "3.30.0";
+var VERSION = "3.31.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -2253,7 +2299,7 @@ module.exports = {
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Client = _dereq_('./client');
 var getConfiguration = _dereq_('./get-configuration').getConfiguration;
-var VERSION = "3.30.0";
+var VERSION = "3.31.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -3271,7 +3317,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var methods = _dereq_('../lib/methods');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
-var VERSION = "3.30.0";
+var VERSION = "3.31.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var errors = _dereq_('./errors');
@@ -3746,7 +3792,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var GooglePayment = _dereq_('./google-payment');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.30.0";
+var VERSION = "3.31.0";
 
 /**
  * @static
@@ -5021,7 +5067,7 @@ var supportsInputFormatting = _dereq_('restricted-input/supports-input-formattin
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.30.0";
+var VERSION = "3.31.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -5261,7 +5307,7 @@ module.exports = {
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.30.0";
+var VERSION = "3.31.0";
 
 var constants = {
   VERSION: VERSION,
@@ -5496,7 +5542,7 @@ var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../../lib/convert-to-braintree-error');
 var errors = _dereq_('../shared/errors');
-var VERSION = "3.30.0";
+var VERSION = "3.31.0";
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var methods = _dereq_('../../lib/methods');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -5855,7 +5901,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var browserDetection = _dereq_('./shared/browser-detection');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var Ideal = _dereq_('./external/ideal');
-var VERSION = "3.30.0";
+var VERSION = "3.31.0";
 var errors = _dereq_('./shared/errors');
 var sharedErrors = _dereq_('../lib/errors');
 var analytics = _dereq_('../lib/analytics');
@@ -6043,7 +6089,7 @@ var usBankAccount = _dereq_('./us-bank-account');
 var vaultManager = _dereq_('./vault-manager');
 var venmo = _dereq_('./venmo');
 var visaCheckout = _dereq_('./visa-checkout');
-var VERSION = "3.30.0";
+var VERSION = "3.31.0";
 
 module.exports = {
   /** @type {module:braintree-web/american-express} */
@@ -6087,7 +6133,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"./american-express":30,"./apple-pay":33,"./client":39,"./data-collector":56,"./google-payment":60,"./hosted-fields":65,"./ideal":72,"./masterpass":120,"./payment-request":125,"./paypal":131,"./paypal-checkout":128,"./three-d-secure":135,"./unionpay":139,"./us-bank-account":145,"./vault-manager":147,"./venmo":149,"./visa-checkout":155}],77:[function(_dereq_,module,exports){
+},{"./american-express":30,"./apple-pay":33,"./client":39,"./data-collector":56,"./google-payment":60,"./hosted-fields":65,"./ideal":72,"./masterpass":120,"./payment-request":125,"./paypal":131,"./paypal-checkout":128,"./three-d-secure":135,"./unionpay":139,"./us-bank-account":145,"./vault-manager":147,"./venmo":149,"./visa-checkout":156}],77:[function(_dereq_,module,exports){
 'use strict';
 
 var createAuthorizationData = _dereq_('./create-authorization-data');
@@ -6186,7 +6232,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.30.0";
+var VERSION = "3.31.0";
 
 function basicComponentVerification(options) {
   var client, clientVersion, name;
@@ -6592,7 +6638,7 @@ module.exports = {
 },{}],88:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.30.0";
+var VERSION = "3.31.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -7401,7 +7447,7 @@ module.exports = enumerate([
 },{"../../enumerate":94}],108:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.30.0";
+var VERSION = "3.31.0";
 
 module.exports = function (configuration) {
   var isProduction = configuration.gatewayConfiguration.environment === 'production';
@@ -7682,7 +7728,7 @@ var Promise = _dereq_('../../lib/promise');
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var errors = _dereq_('../shared/errors');
-var VERSION = "3.30.0";
+var VERSION = "3.31.0";
 var methods = _dereq_('../../lib/methods');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var analytics = _dereq_('../../lib/analytics');
@@ -8072,7 +8118,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var browserDetection = _dereq_('./shared/browser-detection');
 var Masterpass = _dereq_('./external/masterpass');
-var VERSION = "3.30.0";
+var VERSION = "3.31.0";
 var errors = _dereq_('./shared/errors');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -8243,7 +8289,7 @@ var methods = _dereq_('../../lib/methods');
 var Promise = _dereq_('../../lib/promise');
 var EventEmitter = _dereq_('../../lib/event-emitter');
 var BraintreeError = _dereq_('../../lib/braintree-error');
-var VERSION = "3.30.0";
+var VERSION = "3.31.0";
 var events = _dereq_('../shared/constants').events;
 var errors = _dereq_('../shared/constants').errors;
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -8762,7 +8808,7 @@ module.exports = wrapPromise.wrapPrototype(PaymentRequestComponent);
 var PaymentRequestComponent = _dereq_('./external/payment-request');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.30.0";
+var VERSION = "3.31.0";
 
 /**
  * @static
@@ -8947,7 +8993,7 @@ var errors = _dereq_('./errors');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var PayPalCheckout = _dereq_('./paypal-checkout');
-var VERSION = "3.30.0";
+var VERSION = "3.31.0";
 
 /**
  * @static
@@ -9472,7 +9518,7 @@ var BraintreeError = _dereq_('../../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../../lib/convert-to-braintree-error');
 var useMin = _dereq_('../../lib/use-min');
 var once = _dereq_('../../lib/once');
-var VERSION = "3.30.0";
+var VERSION = "3.31.0";
 var constants = _dereq_('../shared/constants');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
@@ -10069,7 +10115,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var errors = _dereq_('./shared/errors');
 var PayPal = _dereq_('./external/paypal');
-var VERSION = "3.30.0";
+var VERSION = "3.31.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var Promise = _dereq_('../lib/promise');
 
@@ -10253,7 +10299,7 @@ var uuid = _dereq_('../../lib/vendor/uuid');
 var deferred = _dereq_('../../lib/deferred');
 var errors = _dereq_('../shared/errors');
 var events = _dereq_('../shared/events');
-var VERSION = "3.30.0";
+var VERSION = "3.31.0";
 var iFramer = _dereq_('@braintree/iframer');
 var Promise = _dereq_('../../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -10594,7 +10640,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.30.0";
+var VERSION = "3.31.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -10717,7 +10763,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.30.0";
+var VERSION = "3.31.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -10858,7 +10904,7 @@ var errors = _dereq_('./errors');
 var events = constants.events;
 var iFramer = _dereq_('@braintree/iframer');
 var methods = _dereq_('../../lib/methods');
-var VERSION = "3.30.0";
+var VERSION = "3.31.0";
 var uuid = _dereq_('../../lib/vendor/uuid');
 var Promise = _dereq_('../../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -11309,7 +11355,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var errors = _dereq_('./errors');
 var USBankAccount = _dereq_('./us-bank-account');
-var VERSION = "3.30.0";
+var VERSION = "3.31.0";
 var sharedErrors = _dereq_('../lib/errors');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -11788,7 +11834,7 @@ module.exports = wrapPromise.wrapPrototype(USBankAccount);
 
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var VaultManager = _dereq_('./vault-manager');
-var VERSION = "3.30.0";
+var VERSION = "3.31.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -11932,7 +11978,8 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Venmo = _dereq_('./venmo');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.30.0";
+var supportsVenmo = _dereq_('./shared/supports-venmo');
+var VERSION = "3.31.0";
 
 /**
  * @static
@@ -11971,8 +12018,30 @@ function create(options) {
   });
 }
 
+/**
+ * @static
+ * @function isBrowserSupported
+ * @param {object} [options] browser support options:
+ * @param {boolean} [options.allowNewBrowserTab=true] This should be set to false if your payment flow requires returning to the same tab, e.g. single page applications.
+ * @example
+ * if (braintree.venmo.isBrowserSupported()) {
+ *   // set up Venmo
+ * }
+ * @example <caption>Explicitly require browser support returning to the same tab</caption>
+ * if (braintree.venmo.isBrowserSupported({
+ *   allowNewBrowserTab: false
+ * })) {
+ *   // set up Venmo
+ * }
+ * @returns {boolean} Whether or not the browser supports Venmo.
+ */
+function isBrowserSupported(options) {
+  return supportsVenmo.isBrowserSupported(options);
+}
+
 module.exports = {
   create: wrapPromise(create),
+  isBrowserSupported: isBrowserSupported,
   /**
    * @description The current version of the SDK, i.e. `{@pkg version}`.
    * @type {string}
@@ -11980,7 +12049,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/analytics":78,"../lib/basic-component-verification":80,"../lib/braintree-error":82,"../lib/promise":114,"./shared/errors":152,"./venmo":153,"@braintree/wrap-promise":22}],150:[function(_dereq_,module,exports){
+},{"../lib/analytics":78,"../lib/basic-component-verification":80,"../lib/braintree-error":82,"../lib/promise":114,"./shared/errors":152,"./shared/supports-venmo":153,"./venmo":154,"@braintree/wrap-promise":22}],150:[function(_dereq_,module,exports){
 'use strict';
 
 var isAndroid = _dereq_('@braintree/browser-detection/is-android');
@@ -12042,11 +12111,33 @@ module.exports = {
 };
 
 },{"../../lib/braintree-error":82}],153:[function(_dereq_,module,exports){
+'use strict';
+
+var browserDetection = _dereq_('./browser-detection');
+
+function isBrowserSupported(options) {
+  var isAndroidChrome = browserDetection.isAndroid() && browserDetection.isChrome();
+  var isIosChrome = browserDetection.isIos() && browserDetection.isChrome();
+  var supportsReturnToSameTab = browserDetection.isIosSafari() || isAndroidChrome;
+  var supportsReturnToNewTab = isIosChrome || browserDetection.isSamsungBrowser() || browserDetection.isMobileFirefox();
+
+  options = options || {
+    allowNewBrowserTab: true
+  };
+
+  return supportsReturnToSameTab || (options.allowNewBrowserTab && supportsReturnToNewTab);
+}
+
+module.exports = {
+  isBrowserSupported: isBrowserSupported
+};
+
+},{"./browser-detection":150}],154:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
 var analytics = _dereq_('../lib/analytics');
-var browserDetection = _dereq_('./shared/browser-detection');
+var isBrowserSupported = _dereq_('./shared/supports-venmo');
 var constants = _dereq_('./shared/constants');
 var errors = _dereq_('./shared/errors');
 var querystring = _dereq_('../lib/querystring');
@@ -12055,7 +12146,7 @@ var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.30.0";
+var VERSION = "3.31.0";
 
 /**
  * Venmo tokenize payload.
@@ -12121,12 +12212,9 @@ Venmo.prototype._initialize = function () {
  * @returns {boolean} True if the current browser is supported, false if not.
  */
 Venmo.prototype.isBrowserSupported = function () {
-  var isAndroidChrome = browserDetection.isAndroid() && browserDetection.isChrome();
-  var isIosChrome = browserDetection.isIos() && browserDetection.isChrome();
-  var supportsReturnToSameTab = browserDetection.isIosSafari() || isAndroidChrome;
-  var supportsReturnToNewTab = isIosChrome || browserDetection.isSamsungBrowser() || browserDetection.isMobileFirefox();
-
-  return supportsReturnToSameTab || (this._allowNewBrowserTab && supportsReturnToNewTab);
+  return isBrowserSupported.isBrowserSupported({
+    allowNewBrowserTab: this._allowNewBrowserTab
+  });
 };
 
 /**
@@ -12324,7 +12412,7 @@ function documentVisibilityChangeEventName() {
 module.exports = wrapPromise.wrapPrototype(Venmo);
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../lib/analytics":78,"../lib/braintree-error":82,"../lib/convert-methods-to-error":89,"../lib/methods":112,"../lib/promise":114,"../lib/querystring":115,"./shared/browser-detection":150,"./shared/constants":151,"./shared/errors":152,"@braintree/wrap-promise":22}],154:[function(_dereq_,module,exports){
+},{"../lib/analytics":78,"../lib/braintree-error":82,"../lib/convert-methods-to-error":89,"../lib/methods":112,"../lib/promise":114,"../lib/querystring":115,"./shared/constants":151,"./shared/errors":152,"./shared/supports-venmo":153,"@braintree/wrap-promise":22}],155:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -12352,7 +12440,7 @@ module.exports = {
   }
 };
 
-},{"../lib/braintree-error":82}],155:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":82}],156:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -12365,7 +12453,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var VisaCheckout = _dereq_('./visa-checkout');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./errors');
-var VERSION = "3.30.0";
+var VERSION = "3.31.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -12401,7 +12489,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/analytics":78,"../lib/basic-component-verification":80,"../lib/braintree-error":82,"../lib/promise":114,"./errors":154,"./visa-checkout":156,"@braintree/wrap-promise":22}],156:[function(_dereq_,module,exports){
+},{"../lib/analytics":78,"../lib/basic-component-verification":80,"../lib/braintree-error":82,"../lib/promise":114,"./errors":155,"./visa-checkout":157,"@braintree/wrap-promise":22}],157:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -12598,5 +12686,5 @@ VisaCheckout.prototype.teardown = function () {
 
 module.exports = wrapPromise.wrapPrototype(VisaCheckout);
 
-},{"../lib/analytics":78,"../lib/braintree-error":82,"../lib/convert-methods-to-error":89,"../lib/json-clone":111,"../lib/methods":112,"../lib/promise":114,"./errors":154,"@braintree/wrap-promise":22}]},{},[76])(76)
+},{"../lib/analytics":78,"../lib/braintree-error":82,"../lib/convert-methods-to-error":89,"../lib/json-clone":111,"../lib/methods":112,"../lib/promise":114,"./errors":155,"@braintree/wrap-promise":22}]},{},[76])(76)
 });

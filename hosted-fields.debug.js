@@ -1,4 +1,4 @@
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}(g.braintree || (g.braintree = {})).hostedFields = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}(g.braintree || (g.braintree = {})).hostedFields = f()}})(function(){var define,module,exports;return (function(){function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s}return e})()({1:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -259,7 +259,9 @@ module.exports = wrapPromise;
 },{"./lib/deferred":12,"./lib/once":13,"./lib/promise-or-callback":14}],16:[function(_dereq_,module,exports){
 'use strict';
 
+var testOrder;
 var types = {};
+var customCards = {};
 var VISA = 'visa';
 var MASTERCARD = 'master-card';
 var AMERICAN_EXPRESS = 'american-express';
@@ -272,7 +274,7 @@ var CVV = 'CVV';
 var CID = 'CID';
 var CVC = 'CVC';
 var CVN = 'CVN';
-var testOrder = [
+var ORIGINAL_TEST_ORDER = [
   VISA,
   MASTERCARD,
   AMERICAN_EXPRESS,
@@ -294,6 +296,8 @@ function clone(originalObject) {
 
   return dupe;
 }
+
+testOrder = clone(ORIGINAL_TEST_ORDER);
 
 types[VISA] = {
   niceType: 'Visa',
@@ -400,6 +404,10 @@ types[MAESTRO] = {
   }
 };
 
+function findType(type) {
+  return customCards[type] || types[type];
+}
+
 function creditCardType(cardNumber) {
   var type, value, i;
   var prefixResults = [];
@@ -411,7 +419,7 @@ function creditCardType(cardNumber) {
 
   for (i = 0; i < testOrder.length; i++) {
     type = testOrder[i];
-    value = types[type];
+    value = findType(type);
 
     if (cardNumber.length === 0) {
       prefixResults.push(clone(value));
@@ -429,7 +437,45 @@ function creditCardType(cardNumber) {
 }
 
 creditCardType.getTypeInfo = function (type) {
-  return clone(types[type]);
+  return clone(findType(type));
+};
+
+function getCardPosition(name, ignoreErrorForNotExisting) {
+  var position = testOrder.indexOf(name);
+
+  if (!ignoreErrorForNotExisting && position === -1) {
+    throw new Error('"' + name + '" is not a supported card type.');
+  }
+
+  return position;
+}
+
+creditCardType.removeCard = function (name) {
+  var position = getCardPosition(name);
+
+  testOrder.splice(position, 1);
+};
+
+creditCardType.addCard = function (config) {
+  var existingCardPosition = getCardPosition(config.type, true);
+
+  customCards[config.type] = config;
+
+  if (existingCardPosition === -1) {
+    testOrder.push(config.type);
+  }
+};
+
+creditCardType.changeOrder = function (name, position) {
+  var currentPosition = getCardPosition(name);
+
+  testOrder.splice(currentPosition, 1);
+  testOrder.splice(position, 0, name);
+};
+
+creditCardType.resetModifications = function () {
+  testOrder = clone(ORIGINAL_TEST_ORDER);
+  customCards = {};
 };
 
 creditCardType.types = {
@@ -2152,7 +2198,7 @@ var supportsInputFormatting = _dereq_('restricted-input/supports-input-formattin
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.30.0";
+var VERSION = "3.31.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -2392,7 +2438,7 @@ module.exports = {
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.30.0";
+var VERSION = "3.31.0";
 
 var constants = {
   VERSION: VERSION,
@@ -2684,7 +2730,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.30.0";
+var VERSION = "3.31.0";
 
 function basicComponentVerification(options) {
   var client, clientVersion, name;
@@ -3070,7 +3116,7 @@ module.exports = {
 },{}],39:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.30.0";
+var VERSION = "3.31.0";
 var PLATFORM = 'web';
 
 module.exports = {
