@@ -1,4 +1,4 @@
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}(g.braintree || (g.braintree = {})).hostedFields = f()}})(function(){var define,module,exports;return (function(){function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s}return e})()({1:[function(_dereq_,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}(g.braintree || (g.braintree = {})).hostedFields = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -494,279 +494,302 @@ module.exports = creditCardType;
 },{}],17:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
-(function (root, factory) {
-  if (typeof exports === 'object' && typeof module !== 'undefined') {
-    module.exports = factory(typeof global === 'undefined' ? root : global);
-  } else if (typeof define === 'function' && define.amd) {
-    define([], function () { return factory(root); });
-  } else {
-    root.framebus = factory(root);
-  }
-})(this, function (root) { // eslint-disable-line no-invalid-this
-  var win, framebus;
-  var popups = [];
-  var subscribers = {};
-  var prefix = '/*framebus*/';
 
-  function include(popup) {
-    if (popup == null) { return false; }
-    if (popup.Window == null) { return false; }
-    if (popup.constructor !== popup.Window) { return false; }
+var win, framebus;
+var popups = [];
+var subscribers = {};
+var prefix = '/*framebus*/';
 
-    popups.push(popup);
-    return true;
-  }
+function include(popup) {
+  if (popup == null) { return false; }
+  if (popup.Window == null) { return false; }
+  if (popup.constructor !== popup.Window) { return false; }
 
-  function target(origin) {
-    var key;
-    var targetedFramebus = {};
+  popups.push(popup);
+  return true;
+}
 
-    for (key in framebus) {
-      if (!framebus.hasOwnProperty(key)) { continue; }
+function target(origin) {
+  var key;
+  var targetedFramebus = {};
 
-      targetedFramebus[key] = framebus[key];
-    }
+  for (key in framebus) {
+    if (!framebus.hasOwnProperty(key)) { continue; }
 
-    targetedFramebus._origin = origin || '*';
-
-    return targetedFramebus;
+    targetedFramebus[key] = framebus[key];
   }
 
-  function publish(event) {
-    var payload, args;
-    var origin = _getOrigin(this); // eslint-disable-line no-invalid-this
+  targetedFramebus._origin = origin || '*';
 
-    if (_isntString(event)) { return false; }
-    if (_isntString(origin)) { return false; }
+  return targetedFramebus;
+}
 
-    args = Array.prototype.slice.call(arguments, 1);
+function publish(event) {
+  var payload, args;
+  var origin = _getOrigin(this); // eslint-disable-line no-invalid-this
 
-    payload = _packagePayload(event, args, origin);
-    if (payload === false) { return false; }
+  if (_isntString(event)) { return false; }
+  if (_isntString(origin)) { return false; }
 
-    _broadcast(win.top || win.self, payload, origin);
+  args = Array.prototype.slice.call(arguments, 1);
 
-    return true;
-  }
+  payload = _packagePayload(event, args, origin);
+  if (payload === false) { return false; }
 
-  function subscribe(event, fn) {
-    var origin = _getOrigin(this); // eslint-disable-line no-invalid-this
+  _broadcast(win.top || win.self, payload, origin);
 
-    if (_subscriptionArgsInvalid(event, fn, origin)) { return false; }
+  return true;
+}
 
-    subscribers[origin] = subscribers[origin] || {};
-    subscribers[origin][event] = subscribers[origin][event] || [];
-    subscribers[origin][event].push(fn);
+function subscribe(event, fn) {
+  var origin = _getOrigin(this); // eslint-disable-line no-invalid-this
 
-    return true;
-  }
+  if (_subscriptionArgsInvalid(event, fn, origin)) { return false; }
 
-  function unsubscribe(event, fn) {
-    var i, subscriberList;
-    var origin = _getOrigin(this); // eslint-disable-line no-invalid-this
+  subscribers[origin] = subscribers[origin] || {};
+  subscribers[origin][event] = subscribers[origin][event] || [];
+  subscribers[origin][event].push(fn);
 
-    if (_subscriptionArgsInvalid(event, fn, origin)) { return false; }
+  return true;
+}
 
-    subscriberList = subscribers[origin] && subscribers[origin][event];
-    if (!subscriberList) { return false; }
+function unsubscribe(event, fn) {
+  var i, subscriberList;
+  var origin = _getOrigin(this); // eslint-disable-line no-invalid-this
 
-    for (i = 0; i < subscriberList.length; i++) {
-      if (subscriberList[i] === fn) {
-        subscriberList.splice(i, 1);
-        return true;
-      }
-    }
+  if (_subscriptionArgsInvalid(event, fn, origin)) { return false; }
 
-    return false;
-  }
+  subscriberList = subscribers[origin] && subscribers[origin][event];
+  if (!subscriberList) { return false; }
 
-  function _getOrigin(scope) {
-    return scope && scope._origin || '*';
-  }
-
-  function _isntString(string) {
-    return typeof string !== 'string';
-  }
-
-  function _packagePayload(event, args, origin) {
-    var packaged = false;
-    var payload = {
-      event: event,
-      origin: origin
-    };
-    var reply = args[args.length - 1];
-
-    if (typeof reply === 'function') {
-      payload.reply = _subscribeReplier(reply, origin);
-      args = args.slice(0, -1);
-    }
-
-    payload.args = args;
-
-    try {
-      packaged = prefix + JSON.stringify(payload);
-    } catch (e) {
-      throw new Error('Could not stringify event: ' + e.message);
-    }
-    return packaged;
-  }
-
-  function _unpackPayload(e) {
-    var payload, replyOrigin, replySource, replyEvent;
-
-    if (e.data.slice(0, prefix.length) !== prefix) { return false; }
-
-    try {
-      payload = JSON.parse(e.data.slice(prefix.length));
-    } catch (err) {
-      return false;
-    }
-
-    if (payload.reply != null) {
-      replyOrigin = e.origin;
-      replySource = e.source;
-      replyEvent = payload.reply;
-
-      payload.reply = function reply(data) { // eslint-disable-line consistent-return
-        var replyPayload = _packagePayload(replyEvent, [data], replyOrigin);
-
-        if (replyPayload === false) { return false; }
-
-        replySource.postMessage(replyPayload, replyOrigin);
-      };
-
-      payload.args.push(payload.reply);
-    }
-
-    return payload;
-  }
-
-  function _attach(w) {
-    if (win) { return; }
-    win = w || root;
-
-    if (win.addEventListener) {
-      win.addEventListener('message', _onmessage, false);
-    } else if (win.attachEvent) {
-      win.attachEvent('onmessage', _onmessage);
-    } else if (win.onmessage === null) {
-      win.onmessage = _onmessage;
-    } else {
-      win = null;
+  for (i = 0; i < subscriberList.length; i++) {
+    if (subscriberList[i] === fn) {
+      subscriberList.splice(i, 1);
+      return true;
     }
   }
 
-  function _uuid() {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-      var r = Math.random() * 16 | 0;
-      var v = c === 'x' ? r : r & 0x3 | 0x8;
+  return false;
+}
 
-      return v.toString(16);
-    });
-  }
+function _getOrigin(scope) {
+  return scope && scope._origin || '*';
+}
 
-  function _onmessage(e) {
-    var payload;
+function _isntString(string) {
+  return typeof string !== 'string';
+}
 
-    if (_isntString(e.data)) { return; }
-
-    payload = _unpackPayload(e);
-    if (!payload) { return; }
-
-    _dispatch('*', payload.event, payload.args, e);
-    _dispatch(e.origin, payload.event, payload.args, e);
-    _broadcastPopups(e.data, payload.origin, e.source);
-  }
-
-  function _dispatch(origin, event, args, e) {
-    var i;
-
-    if (!subscribers[origin]) { return; }
-    if (!subscribers[origin][event]) { return; }
-
-    for (i = 0; i < subscribers[origin][event].length; i++) {
-      subscribers[origin][event][i].apply(e, args);
-    }
-  }
-
-  function _hasOpener(frame) {
-    if (frame.top !== frame) { return false; }
-    if (frame.opener == null) { return false; }
-    if (frame.opener === frame) { return false; }
-    if (frame.opener.closed === true) { return false; }
-
-    return true;
-  }
-
-  function _broadcast(frame, payload, origin) {
-    var i;
-
-    try {
-      frame.postMessage(payload, origin);
-
-      if (_hasOpener(frame)) {
-        _broadcast(frame.opener.top, payload, origin);
-      }
-
-      for (i = 0; i < frame.frames.length; i++) {
-        _broadcast(frame.frames[i], payload, origin);
-      }
-    } catch (_) { /* ignored */ }
-  }
-
-  function _broadcastPopups(payload, origin, source) {
-    var i, popup;
-
-    for (i = popups.length - 1; i >= 0; i--) {
-      popup = popups[i];
-
-      if (popup.closed === true) {
-        popups = popups.slice(i, 1);
-      } else if (source !== popup) {
-        _broadcast(popup.top, payload, origin);
-      }
-    }
-  }
-
-  function _subscribeReplier(fn, origin) {
-    var uuid = _uuid();
-
-    function replier(d, o) {
-      fn(d, o);
-      framebus.target(origin).unsubscribe(uuid, replier);
-    }
-
-    framebus.target(origin).subscribe(uuid, replier);
-    return uuid;
-  }
-
-  function _subscriptionArgsInvalid(event, fn, origin) {
-    if (_isntString(event)) { return true; }
-    if (typeof fn !== 'function') { return true; }
-    if (_isntString(origin)) { return true; }
-
-    return false;
-  }
-
-  _attach();
-
-  framebus = {
-    target: target,
-    include: include,
-    publish: publish,
-    pub: publish,
-    trigger: publish,
-    emit: publish,
-    subscribe: subscribe,
-    sub: subscribe,
-    on: subscribe,
-    unsubscribe: unsubscribe,
-    unsub: unsubscribe,
-    off: unsubscribe
+function _packagePayload(event, args, origin) {
+  var packaged = false;
+  var payload = {
+    event: event,
+    origin: origin
   };
+  var reply = args[args.length - 1];
 
-  return framebus;
-});
+  if (typeof reply === 'function') {
+    payload.reply = _subscribeReplier(reply, origin);
+    args = args.slice(0, -1);
+  }
+
+  payload.args = args;
+
+  try {
+    packaged = prefix + JSON.stringify(payload);
+  } catch (e) {
+    throw new Error('Could not stringify event: ' + e.message);
+  }
+  return packaged;
+}
+
+function _unpackPayload(e) {
+  var payload, replyOrigin, replySource, replyEvent;
+
+  if (e.data.slice(0, prefix.length) !== prefix) { return false; }
+
+  try {
+    payload = JSON.parse(e.data.slice(prefix.length));
+  } catch (err) {
+    return false;
+  }
+
+  if (payload.reply != null) {
+    replyOrigin = e.origin;
+    replySource = e.source;
+    replyEvent = payload.reply;
+
+    payload.reply = function reply(data) { // eslint-disable-line consistent-return
+      var replyPayload = _packagePayload(replyEvent, [data], replyOrigin);
+
+      if (replyPayload === false) { return false; }
+
+      replySource.postMessage(replyPayload, replyOrigin);
+    };
+
+    payload.args.push(payload.reply);
+  }
+
+  return payload;
+}
+
+function _attach(w) {
+  if (win) { return; }
+  win = w || global;
+
+  if (win.addEventListener) {
+    win.addEventListener('message', _onmessage, false);
+  } else if (win.attachEvent) {
+    win.attachEvent('onmessage', _onmessage);
+  } else if (win.onmessage === null) {
+    win.onmessage = _onmessage;
+  } else {
+    win = null;
+  }
+}
+
+// removeIf(production)
+function _detach() {
+  if (win == null) { return; }
+
+  if (win.removeEventListener) {
+    win.removeEventListener('message', _onmessage, false);
+  } else if (win.detachEvent) {
+    win.detachEvent('onmessage', _onmessage);
+  } else if (win.onmessage === _onmessage) {
+    win.onmessage = null;
+  }
+
+  win = null;
+  popups = [];
+  subscribers = {};
+}
+// endRemoveIf(production)
+
+function _uuid() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    var r = Math.random() * 16 | 0;
+    var v = c === 'x' ? r : r & 0x3 | 0x8;
+
+    return v.toString(16);
+  });
+}
+
+function _onmessage(e) {
+  var payload;
+
+  if (_isntString(e.data)) { return; }
+
+  payload = _unpackPayload(e);
+  if (!payload) { return; }
+
+  _dispatch('*', payload.event, payload.args, e);
+  _dispatch(e.origin, payload.event, payload.args, e);
+  _broadcastPopups(e.data, payload.origin, e.source);
+}
+
+function _dispatch(origin, event, args, e) {
+  var i;
+
+  if (!subscribers[origin]) { return; }
+  if (!subscribers[origin][event]) { return; }
+
+  for (i = 0; i < subscribers[origin][event].length; i++) {
+    subscribers[origin][event][i].apply(e, args);
+  }
+}
+
+function _hasOpener(frame) {
+  if (frame.top !== frame) { return false; }
+  if (frame.opener == null) { return false; }
+  if (frame.opener === frame) { return false; }
+  if (frame.opener.closed === true) { return false; }
+
+  return true;
+}
+
+function _broadcast(frame, payload, origin) {
+  var i;
+
+  try {
+    frame.postMessage(payload, origin);
+
+    if (_hasOpener(frame)) {
+      _broadcast(frame.opener.top, payload, origin);
+    }
+
+    for (i = 0; i < frame.frames.length; i++) {
+      _broadcast(frame.frames[i], payload, origin);
+    }
+  } catch (_) { /* ignored */ }
+}
+
+function _broadcastPopups(payload, origin, source) {
+  var i, popup;
+
+  for (i = popups.length - 1; i >= 0; i--) {
+    popup = popups[i];
+
+    if (popup.closed === true) {
+      popups = popups.slice(i, 1);
+    } else if (source !== popup) {
+      _broadcast(popup.top, payload, origin);
+    }
+  }
+}
+
+function _subscribeReplier(fn, origin) {
+  var uuid = _uuid();
+
+  function replier(d, o) {
+    fn(d, o);
+    framebus.target(origin).unsubscribe(uuid, replier);
+  }
+
+  framebus.target(origin).subscribe(uuid, replier);
+  return uuid;
+}
+
+function _subscriptionArgsInvalid(event, fn, origin) {
+  if (_isntString(event)) { return true; }
+  if (typeof fn !== 'function') { return true; }
+  if (_isntString(origin)) { return true; }
+
+  return false;
+}
+
+_attach();
+
+framebus = {
+  target: target,
+  // removeIf(production)
+  _packagePayload: _packagePayload,
+  _unpackPayload: _unpackPayload,
+  _attach: _attach,
+  _detach: _detach,
+  _dispatch: _dispatch,
+  _broadcast: _broadcast,
+  _subscribeReplier: _subscribeReplier,
+  _subscriptionArgsInvalid: _subscriptionArgsInvalid,
+  _onmessage: _onmessage,
+  _uuid: _uuid,
+  _getSubscribers: function () { return subscribers; },
+  _win: function () { return win; },
+  // endRemoveIf(production)
+  include: include,
+  publish: publish,
+  pub: publish,
+  trigger: publish,
+  emit: publish,
+  subscribe: subscribe,
+  sub: subscribe,
+  on: subscribe,
+  unsubscribe: unsubscribe,
+  unsub: unsubscribe,
+  off: unsubscribe
+};
+
+module.exports = framebus;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],18:[function(_dereq_,module,exports){
@@ -1091,7 +1114,7 @@ function _isValid(attribute, value) {
 
 module.exports = attributeValidationError;
 
-},{"../../lib/braintree-error":34,"../shared/constants":27,"../shared/errors":28}],22:[function(_dereq_,module,exports){
+},{"../../lib/braintree-error":35,"../shared/constants":27,"../shared/errors":28}],22:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('../shared/constants');
@@ -1105,10 +1128,11 @@ module.exports = function composeUrl(assetsUrl, componentId, isDebug) {
     componentId;
 };
 
-},{"../../lib/use-min":51,"../shared/constants":27}],23:[function(_dereq_,module,exports){
+},{"../../lib/use-min":52,"../shared/constants":27}],23:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
+var assign = _dereq_('../../lib/assign').assign;
 var Destructor = _dereq_('../../lib/destructor');
 var classlist = _dereq_('../../lib/classlist');
 var iFramer = _dereq_('@braintree/iframer');
@@ -1422,6 +1446,7 @@ function HostedFields(options) {
   var failureTimeout, clientConfig;
   var self = this;
   var fields = {};
+  var internalOptions = {};
   var fieldCount = 0;
   var componentId = uuid();
 
@@ -1562,16 +1587,23 @@ function HostedFields(options) {
     }, 0);
   }.bind(this));
 
+  // TODO rejecting unsupported cards should be the default behavior after the next major revision
+  if (options.fields.number && options.fields.number.rejectUnsupportedCards) {
+    internalOptions.supportedCardTypes = clientConfig.gatewayConfiguration.creditCards.supportedCardTypes;
+  }
+
   failureTimeout = setTimeout(function () {
     analytics.sendEvent(self._client, 'custom.hosted-fields.load.timed-out');
     self._emit('timeout');
   }, INTEGRATION_TIMEOUT_MS);
 
   this._bus.on(events.FRAME_READY, function (reply) {
+    var busOptions = assign({}, options, internalOptions);
+
     fieldCount--;
     if (fieldCount === 0) {
       clearTimeout(failureTimeout);
-      reply(options);
+      reply(busOptions);
       self._emit('ready');
     }
   });
@@ -2170,7 +2202,7 @@ HostedFields.prototype.getState = function () {
 module.exports = wrapPromise.wrapPrototype(HostedFields);
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../lib/analytics":31,"../../lib/braintree-error":34,"../../lib/bus":37,"../../lib/classlist":38,"../../lib/constants":39,"../../lib/convert-methods-to-error":40,"../../lib/destructor":42,"../../lib/errors":44,"../../lib/event-emitter":45,"../../lib/methods":48,"../../lib/promise":50,"../../lib/vendor/uuid":53,"../shared/browser-detection":26,"../shared/constants":27,"../shared/errors":28,"../shared/find-parent-tags":29,"./attribute-validation-error":21,"./compose-url":22,"./inject-frame":24,"@braintree/iframer":8,"@braintree/wrap-promise":15,"credit-card-type":16}],24:[function(_dereq_,module,exports){
+},{"../../lib/analytics":31,"../../lib/assign":32,"../../lib/braintree-error":35,"../../lib/bus":38,"../../lib/classlist":39,"../../lib/constants":40,"../../lib/convert-methods-to-error":41,"../../lib/destructor":43,"../../lib/errors":45,"../../lib/event-emitter":46,"../../lib/methods":49,"../../lib/promise":51,"../../lib/vendor/uuid":54,"../shared/browser-detection":26,"../shared/constants":27,"../shared/errors":28,"../shared/find-parent-tags":29,"./attribute-validation-error":21,"./compose-url":22,"./inject-frame":24,"@braintree/iframer":8,"@braintree/wrap-promise":15,"credit-card-type":16}],24:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function injectFrame(frame, container) {
@@ -2198,7 +2230,7 @@ var supportsInputFormatting = _dereq_('restricted-input/supports-input-formattin
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.31.0";
+var VERSION = "3.32.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -2216,6 +2248,7 @@ var VERSION = "3.31.0";
  * For postal code fields, the default value is 3, representing the Icelandic postal code length. This option's primary use case is to increase the `minlength`, e.g. for US customers, the postal code `minlength` can be set to 5.
  * For cvv fields, the default value is 3. The `minlength` attribute only applies to integrations capturing a cvv without a number field.
  * @property {string} [prefill] A value to prefill the field with. For example, when creating an update card form, you can prefill the expiration date fields with the old expiration date data.
+ * @property {boolean} [rejectUnsupportedCards=false] Only allow card types that your merchant account is able to process. Unsupported card types will invalidate the card form. e.g. if you only process Visa cards, a customer entering a American Express card would get an invalid card field. This can only be used for the `number` field.
  */
 
 /**
@@ -2225,7 +2258,7 @@ var VERSION = "3.31.0";
  * @property {field} [expirationDate] A field for expiration date in `MM/YYYY` format. This should not be used with the `expirationMonth` and `expirationYear` properties.
  * @property {field} [expirationMonth] A field for expiration month in `MM` format. This should be used with the `expirationYear` property.
  * @property {field} [expirationYear] A field for expiration year in `YYYY` format. This should be used with the `expirationMonth` property.
- * @property {field} [cvv] A field for 3 or 4 digit CVV or CID.
+ * @property {field} [cvv] A field for 3 or 4 digit card verification code (like CVV or CID). If you wish to create a CVV-only payment method nonce to verify a card already stored in your Vault, omit all other fields to only collect CVV.
  * @property {field} [postalCode] A field for postal or region code.
  */
 
@@ -2333,6 +2366,17 @@ var VERSION = "3.31.0";
  *     }
  *   }
  * }, callback);
+ * @example <caption>Setting up Hosted Fields to tokenize CVV only</caption>
+ * braintree.hostedFields.create({
+ *   client: clientInstance,
+ *   fields: {
+ *     // Only add the `cvv` option.
+ *     cvv: {
+ *       selector: '#cvv',
+ *       placeholder: '•••'
+ *     }
+ *   }
+ * }, callback);
  * @example <caption>Creating an expiration date update form with prefilled data</caption>
  * var storedCreditCardInformation = {
  *   // get this info from your server
@@ -2348,11 +2392,29 @@ var VERSION = "3.31.0";
  *       selector: '#expiration-month',
  *       prefill: storedCreditCardInformation.month
  *     },
- *     expirationMonth: {
+ *     expirationYear: {
  *       selector: '#expiration-year',
  *       prefill: storedCreditCardInformation.year
  *     }
  *   }
+ * }, callback);
+ * @example <caption>Validate the card form for supported card types</caption>
+ * braintree.hostedFields.create({
+ *   client: clientInstance,
+ *   fields: {
+ *     number: {
+ *       selector: '#card-number'
+ *     },
+ *     cvv: {
+ *       selector: '#cvv',
+ *       placeholder: '•••'
+ *     },
+ *     expirationDate: {
+ *       selector: '#expiration-date',
+ *       type: 'month'
+ *     }
+ *   },
+ *   rejectUnsupportedCards: true
  * }, callback);
  */
 function create(options) {
@@ -2423,7 +2485,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/basic-component-verification":32,"../lib/braintree-error":34,"../lib/promise":50,"./external/hosted-fields":23,"./shared/errors":28,"@braintree/wrap-promise":15,"restricted-input/supports-input-formatting":20}],26:[function(_dereq_,module,exports){
+},{"../lib/basic-component-verification":33,"../lib/braintree-error":35,"../lib/promise":51,"./external/hosted-fields":23,"./shared/errors":28,"@braintree/wrap-promise":15,"restricted-input/supports-input-formatting":20}],26:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -2438,7 +2500,7 @@ module.exports = {
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.31.0";
+var VERSION = "3.32.0";
 
 var constants = {
   VERSION: VERSION,
@@ -2538,6 +2600,14 @@ var constants = {
     'aria-required': 'boolean',
     disabled: 'boolean',
     placeholder: 'string'
+  },
+  autocompleteMappings: {
+    'credit-card-number': 'cc-number',
+    expiration: 'cc-exp',
+    'expiration-month': 'cc-exp-month',
+    'expiration-year': 'cc-exp-year',
+    cvv: 'cc-csc',
+    'postal-code': 'billing postal-code'
   }
 };
 
@@ -2559,7 +2629,7 @@ constants.events = enumerate([
 
 module.exports = constants;
 
-},{"../../lib/enumerate":43,"./errors":28}],28:[function(_dereq_,module,exports){
+},{"../../lib/enumerate":44,"./errors":28}],28:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../lib/braintree-error');
@@ -2636,7 +2706,7 @@ module.exports = {
   }
 };
 
-},{"../../lib/braintree-error":34}],29:[function(_dereq_,module,exports){
+},{"../../lib/braintree-error":35}],29:[function(_dereq_,module,exports){
 'use strict';
 
 function findParentTags(element, tag) {
@@ -2690,7 +2760,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":39,"./create-authorization-data":41,"./json-clone":47}],31:[function(_dereq_,module,exports){
+},{"./constants":40,"./create-authorization-data":42,"./json-clone":48}],31:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('./constants');
@@ -2724,13 +2794,38 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":30,"./constants":39}],32:[function(_dereq_,module,exports){
+},{"./add-metadata":30,"./constants":40}],32:[function(_dereq_,module,exports){
+'use strict';
+
+var assignNormalized = typeof Object.assign === 'function' ? Object.assign : assignPolyfill;
+
+function assignPolyfill(destination) {
+  var i, source, key;
+
+  for (i = 1; i < arguments.length; i++) {
+    source = arguments[i];
+    for (key in source) {
+      if (source.hasOwnProperty(key)) {
+        destination[key] = source[key];
+      }
+    }
+  }
+
+  return destination;
+}
+
+module.exports = {
+  assign: assignNormalized,
+  _assign: assignPolyfill
+};
+
+},{}],33:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.31.0";
+var VERSION = "3.32.0";
 
 function basicComponentVerification(options) {
   var client, clientVersion, name;
@@ -2771,7 +2866,7 @@ module.exports = {
   verify: basicComponentVerification
 };
 
-},{"./braintree-error":34,"./errors":44,"./promise":50}],33:[function(_dereq_,module,exports){
+},{"./braintree-error":35,"./errors":45,"./promise":51}],34:[function(_dereq_,module,exports){
 'use strict';
 
 var once = _dereq_('./once');
@@ -2817,7 +2912,7 @@ module.exports = function (functions, cb) {
   }
 };
 
-},{"./once":49}],34:[function(_dereq_,module,exports){
+},{"./once":50}],35:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -2902,7 +2997,7 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":43}],35:[function(_dereq_,module,exports){
+},{"./enumerate":44}],36:[function(_dereq_,module,exports){
 'use strict';
 
 var isWhitelistedDomain = _dereq_('../is-whitelisted-domain');
@@ -2934,7 +3029,7 @@ module.exports = {
   checkOrigin: checkOrigin
 };
 
-},{"../is-whitelisted-domain":46}],36:[function(_dereq_,module,exports){
+},{"../is-whitelisted-domain":47}],37:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../enumerate');
@@ -2943,7 +3038,7 @@ module.exports = enumerate([
   'CONFIGURATION_REQUEST'
 ], 'bus:');
 
-},{"../enumerate":43}],37:[function(_dereq_,module,exports){
+},{"../enumerate":44}],38:[function(_dereq_,module,exports){
 'use strict';
 
 var bus = _dereq_('framebus');
@@ -3074,7 +3169,7 @@ BraintreeBus.events = events;
 
 module.exports = BraintreeBus;
 
-},{"../braintree-error":34,"./check-origin":35,"./events":36,"framebus":17}],38:[function(_dereq_,module,exports){
+},{"../braintree-error":35,"./check-origin":36,"./events":37,"framebus":17}],39:[function(_dereq_,module,exports){
 'use strict';
 
 function _classesOf(element) {
@@ -3113,10 +3208,10 @@ module.exports = {
   toggle: toggle
 };
 
-},{}],39:[function(_dereq_,module,exports){
+},{}],40:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.31.0";
+var VERSION = "3.32.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -3130,7 +3225,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],40:[function(_dereq_,module,exports){
+},{}],41:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -3148,7 +3243,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"./braintree-error":34,"./errors":44}],41:[function(_dereq_,module,exports){
+},{"./braintree-error":35,"./errors":45}],42:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/vendor/polyfill').atob;
@@ -3197,7 +3292,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/vendor/polyfill":52}],42:[function(_dereq_,module,exports){
+},{"../lib/vendor/polyfill":53}],43:[function(_dereq_,module,exports){
 'use strict';
 
 var batchExecuteFunctions = _dereq_('./batch-execute-functions');
@@ -3235,7 +3330,7 @@ Destructor.prototype.teardown = function (callback) {
 
 module.exports = Destructor;
 
-},{"./batch-execute-functions":33}],43:[function(_dereq_,module,exports){
+},{"./batch-execute-functions":34}],44:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -3250,7 +3345,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],44:[function(_dereq_,module,exports){
+},{}],45:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -3287,7 +3382,7 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":34}],45:[function(_dereq_,module,exports){
+},{"./braintree-error":35}],46:[function(_dereq_,module,exports){
 'use strict';
 
 function EventEmitter() {
@@ -3317,7 +3412,7 @@ EventEmitter.prototype._emit = function (event) {
 
 module.exports = EventEmitter;
 
-},{}],46:[function(_dereq_,module,exports){
+},{}],47:[function(_dereq_,module,exports){
 'use strict';
 
 var parser;
@@ -3352,14 +3447,14 @@ function isWhitelistedDomain(url) {
 
 module.exports = isWhitelistedDomain;
 
-},{}],47:[function(_dereq_,module,exports){
+},{}],48:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],48:[function(_dereq_,module,exports){
+},{}],49:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -3368,9 +3463,9 @@ module.exports = function (obj) {
   });
 };
 
-},{}],49:[function(_dereq_,module,exports){
+},{}],50:[function(_dereq_,module,exports){
 arguments[4][13][0].apply(exports,arguments)
-},{"dup":13}],50:[function(_dereq_,module,exports){
+},{"dup":13}],51:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -3379,7 +3474,7 @@ var Promise = global.Promise || _dereq_('promise-polyfill');
 module.exports = Promise;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":18}],51:[function(_dereq_,module,exports){
+},{"promise-polyfill":18}],52:[function(_dereq_,module,exports){
 'use strict';
 
 function useMin(isDebug) {
@@ -3388,7 +3483,7 @@ function useMin(isDebug) {
 
 module.exports = useMin;
 
-},{}],52:[function(_dereq_,module,exports){
+},{}],53:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -3429,7 +3524,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],53:[function(_dereq_,module,exports){
+},{}],54:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {

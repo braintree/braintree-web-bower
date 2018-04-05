@@ -1,4 +1,4 @@
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}(g.braintree || (g.braintree = {})).client = f()}})(function(){var define,module,exports;return (function(){function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s}return e})()({1:[function(_dereq_,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}(g.braintree || (g.braintree = {})).client = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -593,7 +593,8 @@ Client.prototype.request = function (options, callback) {
     requestOptions = {
       method: options.method,
       graphQL: self._graphQL,
-      timeout: options.timeout
+      timeout: options.timeout,
+      metadata: self._configuration.analyticsMetadata
     };
 
     if (api === 'clientApi') {
@@ -883,7 +884,7 @@ module.exports = {
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Client = _dereq_('./client');
 var getConfiguration = _dereq_('./get-configuration').getConfiguration;
-var VERSION = "3.31.0";
+var VERSION = "3.32.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -1160,6 +1161,20 @@ module.exports = function getUserAgent() {
 
 var errorResponseAdapter = _dereq_('./error');
 
+var CARD_BRAND_MAP = {
+  /* eslint-disable camelcase */
+  american_express: 'American Express',
+  diners: 'Discover',
+  discover: 'Discover',
+  international_maestro: 'Maestro',
+  jcb: 'JCB',
+  mastercard: 'MasterCard',
+  uk_maestro: 'Maestro',
+  union_pay: 'Union Pay',
+  visa: 'Visa'
+  /* eslint-enable camelcase */
+};
+
 function creditCardTokenizationResponseAdapter(responseBody) {
   var adaptedResponse;
 
@@ -1193,7 +1208,7 @@ function adaptTokenizeCreditCardResponseBody(body) {
         description: lastTwo ? 'ending in ' + lastTwo : '',
         nonce: data.token,
         details: {
-          cardType: creditCard.brand || 'Unknown',
+          cardType: CARD_BRAND_MAP[creditCard.brandCode] || 'Unknown',
           lastFour: creditCard.last4 || '',
           lastTwo: lastTwo
         },
@@ -1358,11 +1373,11 @@ function addValidationRule(body, input) {
 }
 
 function creditCardTokenization(body) {
-  return JSON.stringify({
+  return {
     query: CREDIT_CARD_TOKENIZATION_MUTATION,
     variables: createCreditCardTokenizationBody(body),
     operationName: 'TokenizeCreditCard'
-  });
+  };
 }
 
 module.exports = creditCardTokenization;
@@ -1459,6 +1474,11 @@ function GraphQLRequest(options) {
   this._data = options.data;
   this._method = options.method;
   this._headers = options.headers;
+  this._clientSdkMetadata = {
+    source: options.metadata.source,
+    integration: options.metadata.integration,
+    sessionId: options.metadata.sessionId
+  };
   this._sendAnalyticsEvent = options.sendAnalyticsEvent || Function.prototype;
 
   this._generator = generators[clientApiPath];
@@ -1473,8 +1493,10 @@ GraphQLRequest.prototype.getUrl = function () {
 
 GraphQLRequest.prototype.getBody = function () {
   var formattedBody = formatBodyKeys(this._data);
+  var generatedBody = this._generator(formattedBody);
+  var body = assign({clientSdkMetadata: this._clientSdkMetadata}, generatedBody);
 
-  return this._generator(formattedBody);
+  return JSON.stringify(body);
 };
 
 GraphQLRequest.prototype.getMethod = function () {
@@ -1947,7 +1969,7 @@ module.exports = BraintreeError;
 },{"./enumerate":38}],33:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.31.0";
+var VERSION = "3.32.0";
 var PLATFORM = 'web';
 
 module.exports = {
