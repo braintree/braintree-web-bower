@@ -884,7 +884,7 @@ module.exports = {
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Client = _dereq_('./client');
 var getConfiguration = _dereq_('./get-configuration').getConfiguration;
-var VERSION = "3.32.0";
+var VERSION = "3.32.1";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -1249,19 +1249,16 @@ function errorWithTypeResponseAdapter(responseBody) {
 }
 
 function userErrorResponseAdapter(responseBody) {
-  var error = responseBody.errors[0];
-  var message = error.extensions.legacyMessage;
-  var errorDetails = error.extensions.errorDetails;
-  var fieldErrors = buildFieldErrors(errorDetails);
+  var fieldErrors = buildFieldErrors(responseBody.errors);
 
-  return {error: {message: message}, fieldErrors: fieldErrors};
+  return {error: {message: getLegacyMessage(fieldErrors)}, fieldErrors: fieldErrors};
 }
 
-function buildFieldErrors(errorDetails) {
+function buildFieldErrors(errors) {
   var fieldErrors = [];
 
-  errorDetails.forEach(function (detail) {
-    addFieldError(detail.inputPath.slice(1), detail, fieldErrors);
+  errors.forEach(function (error) {
+    addFieldError(error.extensions.inputPath.slice(1), error, fieldErrors);
   });
 
   return fieldErrors;
@@ -1269,7 +1266,7 @@ function buildFieldErrors(errorDetails) {
 
 function addFieldError(inputPath, errorDetail, fieldErrors) {
   var fieldError;
-  var legacyCode = errorDetail.legacyCode;
+  var legacyCode = errorDetail.extensions.legacyCode;
   var inputField = inputPath[0];
 
   if (inputPath.length === 1) {
@@ -1296,6 +1293,16 @@ function addFieldError(inputPath, errorDetail, fieldErrors) {
   addFieldError(inputPath.slice(1), errorDetail, fieldError.fieldErrors);
 }
 
+function getLegacyMessage(errors) {
+  var legacyMessages = {
+    creditCard: 'Credit card is invalid'
+  };
+
+  var field = errors[0].field;
+
+  return legacyMessages[field];
+}
+
 module.exports = errorResponseAdapter;
 
 },{}],20:[function(_dereq_,module,exports){
@@ -1307,7 +1314,7 @@ var CREDIT_CARD_TOKENIZATION_MUTATION = 'mutation TokenizeCreditCard($input: Tok
 '  tokenizeCreditCard(input: $input) { ' +
 '    token ' +
 '    creditCard { ' +
-'      brand ' +
+'      brandCode ' +
 '      last4 ' +
 '      binData { ' +
 '        prepaid ' +
@@ -1453,7 +1460,7 @@ module.exports = GraphQL;
 },{"../../browser-detection":9}],22:[function(_dereq_,module,exports){
 'use strict';
 
-var BRAINTREE_VERSION = '2017-12-15';
+var BRAINTREE_VERSION = '2018-03-05';
 
 var assign = _dereq_('../../../lib/assign').assign;
 
@@ -1969,7 +1976,7 @@ module.exports = BraintreeError;
 },{"./enumerate":38}],33:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.32.0";
+var VERSION = "3.32.1";
 var PLATFORM = 'web';
 
 module.exports = {

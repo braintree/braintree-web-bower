@@ -971,7 +971,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.32.0";
+var VERSION = "3.32.1";
 
 function basicComponentVerification(options) {
   var client, clientVersion, name;
@@ -1272,7 +1272,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":26,"./check-origin":27,"./events":28,"framebus":20}],30:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.32.0";
+var VERSION = "3.32.1";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -2268,7 +2268,7 @@ var BraintreeError = _dereq_('../../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../../lib/convert-to-braintree-error');
 var useMin = _dereq_('../../lib/use-min');
 var once = _dereq_('../../lib/once');
-var VERSION = "3.32.0";
+var VERSION = "3.32.1";
 var constants = _dereq_('../shared/constants');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
@@ -2872,7 +2872,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var errors = _dereq_('./shared/errors');
 var PayPal = _dereq_('./external/paypal');
-var VERSION = "3.32.0";
+var VERSION = "3.32.1";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var Promise = _dereq_('../lib/promise');
 
