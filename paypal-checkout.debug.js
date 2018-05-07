@@ -407,7 +407,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.32.1";
+var VERSION = "3.33.0";
 
 function basicComponentVerification(options) {
   var client, clientVersion, name;
@@ -536,7 +536,7 @@ module.exports = BraintreeError;
 },{"./enumerate":14}],10:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.32.1";
+var VERSION = "3.33.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -632,6 +632,7 @@ function createAuthorizationData(authorization) {
     parsedClientToken = JSON.parse(atob(authorization));
     data.attrs.authorizationFingerprint = parsedClientToken.authorizationFingerprint;
     data.configUrl = parsedClientToken.configUrl;
+    data.graphQLUrl = parsedClientToken.graphQLUrl;
   }
 
   return data;
@@ -824,7 +825,7 @@ var errors = _dereq_('./errors');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var PayPalCheckout = _dereq_('./paypal-checkout');
-var VERSION = "3.32.1";
+var VERSION = "3.33.0";
 
 /**
  * @static

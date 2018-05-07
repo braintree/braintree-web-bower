@@ -561,7 +561,8 @@ function _hasOpener(frame) {
 }
 
 function _broadcast(frame, payload, origin) {
-  var i;
+  var i = 0;
+  var frameToBroadcastTo;
 
   try {
     frame.postMessage(payload, origin);
@@ -570,8 +571,16 @@ function _broadcast(frame, payload, origin) {
       _broadcast(frame.opener.top, payload, origin);
     }
 
-    for (i = 0; i < frame.frames.length; i++) {
-      _broadcast(frame.frames[i], payload, origin);
+    // previously, our max value was frame.frames.length
+    // but frames.length inherits from window.length
+    // which can be overwritten if a developer does
+    // `var length = value;` outside of a function
+    // scope, it'll prevent us from looping through
+    // all the frames. With this, we loop through
+    // until there are no longer any frames
+    while (frameToBroadcastTo = frame.frames[i]) { // eslint-disable-line no-cond-assign
+      _broadcast(frameToBroadcastTo, payload, origin);
+      i++;
     }
   } catch (_) { /* ignored */ }
 }
@@ -889,7 +898,7 @@ var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../../lib/convert-to-braintree-error');
 var errors = _dereq_('../shared/errors');
-var VERSION = "3.32.1";
+var VERSION = "3.33.0";
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var methods = _dereq_('../../lib/methods');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -1255,7 +1264,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var browserDetection = _dereq_('./shared/browser-detection');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var Ideal = _dereq_('./external/ideal');
-var VERSION = "3.32.1";
+var VERSION = "3.33.0";
 var errors = _dereq_('./shared/errors');
 var sharedErrors = _dereq_('../lib/errors');
 var analytics = _dereq_('../lib/analytics');
@@ -1486,7 +1495,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.32.1";
+var VERSION = "3.33.0";
 
 function basicComponentVerification(options) {
   var client, clientVersion, name;
@@ -1787,7 +1796,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":32,"./check-origin":33,"./events":34,"framebus":20}],36:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.32.1";
+var VERSION = "3.33.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -1883,6 +1892,7 @@ function createAuthorizationData(authorization) {
     parsedClientToken = JSON.parse(atob(authorization));
     data.attrs.authorizationFingerprint = parsedClientToken.authorizationFingerprint;
     data.configUrl = parsedClientToken.configUrl;
+    data.graphQLUrl = parsedClientToken.graphQLUrl;
   }
 
   return data;

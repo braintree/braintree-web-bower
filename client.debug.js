@@ -732,7 +732,7 @@ Client.prototype.teardown = wrapPromise(function () {
 
 module.exports = Client;
 
-},{"../lib/add-metadata":29,"../lib/analytics":30,"../lib/assign":31,"../lib/braintree-error":32,"../lib/constants":33,"../lib/convert-methods-to-error":34,"../lib/convert-to-braintree-error":35,"../lib/deferred":37,"../lib/errors":39,"../lib/is-whitelisted-domain":40,"../lib/methods":42,"../lib/once":43,"../lib/promise":44,"./constants":11,"./errors":12,"./request":23,"./request/graphql":21,"@braintree/wrap-promise":7}],11:[function(_dereq_,module,exports){
+},{"../lib/add-metadata":31,"../lib/analytics":32,"../lib/assign":33,"../lib/braintree-error":34,"../lib/constants":35,"../lib/convert-methods-to-error":36,"../lib/convert-to-braintree-error":37,"../lib/deferred":39,"../lib/errors":41,"../lib/is-whitelisted-domain":42,"../lib/methods":44,"../lib/once":45,"../lib/promise":46,"./constants":11,"./errors":12,"./request":25,"./request/graphql":23,"@braintree/wrap-promise":7}],11:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -794,7 +794,7 @@ module.exports = {
   }
 };
 
-},{"../lib/braintree-error":32}],13:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":34}],13:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -806,10 +806,11 @@ var uuid = _dereq_('../lib/vendor/uuid');
 var constants = _dereq_('../lib/constants');
 var createAuthorizationData = _dereq_('../lib/create-authorization-data');
 var errors = _dereq_('./errors');
+var GraphQL = _dereq_('./request/graphql');
 
 function getConfiguration(options) {
   return new Promise(function (resolve, reject) {
-    var configuration, authData, attrs, configUrl;
+    var configuration, authData, attrs, configUrl, reqOptions;
     var sessionId = uuid();
     var analyticsMetadata = {
       merchantAppId: global.location.host,
@@ -835,11 +836,24 @@ function getConfiguration(options) {
     attrs.braintreeLibraryVersion = constants.BRAINTREE_LIBRARY_VERSION;
     attrs.configVersion = '3';
 
-    request({
+    reqOptions = {
       url: configUrl,
       method: 'GET',
       data: attrs
-    }, function (err, response, status) {
+    };
+
+    if (attrs.authorizationFingerprint && authData.graphQLUrl) {
+      reqOptions.graphQL = new GraphQL({
+        graphQL: {
+          url: authData.graphQLUrl,
+          features: ['configuration']
+        }
+      });
+
+      reqOptions.metadata = analyticsMetadata;
+    }
+
+    request(reqOptions, function (err, response, status) {
       var errorTemplate;
 
       if (err) {
@@ -878,13 +892,13 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../lib/braintree-error":32,"../lib/constants":33,"../lib/create-authorization-data":36,"../lib/promise":44,"../lib/vendor/uuid":47,"./errors":12,"./request":23,"@braintree/wrap-promise":7}],14:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":34,"../lib/constants":35,"../lib/create-authorization-data":38,"../lib/promise":46,"../lib/vendor/uuid":49,"./errors":12,"./request":25,"./request/graphql":23,"@braintree/wrap-promise":7}],14:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Client = _dereq_('./client');
 var getConfiguration = _dereq_('./get-configuration').getConfiguration;
-var VERSION = "3.32.1";
+var VERSION = "3.33.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -953,7 +967,7 @@ module.exports = {
   _clearCache: clearCache
 };
 
-},{"../lib/braintree-error":32,"../lib/errors":39,"../lib/promise":44,"./client":10,"./get-configuration":13,"@braintree/wrap-promise":7}],15:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":34,"../lib/errors":41,"../lib/promise":46,"./client":10,"./get-configuration":13,"@braintree/wrap-promise":7}],15:[function(_dereq_,module,exports){
 'use strict';
 
 var querystring = _dereq_('../../lib/querystring');
@@ -1111,7 +1125,7 @@ module.exports = {
   request: request
 };
 
-},{"../../lib/assign":31,"../../lib/querystring":45,"../browser-detection":9,"./default-request":16,"./graphql/request":22,"./parse-body":26,"./prep-body":27,"./xhr":28}],16:[function(_dereq_,module,exports){
+},{"../../lib/assign":33,"../../lib/querystring":47,"../browser-detection":9,"./default-request":16,"./graphql/request":24,"./parse-body":28,"./prep-body":29,"./xhr":30}],16:[function(_dereq_,module,exports){
 'use strict';
 
 function DefaultRequest(options) {
@@ -1160,19 +1174,221 @@ module.exports = function getUserAgent() {
 'use strict';
 
 var errorResponseAdapter = _dereq_('./error');
+var assign = _dereq_('../../../../lib/assign').assign;
+
+/* eslint-disable camelcase */
+var cardTypeTransforms = {
+  creditCard: {
+    AMERICAN_EXPRESS: 'American Express',
+    DISCOVER: 'Discover',
+    INTERNATIONAL_MAESTRO: 'Maestro',
+    JCB: 'JCB',
+    MASTERCARD: 'MasterCard',
+    SOLO: 'Solo',
+    UK_MAESTRO: 'UK Maestro',
+    UNION_PAY: 'UnionPay',
+    VISA: 'Visa'
+  },
+  applePayWeb: {
+    VISA: 'visa',
+    MASTERCARD: 'masterCard',
+    DISCOVER: 'discover',
+    AMERICAN_EXPRESS: 'amex'
+  },
+  visaCheckout: {
+    VISA: 'Visa',
+    MASTERCARD: 'MasterCard',
+    DISCOVER: 'Discover',
+    AMERICAN_EXPRESS: 'American Express'
+  },
+  googlePay: {
+    VISA: 'visa',
+    MASTERCARD: 'mastercard',
+    DISCOVER: 'discover',
+    AMERICAN_EXPRESS: 'amex'
+  },
+  masterpass: {
+    VISA: 'visa',
+    MASTERCARD: 'master',
+    DISCOVER: 'discover',
+    AMERICAN_EXPRESS: 'amex',
+    DINERS: 'diners',
+    INTERNATIONAL_MAESTRO: 'maestro',
+    JCB: 'jcb'
+  }
+};
+/* eslint-enable camelcase */
+
+function configurationResponseAdapter(responseBody, ctx) {
+  var adaptedResponse;
+
+  if (responseBody.data && !responseBody.errors) {
+    adaptedResponse = adaptConfigurationResponseBody(responseBody, ctx);
+  } else {
+    adaptedResponse = errorResponseAdapter(responseBody);
+  }
+
+  return adaptedResponse;
+}
+
+function adaptConfigurationResponseBody(body, ctx) {
+  var configuration = body.data.clientConfiguration;
+  var response;
+
+  response = {
+    environment: configuration.environment.toLowerCase(),
+    clientApiUrl: configuration.clientApiUrl,
+    assetsUrl: configuration.assetsUrl,
+    analytics: {
+      url: configuration.analyticsUrl
+    },
+    merchantId: configuration.merchantId,
+    venmo: 'off'
+  };
+
+  if (configuration.supportedFeatures) {
+    response.graphQL = {
+      url: ctx._graphQL._config.url,
+      features: configuration.supportedFeatures.map(function (feature) {
+        return feature.toLowerCase();
+      })
+    };
+  }
+
+  if (configuration.braintreeApi) {
+    response.braintreeApi = configuration.braintreeApi;
+  }
+
+  if (configuration.applePayWeb) {
+    response.applePayWeb = configuration.applePayWeb;
+    response.applePayWeb.supportedCardBrands = mapCardTypes(configuration.applePayWeb.supportedCardBrands, cardTypeTransforms.applePayWeb);
+  }
+
+  if (configuration.ideal) {
+    response.ideal = configuration.ideal;
+  }
+
+  if (configuration.kount) {
+    response.kount = {
+      kountMerchantId: configuration.kount.merchantId
+    };
+  }
+
+  if (configuration.creditCard) {
+    response.challenges = configuration.creditCard.challenges.map(function (challenge) {
+      return challenge.toLowerCase();
+    });
+
+    response.creditCards = {
+      supportedCardTypes: mapCardTypes(configuration.creditCard.supportedCardBrands, cardTypeTransforms.creditCard)
+    };
+    response.threeDSecureEnabled = configuration.creditCard.threeDSecureEnabled;
+  } else {
+    response.challenges = [];
+    response.creditCards = {
+      supportedCardTypes: []
+    };
+    response.threeDSecureEnabled = false;
+  }
+
+  if (configuration.googlePay) {
+    response.androidPay = {
+      displayName: configuration.googlePay.displayName,
+      enabled: true,
+      environment: configuration.googlePay.environment.toLowerCase(),
+      googleAuthorizationFingerprint: configuration.googlePay.googleAuthorization,
+      supportedNetworks: mapCardTypes(configuration.googlePay.supportedCardBrands, cardTypeTransforms.googlePay)
+    };
+  }
+
+  if (configuration.venmo) {
+    response.payWithVenmo = {
+      merchantId: configuration.venmo.merchantId,
+      accessToken: configuration.venmo.accessToken,
+      environment: configuration.venmo.environment.toLowerCase()
+    };
+  }
+
+  if (configuration.paypal) {
+    response.paypalEnabled = true;
+    response.paypal = assign({}, configuration.paypal);
+    response.paypal.currencyIsoCode = response.paypal.currencyCode;
+    response.paypal.environment = response.paypal.environment.toLowerCase();
+
+    delete response.paypal.currencyCode;
+  } else {
+    response.paypalEnabled = false;
+  }
+
+  if (configuration.unionPay) {
+    response.unionPay = {
+      enabled: true,
+      merchantAccountId: configuration.unionPay.merchantAccountId
+    };
+  }
+
+  if (configuration.visaCheckout) {
+    response.visaCheckout = {
+      apikey: configuration.visaCheckout.apiKey,
+      externalClientId: configuration.visaCheckout.externalClientId,
+      supportedCardTypes: mapCardTypes(configuration.visaCheckout.supportedCardBrands, cardTypeTransforms.visaCheckout)
+    };
+  }
+
+  if (configuration.masterpass) {
+    response.masterpass = {
+      merchantCheckoutId: configuration.masterpass.merchantCheckoutId,
+      supportedNetworks: mapCardTypes(configuration.masterpass.supportedCardBrands, cardTypeTransforms.masterpass)
+    };
+  }
+
+  if (configuration.usBankAccount) {
+    response.usBankAccount = {
+      routeId: configuration.usBankAccount.routeId,
+      plaid: {
+        publicKey: configuration.usBankAccount.plaidPublicKey
+      }
+    };
+  }
+
+  return response;
+}
+
+function mapCardTypes(cardTypes, cardTypeTransformMap) {
+  return cardTypes.reduce(function (acc, type) {
+    if (cardTypeTransformMap.hasOwnProperty(type)) {
+      return acc.concat(cardTypeTransformMap[type]);
+    }
+
+    return acc;
+  }, []);
+}
+
+module.exports = configurationResponseAdapter;
+
+},{"../../../../lib/assign":33,"./error":20}],19:[function(_dereq_,module,exports){
+'use strict';
+
+var errorResponseAdapter = _dereq_('./error');
 
 var CARD_BRAND_MAP = {
   /* eslint-disable camelcase */
-  american_express: 'American Express',
-  diners: 'Discover',
-  discover: 'Discover',
-  international_maestro: 'Maestro',
-  jcb: 'JCB',
-  mastercard: 'MasterCard',
-  uk_maestro: 'Maestro',
-  union_pay: 'Union Pay',
-  visa: 'Visa'
+  AMERICAN_EXPRESS: 'American Express',
+  DINERS: 'Discover',
+  DISCOVER: 'Discover',
+  INTERNATIONAL_MAESTRO: 'Maestro',
+  JCB: 'JCB',
+  MASTERCARD: 'MasterCard',
+  UK_MAESTRO: 'Maestro',
+  UNION_PAY: 'Union Pay',
+  VISA: 'Visa'
   /* eslint-enable camelcase */
+};
+
+var BIN_DATA_MAP = {
+  YES: 'Yes',
+  NO: 'No',
+  UNKNOWN: 'Unknown'
 };
 
 function creditCardTokenizationResponseAdapter(responseBody) {
@@ -1195,8 +1411,16 @@ function adaptTokenizeCreditCardResponseBody(body) {
   var response;
 
   if (binData) {
+    ['commercial', 'debit', 'durbinRegulated', 'healthcare', 'payroll', 'prepaid'].forEach(function (key) {
+      if (binData[key]) {
+        binData[key] = BIN_DATA_MAP[binData[key]];
+      } else {
+        binData[key] = 'Unknown';
+      }
+    });
+
     ['issuingBank', 'countryOfIssuance', 'productId'].forEach(function (key) {
-      if (binData[key] === null) { binData[key] = 'Unknown'; }
+      if (!binData[key]) { binData[key] = 'Unknown'; }
     });
   }
 
@@ -1223,7 +1447,7 @@ function adaptTokenizeCreditCardResponseBody(body) {
 
 module.exports = creditCardTokenizationResponseAdapter;
 
-},{"./error":19}],19:[function(_dereq_,module,exports){
+},{"./error":20}],20:[function(_dereq_,module,exports){
 'use strict';
 
 function errorResponseAdapter(responseBody) {
@@ -1305,7 +1529,94 @@ function getLegacyMessage(errors) {
 
 module.exports = errorResponseAdapter;
 
-},{}],20:[function(_dereq_,module,exports){
+},{}],21:[function(_dereq_,module,exports){
+'use strict';
+
+var CONFIGURATION_QUERY = 'query ClientConfiguration { ' +
+'  clientConfiguration { ' +
+'    analyticsUrl ' +
+'    environment ' +
+'    merchantId ' +
+'    assetsUrl ' +
+'    clientApiUrl ' +
+'    creditCard { ' +
+'      supportedCardBrands ' +
+'      challenges ' +
+'      threeDSecureEnabled ' +
+'    } ' +
+'    applePayWeb { ' +
+'      countryCode ' +
+'      currencyCode ' +
+'      merchantIdentifier ' +
+'      supportedCardBrands ' +
+'    } ' +
+'    googlePay { ' +
+'      displayName ' +
+'      supportedCardBrands ' +
+'      environment ' +
+'      googleAuthorization ' +
+'    } ' +
+'    ideal { ' +
+'      routeId ' +
+'      assetsUrl ' +
+'    } ' +
+'    kount { ' +
+'      merchantId ' +
+'    } ' +
+'    masterpass { ' +
+'      merchantCheckoutId ' +
+'      supportedCardBrands ' +
+'    } ' +
+'    paypal { ' +
+'      displayName ' +
+'      clientId ' +
+'      privacyUrl ' +
+'      userAgreementUrl ' +
+'      assetsUrl ' +
+'      environment ' +
+'      environmentNoNetwork ' +
+'      unvettedMerchant ' +
+'      braintreeClientId ' +
+'      billingAgreementsEnabled ' +
+'      merchantAccountId ' +
+'      currencyCode ' +
+'      payeeEmail ' +
+'    } ' +
+'    unionPay { ' +
+'      merchantAccountId ' +
+'    } ' +
+'    usBankAccount { ' +
+'      routeId ' +
+'      plaidPublicKey ' +
+'    } ' +
+'    venmo { ' +
+'      merchantId ' +
+'      accessToken ' +
+'      environment ' +
+'    } ' +
+'    visaCheckout { ' +
+'      apiKey ' +
+'      externalClientId ' +
+'      supportedCardBrands ' +
+'    } ' +
+'    braintreeApi { ' +
+'      accessToken ' +
+'      url ' +
+'    } ' +
+'    supportedFeatures ' +
+'  } ' +
+'}';
+
+function configuration() {
+  return {
+    query: CONFIGURATION_QUERY,
+    operationName: 'ClientConfiguration'
+  };
+}
+
+module.exports = configuration;
+
+},{}],22:[function(_dereq_,module,exports){
 'use strict';
 
 var assign = _dereq_('../../../../lib/assign').assign;
@@ -1389,13 +1700,14 @@ function creditCardTokenization(body) {
 
 module.exports = creditCardTokenization;
 
-},{"../../../../lib/assign":31}],21:[function(_dereq_,module,exports){
+},{"../../../../lib/assign":33}],23:[function(_dereq_,module,exports){
 'use strict';
 
 var browserDetection = _dereq_('../../browser-detection');
 
 var features = {
-  tokenize_credit_cards: 'payment_methods/credit_cards' // eslint-disable-line camelcase
+  tokenize_credit_cards: 'payment_methods/credit_cards', // eslint-disable-line camelcase
+  configuration: 'configuration'
 };
 
 var blacklistedInputPaths = [
@@ -1457,21 +1769,26 @@ function containsBlacklistedKeys(body) {
 
 module.exports = GraphQL;
 
-},{"../../browser-detection":9}],22:[function(_dereq_,module,exports){
+},{"../../browser-detection":9}],24:[function(_dereq_,module,exports){
 'use strict';
 
-var BRAINTREE_VERSION = '2018-03-05';
+var BRAINTREE_VERSION = '2018-05-04';
 
 var assign = _dereq_('../../../lib/assign').assign;
 
 var creditCardTokenizationBodyGenerator = _dereq_('./generators/credit-card-tokenization');
 var creditCardTokenizationResponseAdapter = _dereq_('./adapters/credit-card-tokenization');
 
+var configurationBodyGenerator = _dereq_('./generators/configuration');
+var configurationResponseAdapter = _dereq_('./adapters/configuration');
+
 var generators = {
-  'payment_methods/credit_cards': creditCardTokenizationBodyGenerator
+  'payment_methods/credit_cards': creditCardTokenizationBodyGenerator,
+  configuration: configurationBodyGenerator
 };
 var adapters = {
-  'payment_methods/credit_cards': creditCardTokenizationResponseAdapter
+  'payment_methods/credit_cards': creditCardTokenizationResponseAdapter,
+  configuration: configurationResponseAdapter
 };
 
 function GraphQLRequest(options) {
@@ -1530,7 +1847,7 @@ GraphQLRequest.prototype.getHeaders = function () {
 };
 
 GraphQLRequest.prototype.adaptResponseBody = function (parsedBody) {
-  return this._adapter(parsedBody);
+  return this._adapter(parsedBody, this);
 };
 
 GraphQLRequest.prototype.determineStatus = function (httpStatus, parsedResponse) {
@@ -1601,7 +1918,7 @@ function formatBodyKeys(originalBody) {
 
 module.exports = GraphQLRequest;
 
-},{"../../../lib/assign":31,"./adapters/credit-card-tokenization":18,"./generators/credit-card-tokenization":20}],23:[function(_dereq_,module,exports){
+},{"../../../lib/assign":33,"./adapters/configuration":18,"./adapters/credit-card-tokenization":19,"./generators/configuration":21,"./generators/credit-card-tokenization":22}],25:[function(_dereq_,module,exports){
 'use strict';
 
 var ajaxIsAvaliable;
@@ -1632,7 +1949,7 @@ module.exports = function (options, cb) {
   }
 };
 
-},{"../../lib/once":43,"./ajax-driver":15,"./get-user-agent":17,"./is-http":24,"./jsonp-driver":25}],24:[function(_dereq_,module,exports){
+},{"../../lib/once":45,"./ajax-driver":15,"./get-user-agent":17,"./is-http":26,"./jsonp-driver":27}],26:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1641,7 +1958,7 @@ module.exports = function () {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],25:[function(_dereq_,module,exports){
+},{}],27:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1753,7 +2070,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../lib/querystring":45,"../../lib/vendor/uuid":47}],26:[function(_dereq_,module,exports){
+},{"../../lib/querystring":47,"../../lib/vendor/uuid":49}],28:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (body) {
@@ -1764,7 +2081,7 @@ module.exports = function (body) {
   return body;
 };
 
-},{}],27:[function(_dereq_,module,exports){
+},{}],29:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (method, body) {
@@ -1779,7 +2096,7 @@ module.exports = function (method, body) {
   return body;
 };
 
-},{}],28:[function(_dereq_,module,exports){
+},{}],30:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1795,7 +2112,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],29:[function(_dereq_,module,exports){
+},{}],31:[function(_dereq_,module,exports){
 'use strict';
 
 var createAuthorizationData = _dereq_('./create-authorization-data');
@@ -1829,7 +2146,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":33,"./create-authorization-data":36,"./json-clone":41}],30:[function(_dereq_,module,exports){
+},{"./constants":35,"./create-authorization-data":38,"./json-clone":43}],32:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('./constants');
@@ -1863,7 +2180,7 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":29,"./constants":33}],31:[function(_dereq_,module,exports){
+},{"./add-metadata":31,"./constants":35}],33:[function(_dereq_,module,exports){
 'use strict';
 
 var assignNormalized = typeof Object.assign === 'function' ? Object.assign : assignPolyfill;
@@ -1888,7 +2205,7 @@ module.exports = {
   _assign: assignPolyfill
 };
 
-},{}],32:[function(_dereq_,module,exports){
+},{}],34:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -1973,10 +2290,10 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":38}],33:[function(_dereq_,module,exports){
+},{"./enumerate":40}],35:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.32.1";
+var VERSION = "3.33.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -1990,7 +2307,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],34:[function(_dereq_,module,exports){
+},{}],36:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -2008,7 +2325,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"./braintree-error":32,"./errors":39}],35:[function(_dereq_,module,exports){
+},{"./braintree-error":34,"./errors":41}],37:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -2030,7 +2347,7 @@ function convertToBraintreeError(originalErr, btErrorObject) {
 
 module.exports = convertToBraintreeError;
 
-},{"./braintree-error":32}],36:[function(_dereq_,module,exports){
+},{"./braintree-error":34}],38:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/vendor/polyfill').atob;
@@ -2072,6 +2389,7 @@ function createAuthorizationData(authorization) {
     parsedClientToken = JSON.parse(atob(authorization));
     data.attrs.authorizationFingerprint = parsedClientToken.authorizationFingerprint;
     data.configUrl = parsedClientToken.configUrl;
+    data.graphQLUrl = parsedClientToken.graphQLUrl;
   }
 
   return data;
@@ -2079,7 +2397,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/vendor/polyfill":46}],37:[function(_dereq_,module,exports){
+},{"../lib/vendor/polyfill":48}],39:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (fn) {
@@ -2093,7 +2411,7 @@ module.exports = function (fn) {
   };
 };
 
-},{}],38:[function(_dereq_,module,exports){
+},{}],40:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -2108,7 +2426,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],39:[function(_dereq_,module,exports){
+},{}],41:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -2145,7 +2463,7 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":32}],40:[function(_dereq_,module,exports){
+},{"./braintree-error":34}],42:[function(_dereq_,module,exports){
 'use strict';
 
 var parser;
@@ -2180,14 +2498,14 @@ function isWhitelistedDomain(url) {
 
 module.exports = isWhitelistedDomain;
 
-},{}],41:[function(_dereq_,module,exports){
+},{}],43:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],42:[function(_dereq_,module,exports){
+},{}],44:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -2196,9 +2514,9 @@ module.exports = function (obj) {
   });
 };
 
-},{}],43:[function(_dereq_,module,exports){
+},{}],45:[function(_dereq_,module,exports){
 arguments[4][5][0].apply(exports,arguments)
-},{"dup":5}],44:[function(_dereq_,module,exports){
+},{"dup":5}],46:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -2207,7 +2525,7 @@ var Promise = global.Promise || _dereq_('promise-polyfill');
 module.exports = Promise;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":8}],45:[function(_dereq_,module,exports){
+},{"promise-polyfill":8}],47:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -2301,7 +2619,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],46:[function(_dereq_,module,exports){
+},{}],48:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -2342,7 +2660,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],47:[function(_dereq_,module,exports){
+},{}],49:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {

@@ -336,6 +336,13 @@ module.exports = Promise;
 },{}],6:[function(_dereq_,module,exports){
 'use strict';
 
+module.exports = {
+  FRAUDNET_LINK_JS: 'https://c.paypal.com/da/r/fb.js'
+};
+
+},{}],7:[function(_dereq_,module,exports){
+'use strict';
+
 var BraintreeError = _dereq_('../lib/braintree-error');
 
 module.exports = {
@@ -355,23 +362,59 @@ module.exports = {
   }
 };
 
-},{"../lib/braintree-error":12}],7:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":13}],8:[function(_dereq_,module,exports){
 'use strict';
 
+var Promise = _dereq_('../lib/promise');
+var constants = _dereq_('./constants');
+
 function setup() {
-  return new Fraudnet();
+  var fraudNet = new Fraudnet();
+
+  return fraudNet.initialize();
 }
 
 function Fraudnet() {
   this.sessionId = _generateSessionId();
   this._beaconId = _generateBeaconId(this.sessionId);
-
-  this._parameterBlock = _createParameterBlock(this.sessionId, this._beaconId);
-  this._thirdPartyBlock = _createThirdPartyBlock();
 }
 
+Fraudnet.prototype.initialize = function () {
+  var self = this;
+
+  this._parameterBlock = _createParameterBlock(this.sessionId, this._beaconId);
+
+  return _createThirdPartyBlock().then(function (block) {
+    self._thirdPartyBlock = block;
+
+    return self;
+  }).catch(function () {
+    // if the fraudnet script fails to load
+    // we just resolve with nothing
+    // and data collector ignores it
+    return null;
+  });
+};
+
 Fraudnet.prototype.teardown = function () {
-  this._thirdPartyBlock.parentNode.removeChild(this._thirdPartyBlock);
+  var iframe = document.querySelector('iframe[title="ppfniframe"]');
+
+  if (iframe) {
+    iframe.parentNode.removeChild(iframe);
+  }
+
+  iframe = document.querySelector('iframe[title="pbf"]');
+  if (iframe) {
+    iframe.parentNode.removeChild(iframe);
+  }
+
+  if (this._parameterBlock) {
+    this._parameterBlock.parentNode.removeChild(this._parameterBlock);
+  }
+
+  if (this._thirdPartyBlock) {
+    this._thirdPartyBlock.parentNode.removeChild(this._thirdPartyBlock);
+  }
 };
 
 function _generateSessionId() {
@@ -410,55 +453,35 @@ function _createParameterBlock(sessionId, beaconId) {
 }
 
 function _createThirdPartyBlock() {
-  var dom, doc;
-  var scriptBaseURL = 'https://www.paypalobjects.com/webstatic/r/fb/';
-  var iframe = document.createElement('iframe');
+  return new Promise(function (resolve, reject) {
+    var script = document.querySelector('script[src="' + constants.FRAUDNET_LINK_JS + '"]');
 
-  iframe.src = 'about:blank';
-  iframe.title = '';
-  iframe.role = 'presentation'; // a11y
-  (iframe.frameElement || iframe).style.cssText = 'width: 0; height: 0; border: 0; position: absolute; z-index: -999';
-  document.body.appendChild(iframe);
+    if (script) {
+      resolve(script);
 
-  try {
-    doc = iframe.contentWindow.document;
-  } catch (e) {
-    dom = document.domain;
-    iframe.src = 'javascript:var d=document.open();d.domain="' + dom + '";void(0);'; // eslint-disable-line no-script-url
-    doc = iframe.contentWindow.document;
-  }
-
-  doc.open()._l = function () {
-    var js = this.createElement('script');
-
-    if (dom) {
-      this.domain = dom;
+      return;
     }
-    js.id = 'js-iframe-async';
-    js.src = scriptBaseURL + 'fb-all-prod.pp.min.js';
-    this.body.appendChild(js);
-  };
 
-  function listener() { doc._l(); }
+    script = document.createElement('script');
 
-  if (iframe.addEventListener) {
-    iframe.addEventListener('load', listener, false);
-  } else if (iframe.attachEvent) {
-    iframe.attachEvent('onload', listener);
-  } else {
-    doc.write('<body onload="document._l();">');
-  }
+    script.onload = function () {
+      resolve(script);
+    };
+    script.onerror = function () {
+      reject();
+    };
+    script.src = constants.FRAUDNET_LINK_JS;
+    script.async = true;
 
-  doc.close();
-
-  return iframe;
+    document.body.appendChild(script);
+  });
 }
 
 module.exports = {
   setup: setup
 };
 
-},{}],8:[function(_dereq_,module,exports){
+},{"../lib/promise":19,"./constants":6}],9:[function(_dereq_,module,exports){
 'use strict';
 /** @module braintree-web/data-collector */
 
@@ -468,7 +491,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var methods = _dereq_('../lib/methods');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
-var VERSION = "3.32.1";
+var VERSION = "3.33.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var errors = _dereq_('./errors');
@@ -529,13 +552,13 @@ var errors = _dereq_('./errors');
 function create(options) {
   var result = {};
   var instances = [];
-  var teardown = createTeardownMethod(result, instances);
+  var data;
 
   return basicComponentVerification.verify({
     name: 'Data Collector',
     client: options.client
   }).then(function () {
-    var data, kountInstance, fraudnetInstance;
+    var kountInstance;
     var config = options.client.getConfiguration();
 
     if (options.kount === true) {
@@ -562,19 +585,26 @@ function create(options) {
       data = {};
     }
 
-    if (options.paypal === true) {
-      fraudnetInstance = fraudnet.setup();
-      data.correlation_id = fraudnetInstance.sessionId; // eslint-disable-line camelcase
-      instances.push(fraudnetInstance);
+    return Promise.resolve();
+  }).then(function () {
+    if (options.paypal !== true) {
+      return Promise.resolve();
     }
 
+    return fraudnet.setup().then(function (fraudnetInstance) {
+      if (fraudnetInstance) {
+        data.correlation_id = fraudnetInstance.sessionId; // eslint-disable-line camelcase
+        instances.push(fraudnetInstance);
+      }
+    });
+  }).then(function () {
     if (instances.length === 0) {
       return Promise.reject(new BraintreeError(errors.DATA_COLLECTOR_REQUIRES_CREATE_OPTIONS));
     }
 
     result.deviceData = JSON.stringify(data);
     result.rawDeviceData = data;
-    result.teardown = teardown;
+    result.teardown = createTeardownMethod(result, instances);
 
     return result;
   });
@@ -583,11 +613,11 @@ function create(options) {
 function createTeardownMethod(result, instances) {
   return wrapPromise(function teardown() {
     return new Promise(function (resolve) {
-      var i;
-
-      for (i = 0; i < instances.length; i++) {
-        instances[i].teardown();
-      }
+      instances.forEach(function (instance) {
+        if (instance) {
+          instance.teardown();
+        }
+      });
 
       convertMethodsToError(result, methods(result));
 
@@ -605,7 +635,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/basic-component-verification":11,"../lib/braintree-error":12,"../lib/convert-methods-to-error":14,"../lib/methods":17,"../lib/promise":18,"./errors":6,"./fraudnet":7,"./kount":9,"@braintree/wrap-promise":4}],9:[function(_dereq_,module,exports){
+},{"../lib/basic-component-verification":12,"../lib/braintree-error":13,"../lib/convert-methods-to-error":15,"../lib/methods":18,"../lib/promise":19,"./errors":7,"./fraudnet":8,"./kount":10,"@braintree/wrap-promise":4}],10:[function(_dereq_,module,exports){
 'use strict';
 
 var sjcl = _dereq_('./vendor/sjcl');
@@ -727,7 +757,7 @@ module.exports = {
   environmentUrls: environmentUrls
 };
 
-},{"../lib/camel-case-to-snake-case":13,"./vendor/sjcl":10}],10:[function(_dereq_,module,exports){
+},{"../lib/camel-case-to-snake-case":14,"./vendor/sjcl":11}],11:[function(_dereq_,module,exports){
 "use strict";var sjcl={cipher:{},hash:{},keyexchange:{},mode:{},misc:{},codec:{},exception:{corrupt:function(a){this.toString=function(){return"CORRUPT: "+this.message};this.message=a},invalid:function(a){this.toString=function(){return"INVALID: "+this.message};this.message=a},bug:function(a){this.toString=function(){return"BUG: "+this.message};this.message=a},notReady:function(a){this.toString=function(){return"NOT READY: "+this.message};this.message=a}}};
 sjcl.cipher.aes=function(a){this.l[0][0][0]||this.G();var b,c,d,e,f=this.l[0][4],g=this.l[1];b=a.length;var k=1;if(4!==b&&6!==b&&8!==b)throw new sjcl.exception.invalid("invalid aes key size");this.b=[d=a.slice(0),e=[]];for(a=b;a<4*b+28;a++){c=d[a-1];if(0===a%b||8===b&&4===a%b)c=f[c>>>24]<<24^f[c>>16&255]<<16^f[c>>8&255]<<8^f[c&255],0===a%b&&(c=c<<8^c>>>24^k<<24,k=k<<1^283*(k>>7));d[a]=d[a-b]^c}for(b=0;a;b++,a--)c=d[b&3?a:a-4],e[b]=4>=a||4>b?c:g[0][f[c>>>24]]^g[1][f[c>>16&255]]^g[2][f[c>>8&255]]^g[3][f[c&
 255]]};
@@ -759,13 +789,13 @@ function B(a,b){return function(){b.apply(a,arguments)}}sjcl.random=new sjcl.prn
 a:try{var D,E,F,G;if(G="undefined"!==typeof module&&module.exports){var H;try{H=_dereq_("crypto")}catch(a){H=null}G=E=H}if(G&&E.randomBytes)D=E.randomBytes(128),D=new Uint32Array((new Uint8Array(D)).buffer),sjcl.random.addEntropy(D,1024,"crypto['randomBytes']");else if("undefined"!==typeof window&&"undefined"!==typeof Uint32Array){F=new Uint32Array(32);if(window.crypto&&window.crypto.getRandomValues)window.crypto.getRandomValues(F);else if(window.msCrypto&&window.msCrypto.getRandomValues)window.msCrypto.getRandomValues(F);
 else break a;sjcl.random.addEntropy(F,1024,"crypto['getRandomValues']")}}catch(a){"undefined"!==typeof window&&window.console&&(console.log("There was an error collecting entropy from the browser:"),console.log(a))}"undefined"!==typeof module&&module.exports&&(module.exports=sjcl);"function"===typeof define&&define([],function(){return sjcl});
 
-},{"crypto":undefined}],11:[function(_dereq_,module,exports){
+},{"crypto":undefined}],12:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.32.1";
+var VERSION = "3.33.0";
 
 function basicComponentVerification(options) {
   var client, clientVersion, name;
@@ -806,7 +836,7 @@ module.exports = {
   verify: basicComponentVerification
 };
 
-},{"./braintree-error":12,"./errors":16,"./promise":18}],12:[function(_dereq_,module,exports){
+},{"./braintree-error":13,"./errors":17,"./promise":19}],13:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -891,7 +921,7 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":15}],13:[function(_dereq_,module,exports){
+},{"./enumerate":16}],14:[function(_dereq_,module,exports){
 'use strict';
 
 // Taken from https://github.com/sindresorhus/decamelize/blob/95980ab6fb44c40eaca7792bdf93aff7c210c805/index.js
@@ -911,7 +941,7 @@ module.exports = function (obj) {
   }, {});
 };
 
-},{}],14:[function(_dereq_,module,exports){
+},{}],15:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -929,7 +959,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"./braintree-error":12,"./errors":16}],15:[function(_dereq_,module,exports){
+},{"./braintree-error":13,"./errors":17}],16:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -944,7 +974,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],16:[function(_dereq_,module,exports){
+},{}],17:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -981,7 +1011,7 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":12}],17:[function(_dereq_,module,exports){
+},{"./braintree-error":13}],18:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -990,7 +1020,7 @@ module.exports = function (obj) {
   });
 };
 
-},{}],18:[function(_dereq_,module,exports){
+},{}],19:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -999,5 +1029,5 @@ var Promise = global.Promise || _dereq_('promise-polyfill');
 module.exports = Promise;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":5}]},{},[8])(8)
+},{"promise-polyfill":5}]},{},[9])(9)
 });
