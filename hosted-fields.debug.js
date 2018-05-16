@@ -1741,6 +1741,16 @@ HostedFields.prototype._setupLabelFocus = function (type, container) {
   });
 };
 
+HostedFields.prototype._attachInvalidFieldContainersToError = function (err) {
+  if (!(err.details && err.details.invalidFieldKeys && err.details.invalidFieldKeys.length > 0)) {
+    return;
+  }
+  err.details.invalidFields = {};
+  err.details.invalidFieldKeys.forEach(function (field) {
+    err.details.invalidFields[field] = this._fields[field].containerElement;
+  }.bind(this));
+};
+
 /**
  * Cleanly remove anything set up by {@link module:braintree-web/hosted-fields.create|create}.
  * @public
@@ -1802,6 +1812,11 @@ HostedFields.prototype.teardown = function () {
  *       case 'HOSTED_FIELDS_FIELDS_INVALID':
  *         // occurs when certain fields do not pass client side validation
  *         console.error('Some fields are invalid:', tokenizeErr.details.invalidFieldKeys);
+ *
+ *         // you can also programtically access the field containers for the invalid fields
+ *         tokenizeErr.details.invalidFields.forEach(function (fieldContainer) {
+ *           fieldContainer.className = 'invalid';
+ *         });
  *         break;
  *       case 'HOSTED_FIELDS_TOKENIZATION_FAIL_ON_DUPLICATE':
  *         // occurs when:
@@ -1908,7 +1923,8 @@ HostedFields.prototype.tokenize = function (options) {
       var payload = response[1];
 
       if (err) {
-        reject(err);
+        self._attachInvalidFieldContainersToError(err);
+        reject(new BraintreeError(err));
       } else {
         resolve(payload);
       }
@@ -2303,7 +2319,7 @@ var supportsInputFormatting = _dereq_('restricted-input/supports-input-formattin
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.33.0";
+var VERSION = "3.34.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -2607,7 +2623,7 @@ module.exports = {
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.33.0";
+var VERSION = "3.34.0";
 
 var constants = {
   VERSION: VERSION,
@@ -2941,7 +2957,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.33.0";
+var VERSION = "3.34.0";
 
 function basicComponentVerification(options) {
   var client, clientVersion, name;
@@ -3327,7 +3343,7 @@ module.exports = {
 },{}],42:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.33.0";
+var VERSION = "3.34.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -3401,7 +3417,7 @@ function createAuthorizationData(authorization) {
     parsedClientToken = JSON.parse(atob(authorization));
     data.attrs.authorizationFingerprint = parsedClientToken.authorizationFingerprint;
     data.configUrl = parsedClientToken.configUrl;
-    data.graphQLUrl = parsedClientToken.graphQLUrl;
+    data.graphQL = parsedClientToken.graphQL;
   }
 
   return data;

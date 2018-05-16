@@ -495,7 +495,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.33.0";
+var VERSION = "3.34.0";
 
 function basicComponentVerification(options) {
   var client, clientVersion, name;
@@ -624,7 +624,7 @@ module.exports = BraintreeError;
 },{"./enumerate":21}],18:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.33.0";
+var VERSION = "3.34.0";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -698,7 +698,7 @@ function createAuthorizationData(authorization) {
     parsedClientToken = JSON.parse(atob(authorization));
     data.attrs.authorizationFingerprint = parsedClientToken.authorizationFingerprint;
     data.configUrl = parsedClientToken.configUrl;
-    data.graphQLUrl = parsedClientToken.graphQLUrl;
+    data.graphQL = parsedClientToken.graphQL;
   }
 
   return data;
@@ -930,7 +930,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var Venmo = _dereq_('./venmo');
 var Promise = _dereq_('../lib/promise');
 var supportsVenmo = _dereq_('./shared/supports-venmo');
-var VERSION = "3.33.0";
+var VERSION = "3.34.0";
 
 /**
  * @static
@@ -1098,7 +1098,7 @@ var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.33.0";
+var VERSION = "3.34.0";
 
 /**
  * Venmo tokenize payload.
