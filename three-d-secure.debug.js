@@ -813,7 +813,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.34.0";
+var VERSION = "3.34.1";
 
 function basicComponentVerification(options) {
   var client, clientVersion, name;
@@ -1114,7 +1114,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":15,"./check-origin":16,"./events":17,"framebus":9}],19:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.34.0";
+var VERSION = "3.34.1";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -1416,7 +1416,7 @@ var uuid = _dereq_('../../lib/vendor/uuid');
 var deferred = _dereq_('../../lib/deferred');
 var errors = _dereq_('../shared/errors');
 var events = _dereq_('../shared/events');
-var VERSION = "3.34.0";
+var VERSION = "3.34.1";
 var iFramer = _dereq_('@braintree/iframer');
 var Promise = _dereq_('../../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -1793,7 +1793,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.34.0";
+var VERSION = "3.34.1";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 

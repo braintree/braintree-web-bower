@@ -339,7 +339,7 @@ module.exports = Promise;
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.34.0";
+var VERSION = "3.34.1";
 
 function basicComponentVerification(options) {
   var client, clientVersion, name;
@@ -562,7 +562,7 @@ module.exports = Promise;
 
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var VaultManager = _dereq_('./vault-manager');
-var VERSION = "3.34.0";
+var VERSION = "3.34.1";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**

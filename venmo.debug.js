@@ -495,7 +495,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.34.0";
+var VERSION = "3.34.1";
 
 function basicComponentVerification(options) {
   var client, clientVersion, name;
@@ -624,7 +624,7 @@ module.exports = BraintreeError;
 },{"./enumerate":21}],18:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.34.0";
+var VERSION = "3.34.1";
 var PLATFORM = 'web';
 
 module.exports = {
@@ -930,7 +930,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var Venmo = _dereq_('./venmo');
 var Promise = _dereq_('../lib/promise');
 var supportsVenmo = _dereq_('./shared/supports-venmo');
-var VERSION = "3.34.0";
+var VERSION = "3.34.1";
 
 /**
  * @static
@@ -960,6 +960,10 @@ function create(options) {
 
     if (!configuration.gatewayConfiguration.payWithVenmo) {
       return Promise.reject(new BraintreeError(errors.VENMO_NOT_ENABLED));
+    }
+
+    if (options.profileId && typeof options.profileId !== 'string') {
+      return Promise.reject(new BraintreeError(errors.VENMO_INVALID_PROFILE_ID));
     }
 
     instance = new Venmo(options);
@@ -1059,6 +1063,11 @@ module.exports = {
     type: BraintreeError.types.CUSTOMER,
     code: 'VENMO_CANCELED',
     message: 'User canceled Venmo authorization, or Venmo app is not available.'
+  },
+  VENMO_INVALID_PROFILE_ID: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'VENMO_INVALID_PROFILE_ID',
+    message: 'Venmo profile ID is invalid.'
   }
 };
 
@@ -1098,7 +1107,7 @@ var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.34.0";
+var VERSION = "3.34.1";
 
 /**
  * Venmo tokenize payload.

@@ -447,6 +447,7 @@ function Client(configuration) {
     return JSON.parse(configurationJSON);
   };
 
+  this._activeCache = true;
   this._request = request;
   this._configuration = this.getConfiguration();
 
@@ -725,6 +726,8 @@ Client.prototype.getVersion = function () {
 Client.prototype.teardown = wrapPromise(function () {
   var self = this; // eslint-disable-line no-invalid-this
 
+  self._activeCache = false;
+
   convertMethodsToError(self, methods(Client.prototype));
 
   return Promise.resolve();
@@ -904,7 +907,7 @@ module.exports = {
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Client = _dereq_('./client');
 var getConfiguration = _dereq_('./get-configuration').getConfiguration;
-var VERSION = "3.34.0";
+var VERSION = "3.34.1";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -939,7 +942,7 @@ function create(options) {
     }));
   }
 
-  if (cachedClients[options.authorization]) {
+  if (cachedClients[options.authorization] && cachedClients[options.authorization]._activeCache) {
     return Promise.resolve(cachedClients[options.authorization]);
   }
 
@@ -2301,7 +2304,7 @@ module.exports = BraintreeError;
 },{"./enumerate":40}],35:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.34.0";
+var VERSION = "3.34.1";
 var PLATFORM = 'web';
 
 module.exports = {

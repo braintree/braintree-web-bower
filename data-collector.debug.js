@@ -491,7 +491,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var methods = _dereq_('../lib/methods');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
-var VERSION = "3.34.0";
+var VERSION = "3.34.1";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var errors = _dereq_('./errors');
@@ -727,6 +727,9 @@ Kount.prototype._setupIFrame = function () {
   iframe.height = 1;
   iframe.frameBorder = 0;
   iframe.scrolling = 'no';
+  iframe.style.position = 'fixed';
+  iframe.style.left = '-999999px';
+  iframe.style.top = '-999999px';
 
   document.body.appendChild(iframe);
   setTimeout(function () {
@@ -795,7 +798,7 @@ else break a;sjcl.random.addEntropy(F,1024,"crypto['getRandomValues']")}}catch(a
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.34.0";
+var VERSION = "3.34.1";
 
 function basicComponentVerification(options) {
   var client, clientVersion, name;
