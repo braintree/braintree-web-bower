@@ -375,11 +375,14 @@ module.exports = {
 },{"@braintree/browser-detection/is-ie":1,"@braintree/browser-detection/is-ie9":3}],10:[function(_dereq_,module,exports){
 'use strict';
 
+var BRAINTREE_VERSION = _dereq_('./constants').BRAINTREE_VERSION;
+
 var GraphQL = _dereq_('./request/graphql');
 var request = _dereq_('./request');
 var isWhitelistedDomain = _dereq_('../lib/is-whitelisted-domain');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../lib/convert-to-braintree-error');
+var createAuthorizationData = _dereq_('../lib/create-authorization-data');
 var addMetadata = _dereq_('../lib/add-metadata');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -391,6 +394,7 @@ var constants = _dereq_('./constants');
 var errors = _dereq_('./errors');
 var sharedErrors = _dereq_('../lib/errors');
 var VERSION = _dereq_('../lib/constants').VERSION;
+var GRAPHQL_URLS = _dereq_('../lib/constants').GRAPHQL_URLS;
 var methods = _dereq_('../lib/methods');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
 
@@ -571,10 +575,12 @@ Client.prototype.request = function (options, callback) {
   var requestPromise = new Promise(function (resolve, reject) {
     var optionName, api, baseUrl, requestOptions;
 
-    if (!options.method) {
-      optionName = 'options.method';
-    } else if (!options.endpoint) {
-      optionName = 'options.endpoint';
+    if (options.api !== 'graphQLApi') {
+      if (!options.method) {
+        optionName = 'options.method';
+      } else if (!options.endpoint) {
+        optionName = 'options.endpoint';
+      }
     }
 
     if (optionName) {
@@ -615,6 +621,19 @@ Client.prototype.request = function (options, callback) {
         'Braintree-Version': constants.BRAINTREE_API_VERSION_HEADER,
         Authorization: 'Bearer ' + self._braintreeApi.accessToken
       };
+    } else if (api === 'graphQLApi') {
+      baseUrl = GRAPHQL_URLS[self._configuration.gatewayConfiguration.environment];
+      options.endpoint = '';
+      requestOptions.method = 'post';
+      requestOptions.data = assign({
+        clientSdkMetadata: {
+          source: self._configuration.analyticsMetadata.source,
+          integration: self._configuration.analyticsMetadata.integration,
+          sessionId: self._configuration.analyticsMetadata.sessionId
+        }
+      }, options.data);
+
+      requestOptions.headers = getAuthorizationHeadersForGraphQL(self._configuration.authorization);
     } else {
       throw new BraintreeError({
         type: errors.CLIENT_OPTION_INVALID.type,
@@ -635,6 +654,16 @@ Client.prototype.request = function (options, callback) {
 
       if (requestError) {
         reject(requestError);
+
+        return;
+      }
+
+      if (api === 'graphQLApi' && data.errors) {
+        reject(convertToBraintreeError(data.errors, {
+          type: errors.CLIENT_GRAPHQL_REQUEST_ERROR.type,
+          code: errors.CLIENT_GRAPHQL_REQUEST_ERROR.code,
+          message: errors.CLIENT_GRAPHQL_REQUEST_ERROR.message
+        }));
 
         return;
       }
@@ -733,9 +762,19 @@ Client.prototype.teardown = wrapPromise(function () {
   return Promise.resolve();
 });
 
+function getAuthorizationHeadersForGraphQL(authorization) {
+  var authAttrs = createAuthorizationData(authorization).attrs;
+  var token = authAttrs.authorizationFingerprint || authAttrs.tokenizationKey;
+
+  return {
+    Authorization: 'Bearer ' + token,
+    'Braintree-Version': BRAINTREE_VERSION
+  };
+}
+
 module.exports = Client;
 
-},{"../lib/add-metadata":31,"../lib/analytics":32,"../lib/assign":33,"../lib/braintree-error":34,"../lib/constants":35,"../lib/convert-methods-to-error":36,"../lib/convert-to-braintree-error":37,"../lib/deferred":39,"../lib/errors":41,"../lib/is-whitelisted-domain":43,"../lib/methods":45,"../lib/once":46,"../lib/promise":47,"./constants":11,"./errors":12,"./request":25,"./request/graphql":23,"@braintree/wrap-promise":7}],11:[function(_dereq_,module,exports){
+},{"../lib/add-metadata":31,"../lib/analytics":32,"../lib/assign":33,"../lib/braintree-error":34,"../lib/constants":35,"../lib/convert-methods-to-error":36,"../lib/convert-to-braintree-error":37,"../lib/create-authorization-data":38,"../lib/deferred":39,"../lib/errors":41,"../lib/is-whitelisted-domain":43,"../lib/methods":45,"../lib/once":46,"../lib/promise":47,"./constants":11,"./errors":12,"./request":25,"./request/graphql":23,"@braintree/wrap-promise":7}],11:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -784,6 +823,11 @@ module.exports = {
   CLIENT_REQUEST_ERROR: {
     type: BraintreeError.types.NETWORK,
     code: 'CLIENT_REQUEST_ERROR',
+    message: 'There was a problem with your request.'
+  },
+  CLIENT_GRAPHQL_REQUEST_ERROR: {
+    type: BraintreeError.types.NETWORK,
+    code: 'CLIENT_GRAPHQL_REQUEST_ERROR',
     message: 'There was a problem with your request.'
   },
   CLIENT_RATE_LIMITED: {
@@ -907,7 +951,7 @@ module.exports = {
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Client = _dereq_('./client');
 var getConfiguration = _dereq_('./get-configuration').getConfiguration;
-var VERSION = "3.34.1";
+var VERSION = "3.35.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -2304,12 +2348,26 @@ module.exports = BraintreeError;
 },{"./enumerate":40}],35:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.34.1";
+var VERSION = "3.35.0";
 var PLATFORM = 'web';
 
+var CLIENT_API_URLS = {
+  production: 'https://api.braintreegateway.com:443',
+  sandbox: 'https://api.sandbox.braintreegateway.com:443'
+};
+
+var GRAPHQL_URLS = {
+  production: 'https://payments.braintree-api.com/graphql',
+  sandbox: 'https://payments.sandbox.braintree-api.com/graphql'
+};
+
+// endRemoveIf(production)
+
 module.exports = {
-  ANALYTICS_PREFIX: 'web.',
+  ANALYTICS_PREFIX: PLATFORM + '.',
   ANALYTICS_REQUEST_TIMEOUT_MS: 2000,
+  CLIENT_API_URLS: CLIENT_API_URLS,
+  GRAPHQL_URLS: GRAPHQL_URLS,
   INTEGRATION_TIMEOUT_MS: 60000,
   VERSION: VERSION,
   INTEGRATION: 'custom',
@@ -2362,13 +2420,7 @@ module.exports = convertToBraintreeError;
 'use strict';
 
 var atob = _dereq_('../lib/vendor/polyfill').atob;
-
-var apiUrls = {
-  production: 'https://api.braintreegateway.com:443',
-  sandbox: 'https://api.sandbox.braintreegateway.com:443'
-};
-
-// endRemoveIf(production)
+var CLIENT_API_URLS = _dereq_('../lib/constants').CLIENT_API_URLS;
 
 function _isTokenizationKey(str) {
   return /^[a-zA-Z0-9]+_[a-zA-Z0-9]+_[a-zA-Z0-9_]+$/.test(str);
@@ -2395,7 +2447,7 @@ function createAuthorizationData(authorization) {
   if (_isTokenizationKey(authorization)) {
     parsedTokenizationKey = _parseTokenizationKey(authorization);
     data.attrs.tokenizationKey = authorization;
-    data.configUrl = apiUrls[parsedTokenizationKey.environment] + '/merchants/' + parsedTokenizationKey.merchantId + '/client_api/v1/configuration';
+    data.configUrl = CLIENT_API_URLS[parsedTokenizationKey.environment] + '/merchants/' + parsedTokenizationKey.merchantId + '/client_api/v1/configuration';
   } else {
     parsedClientToken = JSON.parse(atob(authorization));
     data.attrs.authorizationFingerprint = parsedClientToken.authorizationFingerprint;
@@ -2408,7 +2460,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/vendor/polyfill":49}],39:[function(_dereq_,module,exports){
+},{"../lib/constants":35,"../lib/vendor/polyfill":49}],39:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (fn) {

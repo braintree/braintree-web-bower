@@ -336,10 +336,78 @@ module.exports = Promise;
 },{}],6:[function(_dereq_,module,exports){
 'use strict';
 
+var createAuthorizationData = _dereq_('./create-authorization-data');
+var jsonClone = _dereq_('./json-clone');
+var constants = _dereq_('./constants');
+
+function addMetadata(configuration, data) {
+  var key;
+  var attrs = data ? jsonClone(data) : {};
+  var authAttrs = createAuthorizationData(configuration.authorization).attrs;
+  var _meta = jsonClone(configuration.analyticsMetadata);
+
+  attrs.braintreeLibraryVersion = constants.BRAINTREE_LIBRARY_VERSION;
+
+  for (key in attrs._meta) {
+    if (attrs._meta.hasOwnProperty(key)) {
+      _meta[key] = attrs._meta[key];
+    }
+  }
+
+  attrs._meta = _meta;
+
+  if (authAttrs.tokenizationKey) {
+    attrs.tokenizationKey = authAttrs.tokenizationKey;
+  } else {
+    attrs.authorizationFingerprint = authAttrs.authorizationFingerprint;
+  }
+
+  return attrs;
+}
+
+module.exports = addMetadata;
+
+},{"./constants":10,"./create-authorization-data":12,"./json-clone":15}],7:[function(_dereq_,module,exports){
+'use strict';
+
+var constants = _dereq_('./constants');
+var addMetadata = _dereq_('./add-metadata');
+
+function _millisToSeconds(millis) {
+  return Math.floor(millis / 1000);
+}
+
+function sendAnalyticsEvent(client, kind, callback) {
+  var configuration = client.getConfiguration();
+  var request = client._request;
+  var timestamp = _millisToSeconds(Date.now());
+  var url = configuration.gatewayConfiguration.analytics.url;
+  var data = {
+    analytics: [{
+      kind: constants.ANALYTICS_PREFIX + kind,
+      timestamp: timestamp
+    }]
+  };
+
+  request({
+    url: url,
+    method: 'post',
+    data: addMetadata(configuration, data),
+    timeout: constants.ANALYTICS_REQUEST_TIMEOUT_MS
+  }, callback);
+}
+
+module.exports = {
+  sendEvent: sendAnalyticsEvent
+};
+
+},{"./add-metadata":6,"./constants":10}],8:[function(_dereq_,module,exports){
+'use strict';
+
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.34.1";
+var VERSION = "3.35.0";
 
 function basicComponentVerification(options) {
   var client, clientVersion, name;
@@ -380,7 +448,7 @@ module.exports = {
   verify: basicComponentVerification
 };
 
-},{"./braintree-error":7,"./errors":10,"./promise":12}],7:[function(_dereq_,module,exports){
+},{"./braintree-error":9,"./errors":14,"./promise":17}],9:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -465,7 +533,38 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":9}],8:[function(_dereq_,module,exports){
+},{"./enumerate":13}],10:[function(_dereq_,module,exports){
+'use strict';
+
+var VERSION = "3.35.0";
+var PLATFORM = 'web';
+
+var CLIENT_API_URLS = {
+  production: 'https://api.braintreegateway.com:443',
+  sandbox: 'https://api.sandbox.braintreegateway.com:443'
+};
+
+var GRAPHQL_URLS = {
+  production: 'https://payments.braintree-api.com/graphql',
+  sandbox: 'https://payments.sandbox.braintree-api.com/graphql'
+};
+
+// endRemoveIf(production)
+
+module.exports = {
+  ANALYTICS_PREFIX: PLATFORM + '.',
+  ANALYTICS_REQUEST_TIMEOUT_MS: 2000,
+  CLIENT_API_URLS: CLIENT_API_URLS,
+  GRAPHQL_URLS: GRAPHQL_URLS,
+  INTEGRATION_TIMEOUT_MS: 60000,
+  VERSION: VERSION,
+  INTEGRATION: 'custom',
+  SOURCE: 'client',
+  PLATFORM: PLATFORM,
+  BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
+};
+
+},{}],11:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -483,7 +582,51 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"./braintree-error":7,"./errors":10}],9:[function(_dereq_,module,exports){
+},{"./braintree-error":9,"./errors":14}],12:[function(_dereq_,module,exports){
+'use strict';
+
+var atob = _dereq_('../lib/vendor/polyfill').atob;
+var CLIENT_API_URLS = _dereq_('../lib/constants').CLIENT_API_URLS;
+
+function _isTokenizationKey(str) {
+  return /^[a-zA-Z0-9]+_[a-zA-Z0-9]+_[a-zA-Z0-9_]+$/.test(str);
+}
+
+function _parseTokenizationKey(tokenizationKey) {
+  var tokens = tokenizationKey.split('_');
+  var environment = tokens[0];
+  var merchantId = tokens.slice(2).join('_');
+
+  return {
+    merchantId: merchantId,
+    environment: environment
+  };
+}
+
+function createAuthorizationData(authorization) {
+  var parsedClientToken, parsedTokenizationKey;
+  var data = {
+    attrs: {},
+    configUrl: ''
+  };
+
+  if (_isTokenizationKey(authorization)) {
+    parsedTokenizationKey = _parseTokenizationKey(authorization);
+    data.attrs.tokenizationKey = authorization;
+    data.configUrl = CLIENT_API_URLS[parsedTokenizationKey.environment] + '/merchants/' + parsedTokenizationKey.merchantId + '/client_api/v1/configuration';
+  } else {
+    parsedClientToken = JSON.parse(atob(authorization));
+    data.attrs.authorizationFingerprint = parsedClientToken.authorizationFingerprint;
+    data.configUrl = parsedClientToken.configUrl;
+    data.graphQL = parsedClientToken.graphQL;
+  }
+
+  return data;
+}
+
+module.exports = createAuthorizationData;
+
+},{"../lib/constants":10,"../lib/vendor/polyfill":18}],13:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -498,7 +641,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],10:[function(_dereq_,module,exports){
+},{}],14:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -535,7 +678,14 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":7}],11:[function(_dereq_,module,exports){
+},{"./braintree-error":9}],15:[function(_dereq_,module,exports){
+'use strict';
+
+module.exports = function (value) {
+  return JSON.parse(JSON.stringify(value));
+};
+
+},{}],16:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -544,7 +694,7 @@ module.exports = function (obj) {
   });
 };
 
-},{}],12:[function(_dereq_,module,exports){
+},{}],17:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -553,7 +703,67 @@ var Promise = global.Promise || _dereq_('promise-polyfill');
 module.exports = Promise;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":5}],13:[function(_dereq_,module,exports){
+},{"promise-polyfill":5}],18:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+
+var atobNormalized = typeof global.atob === 'function' ? global.atob : atob;
+
+function atob(base64String) {
+  var a, b, c, b1, b2, b3, b4, i;
+  var base64Matcher = new RegExp('^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})([=]{1,2})?$');
+  var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+  var result = '';
+
+  if (!base64Matcher.test(base64String)) {
+    throw new Error('Non base64 encoded input passed to window.atob polyfill');
+  }
+
+  i = 0;
+  do {
+    b1 = characters.indexOf(base64String.charAt(i++));
+    b2 = characters.indexOf(base64String.charAt(i++));
+    b3 = characters.indexOf(base64String.charAt(i++));
+    b4 = characters.indexOf(base64String.charAt(i++));
+
+    a = (b1 & 0x3F) << 2 | b2 >> 4 & 0x3;
+    b = (b2 & 0xF) << 4 | b3 >> 2 & 0xF;
+    c = (b3 & 0x3) << 6 | b4 & 0x3F;
+
+    result += String.fromCharCode(a) + (b ? String.fromCharCode(b) : '') + (c ? String.fromCharCode(c) : '');
+  } while (i < base64String.length);
+
+  return result;
+}
+
+module.exports = {
+  atob: function (base64String) {
+    return atobNormalized.call(global, base64String);
+  },
+  _atob: atob
+};
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],19:[function(_dereq_,module,exports){
+'use strict';
+
+module.exports = {
+  VAULT_MANAGER_DELETE_PAYMENT_METHOD_NONCE_REQUIRES_CLIENT_TOKEN: {
+    type: 'MERCHANT',
+    code: 'VAULT_MANAGER_DELETE_PAYMENT_METHOD_NONCE_REQUIRES_CLIENT_TOKEN',
+    message: 'A client token with a customer id must be used to delete a payment method nonce.'
+  },
+  VAULT_MANAGER_PAYMENT_METHOD_NONCE_NOT_FOUND: {
+    type: 'MERCHANT',
+    code: 'VAULT_MANAGER_PAYMENT_METHOD_NONCE_NOT_FOUND'
+  },
+  VAULT_MANAGER_DELETE_PAYMENT_METHOD_UNKNOWN_ERROR: {
+    type: 'UNKNOWN',
+    code: 'VAULT_MANAGER_DELETE_PAYMENT_METHOD_UNKNOWN_ERROR'
+  }
+};
+
+},{}],20:[function(_dereq_,module,exports){
 'use strict';
 /**
  * @module braintree-web/vault-manager
@@ -562,7 +772,7 @@ module.exports = Promise;
 
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var VaultManager = _dereq_('./vault-manager');
-var VERSION = "3.34.1";
+var VERSION = "3.35.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -591,13 +801,22 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/basic-component-verification":6,"./vault-manager":14,"@braintree/wrap-promise":4}],14:[function(_dereq_,module,exports){
+},{"../lib/basic-component-verification":8,"./vault-manager":21,"@braintree/wrap-promise":4}],21:[function(_dereq_,module,exports){
 'use strict';
 
-var methods = _dereq_('../lib/methods');
+var analytics = _dereq_('../lib/analytics');
+var BraintreeError = _dereq_('../lib/braintree-error');
+var errors = _dereq_('./errors');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
+var methods = _dereq_('../lib/methods');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
+
+var DELETE_PAYMENT_METHOD_MUTATION = 'mutation DeletePaymentMethodFromSingleUseToken($input: DeletePaymentMethodFromSingleUseTokenInput!) {' +
+'  deletePaymentMethodFromSingleUseToken(input: $input) {' +
+'    clientMutationId' +
+'  }' +
+'}';
 
 /**
  * @typedef {array} VaultManager~fetchPaymentMethodsPayload The customer's payment methods.
@@ -652,7 +871,76 @@ VaultManager.prototype.fetchPaymentMethods = function (options) {
       defaultFirst: defaultFirst
     }
   }).then(function (paymentMethodsPayload) {
+    analytics.sendEvent(this._client, 'vault-manager.fetch-payment-methods.succeeded');
+
     return paymentMethodsPayload.paymentMethods.map(formatPaymentMethodPayload);
+  }.bind(this));
+};
+
+/**
+ * Deletes a payment method owned by the customer whose id was used to generate the client token used to create the {@link module:braintree-web/client|client}.
+ * @public
+ * @ignore TODO hide from jsdoc for now until the GraphQL API is on for all merchants by default
+ * @param {string} paymentMethodNonce The payment method nonce that references a vaulted payment method.
+ * @param {callback} [callback] No data is returned if the operation is successful.
+ * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @example
+ * vaultManagerInstance.deletePaymentMethod('nonce-to-delete', function (err) {
+ *   // handle err if it exists
+ * });
+ */
+VaultManager.prototype.deletePaymentMethod = function (paymentMethodNonce) {
+  var client = this._client;
+  var usesClientToken = this._client.getConfiguration().authorizationType === 'CLIENT_TOKEN';
+
+  if (!usesClientToken) {
+    return Promise.reject(new BraintreeError(errors.VAULT_MANAGER_DELETE_PAYMENT_METHOD_NONCE_REQUIRES_CLIENT_TOKEN));
+  }
+
+  return this._client.request({
+    api: 'graphQLApi',
+    data: {
+      query: DELETE_PAYMENT_METHOD_MUTATION,
+      variables: {
+        input: {
+          singleUseTokenId: paymentMethodNonce
+        }
+      },
+      operationName: 'DeletePaymentMethodFromSingleUseToken'
+    }
+  }).then(function () {
+    analytics.sendEvent(client, 'vault-manager.delete-payment-method.succeeded');
+
+    // noop to prevent sending back the raw graphql data
+  }).catch(function (error) {
+    var originalError = error.details.originalError;
+    var formattedError;
+
+    analytics.sendEvent(client, 'vault-manager.delete-payment-method.failed');
+
+    if (originalError[0] && originalError[0].extensions.errorClass === 'NOT_FOUND') {
+      formattedError = new BraintreeError({
+        type: errors.VAULT_MANAGER_PAYMENT_METHOD_NONCE_NOT_FOUND.type,
+        code: errors.VAULT_MANAGER_PAYMENT_METHOD_NONCE_NOT_FOUND.code,
+        message: 'A payment method for payment method nonce `' + paymentMethodNonce + '` could not be found.',
+        details: {
+          originalError: originalError
+        }
+      });
+    }
+
+    if (!formattedError) {
+      formattedError = new BraintreeError({
+        type: errors.VAULT_MANAGER_DELETE_PAYMENT_METHOD_UNKNOWN_ERROR.type,
+        code: errors.VAULT_MANAGER_DELETE_PAYMENT_METHOD_UNKNOWN_ERROR.code,
+        message: 'An unknown error occured when attempting to delete the payment method assocaited with the payment method nonce `' + paymentMethodNonce + '`.',
+        details: {
+          originalError: originalError
+        }
+      });
+    }
+
+    return Promise.reject(formattedError);
   });
 };
 
@@ -661,6 +949,7 @@ function formatPaymentMethodPayload(paymentMethod) {
     nonce: paymentMethod.nonce,
     'default': paymentMethod.default,
     details: paymentMethod.details,
+    hasSubscription: paymentMethod.hasSubscription,
     type: paymentMethod.type
   };
 
@@ -695,5 +984,5 @@ VaultManager.prototype.teardown = function () {
 
 module.exports = wrapPromise.wrapPrototype(VaultManager);
 
-},{"../lib/convert-methods-to-error":8,"../lib/methods":11,"../lib/promise":12,"@braintree/wrap-promise":4}]},{},[13])(13)
+},{"../lib/analytics":7,"../lib/braintree-error":9,"../lib/convert-methods-to-error":11,"../lib/methods":16,"../lib/promise":17,"./errors":19,"@braintree/wrap-promise":4}]},{},[20])(20)
 });

@@ -1630,7 +1630,8 @@ function HostedFields(options) {
     frame = iFramer({
       type: key,
       name: 'braintree-hosted-field-' + key,
-      style: constants.defaultIFrameStyle
+      style: constants.defaultIFrameStyle,
+      title: 'Secure Credit Card Frame - ' + constants.whitelistedFields[key].label
     });
 
     this._injectedNodes = this._injectedNodes.concat(injectFrame(frame, container));
@@ -2257,9 +2258,12 @@ HostedFields.prototype.clear = function (field) {
  * });
  * @example <caption>Using an event listener</caption>
  * myElement.addEventListener('click', function (e) {
- *   // Note: In Firefox, the focus method can be suppressed
- *   // if the element has a tabindex property or the element
- *   // is an anchor link with an href property.
+ *   // In Firefox, the focus method can be suppressed
+ *   //   if the element has a tabindex property or the element
+ *   //   is an anchor link with an href property.
+ *   // In Mobile Safari, the focus method is unable to
+ *   //   programatically open the keyboard, as only
+ *   //   touch events are allowed to do so.
  *   e.preventDefault();
  *   hostedFieldsInstance.focus('number');
  * });
@@ -2335,7 +2339,7 @@ var supportsInputFormatting = _dereq_('restricted-input/supports-input-formattin
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.34.1";
+var VERSION = "3.35.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -2641,7 +2645,7 @@ module.exports = {
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.34.1";
+var VERSION = "3.35.0";
 
 var constants = {
   VERSION: VERSION,
@@ -2989,7 +2993,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.34.1";
+var VERSION = "3.35.0";
 
 function basicComponentVerification(options) {
   var client, clientVersion, name;
@@ -3375,12 +3379,26 @@ module.exports = {
 },{}],44:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.34.1";
+var VERSION = "3.35.0";
 var PLATFORM = 'web';
 
+var CLIENT_API_URLS = {
+  production: 'https://api.braintreegateway.com:443',
+  sandbox: 'https://api.sandbox.braintreegateway.com:443'
+};
+
+var GRAPHQL_URLS = {
+  production: 'https://payments.braintree-api.com/graphql',
+  sandbox: 'https://payments.sandbox.braintree-api.com/graphql'
+};
+
+// endRemoveIf(production)
+
 module.exports = {
-  ANALYTICS_PREFIX: 'web.',
+  ANALYTICS_PREFIX: PLATFORM + '.',
   ANALYTICS_REQUEST_TIMEOUT_MS: 2000,
+  CLIENT_API_URLS: CLIENT_API_URLS,
+  GRAPHQL_URLS: GRAPHQL_URLS,
   INTEGRATION_TIMEOUT_MS: 60000,
   VERSION: VERSION,
   INTEGRATION: 'custom',
@@ -3411,13 +3429,7 @@ module.exports = function (instance, methodNames) {
 'use strict';
 
 var atob = _dereq_('../lib/vendor/polyfill').atob;
-
-var apiUrls = {
-  production: 'https://api.braintreegateway.com:443',
-  sandbox: 'https://api.sandbox.braintreegateway.com:443'
-};
-
-// endRemoveIf(production)
+var CLIENT_API_URLS = _dereq_('../lib/constants').CLIENT_API_URLS;
 
 function _isTokenizationKey(str) {
   return /^[a-zA-Z0-9]+_[a-zA-Z0-9]+_[a-zA-Z0-9_]+$/.test(str);
@@ -3444,7 +3456,7 @@ function createAuthorizationData(authorization) {
   if (_isTokenizationKey(authorization)) {
     parsedTokenizationKey = _parseTokenizationKey(authorization);
     data.attrs.tokenizationKey = authorization;
-    data.configUrl = apiUrls[parsedTokenizationKey.environment] + '/merchants/' + parsedTokenizationKey.merchantId + '/client_api/v1/configuration';
+    data.configUrl = CLIENT_API_URLS[parsedTokenizationKey.environment] + '/merchants/' + parsedTokenizationKey.merchantId + '/client_api/v1/configuration';
   } else {
     parsedClientToken = JSON.parse(atob(authorization));
     data.attrs.authorizationFingerprint = parsedClientToken.authorizationFingerprint;
@@ -3457,7 +3469,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/vendor/polyfill":57}],47:[function(_dereq_,module,exports){
+},{"../lib/constants":44,"../lib/vendor/polyfill":57}],47:[function(_dereq_,module,exports){
 'use strict';
 
 var batchExecuteFunctions = _dereq_('./batch-execute-functions');
