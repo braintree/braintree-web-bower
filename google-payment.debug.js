@@ -108,6 +108,22 @@ module.exports = wrapPromise;
 },{"./lib/deferred":1,"./lib/once":2,"./lib/promise-or-callback":3}],5:[function(_dereq_,module,exports){
 'use strict';
 
+var promiseFinally = function(callback) {
+  var constructor = this.constructor;
+  return this.then(
+    function(value) {
+      return constructor.resolve(callback()).then(function() {
+        return value;
+      });
+    },
+    function(reason) {
+      return constructor.resolve(callback()).then(function() {
+        return constructor.reject(reason);
+      });
+    }
+  );
+};
+
 // Store setTimeout reference so promise-polyfill will be unaffected by
 // other code modifying setTimeout (like sinon.useFakeTimers())
 var setTimeoutFunc = setTimeout;
@@ -253,6 +269,8 @@ Promise.prototype.then = function(onFulfilled, onRejected) {
   return prom;
 };
 
+Promise.prototype['finally'] = promiseFinally;
+
 Promise.all = function(arr) {
   return new Promise(function(resolve, reject) {
     if (!arr || typeof arr.length === 'undefined')
@@ -336,11 +354,42 @@ module.exports = Promise;
 },{}],6:[function(_dereq_,module,exports){
 'use strict';
 
+/**
+ * @name BraintreeError.Google Payment - Creation Error Codes
+ * @description Errors that occur when [creating the Google Payment component](/current/module-braintree-web_google-payment.html#.create).
+ * @property {MERCHANT} GOOGLE_PAYMENT_NOT_ENABLED Occurs when Google Pay is not enabled on the Braintree control panel.
+ */
+
+/**
+ * @name BraintreeError.Google Payment - parseResponse Error Codes
+ * @description Errors that occur when [parsing the response from Google](/current/GooglePayment.html#parseResponse).
+ * @property {UNKNOWN} GOOGLE_PAYMENT_GATEWAY_ERROR Occurs when Google Pay could not be tokenized.
+ */
+
+var BraintreeError = _dereq_('../lib/braintree-error');
+
+module.exports = {
+  GOOGLE_PAYMENT_NOT_ENABLED: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'GOOGLE_PAYMENT_NOT_ENABLED',
+    message: 'Google Pay is not enabled for this merchant.'
+  },
+  GOOGLE_PAYMENT_GATEWAY_ERROR: {
+    code: 'GOOGLE_PAYMENT_GATEWAY_ERROR',
+    message: 'There was an error when tokenizing the Google Pay payment method.',
+    type: BraintreeError.types.UNKNOWN
+  }
+};
+
+},{"../lib/braintree-error":13}],7:[function(_dereq_,module,exports){
+'use strict';
+
 var analytics = _dereq_('../lib/analytics');
 var assign = _dereq_('../lib/assign').assign;
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
 var generateGooglePayConfiguration = _dereq_('../lib/generate-google-pay-configuration');
 var BraintreeError = _dereq_('../lib/braintree-error');
+var errors = _dereq_('./errors');
 var methods = _dereq_('../lib/methods');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -381,9 +430,9 @@ function GooglePayment(options) {
 /**
  * Create a configuration object for use in the `loadPaymentData` method.
  * @public
- * @param {object} overrides The supplied parameters for creating the Payment Data Request object. Only required parameters are the `merchantId` provided by Google and a `transactionInfo` object, but any of the parameters in the Payment Data Request can be overwritten. See https://developers.google.com/payments/web/object-reference#PaymentDataRequest
+ * @param {object} overrides The supplied parameters for creating the PaymentDataRequest object. Only required parameters are the `merchantId` provided by Google and a `transactionInfo` object, but any of the parameters in the PaymentDataRequest can be overwritten. See https://developers.google.com/pay/api/web/reference/object#PaymentDataRequest
  * @param {string} merchantId The merchant id provided by registering with Google.
- * @param {object} transactionInfo See https://developers.google.com/payments/web/object-reference#TransactionInfo for more information.
+ * @param {object} transactionInfo See https://developers.google.com/pay/api/web/reference/object#TransactionInfo for more information.
  * @example
  * var configuration = googlePaymentInstance.createPaymentDataRequest({
  *   merchantId: 'my-merchant-id-from-google',
@@ -401,12 +450,21 @@ function GooglePayment(options) {
  *   // handle response with googlePaymentInstance.parseResponse
  *   // (see below)
  * });
- * @returns {object} Returns a configuration object for Google Payment Request.
+ * @returns {object} Returns a configuration object for Google PaymentDataRequest.
  */
 GooglePayment.prototype.createPaymentDataRequest = function (overrides) {
+  var overrideCardNetworks = overrides && overrides.cardRequirements && overrides.cardRequirements.allowedCardNetworks;
+  var defaultCardNetworks = this._braintreeGeneratedPaymentRequestConfiguration.cardRequirements.allowedCardNetworks;
+  var allowedCardNetworks = overrideCardNetworks || defaultCardNetworks;
+  var paymentDataRequest = assign({}, this._braintreeGeneratedPaymentRequestConfiguration, overrides);
+
+  // this way we can preserve allowedCardNetworks from default integration
+  // if merchant did not pass any in `cardRequirements`
+  paymentDataRequest.cardRequirements.allowedCardNetworks = allowedCardNetworks;
+
   analytics.sendEvent(this._client, 'google-payment.createPaymentDataRequest');
 
-  return assign({}, this._braintreeGeneratedPaymentRequestConfiguration, overrides);
+  return paymentDataRequest;
 };
 
 /**
@@ -471,9 +529,9 @@ GooglePayment.prototype.parseResponse = function (response) {
     analytics.sendEvent(client, 'google-payment.parseResponse.failed');
 
     return Promise.reject(new BraintreeError({
-      code: 'GOOGLE_PAYMENT_GATEWAY_ERROR',
-      message: 'There was an error when tokenizing the Google Pay payment method.',
-      type: BraintreeError.types.UNKNOWN,
+      code: errors.GOOGLE_PAYMENT_GATEWAY_ERROR.code,
+      message: errors.GOOGLE_PAYMENT_GATEWAY_ERROR.message,
+      type: errors.GOOGLE_PAYMENT_GATEWAY_ERROR.type,
       details: {
         originalError: error
       }
@@ -501,19 +559,20 @@ GooglePayment.prototype.teardown = function () {
 
 module.exports = wrapPromise.wrapPrototype(GooglePayment);
 
-},{"../lib/analytics":9,"../lib/assign":10,"../lib/braintree-error":12,"../lib/convert-methods-to-error":14,"../lib/generate-google-pay-configuration":18,"../lib/methods":20,"../lib/promise":21,"@braintree/wrap-promise":4}],7:[function(_dereq_,module,exports){
+},{"../lib/analytics":10,"../lib/assign":11,"../lib/braintree-error":13,"../lib/convert-methods-to-error":15,"../lib/generate-google-pay-configuration":19,"../lib/methods":21,"../lib/promise":22,"./errors":6,"@braintree/wrap-promise":4}],8:[function(_dereq_,module,exports){
 'use strict';
 /**
  * @module braintree-web/google-payment
- * @description A component to integrate with Google Pay. The majority of the integration uses [Google's pay.js JavaScript file](https://payments.developers.google.com/js/apis/pay.js). The Braintree component generates the configuration object necessary for Google Pay to initiate the Payment Request and parse the returned data to retrieve the payment method nonce which is used to process the transaction on the server.
+ * @description A component to integrate with Google Pay. The majority of the integration uses [Google's pay.js JavaScript file](https://pay.google.com/gp/p/js/pay.js). The Braintree component generates the configuration object necessary for Google Pay to initiate the Payment Request and parse the returned data to retrieve the payment method nonce which is used to process the transaction on the server.
  */
 
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var BraintreeError = _dereq_('../lib/braintree-error');
+var errors = _dereq_('./errors');
 var GooglePayment = _dereq_('./google-payment');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.35.0";
+var VERSION = "3.36.0";
 
 /**
  * @static
@@ -522,8 +581,8 @@ var VERSION = "3.35.0";
  * @param {Client} options.client A {@link Client} instance.
  * @param {callback} [callback] The second argument, `data`, is the {@link GooglePayment} instance. If no callback is provided, `create` returns a promise that resolves with the {@link GooglePayment} instance.
  * @example <caption>Simple Example</caption>
- * // include https://payments.developers.google.com/js/apis/pay.js in a script tag
- * // on your page to load the `google.api.PaymentsClient` global object.
+ * // include https://pay.google.com/gp/p/js/pay.js in a script tag
+ * // on your page to load the `google.payments.api.PaymentsClient` global object.
  *
  * var paymentButton = document.querySelector('#google-pay-button');
  * var paymentsClient = new google.payments.api.PaymentsClient({
@@ -622,11 +681,7 @@ function create(options) {
     client: options.client
   }).then(function () {
     if (!options.client.getConfiguration().gatewayConfiguration.androidPay) {
-      return Promise.reject(new BraintreeError({
-        type: BraintreeError.types.MERCHANT,
-        code: 'GOOGLE_PAYMENT_NOT_ENABLED',
-        message: 'Google Pay is not enabled for this merchant.'
-      }));
+      return Promise.reject(new BraintreeError(errors.GOOGLE_PAYMENT_NOT_ENABLED));
     }
 
     return new GooglePayment(options);
@@ -642,7 +697,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/basic-component-verification":11,"../lib/braintree-error":12,"../lib/promise":21,"./google-payment":6,"@braintree/wrap-promise":4}],8:[function(_dereq_,module,exports){
+},{"../lib/basic-component-verification":12,"../lib/braintree-error":13,"../lib/promise":22,"./errors":6,"./google-payment":7,"@braintree/wrap-promise":4}],9:[function(_dereq_,module,exports){
 'use strict';
 
 var createAuthorizationData = _dereq_('./create-authorization-data');
@@ -676,7 +731,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":13,"./create-authorization-data":15,"./json-clone":19}],9:[function(_dereq_,module,exports){
+},{"./constants":14,"./create-authorization-data":16,"./json-clone":20}],10:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('./constants');
@@ -710,7 +765,7 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":8,"./constants":13}],10:[function(_dereq_,module,exports){
+},{"./add-metadata":9,"./constants":14}],11:[function(_dereq_,module,exports){
 'use strict';
 
 var assignNormalized = typeof Object.assign === 'function' ? Object.assign : assignPolyfill;
@@ -735,13 +790,13 @@ module.exports = {
   _assign: assignPolyfill
 };
 
-},{}],11:[function(_dereq_,module,exports){
+},{}],12:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.35.0";
+var VERSION = "3.36.0";
 
 function basicComponentVerification(options) {
   var client, clientVersion, name;
@@ -782,7 +837,7 @@ module.exports = {
   verify: basicComponentVerification
 };
 
-},{"./braintree-error":12,"./errors":17,"./promise":21}],12:[function(_dereq_,module,exports){
+},{"./braintree-error":13,"./errors":18,"./promise":22}],13:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -867,10 +922,10 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":16}],13:[function(_dereq_,module,exports){
+},{"./enumerate":17}],14:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.35.0";
+var VERSION = "3.36.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -898,7 +953,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],14:[function(_dereq_,module,exports){
+},{}],15:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -916,7 +971,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"./braintree-error":12,"./errors":17}],15:[function(_dereq_,module,exports){
+},{"./braintree-error":13,"./errors":18}],16:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/vendor/polyfill').atob;
@@ -960,7 +1015,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/constants":13,"../lib/vendor/polyfill":22}],16:[function(_dereq_,module,exports){
+},{"../lib/constants":14,"../lib/vendor/polyfill":23}],17:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -975,8 +1030,29 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],17:[function(_dereq_,module,exports){
+},{}],18:[function(_dereq_,module,exports){
 'use strict';
+
+/**
+ * @name BraintreeError.Shared Interal Error Codes
+ * @ignore
+ * @description These codes should never be experienced by the mechant directly.
+ * @property {INTERNAL} INVALID_USE_OF_INTERNAL_FUNCTION Occurs when the client is created without a gateway configuration. Should never happen.
+ */
+
+/**
+ * @name BraintreeError.Shared Errors - Component Creation Error Codes
+ * @description Errors that occur when creating components.
+ * @property {MERCHANT} INSTANTIATION_OPTION_REQUIRED Occurs when a compoennt is created that is missing a required option.
+ * @property {MERCHANT} INCOMPATIBLE_VERSIONS Occurs when a component is created with a client with a different version than the component.
+ */
+
+/**
+ * @name BraintreeError.Shared Errors - Component Instance Error Codes
+ * @description Errors that occur when using instances of components.
+ * @property {MERCHANT} METHOD_CALLED_AFTER_TEARDOWN Occurs when a method is called on a component instance after it has been torn down.
+ * @property {MERCHANT} BRAINTREE_API_ACCESS_RESTRICTED Occurs when the client token or tokenization key does not have the correct permissions.
+ */
 
 var BraintreeError = _dereq_('./braintree-error');
 
@@ -985,17 +1061,9 @@ module.exports = {
     type: BraintreeError.types.INTERNAL,
     code: 'INVALID_USE_OF_INTERNAL_FUNCTION'
   },
-  CALLBACK_REQUIRED: {
-    type: BraintreeError.types.MERCHANT,
-    code: 'CALLBACK_REQUIRED'
-  },
   INSTANTIATION_OPTION_REQUIRED: {
     type: BraintreeError.types.MERCHANT,
     code: 'INSTANTIATION_OPTION_REQUIRED'
-  },
-  INVALID_OPTION: {
-    type: BraintreeError.types.MERCHANT,
-    code: 'INVALID_OPTION'
   },
   INCOMPATIBLE_VERSIONS: {
     type: BraintreeError.types.MERCHANT,
@@ -1012,10 +1080,10 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":12}],18:[function(_dereq_,module,exports){
+},{"./braintree-error":13}],19:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.35.0";
+var VERSION = "3.36.0";
 
 module.exports = function (configuration) {
   var isProduction = configuration.gatewayConfiguration.environment === 'production';
@@ -1053,14 +1121,14 @@ module.exports = function (configuration) {
   return data;
 };
 
-},{}],19:[function(_dereq_,module,exports){
+},{}],20:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],20:[function(_dereq_,module,exports){
+},{}],21:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -1069,7 +1137,7 @@ module.exports = function (obj) {
   });
 };
 
-},{}],21:[function(_dereq_,module,exports){
+},{}],22:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1078,7 +1146,7 @@ var Promise = global.Promise || _dereq_('promise-polyfill');
 module.exports = Promise;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":5}],22:[function(_dereq_,module,exports){
+},{"promise-polyfill":5}],23:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1119,5 +1187,5 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}]},{},[7])(7)
+},{}]},{},[8])(8)
 });

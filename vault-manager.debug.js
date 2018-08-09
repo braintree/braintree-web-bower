@@ -108,6 +108,22 @@ module.exports = wrapPromise;
 },{"./lib/deferred":1,"./lib/once":2,"./lib/promise-or-callback":3}],5:[function(_dereq_,module,exports){
 'use strict';
 
+var promiseFinally = function(callback) {
+  var constructor = this.constructor;
+  return this.then(
+    function(value) {
+      return constructor.resolve(callback()).then(function() {
+        return value;
+      });
+    },
+    function(reason) {
+      return constructor.resolve(callback()).then(function() {
+        return constructor.reject(reason);
+      });
+    }
+  );
+};
+
 // Store setTimeout reference so promise-polyfill will be unaffected by
 // other code modifying setTimeout (like sinon.useFakeTimers())
 var setTimeoutFunc = setTimeout;
@@ -252,6 +268,8 @@ Promise.prototype.then = function(onFulfilled, onRejected) {
   handle(this, new Handler(onFulfilled, onRejected, prom));
   return prom;
 };
+
+Promise.prototype['finally'] = promiseFinally;
 
 Promise.all = function(arr) {
   return new Promise(function(resolve, reject) {
@@ -407,7 +425,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.35.0";
+var VERSION = "3.36.0";
 
 function basicComponentVerification(options) {
   var client, clientVersion, name;
@@ -536,7 +554,7 @@ module.exports = BraintreeError;
 },{"./enumerate":13}],10:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.35.0";
+var VERSION = "3.36.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -644,6 +662,27 @@ module.exports = enumerate;
 },{}],14:[function(_dereq_,module,exports){
 'use strict';
 
+/**
+ * @name BraintreeError.Shared Interal Error Codes
+ * @ignore
+ * @description These codes should never be experienced by the mechant directly.
+ * @property {INTERNAL} INVALID_USE_OF_INTERNAL_FUNCTION Occurs when the client is created without a gateway configuration. Should never happen.
+ */
+
+/**
+ * @name BraintreeError.Shared Errors - Component Creation Error Codes
+ * @description Errors that occur when creating components.
+ * @property {MERCHANT} INSTANTIATION_OPTION_REQUIRED Occurs when a compoennt is created that is missing a required option.
+ * @property {MERCHANT} INCOMPATIBLE_VERSIONS Occurs when a component is created with a client with a different version than the component.
+ */
+
+/**
+ * @name BraintreeError.Shared Errors - Component Instance Error Codes
+ * @description Errors that occur when using instances of components.
+ * @property {MERCHANT} METHOD_CALLED_AFTER_TEARDOWN Occurs when a method is called on a component instance after it has been torn down.
+ * @property {MERCHANT} BRAINTREE_API_ACCESS_RESTRICTED Occurs when the client token or tokenization key does not have the correct permissions.
+ */
+
 var BraintreeError = _dereq_('./braintree-error');
 
 module.exports = {
@@ -651,17 +690,9 @@ module.exports = {
     type: BraintreeError.types.INTERNAL,
     code: 'INVALID_USE_OF_INTERNAL_FUNCTION'
   },
-  CALLBACK_REQUIRED: {
-    type: BraintreeError.types.MERCHANT,
-    code: 'CALLBACK_REQUIRED'
-  },
   INSTANTIATION_OPTION_REQUIRED: {
     type: BraintreeError.types.MERCHANT,
     code: 'INSTANTIATION_OPTION_REQUIRED'
-  },
-  INVALID_OPTION: {
-    type: BraintreeError.types.MERCHANT,
-    code: 'INVALID_OPTION'
   },
   INCOMPATIBLE_VERSIONS: {
     type: BraintreeError.types.MERCHANT,
@@ -747,23 +778,33 @@ module.exports = {
 },{}],19:[function(_dereq_,module,exports){
 'use strict';
 
+/**
+ * @name BraintreeError.Vault Manager - deletePaymentMethod Error Codes
+ * @description Errors that occur when using the [`deletePaymentMethod` method](/current/VaultManager.html#deletePaymentMethod).
+ * @property {MERCHANT} VAULT_MANAGER_DELETE_PAYMENT_METHOD_NONCE_REQUIRES_CLIENT_TOKEN Occurs when vault manager is initalized with a tokenization key instead of a Client Token.
+ * @property {MERCHANT} VAULT_MANAGER_PAYMENT_METHOD_NONCE_NOT_FOUND Occurs when the specified payment method can not be found.
+ * @property {UNKNOWN} VAULT_MANAGER_DELETE_PAYMENT_METHOD_UNKNOWN_ERROR Occurs when there is an error attempting to delete the payment method.
+ */
+
+var BraintreeError = _dereq_('../lib/braintree-error');
+
 module.exports = {
   VAULT_MANAGER_DELETE_PAYMENT_METHOD_NONCE_REQUIRES_CLIENT_TOKEN: {
-    type: 'MERCHANT',
+    type: BraintreeError.types.MERCHANT,
     code: 'VAULT_MANAGER_DELETE_PAYMENT_METHOD_NONCE_REQUIRES_CLIENT_TOKEN',
     message: 'A client token with a customer id must be used to delete a payment method nonce.'
   },
   VAULT_MANAGER_PAYMENT_METHOD_NONCE_NOT_FOUND: {
-    type: 'MERCHANT',
+    type: BraintreeError.types.MERCHANT,
     code: 'VAULT_MANAGER_PAYMENT_METHOD_NONCE_NOT_FOUND'
   },
   VAULT_MANAGER_DELETE_PAYMENT_METHOD_UNKNOWN_ERROR: {
-    type: 'UNKNOWN',
+    type: BraintreeError.types.UNKNOWN,
     code: 'VAULT_MANAGER_DELETE_PAYMENT_METHOD_UNKNOWN_ERROR'
   }
 };
 
-},{}],20:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":9}],20:[function(_dereq_,module,exports){
 'use strict';
 /**
  * @module braintree-web/vault-manager
@@ -772,7 +813,7 @@ module.exports = {
 
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var VaultManager = _dereq_('./vault-manager');
-var VERSION = "3.35.0";
+var VERSION = "3.36.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
