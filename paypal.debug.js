@@ -998,7 +998,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.36.0";
+var VERSION = "3.37.0";
 
 function basicComponentVerification(options) {
   var client, clientVersion, name;
@@ -1127,7 +1127,7 @@ module.exports = BraintreeError;
 },{"./enumerate":35}],27:[function(_dereq_,module,exports){
 'use strict';
 
-var isWhitelistedDomain = _dereq_('../is-whitelisted-domain');
+var isVerifiedDomain = _dereq_('../is-verified-domain');
 
 function checkOrigin(postMessageOrigin, merchantUrl) {
   var merchantOrigin, merchantHost;
@@ -1149,14 +1149,14 @@ function checkOrigin(postMessageOrigin, merchantUrl) {
 
   a.href = postMessageOrigin;
 
-  return isWhitelistedDomain(postMessageOrigin);
+  return isVerifiedDomain(postMessageOrigin);
 }
 
 module.exports = {
   checkOrigin: checkOrigin
 };
 
-},{"../is-whitelisted-domain":49}],28:[function(_dereq_,module,exports){
+},{"../is-verified-domain":49}],28:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../enumerate');
@@ -1299,7 +1299,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":26,"./check-origin":27,"./events":28,"framebus":20}],30:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.36.0";
+var VERSION = "3.37.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -2115,7 +2115,7 @@ function stripSubdomains(domain) {
   return domain.split('.').slice(-2).join('.');
 }
 
-function isWhitelistedDomain(url) {
+function isVerifiedDomain(url) {
   var mainDomain;
 
   url = url.toLowerCase();
@@ -2131,7 +2131,7 @@ function isWhitelistedDomain(url) {
   return legalHosts.hasOwnProperty(mainDomain);
 }
 
-module.exports = isWhitelistedDomain;
+module.exports = isVerifiedDomain;
 
 },{}],50:[function(_dereq_,module,exports){
 'use strict';
@@ -2327,7 +2327,7 @@ var BraintreeError = _dereq_('../../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../../lib/convert-to-braintree-error');
 var useMin = _dereq_('../../lib/use-min');
 var once = _dereq_('../../lib/once');
-var VERSION = "3.36.0";
+var VERSION = "3.37.0";
 var constants = _dereq_('../shared/constants');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
@@ -2931,7 +2931,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var errors = _dereq_('./shared/errors');
 var PayPal = _dereq_('./external/paypal');
-var VERSION = "3.36.0";
+var VERSION = "3.37.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var Promise = _dereq_('../lib/promise');
 

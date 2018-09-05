@@ -916,7 +916,7 @@ var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../../lib/convert-to-braintree-error');
 var errors = _dereq_('../shared/errors');
-var VERSION = "3.36.0";
+var VERSION = "3.37.0";
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var methods = _dereq_('../../lib/methods');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -1282,7 +1282,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var browserDetection = _dereq_('./shared/browser-detection');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var Ideal = _dereq_('./external/ideal');
-var VERSION = "3.36.0";
+var VERSION = "3.37.0";
 var errors = _dereq_('./shared/errors');
 var sharedErrors = _dereq_('../lib/errors');
 var analytics = _dereq_('../lib/analytics');
@@ -1513,7 +1513,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.36.0";
+var VERSION = "3.37.0";
 
 function basicComponentVerification(options) {
   var client, clientVersion, name;
@@ -1642,7 +1642,7 @@ module.exports = BraintreeError;
 },{"./enumerate":41}],33:[function(_dereq_,module,exports){
 'use strict';
 
-var isWhitelistedDomain = _dereq_('../is-whitelisted-domain');
+var isVerifiedDomain = _dereq_('../is-verified-domain');
 
 function checkOrigin(postMessageOrigin, merchantUrl) {
   var merchantOrigin, merchantHost;
@@ -1664,14 +1664,14 @@ function checkOrigin(postMessageOrigin, merchantUrl) {
 
   a.href = postMessageOrigin;
 
-  return isWhitelistedDomain(postMessageOrigin);
+  return isVerifiedDomain(postMessageOrigin);
 }
 
 module.exports = {
   checkOrigin: checkOrigin
 };
 
-},{"../is-whitelisted-domain":55}],34:[function(_dereq_,module,exports){
+},{"../is-verified-domain":55}],34:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../enumerate');
@@ -1814,7 +1814,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":32,"./check-origin":33,"./events":34,"framebus":20}],36:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.36.0";
+var VERSION = "3.37.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -2630,7 +2630,7 @@ function stripSubdomains(domain) {
   return domain.split('.').slice(-2).join('.');
 }
 
-function isWhitelistedDomain(url) {
+function isVerifiedDomain(url) {
   var mainDomain;
 
   url = url.toLowerCase();
@@ -2646,7 +2646,7 @@ function isWhitelistedDomain(url) {
   return legalHosts.hasOwnProperty(mainDomain);
 }
 
-module.exports = isWhitelistedDomain;
+module.exports = isVerifiedDomain;
 
 },{}],56:[function(_dereq_,module,exports){
 'use strict';

@@ -831,7 +831,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.36.0";
+var VERSION = "3.37.0";
 
 function basicComponentVerification(options) {
   var client, clientVersion, name;
@@ -960,7 +960,7 @@ module.exports = BraintreeError;
 },{"./enumerate":22}],16:[function(_dereq_,module,exports){
 'use strict';
 
-var isWhitelistedDomain = _dereq_('../is-whitelisted-domain');
+var isVerifiedDomain = _dereq_('../is-verified-domain');
 
 function checkOrigin(postMessageOrigin, merchantUrl) {
   var merchantOrigin, merchantHost;
@@ -982,14 +982,14 @@ function checkOrigin(postMessageOrigin, merchantUrl) {
 
   a.href = postMessageOrigin;
 
-  return isWhitelistedDomain(postMessageOrigin);
+  return isVerifiedDomain(postMessageOrigin);
 }
 
 module.exports = {
   checkOrigin: checkOrigin
 };
 
-},{"../is-whitelisted-domain":26}],17:[function(_dereq_,module,exports){
+},{"../is-verified-domain":26}],17:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../enumerate');
@@ -1132,7 +1132,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":15,"./check-origin":16,"./events":17,"framebus":9}],19:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.36.0";
+var VERSION = "3.37.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1320,7 +1320,7 @@ module.exports = EventEmitter;
 },{}],25:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.36.0";
+var VERSION = "3.37.0";
 
 module.exports = function (configuration) {
   var isProduction = configuration.gatewayConfiguration.environment === 'production';
@@ -1375,7 +1375,7 @@ function stripSubdomains(domain) {
   return domain.split('.').slice(-2).join('.');
 }
 
-function isWhitelistedDomain(url) {
+function isVerifiedDomain(url) {
   var mainDomain;
 
   url = url.toLowerCase();
@@ -1391,7 +1391,7 @@ function isWhitelistedDomain(url) {
   return legalHosts.hasOwnProperty(mainDomain);
 }
 
-module.exports = isWhitelistedDomain;
+module.exports = isVerifiedDomain;
 
 },{}],27:[function(_dereq_,module,exports){
 'use strict';
@@ -1497,7 +1497,7 @@ var methods = _dereq_('../../lib/methods');
 var Promise = _dereq_('../../lib/promise');
 var EventEmitter = _dereq_('../../lib/event-emitter');
 var BraintreeError = _dereq_('../../lib/braintree-error');
-var VERSION = "3.36.0";
+var VERSION = "3.37.0";
 var events = _dereq_('../shared/constants').events;
 var errors = _dereq_('../shared/constants').errors;
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -2021,7 +2021,7 @@ module.exports = wrapPromise.wrapPrototype(PaymentRequestComponent);
 var PaymentRequestComponent = _dereq_('./external/payment-request');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.36.0";
+var VERSION = "3.37.0";
 
 /**
  * @static

@@ -998,7 +998,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.36.0";
+var VERSION = "3.37.0";
 
 function basicComponentVerification(options) {
   var client, clientVersion, name;
@@ -1127,7 +1127,7 @@ module.exports = BraintreeError;
 },{"./enumerate":34}],27:[function(_dereq_,module,exports){
 'use strict';
 
-var isWhitelistedDomain = _dereq_('../is-whitelisted-domain');
+var isVerifiedDomain = _dereq_('../is-verified-domain');
 
 function checkOrigin(postMessageOrigin, merchantUrl) {
   var merchantOrigin, merchantHost;
@@ -1149,14 +1149,14 @@ function checkOrigin(postMessageOrigin, merchantUrl) {
 
   a.href = postMessageOrigin;
 
-  return isWhitelistedDomain(postMessageOrigin);
+  return isVerifiedDomain(postMessageOrigin);
 }
 
 module.exports = {
   checkOrigin: checkOrigin
 };
 
-},{"../is-whitelisted-domain":48}],28:[function(_dereq_,module,exports){
+},{"../is-verified-domain":48}],28:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../enumerate');
@@ -1299,7 +1299,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":26,"./check-origin":27,"./events":28,"framebus":20}],30:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.36.0";
+var VERSION = "3.37.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -2101,7 +2101,7 @@ function stripSubdomains(domain) {
   return domain.split('.').slice(-2).join('.');
 }
 
-function isWhitelistedDomain(url) {
+function isVerifiedDomain(url) {
   var mainDomain;
 
   url = url.toLowerCase();
@@ -2117,7 +2117,7 @@ function isWhitelistedDomain(url) {
   return legalHosts.hasOwnProperty(mainDomain);
 }
 
-module.exports = isWhitelistedDomain;
+module.exports = isVerifiedDomain;
 
 },{}],49:[function(_dereq_,module,exports){
 'use strict';
@@ -2207,7 +2207,7 @@ var Promise = _dereq_('../../lib/promise');
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var errors = _dereq_('../shared/errors');
-var VERSION = "3.36.0";
+var VERSION = "3.37.0";
 var methods = _dereq_('../../lib/methods');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var analytics = _dereq_('../../lib/analytics');
@@ -2604,7 +2604,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var browserDetection = _dereq_('./shared/browser-detection');
 var Masterpass = _dereq_('./external/masterpass');
-var VERSION = "3.36.0";
+var VERSION = "3.37.0";
 var errors = _dereq_('./shared/errors');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');

@@ -287,6 +287,7 @@ var MASTERCARD = 'mastercard';
 var AMERICAN_EXPRESS = 'american-express';
 var DINERS_CLUB = 'diners-club';
 var DISCOVER = 'discover';
+var ELO = 'elo';
 var JCB = 'jcb';
 var UNIONPAY = 'unionpay';
 var MAESTRO = 'maestro';
@@ -296,6 +297,7 @@ var CID = 'CID';
 var CVC = 'CVC';
 var CVN = 'CVN';
 var CVP2 = 'CVP2';
+var CVE = 'CVE';
 var ORIGINAL_TEST_ORDER = [
   VISA,
   MASTERCARD,
@@ -305,17 +307,26 @@ var ORIGINAL_TEST_ORDER = [
   JCB,
   UNIONPAY,
   MAESTRO,
+  ELO,
   MIR
 ];
 
-function clone(originalObject) {
-  var dupe;
+function clone(originalObject, persistPatterns) {
+  var dupe, prefixPattern, exactPattern;
 
   if (!originalObject) { return null; }
 
+  prefixPattern = originalObject.prefixPattern;
+  exactPattern = originalObject.exactPattern;
   dupe = JSON.parse(JSON.stringify(originalObject));
-  delete dupe.prefixPattern;
-  delete dupe.exactPattern;
+
+  if (persistPatterns) {
+    dupe.prefixPattern = prefixPattern;
+    dupe.exactPattern = exactPattern;
+  } else {
+    delete dupe.prefixPattern;
+    delete dupe.exactPattern;
+  }
 
   return dupe;
 }
@@ -325,8 +336,13 @@ testOrder = clone(ORIGINAL_TEST_ORDER);
 types[VISA] = {
   niceType: 'Visa',
   type: VISA,
-  prefixPattern: /^4$/,
-  exactPattern: /^4\d*$/,
+  prefixPattern: /^4/,
+  exactPattern: new RegExp('^' +
+    '4' +
+    '(?!' +
+      '31274|51416|57393|0117[89]|38935|5763[12]' + // Elo cards
+    ')\\d{5,}' +
+  '$'),
   gaps: [4, 8, 12],
   lengths: [16, 18, 19],
   code: {
@@ -378,8 +394,37 @@ types[DINERS_CLUB] = {
 types[DISCOVER] = {
   niceType: 'Discover',
   type: DISCOVER,
-  prefixPattern: /^(6|60|601|6011|65|64|64[4-9])$/,
-  exactPattern: /^(6011|65|64[4-9])\d*$/,
+  prefixPattern: /^(6|60|601|6011|65|65\d{1,4}|64|64[4-9])$/,
+  exactPattern: new RegExp('^(' +
+    '6011' +
+    '|' +
+    '65' +
+      '(?!' + // Elo cards
+        '003[1-3]' +
+        '|' +
+        '003[5-9]|004\\d|005[0-1]' +
+        '|' +
+        '040[5-9]|04[1-3]\\d' +
+        '|' +
+        '048[5-9]|049\\d|05[0-2]\\d|053[0-8]' +
+        '|' +
+        '054[1-9]|05[5-8]\\d|059[0-8]' +
+        '|' +
+        '070\\d|071[0-8]' +
+        '|' +
+        '072[0-7]' +
+        '|' +
+        '090[1-9]|09[1-6]\\d|097[0-8]' +
+        '|' +
+        '165[2-9]|16[6-7]\\d' +
+        '|' +
+        '50[0-1]\\d' +
+        '|' +
+        '502[1-9]|50[3-4]\\d|505[0-8]' +
+      ')\\d{4}' +
+    '|' +
+    '64[4-9]' +
+  ')\\d*$'),
   gaps: [4, 8, 12],
   lengths: [16, 19],
   code: {
@@ -404,8 +449,30 @@ types[JCB] = {
 types[UNIONPAY] = {
   niceType: 'UnionPay',
   type: UNIONPAY,
-  prefixPattern: /^((6|62|62\d|(621(?!83|88|98|99))|622(?!06)|627[02,06,07]|628(?!0|1)|629[1,2])|622018)$/,
-  exactPattern: /^(((620|(621(?!83|88|98|99))|622(?!06|018)|62[3-6]|627[02,06,07]|628(?!0|1)|629[1,2]))\d*|622018\d{12})$/,
+  prefixPattern: /^((6|62|62\d|(621(?!83|88|98|99))|622(?!06)|627[0267]\d?|628(?!0|1)|629[1,2])|622018)$/,
+  exactPattern: new RegExp('^(' +
+    '(' +
+      '620' +
+      '|' +
+      '(621(?!83|88|98|99))' +
+      '|' +
+      '622(?!06|018)' +
+      '|' +
+      '62[3-6]' +
+      '|' +
+      '627[026]' +
+      '|' +
+      '6277(?!80)\\d{2}' + // Elo card
+      '|' +
+      '628(?!0|1)' +
+      '|' +
+      '629[12]' +
+    ')\\d*' +
+
+    '|' +
+
+    '622018\\d{12}' +
+  ')$'),
   gaps: [4, 8, 12],
   lengths: [16, 17, 18, 19],
   code: {
@@ -418,11 +485,144 @@ types[MAESTRO] = {
   niceType: 'Maestro',
   type: MAESTRO,
   prefixPattern: /^(5|5[06-9]|6\d*)$/,
-  exactPattern: /^(5[06-9]|6[37])\d*$/,
+  exactPattern: new RegExp('^(' +
+    '5[6-9]' +
+    '|' +
+    '50' +
+      '(?!' + // Elo card ranges
+        '6699|067[0-6][0-9]' +
+        '|' +
+        '677[0-8]' +
+        '|' +
+        '9[0-9][0-9][0-9]' +
+      ')\\d{4}' +
+    '|' +
+    '67' +
+    '|' +
+    '63' +
+      '(?!' + // More Elo card ranges
+        '6297|6368' +
+      ')\\d{4}' +
+    ')\\d*$'
+  ),
   gaps: [4, 8, 12],
   lengths: [12, 13, 14, 15, 16, 17, 18, 19],
   code: {
     name: CVC,
+    size: 3
+  }
+};
+
+types[ELO] = {
+  niceType: 'Elo',
+  type: ELO,
+  prefixPattern: new RegExp('^(' +
+    '[4-6]' +
+
+    '|' +
+
+    '4[035]|4[035]1' +
+    '|' +
+    '4011|40117|40117[89]' +
+    '|' +
+    '4312|43127|431274' +
+    '|' +
+    '438|4389|43893|438935' +
+    '|' +
+    '4514|45141|451416' +
+    '|' +
+    '457|457[36]|45739|45763|457393|45763[12]' +
+
+    '|' +
+
+    '50|50[69]' +
+    '|' +
+    '506[6-7]|50669|5067[0-7]|5067[0-6][0-9]|50677[0-8]' +
+    '|' +
+    '509[0-9]|509[0-9][0-9]|509[0-9][0-9][0-9]' +
+
+    '|' +
+
+    '6[235]|627|636|65[015]' +
+    '|' +
+    '6277|62778|627780' +
+    '|' +
+    '636[23]|63629|636297|63636|636368' +
+    '|' +
+    '650[0479]' +
+    '|' +
+    '6500[3-5]|65003[1-3]|65003[5-9]|65004[0-9]65005[01]' +
+    '|' +
+    '6504[0-3]|65040[5-9]|65041[0-9]' +
+    '|' +
+    '6505[4-9]|65054[1-9]|6505[5-8][0-9]|65059[0-8]' +
+    '|' +
+    '6507[0-2]|65070[0-9]|65071[0-8]|65072[0-7]' +
+    '|' +
+    '6509[0-7]|65090[1-9]|6509[1-6][0-9]|65097[0-8]' +
+    '|' +
+    '6516|6516[5-7]|65165[2-9]|6516[6-7][0-9]' +
+    '|' +
+    '6550|6550[0-5]|6550[01][0-9]|65502[1-9]|6550[3-4][0-9]|65505[0-8]' +
+  ')$'),
+  exactPattern: new RegExp('^(' +
+    // Elo only ranges
+    '4(31274|51416|57393)' +
+
+    '|' +
+
+    '50(' +
+      '4175' +
+      '|' +
+      '6699|67[0-6][0-9]|677[0-8]' + // 506699-506778
+      '|' +
+      '9[0-9][0-9][0-9]' + // 509000-509999
+    ')' +
+
+    '|' +
+
+    '627780' +
+
+    '|' +
+
+    '636(297|368)' +
+
+    '|' +
+
+    // Dual Branded with Visa
+    '4(0117[89]|38935|5763[12])' +
+
+    '|' +
+
+    // Dual Branded with Discover
+    '65(' +
+      '003[1-3]' + // 650031-650033
+      '|' +
+      '003[5-9]|004\\d|005[0-1]' + // 650035-650051
+      '|' +
+      '040[5-9]|04[1-3]\\d' + // 650405-650439
+      '|' +
+      '048[5-9]|049\\d|05[0-2]\\d|053[0-8]' + // 650485-650538
+      '|' +
+      '054[1-9]|05[5-8]\\d|059[0-8]' + // 650541-650598
+      '|' +
+      '070[0-9]|071[0-8]' + // 650700-650718
+      '|' +
+      '072[0-7]' + // 650720-650727
+      '|' +
+      '090[1-9]|09[1-6][0-9]|097[0-8]' + // 650901-650978
+      '|' +
+      '165[2-9]|16[6-7][0-9]' + // 651652-651679
+      '|' +
+      '50[0-1][0-9]' + // 655000-655019
+      '|' +
+      '502[1-9]|50[3-4][0-9]|505[0-8]' + // 655021-655058
+    ')' +
+  ')\\d*$'),
+  gaps: [4, 8, 12],
+  lengths: [16],
+  code: {
+    name: CVE,
     size: 3
   }
 };
@@ -502,6 +702,29 @@ creditCardType.addCard = function (config) {
   }
 };
 
+creditCardType.updateCard = function (cardType, updates) {
+  var clonedCard;
+  var originalObject = customCards[cardType] || types[cardType];
+
+  if (!originalObject) {
+    throw new Error('"' + cardType + '" is not a recognized type. Use `addCard` instead.');
+  }
+
+  if (updates.type && originalObject.type !== updates.type) {
+    throw new Error('Cannot overwrite type parameter.');
+  }
+
+  clonedCard = clone(originalObject, true);
+
+  Object.keys(clonedCard).forEach(function (key) {
+    if (updates[key]) {
+      clonedCard[key] = updates[key];
+    }
+  });
+
+  customCards[clonedCard.type] = clonedCard;
+};
+
 creditCardType.changeOrder = function (name, position) {
   var currentPosition = getCardPosition(name);
 
@@ -523,6 +746,7 @@ creditCardType.types = {
   JCB: JCB,
   UNIONPAY: UNIONPAY,
   MAESTRO: MAESTRO,
+  ELO: ELO,
   MIR: MIR
 };
 
@@ -1144,12 +1368,12 @@ module.exports = function () {
 
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var errors = _dereq_('../shared/errors');
-var whitelist = _dereq_('../shared/constants').whitelistedAttributes;
+var allowedAttributes = _dereq_('../shared/constants').allowedAttributes;
 
 function attributeValidationError(attribute, value) {
   var err;
 
-  if (!whitelist.hasOwnProperty(attribute)) {
+  if (!allowedAttributes.hasOwnProperty(attribute)) {
     err = new BraintreeError({
       type: errors.HOSTED_FIELDS_ATTRIBUTE_NOT_SUPPORTED.type,
       code: errors.HOSTED_FIELDS_ATTRIBUTE_NOT_SUPPORTED.code,
@@ -1167,9 +1391,9 @@ function attributeValidationError(attribute, value) {
 }
 
 function _isValid(attribute, value) {
-  if (whitelist[attribute] === 'string') {
+  if (allowedAttributes[attribute] === 'string') {
     return typeof value === 'string' || typeof value === 'number';
-  } else if (whitelist[attribute] === 'boolean') {
+  } else if (allowedAttributes[attribute] === 'boolean') {
     return String(value) === 'true' || String(value) === 'false';
   }
 
@@ -1196,7 +1420,7 @@ module.exports = function composeUrl(assetsUrl, componentId, isDebug) {
 (function (global){
 'use strict';
 
-var whitelistedStyles = _dereq_('../shared/constants').whitelistedStyles;
+var allowedStyles = _dereq_('../shared/constants').allowedStyles;
 
 module.exports = function getStylesFromClass(cssClass) {
   var element = document.createElement('input');
@@ -1216,7 +1440,7 @@ module.exports = function getStylesFromClass(cssClass) {
 
   computedStyles = global.getComputedStyle(element);
 
-  whitelistedStyles.forEach(function (style) {
+  allowedStyles.forEach(function (style) {
     var value = computedStyles[style];
 
     if (value) {
@@ -1251,7 +1475,7 @@ var events = constants.events;
 var EventEmitter = _dereq_('../../lib/event-emitter');
 var injectFrame = _dereq_('./inject-frame');
 var analytics = _dereq_('../../lib/analytics');
-var whitelistedFields = constants.whitelistedFields;
+var allowedFields = constants.allowedFields;
 var methods = _dereq_('../../lib/methods');
 var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
 var sharedErrors = _dereq_('../../lib/errors');
@@ -1589,7 +1813,7 @@ function HostedFields(options) {
   Object.keys(options.fields).forEach(function (key) {
     var field, container, frame;
 
-    if (!constants.whitelistedFields.hasOwnProperty(key)) {
+    if (!constants.allowedFields.hasOwnProperty(key)) {
       throw new BraintreeError({
         type: errors.HOSTED_FIELDS_INVALID_FIELD_KEY.type,
         code: errors.HOSTED_FIELDS_INVALID_FIELD_KEY.code,
@@ -1649,7 +1873,7 @@ function HostedFields(options) {
       type: key,
       name: 'braintree-hosted-field-' + key,
       style: constants.defaultIFrameStyle,
-      title: 'Secure Credit Card Frame - ' + constants.whitelistedFields[key].label
+      title: 'Secure Credit Card Frame - ' + constants.allowedFields[key].label
     });
 
     this._injectedNodes = this._injectedNodes.concat(injectFrame(frame, container));
@@ -1986,7 +2210,7 @@ HostedFields.prototype.tokenize = function (options) {
 HostedFields.prototype.addClass = function (field, classname) {
   var err;
 
-  if (!whitelistedFields.hasOwnProperty(field)) {
+  if (!allowedFields.hasOwnProperty(field)) {
     err = new BraintreeError({
       type: errors.HOSTED_FIELDS_FIELD_INVALID.type,
       code: errors.HOSTED_FIELDS_FIELD_INVALID.code,
@@ -2031,7 +2255,7 @@ HostedFields.prototype.addClass = function (field, classname) {
 HostedFields.prototype.removeClass = function (field, classname) {
   var err;
 
-  if (!whitelistedFields.hasOwnProperty(field)) {
+  if (!allowedFields.hasOwnProperty(field)) {
     err = new BraintreeError({
       type: errors.HOSTED_FIELDS_FIELD_INVALID.type,
       code: errors.HOSTED_FIELDS_FIELD_INVALID.code,
@@ -2092,7 +2316,7 @@ HostedFields.prototype.removeClass = function (field, classname) {
 HostedFields.prototype.setAttribute = function (options) {
   var attributeErr, err;
 
-  if (!whitelistedFields.hasOwnProperty(options.field)) {
+  if (!allowedFields.hasOwnProperty(options.field)) {
     err = new BraintreeError({
       type: errors.HOSTED_FIELDS_FIELD_INVALID.type,
       code: errors.HOSTED_FIELDS_FIELD_INVALID.code,
@@ -2171,7 +2395,7 @@ HostedFields.prototype.setMessage = function (options) {
 HostedFields.prototype.removeAttribute = function (options) {
   var attributeErr, err;
 
-  if (!whitelistedFields.hasOwnProperty(options.field)) {
+  if (!allowedFields.hasOwnProperty(options.field)) {
     err = new BraintreeError({
       type: errors.HOSTED_FIELDS_FIELD_INVALID.type,
       code: errors.HOSTED_FIELDS_FIELD_INVALID.code,
@@ -2239,7 +2463,7 @@ HostedFields.prototype.setPlaceholder = function (field, placeholder) {
 HostedFields.prototype.clear = function (field) {
   var err;
 
-  if (!whitelistedFields.hasOwnProperty(field)) {
+  if (!allowedFields.hasOwnProperty(field)) {
     err = new BraintreeError({
       type: errors.HOSTED_FIELDS_FIELD_INVALID.type,
       code: errors.HOSTED_FIELDS_FIELD_INVALID.code,
@@ -2289,7 +2513,7 @@ HostedFields.prototype.clear = function (field) {
 HostedFields.prototype.focus = function (field) {
   var err;
 
-  if (!whitelistedFields.hasOwnProperty(field)) {
+  if (!allowedFields.hasOwnProperty(field)) {
     err = new BraintreeError({
       type: errors.HOSTED_FIELDS_FIELD_INVALID.type,
       code: errors.HOSTED_FIELDS_FIELD_INVALID.code,
@@ -2357,7 +2581,7 @@ var supportsInputFormatting = _dereq_('restricted-input/supports-input-formattin
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.36.0";
+var VERSION = "3.37.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -2664,7 +2888,7 @@ module.exports = {
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.36.0";
+var VERSION = "3.37.0";
 
 var constants = {
   VERSION: VERSION,
@@ -2700,7 +2924,7 @@ var constants = {
     81724: errors.HOSTED_FIELDS_TOKENIZATION_FAIL_ON_DUPLICATE,
     81736: errors.HOSTED_FIELDS_TOKENIZATION_CVV_VERIFICATION_FAILED
   },
-  whitelistedStyles: [
+  allowedStyles: [
     '-moz-appearance',
     '-moz-osx-font-smoothing',
     '-moz-tap-highlight-color',
@@ -2733,7 +2957,7 @@ var constants = {
     'text-shadow',
     'transition'
   ],
-  whitelistedFields: {
+  allowedFields: {
     number: {
       name: 'credit-card-number',
       label: 'Credit Card Number'
@@ -2759,7 +2983,7 @@ var constants = {
       label: 'Postal Code'
     }
   },
-  whitelistedAttributes: {
+  allowedAttributes: {
     'aria-invalid': 'boolean',
     'aria-required': 'boolean',
     disabled: 'boolean',
@@ -2930,8 +3154,6 @@ module.exports = findParentTags;
 
 var creditCardType = _dereq_('credit-card-type');
 
-creditCardType.removeCard(creditCardType.types.MIR);
-
 module.exports = function (number) {
   var results = creditCardType(number);
 
@@ -3047,7 +3269,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.36.0";
+var VERSION = "3.37.0";
 
 function basicComponentVerification(options) {
   var client, clientVersion, name;
@@ -3222,7 +3444,7 @@ module.exports = BraintreeError;
 },{"./enumerate":48}],40:[function(_dereq_,module,exports){
 'use strict';
 
-var isWhitelistedDomain = _dereq_('../is-whitelisted-domain');
+var isVerifiedDomain = _dereq_('../is-verified-domain');
 
 function checkOrigin(postMessageOrigin, merchantUrl) {
   var merchantOrigin, merchantHost;
@@ -3244,14 +3466,14 @@ function checkOrigin(postMessageOrigin, merchantUrl) {
 
   a.href = postMessageOrigin;
 
-  return isWhitelistedDomain(postMessageOrigin);
+  return isVerifiedDomain(postMessageOrigin);
 }
 
 module.exports = {
   checkOrigin: checkOrigin
 };
 
-},{"../is-whitelisted-domain":51}],41:[function(_dereq_,module,exports){
+},{"../is-verified-domain":51}],41:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../enumerate');
@@ -3433,7 +3655,7 @@ module.exports = {
 },{}],44:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.36.0";
+var VERSION = "3.37.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -3673,7 +3895,7 @@ function stripSubdomains(domain) {
   return domain.split('.').slice(-2).join('.');
 }
 
-function isWhitelistedDomain(url) {
+function isVerifiedDomain(url) {
   var mainDomain;
 
   url = url.toLowerCase();
@@ -3689,7 +3911,7 @@ function isWhitelistedDomain(url) {
   return legalHosts.hasOwnProperty(mainDomain);
 }
 
-module.exports = isWhitelistedDomain;
+module.exports = isVerifiedDomain;
 
 },{}],52:[function(_dereq_,module,exports){
 'use strict';

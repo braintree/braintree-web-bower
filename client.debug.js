@@ -397,7 +397,7 @@ var BRAINTREE_VERSION = _dereq_('./constants').BRAINTREE_VERSION;
 
 var GraphQL = _dereq_('./request/graphql');
 var request = _dereq_('./request');
-var isWhitelistedDomain = _dereq_('../lib/is-whitelisted-domain');
+var isVerifiedDomain = _dereq_('../lib/is-verified-domain');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../lib/convert-to-braintree-error');
 var createAuthorizationData = _dereq_('../lib/create-authorization-data');
@@ -451,7 +451,7 @@ function Client(configuration) {
     'clientApiUrl',
     'configUrl'
   ].forEach(function (property) {
-    if (property in gatewayConfiguration && !isWhitelistedDomain(gatewayConfiguration[property])) {
+    if (property in gatewayConfiguration && !isVerifiedDomain(gatewayConfiguration[property])) {
       throw new BraintreeError({
         type: errors.CLIENT_GATEWAY_CONFIGURATION_INVALID_DOMAIN.type,
         code: errors.CLIENT_GATEWAY_CONFIGURATION_INVALID_DOMAIN.code,
@@ -482,7 +482,7 @@ function Client(configuration) {
       accessToken: braintreeApiConfiguration.accessToken
     };
 
-    if (!isWhitelistedDomain(this._braintreeApi.baseUrl)) {
+    if (!isVerifiedDomain(this._braintreeApi.baseUrl)) {
       throw new BraintreeError({
         type: errors.CLIENT_GATEWAY_CONFIGURATION_INVALID_DOMAIN.type,
         code: errors.CLIENT_GATEWAY_CONFIGURATION_INVALID_DOMAIN.code,
@@ -792,7 +792,7 @@ function getAuthorizationHeadersForGraphQL(authorization) {
 
 module.exports = Client;
 
-},{"../lib/add-metadata":31,"../lib/analytics":32,"../lib/assign":33,"../lib/braintree-error":34,"../lib/constants":35,"../lib/convert-methods-to-error":36,"../lib/convert-to-braintree-error":37,"../lib/create-authorization-data":38,"../lib/deferred":39,"../lib/errors":41,"../lib/is-whitelisted-domain":43,"../lib/methods":45,"../lib/once":46,"../lib/promise":47,"./constants":11,"./errors":12,"./request":25,"./request/graphql":23,"@braintree/wrap-promise":7}],11:[function(_dereq_,module,exports){
+},{"../lib/add-metadata":31,"../lib/analytics":32,"../lib/assign":33,"../lib/braintree-error":34,"../lib/constants":35,"../lib/convert-methods-to-error":36,"../lib/convert-to-braintree-error":37,"../lib/create-authorization-data":38,"../lib/deferred":39,"../lib/errors":41,"../lib/is-verified-domain":43,"../lib/methods":45,"../lib/once":46,"../lib/promise":47,"./constants":11,"./errors":12,"./request":25,"./request/graphql":23,"@braintree/wrap-promise":7}],11:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -807,7 +807,7 @@ module.exports = {
  * @name BraintreeError.Client - Interal Error Codes
  * @ignore
  * @description These codes should never be experienced by the mechant directly.
- * @property {MERCHANT} CLIENT_GATEWAY_CONFIGURATION_INVALID_DOMAIN An error to prevent client creation for domains that are not whitelisted in the JS.
+ * @property {MERCHANT} CLIENT_GATEWAY_CONFIGURATION_INVALID_DOMAIN An error to prevent client creation for domains that are not allowed in the JS.
  * @property {INTERNAL} CLIENT_MISSING_GATEWAY_CONFIGURATION Occurs when the client is created without a gateway configuration. Should never happen.
  */
 
@@ -996,7 +996,7 @@ module.exports = {
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Client = _dereq_('./client');
 var getConfiguration = _dereq_('./get-configuration').getConfiguration;
-var VERSION = "3.36.0";
+var VERSION = "3.37.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -1086,12 +1086,12 @@ function requestShouldRetry(status) {
 }
 
 function graphQLRequestShouldRetryWithClientApi(body) {
-  var errorType = !body.data && body.errors &&
+  var errorClass = !body.data && body.errors &&
       body.errors[0] &&
       body.errors[0].extensions &&
-      body.errors[0].extensions.errorType;
+      body.errors[0].extensions.errorClass;
 
-  return errorType === 'unknown_error';
+  return errorClass === 'UNKNOWN' || errorClass === 'INTERNAL';
 }
 
 function _requestWithRetry(options, tcpRetryCount, cb) {
@@ -1186,7 +1186,7 @@ function _requestWithRetry(options, tcpRetryCount, cb) {
     req.open(method, url, true);
   } catch (requestOpenError) {
     // If a merchant has a Content Security Policy and they have
-    // not whitelisted our endpoints, some browsers may
+    // not allowed our endpoints, some browsers may
     // synchronously throw an error. If it is not a GraphQL
     // request, we throw the error. If it is a GraphQL request
     // we remove the GraphQL option and try the request against
@@ -1552,15 +1552,15 @@ module.exports = creditCardTokenizationResponseAdapter;
 
 function errorResponseAdapter(responseBody) {
   var response;
-  var errorType = responseBody.errors &&
+  var errorClass = responseBody.errors &&
     responseBody.errors[0] &&
     responseBody.errors[0].extensions &&
-    responseBody.errors[0].extensions.errorType;
+    responseBody.errors[0].extensions.errorClass;
 
-  if (errorType === 'user_error') {
+  if (errorClass === 'VALIDATION') {
     response = userErrorResponseAdapter(responseBody);
-  } else if (errorType) {
-    response = errorWithTypeResponseAdapter(responseBody);
+  } else if (errorClass) {
+    response = errorWithClassResponseAdapter(responseBody);
   } else {
     response = {error: {message: 'There was a problem serving your request'}, fieldErrors: []};
   }
@@ -1568,7 +1568,7 @@ function errorResponseAdapter(responseBody) {
   return response;
 }
 
-function errorWithTypeResponseAdapter(responseBody) {
+function errorWithClassResponseAdapter(responseBody) {
   return {error: {message: responseBody.errors[0].message}, fieldErrors: []};
 }
 
@@ -1810,7 +1810,7 @@ var features = {
   configuration: 'configuration'
 };
 
-var blacklistedInputPaths = [
+var disallowedInputPaths = [
   'creditCard.options.unionPayEnrollment'
 ];
 
@@ -1834,7 +1834,7 @@ GraphQL.prototype.isGraphQLRequest = function (url, body) {
     return features[feature] === path;
   });
 
-  if (containsBlacklistedKeys(body)) {
+  if (containsDisallowedlistedKeys(body)) {
     return false;
   }
 
@@ -1857,8 +1857,8 @@ GraphQL.prototype._isGraphQLEnabled = function () {
   return Boolean(this._config);
 };
 
-function containsBlacklistedKeys(body) {
-  return blacklistedInputPaths.some(function (keys) {
+function containsDisallowedlistedKeys(body) {
+  return disallowedInputPaths.some(function (keys) {
     var value = keys.split('.').reduce(function (accumulator, key) {
       return accumulator && accumulator[key];
     }, body);
@@ -1951,23 +1951,23 @@ GraphQLRequest.prototype.adaptResponseBody = function (parsedBody) {
 };
 
 GraphQLRequest.prototype.determineStatus = function (httpStatus, parsedResponse) {
-  var status, errorType;
+  var status, errorClass;
 
   if (httpStatus === 200) {
-    errorType = parsedResponse.errors &&
+    errorClass = parsedResponse.errors &&
       parsedResponse.errors[0] &&
       parsedResponse.errors[0].extensions &&
-      parsedResponse.errors[0].extensions.errorType;
+      parsedResponse.errors[0].extensions.errorClass;
 
     if (parsedResponse.data && !parsedResponse.errors) {
       status = 200;
-    } else if (errorType === 'user_error') {
+    } else if (errorClass === 'VALIDATION') {
       status = 422;
-    } else if (errorType === 'developer_error') {
+    } else if (errorClass === 'AUTHORIZATION') {
       status = 403;
-    } else if (errorType === 'unknown_error') {
-      status = 500;
-    } else if (isCoercionOrValidationError(errorType, parsedResponse)) {
+    } else if (errorClass === 'AUTHENTICATION') {
+      status = 401;
+    } else if (isGraphQLError(errorClass, parsedResponse)) {
       status = 403;
     } else {
       status = 500;
@@ -1984,8 +1984,8 @@ GraphQLRequest.prototype.determineStatus = function (httpStatus, parsedResponse)
   return status;
 };
 
-function isCoercionOrValidationError(errorType, parsedResponse) {
-  return !errorType && parsedResponse.errors[0].message;
+function isGraphQLError(errorClass, parsedResponse) {
+  return !errorClass && parsedResponse.errors[0].message;
 }
 
 function snakeCaseToCamelCase(snakeString) {
@@ -2393,7 +2393,7 @@ module.exports = BraintreeError;
 },{"./enumerate":40}],35:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.36.0";
+var VERSION = "3.37.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -2616,7 +2616,7 @@ function stripSubdomains(domain) {
   return domain.split('.').slice(-2).join('.');
 }
 
-function isWhitelistedDomain(url) {
+function isVerifiedDomain(url) {
   var mainDomain;
 
   url = url.toLowerCase();
@@ -2632,7 +2632,7 @@ function isWhitelistedDomain(url) {
   return legalHosts.hasOwnProperty(mainDomain);
 }
 
-module.exports = isWhitelistedDomain;
+module.exports = isVerifiedDomain;
 
 },{}],44:[function(_dereq_,module,exports){
 'use strict';
