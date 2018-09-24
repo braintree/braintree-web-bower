@@ -572,7 +572,7 @@ var errors = _dereq_('./errors');
 var GooglePayment = _dereq_('./google-payment');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.37.0";
+var VERSION = "3.38.0";
 
 /**
  * @static
@@ -796,7 +796,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.37.0";
+var VERSION = "3.38.0";
 
 function basicComponentVerification(options) {
   var client, clientVersion, name;
@@ -925,7 +925,7 @@ module.exports = BraintreeError;
 },{"./enumerate":17}],14:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.37.0";
+var VERSION = "3.38.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1083,7 +1083,7 @@ module.exports = {
 },{"./braintree-error":13}],19:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.37.0";
+var VERSION = "3.38.0";
 
 module.exports = function (configuration) {
   var isProduction = configuration.gatewayConfiguration.environment === 'production';
