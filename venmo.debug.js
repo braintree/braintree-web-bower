@@ -476,6 +476,7 @@ module.exports = addMetadata;
 },{"./constants":18,"./create-authorization-data":20,"./json-clone":23}],15:[function(_dereq_,module,exports){
 'use strict';
 
+var Promise = _dereq_('./promise');
 var constants = _dereq_('./constants');
 var addMetadata = _dereq_('./add-metadata');
 
@@ -483,40 +484,45 @@ function _millisToSeconds(millis) {
   return Math.floor(millis / 1000);
 }
 
-function sendAnalyticsEvent(client, kind, callback) {
-  var configuration = client.getConfiguration();
-  var request = client._request;
+function sendAnalyticsEvent(clientInstanceOrPromise, kind, callback) {
   var timestamp = _millisToSeconds(Date.now());
-  var url = configuration.gatewayConfiguration.analytics.url;
-  var data = {
-    analytics: [{
-      kind: constants.ANALYTICS_PREFIX + kind,
-      timestamp: timestamp
-    }]
-  };
 
-  request({
-    url: url,
-    method: 'post',
-    data: addMetadata(configuration, data),
-    timeout: constants.ANALYTICS_REQUEST_TIMEOUT_MS
-  }, callback);
+  return Promise.resolve(clientInstanceOrPromise).then(function (client) {
+    var timestampInPromise = _millisToSeconds(Date.now());
+    var configuration = client.getConfiguration();
+    var request = client._request;
+    var url = configuration.gatewayConfiguration.analytics.url;
+    var data = {
+      analytics: [{
+        kind: constants.ANALYTICS_PREFIX + kind,
+        isAsync: timestampInPromise !== timestamp,
+        timestamp: timestamp
+      }]
+    };
+
+    request({
+      url: url,
+      method: 'post',
+      data: addMetadata(configuration, data),
+      timeout: constants.ANALYTICS_REQUEST_TIMEOUT_MS
+    }, callback);
+  });
 }
 
 module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":14,"./constants":18}],16:[function(_dereq_,module,exports){
+},{"./add-metadata":14,"./constants":18,"./promise":25}],16:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.38.0";
+var VERSION = "3.38.1";
 
 function basicComponentVerification(options) {
-  var client, clientVersion, name;
+  var client, authorization, name;
 
   if (!options) {
     return Promise.reject(new BraintreeError({
@@ -528,22 +534,23 @@ function basicComponentVerification(options) {
 
   name = options.name;
   client = options.client;
+  authorization = options.authorization;
 
-  if (client == null) {
+  if (client == null && authorization == null) {
     return Promise.reject(new BraintreeError({
       type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
       code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
+      // NEXT_MAJOR_VERSION in major version, we expose passing in authorization for all components
+      // instead of passing in a client instance. Leave this a silent feature for now.
       message: 'options.client is required when instantiating ' + name + '.'
     }));
   }
 
-  clientVersion = client.getVersion();
-
-  if (clientVersion !== VERSION) {
+  if (!authorization && client.getVersion() !== VERSION) {
     return Promise.reject(new BraintreeError({
       type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
       code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
-      message: 'Client (version ' + clientVersion + ') and ' + name + ' (version ' + VERSION + ') components must be from the same SDK version.'
+      message: 'Client (version ' + client.getVersion() + ') and ' + name + ' (version ' + VERSION + ') components must be from the same SDK version.'
     }));
   }
 
@@ -642,12 +649,17 @@ module.exports = BraintreeError;
 },{"./enumerate":21}],18:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.38.0";
+var VERSION = "3.38.1";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
   production: 'https://api.braintreegateway.com:443',
   sandbox: 'https://api.sandbox.braintreegateway.com:443'
+};
+
+var ASSETS_URLS = {
+  production: 'https://assets.braintreegateway.com',
+  sandbox: 'https://assets.braintreegateway.com'
 };
 
 var GRAPHQL_URLS = {
@@ -660,6 +672,7 @@ var GRAPHQL_URLS = {
 module.exports = {
   ANALYTICS_PREFIX: PLATFORM + '.',
   ANALYTICS_REQUEST_TIMEOUT_MS: 2000,
+  ASSETS_URLS: ASSETS_URLS,
   CLIENT_API_URLS: CLIENT_API_URLS,
   GRAPHQL_URLS: GRAPHQL_URLS,
   INTEGRATION_TIMEOUT_MS: 60000,
@@ -718,10 +731,12 @@ function createAuthorizationData(authorization) {
 
   if (_isTokenizationKey(authorization)) {
     parsedTokenizationKey = _parseTokenizationKey(authorization);
+    data.environment = parsedTokenizationKey.environment;
     data.attrs.tokenizationKey = authorization;
     data.configUrl = CLIENT_API_URLS[parsedTokenizationKey.environment] + '/merchants/' + parsedTokenizationKey.merchantId + '/client_api/v1/configuration';
   } else {
     parsedClientToken = JSON.parse(atob(authorization));
+    data.environment = parsedClientToken.environment;
     data.attrs.authorizationFingerprint = parsedClientToken.authorizationFingerprint;
     data.configUrl = parsedClientToken.configUrl;
     data.graphQL = parsedClientToken.graphQL;
@@ -969,7 +984,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var Venmo = _dereq_('./venmo');
 var Promise = _dereq_('../lib/promise');
 var supportsVenmo = _dereq_('./shared/supports-venmo');
-var VERSION = "3.38.0";
+var VERSION = "3.38.1";
 
 /**
  * @static
@@ -1162,7 +1177,7 @@ var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.38.0";
+var VERSION = "3.38.1";
 
 /**
  * Venmo tokenize payload.

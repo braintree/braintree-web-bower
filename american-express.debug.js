@@ -538,7 +538,7 @@ module.exports = {
 
 var AmericanExpress = _dereq_('./american-express');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
-var VERSION = "3.38.0";
+var VERSION = "3.38.1";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -598,10 +598,10 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.38.0";
+var VERSION = "3.38.1";
 
 function basicComponentVerification(options) {
-  var client, clientVersion, name;
+  var client, authorization, name;
 
   if (!options) {
     return Promise.reject(new BraintreeError({
@@ -613,22 +613,23 @@ function basicComponentVerification(options) {
 
   name = options.name;
   client = options.client;
+  authorization = options.authorization;
 
-  if (client == null) {
+  if (client == null && authorization == null) {
     return Promise.reject(new BraintreeError({
       type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
       code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
+      // NEXT_MAJOR_VERSION in major version, we expose passing in authorization for all components
+      // instead of passing in a client instance. Leave this a silent feature for now.
       message: 'options.client is required when instantiating ' + name + '.'
     }));
   }
 
-  clientVersion = client.getVersion();
-
-  if (clientVersion !== VERSION) {
+  if (!authorization && client.getVersion() !== VERSION) {
     return Promise.reject(new BraintreeError({
       type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
       code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
-      message: 'Client (version ' + clientVersion + ') and ' + name + ' (version ' + VERSION + ') components must be from the same SDK version.'
+      message: 'Client (version ' + client.getVersion() + ') and ' + name + ' (version ' + VERSION + ') components must be from the same SDK version.'
     }));
   }
 

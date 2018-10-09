@@ -401,6 +401,7 @@ var isVerifiedDomain = _dereq_('../lib/is-verified-domain');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../lib/convert-to-braintree-error');
 var createAuthorizationData = _dereq_('../lib/create-authorization-data');
+var getGatewayConfiguration = _dereq_('./get-configuration').getConfiguration;
 var addMetadata = _dereq_('../lib/add-metadata');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -415,6 +416,8 @@ var VERSION = _dereq_('../lib/constants').VERSION;
 var GRAPHQL_URLS = _dereq_('../lib/constants').GRAPHQL_URLS;
 var methods = _dereq_('../lib/methods');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
+
+var cachedClients = {};
 
 /**
  * This object is returned by {@link Client#getConfiguration|getConfiguration}. This information is used extensively by other Braintree modules to properly configure themselves.
@@ -469,7 +472,6 @@ function Client(configuration) {
     return JSON.parse(configurationJSON);
   };
 
-  this._activeCache = true;
   this._request = request;
   this._configuration = this.getConfiguration();
 
@@ -497,6 +499,30 @@ function Client(configuration) {
     });
   }
 }
+
+Client.initialize = function (options) {
+  if (cachedClients[options.authorization]) {
+    return Promise.resolve(cachedClients[options.authorization]);
+  }
+
+  return getGatewayConfiguration(options).then(function (configuration) {
+    var client;
+
+    if (options.debug) {
+      configuration.isDebug = true;
+    }
+
+    client = new Client(configuration);
+    cachedClients[options.authorization] = client;
+
+    return client;
+  });
+};
+
+// Primarily used for testing the client initalization call
+Client.clearCache = function () {
+  cachedClients = {};
+};
 
 /**
  * Used by other modules to formulate all network requests to the Braintree gateway. It is also capable of being used directly from your own form to tokenize credit card information. However, be sure to satisfy PCI compliance if you use direct card tokenization.
@@ -773,8 +799,7 @@ Client.prototype.getVersion = function () {
 Client.prototype.teardown = wrapPromise(function () {
   var self = this; // eslint-disable-line no-invalid-this
 
-  self._activeCache = false;
-
+  delete cachedClients[self.getConfiguration().authorization];
   convertMethodsToError(self, methods(Client.prototype));
 
   return Promise.resolve();
@@ -792,7 +817,7 @@ function getAuthorizationHeadersForGraphQL(authorization) {
 
 module.exports = Client;
 
-},{"../lib/add-metadata":31,"../lib/analytics":32,"../lib/assign":33,"../lib/braintree-error":34,"../lib/constants":35,"../lib/convert-methods-to-error":36,"../lib/convert-to-braintree-error":37,"../lib/create-authorization-data":38,"../lib/deferred":39,"../lib/errors":41,"../lib/is-verified-domain":43,"../lib/methods":45,"../lib/once":46,"../lib/promise":47,"./constants":11,"./errors":12,"./request":25,"./request/graphql":23,"@braintree/wrap-promise":7}],11:[function(_dereq_,module,exports){
+},{"../lib/add-metadata":31,"../lib/analytics":32,"../lib/assign":33,"../lib/braintree-error":34,"../lib/constants":35,"../lib/convert-methods-to-error":36,"../lib/convert-to-braintree-error":37,"../lib/create-authorization-data":38,"../lib/deferred":39,"../lib/errors":41,"../lib/is-verified-domain":43,"../lib/methods":45,"../lib/once":46,"../lib/promise":47,"./constants":11,"./errors":12,"./get-configuration":13,"./request":25,"./request/graphql":23,"@braintree/wrap-promise":7}],11:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -995,13 +1020,10 @@ module.exports = {
 
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Client = _dereq_('./client');
-var getConfiguration = _dereq_('./get-configuration').getConfiguration;
-var VERSION = "3.38.0";
+var VERSION = "3.38.1";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
-
-var cachedClients = {};
 
 /** @module braintree-web/client */
 
@@ -1031,28 +1053,7 @@ function create(options) {
     }));
   }
 
-  if (cachedClients[options.authorization] && cachedClients[options.authorization]._activeCache) {
-    return Promise.resolve(cachedClients[options.authorization]);
-  }
-
-  return getConfiguration(options).then(function (configuration) {
-    var client;
-
-    if (options.debug) {
-      configuration.isDebug = true;
-    }
-
-    client = new Client(configuration);
-
-    cachedClients[options.authorization] = client;
-
-    return client;
-  });
-}
-
-// Primarily used for testing the client create call
-function clearCache() {
-  cachedClients = {};
+  return Client.initialize(options);
 }
 
 module.exports = {
@@ -1061,11 +1062,10 @@ module.exports = {
    * @description The current version of the SDK, i.e. `{@pkg version}`.
    * @type {string}
    */
-  VERSION: VERSION,
-  _clearCache: clearCache
+  VERSION: VERSION
 };
 
-},{"../lib/braintree-error":34,"../lib/errors":41,"../lib/promise":47,"./client":10,"./get-configuration":13,"@braintree/wrap-promise":7}],15:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":34,"../lib/errors":41,"../lib/promise":47,"./client":10,"@braintree/wrap-promise":7}],15:[function(_dereq_,module,exports){
 'use strict';
 
 var querystring = _dereq_('../../lib/querystring');
@@ -2249,6 +2249,7 @@ module.exports = addMetadata;
 },{"./constants":35,"./create-authorization-data":38,"./json-clone":44}],32:[function(_dereq_,module,exports){
 'use strict';
 
+var Promise = _dereq_('./promise');
 var constants = _dereq_('./constants');
 var addMetadata = _dereq_('./add-metadata');
 
@@ -2256,31 +2257,36 @@ function _millisToSeconds(millis) {
   return Math.floor(millis / 1000);
 }
 
-function sendAnalyticsEvent(client, kind, callback) {
-  var configuration = client.getConfiguration();
-  var request = client._request;
+function sendAnalyticsEvent(clientInstanceOrPromise, kind, callback) {
   var timestamp = _millisToSeconds(Date.now());
-  var url = configuration.gatewayConfiguration.analytics.url;
-  var data = {
-    analytics: [{
-      kind: constants.ANALYTICS_PREFIX + kind,
-      timestamp: timestamp
-    }]
-  };
 
-  request({
-    url: url,
-    method: 'post',
-    data: addMetadata(configuration, data),
-    timeout: constants.ANALYTICS_REQUEST_TIMEOUT_MS
-  }, callback);
+  return Promise.resolve(clientInstanceOrPromise).then(function (client) {
+    var timestampInPromise = _millisToSeconds(Date.now());
+    var configuration = client.getConfiguration();
+    var request = client._request;
+    var url = configuration.gatewayConfiguration.analytics.url;
+    var data = {
+      analytics: [{
+        kind: constants.ANALYTICS_PREFIX + kind,
+        isAsync: timestampInPromise !== timestamp,
+        timestamp: timestamp
+      }]
+    };
+
+    request({
+      url: url,
+      method: 'post',
+      data: addMetadata(configuration, data),
+      timeout: constants.ANALYTICS_REQUEST_TIMEOUT_MS
+    }, callback);
+  });
 }
 
 module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":31,"./constants":35}],33:[function(_dereq_,module,exports){
+},{"./add-metadata":31,"./constants":35,"./promise":47}],33:[function(_dereq_,module,exports){
 'use strict';
 
 var assignNormalized = typeof Object.assign === 'function' ? Object.assign : assignPolyfill;
@@ -2393,12 +2399,17 @@ module.exports = BraintreeError;
 },{"./enumerate":40}],35:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.38.0";
+var VERSION = "3.38.1";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
   production: 'https://api.braintreegateway.com:443',
   sandbox: 'https://api.sandbox.braintreegateway.com:443'
+};
+
+var ASSETS_URLS = {
+  production: 'https://assets.braintreegateway.com',
+  sandbox: 'https://assets.braintreegateway.com'
 };
 
 var GRAPHQL_URLS = {
@@ -2411,6 +2422,7 @@ var GRAPHQL_URLS = {
 module.exports = {
   ANALYTICS_PREFIX: PLATFORM + '.',
   ANALYTICS_REQUEST_TIMEOUT_MS: 2000,
+  ASSETS_URLS: ASSETS_URLS,
   CLIENT_API_URLS: CLIENT_API_URLS,
   GRAPHQL_URLS: GRAPHQL_URLS,
   INTEGRATION_TIMEOUT_MS: 60000,
@@ -2491,10 +2503,12 @@ function createAuthorizationData(authorization) {
 
   if (_isTokenizationKey(authorization)) {
     parsedTokenizationKey = _parseTokenizationKey(authorization);
+    data.environment = parsedTokenizationKey.environment;
     data.attrs.tokenizationKey = authorization;
     data.configUrl = CLIENT_API_URLS[parsedTokenizationKey.environment] + '/merchants/' + parsedTokenizationKey.merchantId + '/client_api/v1/configuration';
   } else {
     parsedClientToken = JSON.parse(atob(authorization));
+    data.environment = parsedClientToken.environment;
     data.attrs.authorizationFingerprint = parsedClientToken.authorizationFingerprint;
     data.configUrl = parsedClientToken.configUrl;
     data.graphQL = parsedClientToken.graphQL;

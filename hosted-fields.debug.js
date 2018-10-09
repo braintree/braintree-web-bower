@@ -311,22 +311,12 @@ var ORIGINAL_TEST_ORDER = [
   MIR
 ];
 
-function clone(originalObject, persistPatterns) {
-  var dupe, prefixPattern, exactPattern;
+function clone(originalObject) {
+  var dupe;
 
   if (!originalObject) { return null; }
 
-  prefixPattern = originalObject.prefixPattern;
-  exactPattern = originalObject.exactPattern;
   dupe = JSON.parse(JSON.stringify(originalObject));
-
-  if (persistPatterns) {
-    dupe.prefixPattern = prefixPattern;
-    dupe.exactPattern = exactPattern;
-  } else {
-    delete dupe.prefixPattern;
-    delete dupe.exactPattern;
-  }
 
   return dupe;
 }
@@ -336,13 +326,9 @@ testOrder = clone(ORIGINAL_TEST_ORDER);
 types[VISA] = {
   niceType: 'Visa',
   type: VISA,
-  prefixPattern: /^4/,
-  exactPattern: new RegExp('^' +
-    '4' +
-    '(?!' +
-      '31274|51416|57393|0117[89]|38935|5763[12]' + // Elo cards
-    ')\\d{5,}' +
-  '$'),
+  patterns: [
+    4
+  ],
   gaps: [4, 8, 12],
   lengths: [16, 18, 19],
   code: {
@@ -354,8 +340,14 @@ types[VISA] = {
 types[MASTERCARD] = {
   niceType: 'Mastercard',
   type: MASTERCARD,
-  prefixPattern: /^(5|5[1-5]|2|22|222|222[1-9]|2[3-6]|27|27[0-2]|2720)$/,
-  exactPattern: /^(5[1-5]|222[1-9]|22[3-9]|2[3-6]|27[0-1]|2720)\d*$/,
+  patterns: [
+    [51, 55],
+    [2221, 2229],
+    [223, 229],
+    [23, 26],
+    [270, 271],
+    2720
+  ],
   gaps: [4, 8, 12],
   lengths: [16],
   code: {
@@ -367,9 +359,10 @@ types[MASTERCARD] = {
 types[AMERICAN_EXPRESS] = {
   niceType: 'American Express',
   type: AMERICAN_EXPRESS,
-  prefixPattern: /^(3|34|37)$/,
-  exactPattern: /^3[47]\d*$/,
-  isAmex: true,
+  patterns: [
+    34,
+    37
+  ],
   gaps: [4, 10],
   lengths: [15],
   code: {
@@ -381,8 +374,12 @@ types[AMERICAN_EXPRESS] = {
 types[DINERS_CLUB] = {
   niceType: 'Diners Club',
   type: DINERS_CLUB,
-  prefixPattern: /^(3|3[0689]|30[0-5])$/,
-  exactPattern: /^3(0[0-5]|[689])\d*$/,
+  patterns: [
+    [300, 305],
+    36,
+    38,
+    39
+  ],
   gaps: [4, 10],
   lengths: [14, 16, 19],
   code: {
@@ -394,37 +391,11 @@ types[DINERS_CLUB] = {
 types[DISCOVER] = {
   niceType: 'Discover',
   type: DISCOVER,
-  prefixPattern: /^(6|60|601|6011|65|65\d{1,4}|64|64[4-9])$/,
-  exactPattern: new RegExp('^(' +
-    '6011' +
-    '|' +
-    '65' +
-      '(?!' + // Elo cards
-        '003[1-3]' +
-        '|' +
-        '003[5-9]|004\\d|005[0-1]' +
-        '|' +
-        '040[5-9]|04[1-3]\\d' +
-        '|' +
-        '048[5-9]|049\\d|05[0-2]\\d|053[0-8]' +
-        '|' +
-        '054[1-9]|05[5-8]\\d|059[0-8]' +
-        '|' +
-        '070\\d|071[0-8]' +
-        '|' +
-        '072[0-7]' +
-        '|' +
-        '090[1-9]|09[1-6]\\d|097[0-8]' +
-        '|' +
-        '165[2-9]|16[6-7]\\d' +
-        '|' +
-        '50[0-1]\\d' +
-        '|' +
-        '502[1-9]|50[3-4]\\d|505[0-8]' +
-      ')\\d{4}' +
-    '|' +
-    '64[4-9]' +
-  ')\\d*$'),
+  patterns: [
+    6011,
+    [644, 649],
+    65
+  ],
   gaps: [4, 8, 12],
   lengths: [16, 19],
   code: {
@@ -436,8 +407,11 @@ types[DISCOVER] = {
 types[JCB] = {
   niceType: 'JCB',
   type: JCB,
-  prefixPattern: /^(2|21|213|2131|1|18|180|1800|3|35)$/,
-  exactPattern: /^(2131|1800|35)\d*$/,
+  patterns: [
+    2131,
+    1800,
+    [3528, 3589]
+  ],
   gaps: [4, 8, 12],
   lengths: [16, 17, 18, 19],
   code: {
@@ -449,30 +423,28 @@ types[JCB] = {
 types[UNIONPAY] = {
   niceType: 'UnionPay',
   type: UNIONPAY,
-  prefixPattern: /^((6|62|62\d|(621(?!83|88|98|99))|622(?!06)|627[0267]\d?|628(?!0|1)|629[1,2])|622018)$/,
-  exactPattern: new RegExp('^(' +
-    '(' +
-      '620' +
-      '|' +
-      '(621(?!83|88|98|99))' +
-      '|' +
-      '622(?!06|018)' +
-      '|' +
-      '62[3-6]' +
-      '|' +
-      '627[026]' +
-      '|' +
-      '6277(?!80)\\d{2}' + // Elo card
-      '|' +
-      '628(?!0|1)' +
-      '|' +
-      '629[12]' +
-    ')\\d*' +
-
-    '|' +
-
-    '622018\\d{12}' +
-  ')$'),
+  patterns: [
+    620,
+    [624, 626],
+    [62100, 62182],
+    [62184, 62187],
+    [62185, 62197],
+    [62200, 62205],
+    [622010, 622999],
+    622018,
+    [622019, 622999],
+    [62207, 62209],
+    [622126, 622925],
+    [623, 626],
+    6270,
+    6272,
+    6276,
+    [627700, 627779],
+    [627781, 627799],
+    [6282, 6289],
+    6291,
+    6292
+  ],
   gaps: [4, 8, 12],
   lengths: [16, 17, 18, 19],
   code: {
@@ -484,27 +456,15 @@ types[UNIONPAY] = {
 types[MAESTRO] = {
   niceType: 'Maestro',
   type: MAESTRO,
-  prefixPattern: /^(5|5[06-9]|6\d*)$/,
-  exactPattern: new RegExp('^(' +
-    '5[6-9]' +
-    '|' +
-    '50' +
-      '(?!' + // Elo card ranges
-        '6699|067[0-6][0-9]' +
-        '|' +
-        '677[0-8]' +
-        '|' +
-        '9[0-9][0-9][0-9]' +
-      ')\\d{4}' +
-    '|' +
-    '67' +
-    '|' +
-    '63' +
-      '(?!' + // More Elo card ranges
-        '6297|6368' +
-      ')\\d{4}' +
-    ')\\d*$'
-  ),
+  patterns: [
+    493698,
+    [500000, 506698],
+    [506779, 508999],
+    [56, 59],
+    63,
+    67,
+    6
+  ],
   gaps: [4, 8, 12],
   lengths: [12, 13, 14, 15, 16, 17, 18, 19],
   code: {
@@ -516,109 +476,33 @@ types[MAESTRO] = {
 types[ELO] = {
   niceType: 'Elo',
   type: ELO,
-  prefixPattern: new RegExp('^(' +
-    '[4-6]' +
-
-    '|' +
-
-    '4[035]|4[035]1' +
-    '|' +
-    '4011|40117|40117[89]' +
-    '|' +
-    '4312|43127|431274' +
-    '|' +
-    '438|4389|43893|438935' +
-    '|' +
-    '4514|45141|451416' +
-    '|' +
-    '457|457[36]|45739|45763|457393|45763[12]' +
-
-    '|' +
-
-    '50|50[69]' +
-    '|' +
-    '506[6-7]|50669|5067[0-7]|5067[0-6][0-9]|50677[0-8]' +
-    '|' +
-    '509[0-9]|509[0-9][0-9]|509[0-9][0-9][0-9]' +
-
-    '|' +
-
-    '6[235]|627|636|65[015]' +
-    '|' +
-    '6277|62778|627780' +
-    '|' +
-    '636[23]|63629|636297|63636|636368' +
-    '|' +
-    '650[0479]' +
-    '|' +
-    '6500[3-5]|65003[1-3]|65003[5-9]|65004[0-9]65005[01]' +
-    '|' +
-    '6504[0-3]|65040[5-9]|65041[0-9]' +
-    '|' +
-    '6505[4-9]|65054[1-9]|6505[5-8][0-9]|65059[0-8]' +
-    '|' +
-    '6507[0-2]|65070[0-9]|65071[0-8]|65072[0-7]' +
-    '|' +
-    '6509[0-7]|65090[1-9]|6509[1-6][0-9]|65097[0-8]' +
-    '|' +
-    '6516|6516[5-7]|65165[2-9]|6516[6-7][0-9]' +
-    '|' +
-    '6550|6550[0-5]|6550[01][0-9]|65502[1-9]|6550[3-4][0-9]|65505[0-8]' +
-  ')$'),
-  exactPattern: new RegExp('^(' +
-    // Elo only ranges
-    '4(31274|51416|57393)' +
-
-    '|' +
-
-    '50(' +
-      '4175' +
-      '|' +
-      '6699|67[0-6][0-9]|677[0-8]' + // 506699-506778
-      '|' +
-      '9[0-9][0-9][0-9]' + // 509000-509999
-    ')' +
-
-    '|' +
-
-    '627780' +
-
-    '|' +
-
-    '636(297|368)' +
-
-    '|' +
-
-    // Dual Branded with Visa
-    '4(0117[89]|38935|5763[12])' +
-
-    '|' +
-
-    // Dual Branded with Discover
-    '65(' +
-      '003[1-3]' + // 650031-650033
-      '|' +
-      '003[5-9]|004\\d|005[0-1]' + // 650035-650051
-      '|' +
-      '040[5-9]|04[1-3]\\d' + // 650405-650439
-      '|' +
-      '048[5-9]|049\\d|05[0-2]\\d|053[0-8]' + // 650485-650538
-      '|' +
-      '054[1-9]|05[5-8]\\d|059[0-8]' + // 650541-650598
-      '|' +
-      '070[0-9]|071[0-8]' + // 650700-650718
-      '|' +
-      '072[0-7]' + // 650720-650727
-      '|' +
-      '090[1-9]|09[1-6][0-9]|097[0-8]' + // 650901-650978
-      '|' +
-      '165[2-9]|16[6-7][0-9]' + // 651652-651679
-      '|' +
-      '50[0-1][0-9]' + // 655000-655019
-      '|' +
-      '502[1-9]|50[3-4][0-9]|505[0-8]' + // 655021-655058
-    ')' +
-  ')\\d*$'),
+  patterns: [
+    401178,
+    401179,
+    438935,
+    457631,
+    457632,
+    431274,
+    451416,
+    457393,
+    504175,
+    [506699, 506778],
+    [509000, 509999],
+    627780,
+    636297,
+    636368,
+    [650031, 650033],
+    [650035, 650051],
+    [650405, 650439],
+    [650485, 650538],
+    [650541, 650598],
+    [650700, 650718],
+    [650720, 650727],
+    [650901, 650978],
+    [651652, 651679],
+    [655000, 655019],
+    [655021, 655058]
+  ],
   gaps: [4, 8, 12],
   lengths: [16],
   code: {
@@ -630,8 +514,9 @@ types[ELO] = {
 types[MIR] = {
   niceType: 'Mir',
   type: MIR,
-  prefixPattern: /^(2|22|220|220[0-4])$/,
-  exactPattern: /^(220[0-4])\d*$/,
+  patterns: [
+    [2200, 2204]
+  ],
   gaps: [4, 8, 12],
   lengths: [16, 17, 18, 19],
   code: {
@@ -644,32 +529,126 @@ function findType(type) {
   return customCards[type] || types[type];
 }
 
-function creditCardType(cardNumber) {
-  var type, value, i;
-  var prefixResults = [];
-  var exactResults = [];
+function isValidInputType(cardNumber) {
+  return typeof cardNumber === 'string' || cardNumber instanceof String;
+}
 
-  if (!(typeof cardNumber === 'string' || cardNumber instanceof String)) {
+function hasEnoughResultsToDetermineBestMatch(results) {
+  var numberOfResultsWithMaxStrengthProperty = results.filter(function (result) {
+    return result.matchStrength;
+  }).length;
+
+  // if all possible results have a maxStrength property
+  // that means the card number is sufficiently long
+  // enough to determine conclusively what the type is
+  return numberOfResultsWithMaxStrengthProperty > 0 &&
+    numberOfResultsWithMaxStrengthProperty === results.length;
+}
+
+function findBestMatch(results) {
+  if (!hasEnoughResultsToDetermineBestMatch(results)) {
+    return;
+  }
+
+  return results.reduce(function (bestMatch, result) { // eslint-disable-line consistent-return
+    if (!bestMatch) {
+      return result;
+    }
+
+    // if the current best match pattern is less specific
+    // than this result, set the result as the new best match
+    if (bestMatch.matchStrength < result.matchStrength) {
+      return result;
+    }
+
+    return bestMatch;
+  });
+}
+
+function getAllCardTypes() {
+  return testOrder.map(function (type) {
+    return clone(findType(type));
+  });
+}
+
+function creditCardType(cardNumber) {
+  var bestMatch;
+  var results = [];
+
+  if (!isValidInputType(cardNumber)) {
     return [];
   }
 
-  for (i = 0; i < testOrder.length; i++) {
-    type = testOrder[i];
-    value = findType(type);
+  if (cardNumber.length === 0) {
+    return getAllCardTypes();
+  }
 
-    if (cardNumber.length === 0) {
-      prefixResults.push(clone(value));
+  testOrder.forEach(function (type) {
+    var cardConfiguration = findType(type);
+
+    loopOverCardPatterns(cardNumber, cardConfiguration, results);
+  });
+
+  bestMatch = findBestMatch(results);
+
+  if (bestMatch) {
+    return [bestMatch];
+  }
+
+  return results;
+}
+
+function loopOverCardPatterns(cardNumber, cardConfiguration, results) {
+  var i, pattern, patternLength, clonedCardConfiguration;
+
+  for (i = 0; i < cardConfiguration.patterns.length; i++) {
+    pattern = cardConfiguration.patterns[i];
+
+    if (!matches(cardNumber, pattern)) {
       continue;
     }
 
-    if (value.exactPattern.test(cardNumber)) {
-      exactResults.push(clone(value));
-    } else if (value.prefixPattern.test(cardNumber)) {
-      prefixResults.push(clone(value));
+    clonedCardConfiguration = clone(cardConfiguration);
+
+    if (Array.isArray(pattern)) {
+      patternLength = String(pattern[0]).length;
+    } else {
+      patternLength = String(pattern).length;
     }
+
+    if (cardNumber.length >= patternLength) {
+      clonedCardConfiguration.matchStrength = patternLength;
+    }
+
+    results.push(clonedCardConfiguration);
+    break;
+  }
+}
+
+function matches(cardNumber, pattern) {
+  if (Array.isArray(pattern)) {
+    return matchesRange(cardNumber, pattern[0], pattern[1]);
   }
 
-  return exactResults.length ? exactResults : prefixResults;
+  return matchesPattern(cardNumber, pattern);
+}
+
+function matchesPattern(cardNumber, pattern) {
+  pattern = String(pattern);
+
+  return pattern.substring(0, cardNumber.length) === cardNumber.substring(0, pattern.length);
+}
+
+// Adapted from https://github.com/polvo-labs/card-type/blob/aaab11f80fa1939bccc8f24905a06ae3cd864356/src/cardType.js#L37-L42
+function matchesRange(cardNumber, min, max) {
+  var maxLengthToCheck = String(min).length;
+  var substr = cardNumber.substr(0, maxLengthToCheck);
+  var integerRepresentationOfCardNumber = parseInt(substr, 10);
+
+  min = parseInt(String(min).substr(0, substr.length), 10);
+  max = parseInt(String(max).substr(0, substr.length), 10);
+
+  return integerRepresentationOfCardNumber >= min && integerRepresentationOfCardNumber <= max;
 }
 
 creditCardType.getTypeInfo = function (type) {
@@ -1402,7 +1381,7 @@ function _isValid(attribute, value) {
 
 module.exports = attributeValidationError;
 
-},{"../../lib/braintree-error":39,"../shared/constants":30,"../shared/errors":31}],24:[function(_dereq_,module,exports){
+},{"../../lib/braintree-error":40,"../shared/constants":30,"../shared/errors":31}],24:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('../shared/constants');
@@ -1416,7 +1395,7 @@ module.exports = function composeUrl(assetsUrl, componentId, isDebug) {
     componentId;
 };
 
-},{"../../lib/use-min":56,"../shared/constants":30}],25:[function(_dereq_,module,exports){
+},{"../../lib/use-min":57,"../shared/constants":30}],25:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1455,19 +1434,24 @@ module.exports = function getStylesFromClass(cssClass) {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"../shared/constants":30}],26:[function(_dereq_,module,exports){
+(function (global){
 'use strict';
 
 var assign = _dereq_('../../lib/assign').assign;
+var createAuthorizationData = _dereq_('../../lib/create-authorization-data');
 var Destructor = _dereq_('../../lib/destructor');
 var classlist = _dereq_('../../lib/classlist');
 var iFramer = _dereq_('@braintree/iframer');
 var Bus = _dereq_('../../lib/bus');
+var assets = _dereq_('../../lib/assets');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var composeUrl = _dereq_('./compose-url');
 var getStylesFromClass = _dereq_('./get-styles-from-class');
 var constants = _dereq_('../shared/constants');
 var errors = _dereq_('../shared/errors');
+var VERSION = _dereq_('../../lib/constants').VERSION;
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
+var ASSETS_URLS = _dereq_('../../lib/constants').ASSETS_URLS;
 var uuid = _dereq_('../../lib/vendor/uuid');
 var findParentTags = _dereq_('../shared/find-parent-tags');
 var browserDetection = _dereq_('../shared/browser-detection');
@@ -1769,15 +1753,41 @@ function performBlurFixForIos(container) {
  * @classdesc This class represents a Hosted Fields component produced by {@link module:braintree-web/hosted-fields.create|braintree-web/hosted-fields.create}. Instances of this class have methods for interacting with the input fields within Hosted Fields' iframes.
  */
 function HostedFields(options) {
-  var failureTimeout, clientConfig, hostedFieldsUrl;
+  var failureTimeout, clientConfig, assetsUrl, isDebug, hostedFieldsUrl, authData;
   var self = this;
   var fields = {};
   var busOptions = assign({}, options);
-  var fieldCount = 0;
+  var frameReadyPromiseResolveFunctions = {};
+  var frameReadyPromises = [];
   var componentId = uuid();
 
-  clientConfig = options.client.getConfiguration();
-  hostedFieldsUrl = composeUrl(clientConfig.gatewayConfiguration.assetsUrl, componentId, clientConfig.isDebug);
+  if (options.client) {
+    clientConfig = options.client.getConfiguration();
+    assetsUrl = clientConfig.gatewayConfiguration.assetsUrl;
+    isDebug = clientConfig.isDebug;
+    this._clientInstanceOrPromise = options.client;
+  } else {
+    authData = createAuthorizationData(options.authorization);
+    assetsUrl = ASSETS_URLS[authData.environment || 'production'];
+    isDebug = Boolean(options.debug);
+
+    if (!(global.braintree && global.braintree.client)) {
+      this._clientInstanceOrPromise = assets.loadScript({
+        src: assetsUrl + '/web/' + VERSION + '/js/client.min.js'
+      });
+    } else {
+      this._clientInstanceOrPromise = Promise.resolve();
+    }
+
+    this._clientInstanceOrPromise = this._clientInstanceOrPromise.then(function () {
+      return global.braintree.client.create({
+        authorization: options.authorization,
+        debug: isDebug
+      });
+    });
+  }
+
+  hostedFieldsUrl = composeUrl(assetsUrl, componentId, isDebug);
 
   if (!options.fields || Object.keys(options.fields).length === 0) {
     throw new BraintreeError({
@@ -1806,12 +1816,10 @@ function HostedFields(options) {
     self._bus.teardown();
   });
 
-  this._client = options.client;
-
-  analytics.sendEvent(this._client, 'custom.hosted-fields.initialized');
+  analytics.sendEvent(this._clientInstanceOrPromise, 'custom.hosted-fields.initialized');
 
   Object.keys(options.fields).forEach(function (key) {
-    var field, container, frame;
+    var field, container, frame, frameReadyPromise;
 
     if (!constants.allowedFields.hasOwnProperty(key)) {
       throw new BraintreeError({
@@ -1876,13 +1884,16 @@ function HostedFields(options) {
       title: 'Secure Credit Card Frame - ' + constants.allowedFields[key].label
     });
 
-    this._injectedNodes = this._injectedNodes.concat(injectFrame(frame, container));
+    this._injectedNodes.push.apply(this._injectedNodes, injectFrame(frame, container));
     this._setupLabelFocus(key, container);
     fields[key] = {
       frameElement: frame,
       containerElement: container
     };
-    fieldCount++;
+    frameReadyPromise = new Promise(function (resolve) {
+      frameReadyPromiseResolveFunctions[key] = resolve;
+    });
+    frameReadyPromises.push(frameReadyPromise);
 
     this._state.fields[key] = {
       isEmpty: true,
@@ -1912,11 +1923,6 @@ function HostedFields(options) {
     }, 0);
   }.bind(this));
 
-  // TODO rejecting unsupported cards should be the default behavior after the next major revision
-  if (options.fields.number && options.fields.number.rejectUnsupportedCards) {
-    busOptions.supportedCardTypes = clientConfig.gatewayConfiguration.creditCards.supportedCardTypes;
-  }
-
   if (busOptions.styles) {
     Object.keys(busOptions.styles).forEach(function (selector) {
       var className = busOptions.styles[selector];
@@ -1928,17 +1934,20 @@ function HostedFields(options) {
   }
 
   failureTimeout = setTimeout(function () {
-    analytics.sendEvent(self._client, 'custom.hosted-fields.load.timed-out');
+    analytics.sendEvent(self._clientInstanceOrPromise, 'custom.hosted-fields.load.timed-out');
     self._emit('timeout');
   }, INTEGRATION_TIMEOUT_MS);
 
-  this._bus.on(events.FRAME_READY, function (reply) {
-    fieldCount--;
-    if (fieldCount === 0) {
-      clearTimeout(failureTimeout);
-      reply(busOptions);
-      self._emit('ready');
-    }
+  Promise.all(frameReadyPromises).then(function (results) {
+    var reply = results[0];
+
+    clearTimeout(failureTimeout);
+    reply(busOptions);
+    self._emit('ready');
+  });
+
+  this._bus.on(events.FRAME_READY, function (data, reply) {
+    frameReadyPromiseResolveFunctions[data.field](reply);
   });
 
   this._bus.on(
@@ -2030,7 +2039,7 @@ HostedFields.prototype.teardown = function () {
 
   return new Promise(function (resolve, reject) {
     self._destructor.teardown(function (err) {
-      analytics.sendEvent(self._client, 'custom.hosted-fields.teardown-completed');
+      analytics.sendEvent(self._clientInstanceOrPromise, 'custom.hosted-fields.teardown-completed');
 
       if (err) {
         reject(err);
@@ -2553,7 +2562,8 @@ HostedFields.prototype.getState = function () {
 
 module.exports = wrapPromise.wrapPrototype(HostedFields);
 
-},{"../../lib/analytics":35,"../../lib/assign":36,"../../lib/braintree-error":39,"../../lib/bus":42,"../../lib/classlist":43,"../../lib/constants":44,"../../lib/convert-methods-to-error":45,"../../lib/destructor":47,"../../lib/errors":49,"../../lib/event-emitter":50,"../../lib/methods":53,"../../lib/promise":55,"../../lib/vendor/uuid":58,"../shared/browser-detection":29,"../shared/constants":30,"../shared/errors":31,"../shared/find-parent-tags":32,"../shared/get-card-types":33,"./attribute-validation-error":23,"./compose-url":24,"./get-styles-from-class":25,"./inject-frame":27,"@braintree/iframer":10,"@braintree/wrap-promise":17}],27:[function(_dereq_,module,exports){
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"../../lib/analytics":35,"../../lib/assets":36,"../../lib/assign":37,"../../lib/braintree-error":40,"../../lib/bus":43,"../../lib/classlist":44,"../../lib/constants":45,"../../lib/convert-methods-to-error":46,"../../lib/create-authorization-data":47,"../../lib/destructor":48,"../../lib/errors":50,"../../lib/event-emitter":51,"../../lib/methods":54,"../../lib/promise":56,"../../lib/vendor/uuid":59,"../shared/browser-detection":29,"../shared/constants":30,"../shared/errors":31,"../shared/find-parent-tags":32,"../shared/get-card-types":33,"./attribute-validation-error":23,"./compose-url":24,"./get-styles-from-class":25,"./inject-frame":27,"@braintree/iframer":10,"@braintree/wrap-promise":17}],27:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function injectFrame(frame, container) {
@@ -2581,7 +2591,7 @@ var supportsInputFormatting = _dereq_('restricted-input/supports-input-formattin
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.38.0";
+var VERSION = "3.38.1";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -2806,6 +2816,7 @@ var VERSION = "3.38.0";
 function create(options) {
   return basicComponentVerification.verify({
     name: 'Hosted Fields',
+    authorization: options.authorization,
     client: options.client
   }).then(function () {
     var integration = new HostedFields(options);
@@ -2871,7 +2882,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/basic-component-verification":37,"../lib/braintree-error":39,"../lib/promise":55,"./external/hosted-fields":26,"./shared/errors":31,"@braintree/wrap-promise":17,"restricted-input/supports-input-formatting":22}],29:[function(_dereq_,module,exports){
+},{"../lib/basic-component-verification":38,"../lib/braintree-error":40,"../lib/promise":56,"./external/hosted-fields":26,"./shared/errors":31,"@braintree/wrap-promise":17,"restricted-input/supports-input-formatting":22}],29:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -2888,7 +2899,7 @@ module.exports = {
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.38.0";
+var VERSION = "3.38.1";
 
 var constants = {
   VERSION: VERSION,
@@ -3017,7 +3028,7 @@ constants.events = enumerate([
 
 module.exports = constants;
 
-},{"../../lib/enumerate":48,"./errors":31}],31:[function(_dereq_,module,exports){
+},{"../../lib/enumerate":49,"./errors":31}],31:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -3129,7 +3140,7 @@ module.exports = {
   }
 };
 
-},{"../../lib/braintree-error":39}],32:[function(_dereq_,module,exports){
+},{"../../lib/braintree-error":40}],32:[function(_dereq_,module,exports){
 'use strict';
 
 function findParentTags(element, tag) {
@@ -3158,7 +3169,7 @@ module.exports = function (number) {
   var results = creditCardType(number);
 
   results.forEach(function (card) {
-    // TODO credit-card-type fixed the mastercard enum
+    // NEXT_MAJOR_VERSION credit-card-type fixed the mastercard enum
     // but we still pass master-card in the braintree API
     // in a major version bump, we can remove this and
     // this will be mastercard instead of master-card
@@ -3204,9 +3215,10 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":44,"./create-authorization-data":46,"./json-clone":52}],35:[function(_dereq_,module,exports){
+},{"./constants":45,"./create-authorization-data":47,"./json-clone":53}],35:[function(_dereq_,module,exports){
 'use strict';
 
+var Promise = _dereq_('./promise');
 var constants = _dereq_('./constants');
 var addMetadata = _dereq_('./add-metadata');
 
@@ -3214,31 +3226,73 @@ function _millisToSeconds(millis) {
   return Math.floor(millis / 1000);
 }
 
-function sendAnalyticsEvent(client, kind, callback) {
-  var configuration = client.getConfiguration();
-  var request = client._request;
+function sendAnalyticsEvent(clientInstanceOrPromise, kind, callback) {
   var timestamp = _millisToSeconds(Date.now());
-  var url = configuration.gatewayConfiguration.analytics.url;
-  var data = {
-    analytics: [{
-      kind: constants.ANALYTICS_PREFIX + kind,
-      timestamp: timestamp
-    }]
-  };
 
-  request({
-    url: url,
-    method: 'post',
-    data: addMetadata(configuration, data),
-    timeout: constants.ANALYTICS_REQUEST_TIMEOUT_MS
-  }, callback);
+  return Promise.resolve(clientInstanceOrPromise).then(function (client) {
+    var timestampInPromise = _millisToSeconds(Date.now());
+    var configuration = client.getConfiguration();
+    var request = client._request;
+    var url = configuration.gatewayConfiguration.analytics.url;
+    var data = {
+      analytics: [{
+        kind: constants.ANALYTICS_PREFIX + kind,
+        isAsync: timestampInPromise !== timestamp,
+        timestamp: timestamp
+      }]
+    };
+
+    request({
+      url: url,
+      method: 'post',
+      data: addMetadata(configuration, data),
+      timeout: constants.ANALYTICS_REQUEST_TIMEOUT_MS
+    }, callback);
+  });
 }
 
 module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":34,"./constants":44}],36:[function(_dereq_,module,exports){
+},{"./add-metadata":34,"./constants":45,"./promise":56}],36:[function(_dereq_,module,exports){
+'use strict';
+
+// TODO this logic is duplicated in braintree-web-drop-in
+// Pull this out into a separate module
+
+var Promise = _dereq_('./promise');
+
+function loadScript(options) {
+  var script = document.createElement('script');
+  var attrs = options.dataAttributes || {};
+  var container = options.container || document.head;
+
+  script.src = options.src;
+  script.id = options.id;
+  script.async = true;
+
+  Object.keys(attrs).forEach(function (key) {
+    script.setAttribute('data-' + key, attrs[key]);
+  });
+
+  return new Promise(function (resolve, reject) {
+    script.addEventListener('load', resolve);
+    script.addEventListener('error', function () {
+      reject(new Error(options.src + ' failed to load.'));
+    });
+    script.addEventListener('abort', function () {
+      reject(new Error(options.src + ' has aborted.'));
+    });
+    container.appendChild(script);
+  });
+}
+
+module.exports = {
+  loadScript: loadScript
+};
+
+},{"./promise":56}],37:[function(_dereq_,module,exports){
 'use strict';
 
 var assignNormalized = typeof Object.assign === 'function' ? Object.assign : assignPolyfill;
@@ -3263,16 +3317,16 @@ module.exports = {
   _assign: assignPolyfill
 };
 
-},{}],37:[function(_dereq_,module,exports){
+},{}],38:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.38.0";
+var VERSION = "3.38.1";
 
 function basicComponentVerification(options) {
-  var client, clientVersion, name;
+  var client, authorization, name;
 
   if (!options) {
     return Promise.reject(new BraintreeError({
@@ -3284,22 +3338,23 @@ function basicComponentVerification(options) {
 
   name = options.name;
   client = options.client;
+  authorization = options.authorization;
 
-  if (client == null) {
+  if (client == null && authorization == null) {
     return Promise.reject(new BraintreeError({
       type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
       code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
+      // NEXT_MAJOR_VERSION in major version, we expose passing in authorization for all components
+      // instead of passing in a client instance. Leave this a silent feature for now.
       message: 'options.client is required when instantiating ' + name + '.'
     }));
   }
 
-  clientVersion = client.getVersion();
-
-  if (clientVersion !== VERSION) {
+  if (!authorization && client.getVersion() !== VERSION) {
     return Promise.reject(new BraintreeError({
       type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
       code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
-      message: 'Client (version ' + clientVersion + ') and ' + name + ' (version ' + VERSION + ') components must be from the same SDK version.'
+      message: 'Client (version ' + client.getVersion() + ') and ' + name + ' (version ' + VERSION + ') components must be from the same SDK version.'
     }));
   }
 
@@ -3310,7 +3365,7 @@ module.exports = {
   verify: basicComponentVerification
 };
 
-},{"./braintree-error":39,"./errors":49,"./promise":55}],38:[function(_dereq_,module,exports){
+},{"./braintree-error":40,"./errors":50,"./promise":56}],39:[function(_dereq_,module,exports){
 'use strict';
 
 var once = _dereq_('./once');
@@ -3356,7 +3411,7 @@ module.exports = function (functions, cb) {
   }
 };
 
-},{"./once":54}],39:[function(_dereq_,module,exports){
+},{"./once":55}],40:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -3441,7 +3496,7 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":48}],40:[function(_dereq_,module,exports){
+},{"./enumerate":49}],41:[function(_dereq_,module,exports){
 'use strict';
 
 var isVerifiedDomain = _dereq_('../is-verified-domain');
@@ -3473,7 +3528,7 @@ module.exports = {
   checkOrigin: checkOrigin
 };
 
-},{"../is-verified-domain":51}],41:[function(_dereq_,module,exports){
+},{"../is-verified-domain":52}],42:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../enumerate');
@@ -3482,7 +3537,7 @@ module.exports = enumerate([
   'CONFIGURATION_REQUEST'
 ], 'bus:');
 
-},{"../enumerate":48}],42:[function(_dereq_,module,exports){
+},{"../enumerate":49}],43:[function(_dereq_,module,exports){
 'use strict';
 
 var bus = _dereq_('framebus');
@@ -3613,7 +3668,7 @@ BraintreeBus.events = events;
 
 module.exports = BraintreeBus;
 
-},{"../braintree-error":39,"./check-origin":40,"./events":41,"framebus":19}],43:[function(_dereq_,module,exports){
+},{"../braintree-error":40,"./check-origin":41,"./events":42,"framebus":19}],44:[function(_dereq_,module,exports){
 'use strict';
 
 function _classesOf(element) {
@@ -3652,15 +3707,20 @@ module.exports = {
   toggle: toggle
 };
 
-},{}],44:[function(_dereq_,module,exports){
+},{}],45:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.38.0";
+var VERSION = "3.38.1";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
   production: 'https://api.braintreegateway.com:443',
   sandbox: 'https://api.sandbox.braintreegateway.com:443'
+};
+
+var ASSETS_URLS = {
+  production: 'https://assets.braintreegateway.com',
+  sandbox: 'https://assets.braintreegateway.com'
 };
 
 var GRAPHQL_URLS = {
@@ -3673,6 +3733,7 @@ var GRAPHQL_URLS = {
 module.exports = {
   ANALYTICS_PREFIX: PLATFORM + '.',
   ANALYTICS_REQUEST_TIMEOUT_MS: 2000,
+  ASSETS_URLS: ASSETS_URLS,
   CLIENT_API_URLS: CLIENT_API_URLS,
   GRAPHQL_URLS: GRAPHQL_URLS,
   INTEGRATION_TIMEOUT_MS: 60000,
@@ -3683,7 +3744,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],45:[function(_dereq_,module,exports){
+},{}],46:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -3701,7 +3762,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"./braintree-error":39,"./errors":49}],46:[function(_dereq_,module,exports){
+},{"./braintree-error":40,"./errors":50}],47:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/vendor/polyfill').atob;
@@ -3731,10 +3792,12 @@ function createAuthorizationData(authorization) {
 
   if (_isTokenizationKey(authorization)) {
     parsedTokenizationKey = _parseTokenizationKey(authorization);
+    data.environment = parsedTokenizationKey.environment;
     data.attrs.tokenizationKey = authorization;
     data.configUrl = CLIENT_API_URLS[parsedTokenizationKey.environment] + '/merchants/' + parsedTokenizationKey.merchantId + '/client_api/v1/configuration';
   } else {
     parsedClientToken = JSON.parse(atob(authorization));
+    data.environment = parsedClientToken.environment;
     data.attrs.authorizationFingerprint = parsedClientToken.authorizationFingerprint;
     data.configUrl = parsedClientToken.configUrl;
     data.graphQL = parsedClientToken.graphQL;
@@ -3745,7 +3808,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/constants":44,"../lib/vendor/polyfill":57}],47:[function(_dereq_,module,exports){
+},{"../lib/constants":45,"../lib/vendor/polyfill":58}],48:[function(_dereq_,module,exports){
 'use strict';
 
 var batchExecuteFunctions = _dereq_('./batch-execute-functions');
@@ -3783,7 +3846,7 @@ Destructor.prototype.teardown = function (callback) {
 
 module.exports = Destructor;
 
-},{"./batch-execute-functions":38}],48:[function(_dereq_,module,exports){
+},{"./batch-execute-functions":39}],49:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -3798,7 +3861,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],49:[function(_dereq_,module,exports){
+},{}],50:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -3848,7 +3911,7 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":39}],50:[function(_dereq_,module,exports){
+},{"./braintree-error":40}],51:[function(_dereq_,module,exports){
 'use strict';
 
 function EventEmitter() {
@@ -3878,7 +3941,7 @@ EventEmitter.prototype._emit = function (event) {
 
 module.exports = EventEmitter;
 
-},{}],51:[function(_dereq_,module,exports){
+},{}],52:[function(_dereq_,module,exports){
 'use strict';
 
 var parser;
@@ -3913,14 +3976,14 @@ function isVerifiedDomain(url) {
 
 module.exports = isVerifiedDomain;
 
-},{}],52:[function(_dereq_,module,exports){
+},{}],53:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],53:[function(_dereq_,module,exports){
+},{}],54:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -3929,9 +3992,9 @@ module.exports = function (obj) {
   });
 };
 
-},{}],54:[function(_dereq_,module,exports){
+},{}],55:[function(_dereq_,module,exports){
 arguments[4][15][0].apply(exports,arguments)
-},{"dup":15}],55:[function(_dereq_,module,exports){
+},{"dup":15}],56:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -3940,7 +4003,7 @@ var Promise = global.Promise || _dereq_('promise-polyfill');
 module.exports = Promise;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":20}],56:[function(_dereq_,module,exports){
+},{"promise-polyfill":20}],57:[function(_dereq_,module,exports){
 'use strict';
 
 function useMin(isDebug) {
@@ -3949,7 +4012,7 @@ function useMin(isDebug) {
 
 module.exports = useMin;
 
-},{}],57:[function(_dereq_,module,exports){
+},{}],58:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -3990,7 +4053,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],58:[function(_dereq_,module,exports){
+},{}],59:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {
