@@ -11,15 +11,17 @@ module.exports = global.Promise || PromisePolyfill;
 'use strict';
 
 var Promise = _dereq_('./lib/promise');
+var scriptPromiseCache = {};
 
-module.exports = function loadScript(options) {
-  var attrs, container, script;
+function loadScript(options) {
+  var attrs, container, script, scriptLoadPromise;
+  var stringifiedOptions = JSON.stringify(options);
 
   if (!options.forceScriptReload) {
-    script = document.querySelector('script[src="' + options.src + '"]');
+    scriptLoadPromise = scriptPromiseCache[stringifiedOptions];
 
-    if (script) {
-      return Promise.resolve(script);
+    if (scriptLoadPromise) {
+      return scriptLoadPromise;
     }
   }
 
@@ -35,7 +37,7 @@ module.exports = function loadScript(options) {
     script.setAttribute('data-' + key, attrs[key]);
   });
 
-  return new Promise(function (resolve, reject) {
+  scriptLoadPromise = new Promise(function (resolve, reject) {
     script.addEventListener('load', function () {
       resolve(script);
     });
@@ -47,7 +49,17 @@ module.exports = function loadScript(options) {
     });
     container.appendChild(script);
   });
+
+  scriptPromiseCache[stringifiedOptions] = scriptLoadPromise;
+
+  return scriptLoadPromise;
+}
+
+loadScript.clearCache = function () {
+  scriptPromiseCache = {};
 };
+
+module.exports = loadScript;
 
 },{"./lib/promise":1}],3:[function(_dereq_,module,exports){
 'use strict';
@@ -553,9 +565,11 @@ var kount = _dereq_('./kount');
 var fraudnet = _dereq_('./fraudnet');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
+var createDeferredClient = _dereq_('../lib/create-deferred-client');
+var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var methods = _dereq_('../lib/methods');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
-var VERSION = "3.39.0";
+var VERSION = "3.40.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var errors = _dereq_('./errors');
@@ -605,7 +619,8 @@ var errors = _dereq_('./errors');
  * @function create
  * @description Creates a DataCollector instance. Requires advanced fraud protection to be enabled in the Braintree gateway. Contact our [support team](mailto:support@braintreepayments.com) to configure your Kount ID.
  * @param {object} options Creation options:
- * @param {Client} options.client A {@link Client} instance.
+ * @param {Client} [options.client] A {@link Client} instance.
+ * @param {string} [options.authorization] A tokenizationKey or clientToken. Can be used in place of `options.client`.
  * @param {boolean} [options.kount] If true, Kount fraud data collection is enabled.
  *
  * **Note:** the data sent to Kount is asynchronous and may not have completed by the time the data collector create call is complete. In most cases, this will not matter, but if you create the data collector instance and immediately navigate away from the page, the device information may fail to be sent to Kount.
@@ -614,16 +629,26 @@ var errors = _dereq_('./errors');
  * @returns {Promise|void} Returns a promise that resolves the {@link DataCollector} instance if no callback is provided.
  */
 function create(options) {
+  var name = 'Data Collector';
   var result = {};
   var instances = [];
   var data;
 
   return basicComponentVerification.verify({
-    name: 'Data Collector',
-    client: options.client
+    name: name,
+    client: options.client,
+    authorization: options.authorization
   }).then(function () {
+    return createDeferredClient.create({
+      authorization: options.authorization,
+      client: options.client,
+      debug: options.debug,
+      assetsUrl: createAssetsUrl.create(options.authorization),
+      name: name
+    });
+  }).then(function (client) {
     var kountInstance;
-    var config = options.client.getConfiguration();
+    var config = client.getConfiguration();
 
     if (options.kount === true) {
       if (!config.gatewayConfiguration.kount) {
@@ -699,7 +724,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/basic-component-verification":14,"../lib/braintree-error":15,"../lib/convert-methods-to-error":18,"../lib/methods":21,"../lib/promise":22,"./errors":8,"./fraudnet":9,"./kount":11,"@braintree/wrap-promise":6}],11:[function(_dereq_,module,exports){
+},{"../lib/basic-component-verification":14,"../lib/braintree-error":15,"../lib/convert-methods-to-error":18,"../lib/create-assets-url":19,"../lib/create-deferred-client":20,"../lib/methods":23,"../lib/promise":24,"./errors":8,"./fraudnet":9,"./kount":11,"@braintree/wrap-promise":6}],11:[function(_dereq_,module,exports){
 'use strict';
 
 var sjcl = _dereq_('./vendor/sjcl');
@@ -871,7 +896,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.39.0";
+var VERSION = "3.40.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -913,7 +938,7 @@ module.exports = {
   verify: basicComponentVerification
 };
 
-},{"./braintree-error":15,"./errors":20,"./promise":22}],15:[function(_dereq_,module,exports){
+},{"./braintree-error":15,"./errors":22,"./promise":24}],15:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -998,7 +1023,7 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":19}],16:[function(_dereq_,module,exports){
+},{"./enumerate":21}],16:[function(_dereq_,module,exports){
 'use strict';
 
 // Taken from https://github.com/sindresorhus/decamelize/blob/95980ab6fb44c40eaca7792bdf93aff7c210c805/index.js
@@ -1021,7 +1046,7 @@ module.exports = function (obj) {
 },{}],17:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.39.0";
+var VERSION = "3.40.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1076,7 +1101,78 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"./braintree-error":15,"./errors":20}],19:[function(_dereq_,module,exports){
+},{"./braintree-error":15,"./errors":22}],19:[function(_dereq_,module,exports){
+'use strict';
+
+// endRemoveIf(production)
+var ASSETS_URLS = _dereq_('./constants').ASSETS_URLS;
+
+function createAssetsUrl(authorization) {
+  // endRemoveIf(production)
+
+  return ASSETS_URLS.production;
+}
+/* eslint-enable */
+
+module.exports = {
+  create: createAssetsUrl
+};
+
+},{"./constants":17}],20:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+
+var BraintreeError = _dereq_('./braintree-error');
+var Promise = _dereq_('./promise');
+var assets = _dereq_('./assets');
+var sharedErrors = _dereq_('./errors');
+
+var VERSION = "3.40.0";
+
+function createDeferredClient(options) {
+  var promise = Promise.resolve();
+
+  if (options.client) {
+    return Promise.resolve(options.client);
+  }
+
+  if (!(global.braintree && global.braintree.client)) {
+    promise = assets.loadScript({
+      src: options.assetsUrl + '/web/' + VERSION + '/js/client.min.js'
+    }).catch(function (err) {
+      return Promise.reject(new BraintreeError({
+        type: sharedErrors.CLIENT_SCRIPT_FAILED_TO_LOAD.type,
+        code: sharedErrors.CLIENT_SCRIPT_FAILED_TO_LOAD.code,
+        message: sharedErrors.CLIENT_SCRIPT_FAILED_TO_LOAD.message,
+        details: {
+          originalError: err
+        }
+      }));
+    });
+  }
+
+  return promise.then(function () {
+    if (global.braintree.client.VERSION !== VERSION) {
+      return Promise.reject(new BraintreeError({
+        type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
+        code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
+        message: 'Client (version ' + global.braintree.client.VERSION + ') and ' + options.name + ' (version ' + VERSION + ') components must be from the same SDK version.'
+      }));
+    }
+
+    return global.braintree.client.create({
+      authorization: options.authorization,
+      debug: options.debug
+    });
+  });
+}
+
+module.exports = {
+  create: createDeferredClient
+};
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./assets":13,"./braintree-error":15,"./errors":22,"./promise":24}],21:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -1091,7 +1187,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],20:[function(_dereq_,module,exports){
+},{}],22:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -1106,6 +1202,7 @@ module.exports = enumerate;
  * @description Errors that occur when creating components.
  * @property {MERCHANT} INSTANTIATION_OPTION_REQUIRED Occurs when a compoennt is created that is missing a required option.
  * @property {MERCHANT} INCOMPATIBLE_VERSIONS Occurs when a component is created with a client with a different version than the component.
+ * @property {NETWORK} CLIENT_SCRIPT_FAILED_TO_LOAD Occurs when a component attempts to load the Braintree client script, but the request fails.
  */
 
 /**
@@ -1130,6 +1227,11 @@ module.exports = {
     type: BraintreeError.types.MERCHANT,
     code: 'INCOMPATIBLE_VERSIONS'
   },
+  CLIENT_SCRIPT_FAILED_TO_LOAD: {
+    type: BraintreeError.types.NETWORK,
+    code: 'CLIENT_SCRIPT_FAILED_TO_LOAD',
+    message: 'Braintree client script could not be loaded.'
+  },
   METHOD_CALLED_AFTER_TEARDOWN: {
     type: BraintreeError.types.MERCHANT,
     code: 'METHOD_CALLED_AFTER_TEARDOWN'
@@ -1141,7 +1243,7 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":15}],21:[function(_dereq_,module,exports){
+},{"./braintree-error":15}],23:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -1150,7 +1252,7 @@ module.exports = function (obj) {
   });
 };
 
-},{}],22:[function(_dereq_,module,exports){
+},{}],24:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 

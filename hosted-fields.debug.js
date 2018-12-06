@@ -11,15 +11,17 @@ module.exports = global.Promise || PromisePolyfill;
 'use strict';
 
 var Promise = _dereq_('./lib/promise');
+var scriptPromiseCache = {};
 
-module.exports = function loadScript(options) {
-  var attrs, container, script;
+function loadScript(options) {
+  var attrs, container, script, scriptLoadPromise;
+  var stringifiedOptions = JSON.stringify(options);
 
   if (!options.forceScriptReload) {
-    script = document.querySelector('script[src="' + options.src + '"]');
+    scriptLoadPromise = scriptPromiseCache[stringifiedOptions];
 
-    if (script) {
-      return Promise.resolve(script);
+    if (scriptLoadPromise) {
+      return scriptLoadPromise;
     }
   }
 
@@ -35,7 +37,7 @@ module.exports = function loadScript(options) {
     script.setAttribute('data-' + key, attrs[key]);
   });
 
-  return new Promise(function (resolve, reject) {
+  scriptLoadPromise = new Promise(function (resolve, reject) {
     script.addEventListener('load', function () {
       resolve(script);
     });
@@ -47,7 +49,17 @@ module.exports = function loadScript(options) {
     });
     container.appendChild(script);
   });
+
+  scriptPromiseCache[stringifiedOptions] = scriptLoadPromise;
+
+  return scriptLoadPromise;
+}
+
+loadScript.clearCache = function () {
+  scriptPromiseCache = {};
 };
+
+module.exports = loadScript;
 
 },{"./lib/promise":1}],3:[function(_dereq_,module,exports){
 (function (global){
@@ -950,7 +962,11 @@ function _unpackPayload(e) {
     replyEvent = payload.reply;
 
     payload.reply = function reply(data) { // eslint-disable-line consistent-return
-      var replyPayload = _packagePayload(replyEvent, [data], replyOrigin);
+      var replyPayload;
+
+      if (!replySource) { return false; }
+
+      replyPayload = _packagePayload(replyEvent, [data], replyOrigin);
 
       if (replyPayload === false) { return false; }
 
@@ -1500,7 +1516,7 @@ module.exports = function composeUrl(assetsUrl, componentId, isDebug) {
     componentId;
 };
 
-},{"../../lib/use-min":59,"../shared/constants":33}],28:[function(_dereq_,module,exports){
+},{"../../lib/use-min":61,"../shared/constants":33}],28:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1539,24 +1555,21 @@ module.exports = function getStylesFromClass(cssClass) {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"../shared/constants":33}],29:[function(_dereq_,module,exports){
-(function (global){
 'use strict';
 
 var assign = _dereq_('../../lib/assign').assign;
-var createAuthorizationData = _dereq_('../../lib/create-authorization-data');
+var createAssetsUrl = _dereq_('../../lib/create-assets-url');
 var Destructor = _dereq_('../../lib/destructor');
 var classList = _dereq_('@braintree/class-list');
 var iFramer = _dereq_('@braintree/iframer');
 var Bus = _dereq_('../../lib/bus');
-var assets = _dereq_('../../lib/assets');
+var createDeferredClient = _dereq_('../../lib/create-deferred-client');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var composeUrl = _dereq_('./compose-url');
 var getStylesFromClass = _dereq_('./get-styles-from-class');
 var constants = _dereq_('../shared/constants');
 var errors = _dereq_('../shared/errors');
-var VERSION = _dereq_('../../lib/constants').VERSION;
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
-var ASSETS_URLS = _dereq_('../../lib/constants').ASSETS_URLS;
 var uuid = _dereq_('../../lib/vendor/uuid');
 var findParentTags = _dereq_('../shared/find-parent-tags');
 var browserDetection = _dereq_('../shared/browser-detection');
@@ -1858,7 +1871,7 @@ function performBlurFixForIos(container) {
  * @classdesc This class represents a Hosted Fields component produced by {@link module:braintree-web/hosted-fields.create|braintree-web/hosted-fields.create}. Instances of this class have methods for interacting with the input fields within Hosted Fields' iframes.
  */
 function HostedFields(options) {
-  var failureTimeout, clientConfig, assetsUrl, isDebug, hostedFieldsUrl, authData;
+  var failureTimeout, clientConfig, assetsUrl, isDebug, hostedFieldsUrl;
   var self = this;
   var fields = {};
   var busOptions = assign({}, options);
@@ -1870,27 +1883,18 @@ function HostedFields(options) {
     clientConfig = options.client.getConfiguration();
     assetsUrl = clientConfig.gatewayConfiguration.assetsUrl;
     isDebug = clientConfig.isDebug;
-    this._clientPromise = Promise.resolve(options.client);
   } else {
-    authData = createAuthorizationData(options.authorization);
-    assetsUrl = ASSETS_URLS[authData.environment || 'production'];
-    isDebug = Boolean(options.debug);
-
-    if (!(global.braintree && global.braintree.client)) {
-      this._clientPromise = assets.loadScript({
-        src: assetsUrl + '/web/' + VERSION + '/js/client.min.js'
-      });
-    } else {
-      this._clientPromise = Promise.resolve();
-    }
-
-    this._clientPromise = this._clientPromise.then(function () {
-      return global.braintree.client.create({
-        authorization: options.authorization,
-        debug: isDebug
-      });
-    });
+    assetsUrl = createAssetsUrl.create(options.authorization);
+    isDebug = Boolean(options.isDebug);
   }
+
+  this._clientPromise = createDeferredClient.create({
+    client: options.client,
+    authorization: options.authorization,
+    debug: isDebug,
+    assetsUrl: assetsUrl,
+    name: 'Hosted Fields'
+  });
 
   hostedFieldsUrl = composeUrl(assetsUrl, componentId, isDebug);
 
@@ -2673,8 +2677,7 @@ HostedFields.prototype.getState = function () {
 
 module.exports = wrapPromise.wrapPrototype(HostedFields);
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../lib/analytics":38,"../../lib/assets":39,"../../lib/assign":40,"../../lib/braintree-error":43,"../../lib/bus":46,"../../lib/constants":47,"../../lib/convert-methods-to-error":48,"../../lib/create-authorization-data":49,"../../lib/destructor":50,"../../lib/errors":52,"../../lib/event-emitter":53,"../../lib/methods":56,"../../lib/promise":58,"../../lib/vendor/uuid":61,"../shared/browser-detection":32,"../shared/constants":33,"../shared/errors":34,"../shared/find-parent-tags":35,"../shared/get-card-types":36,"./attribute-validation-error":26,"./compose-url":27,"./get-styles-from-class":28,"./inject-frame":30,"@braintree/class-list":12,"@braintree/iframer":13,"@braintree/wrap-promise":20}],30:[function(_dereq_,module,exports){
+},{"../../lib/analytics":38,"../../lib/assign":40,"../../lib/braintree-error":43,"../../lib/bus":46,"../../lib/constants":47,"../../lib/convert-methods-to-error":48,"../../lib/create-assets-url":49,"../../lib/create-deferred-client":51,"../../lib/destructor":52,"../../lib/errors":54,"../../lib/event-emitter":55,"../../lib/methods":58,"../../lib/promise":60,"../../lib/vendor/uuid":63,"../shared/browser-detection":32,"../shared/constants":33,"../shared/errors":34,"../shared/find-parent-tags":35,"../shared/get-card-types":36,"./attribute-validation-error":26,"./compose-url":27,"./get-styles-from-class":28,"./inject-frame":30,"@braintree/class-list":12,"@braintree/iframer":13,"@braintree/wrap-promise":20}],30:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function injectFrame(frame, container) {
@@ -2702,7 +2705,7 @@ var supportsInputFormatting = _dereq_('restricted-input/supports-input-formattin
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.39.0";
+var VERSION = "3.40.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -2781,7 +2784,8 @@ var VERSION = "3.39.0";
  * @static
  * @function create
  * @param {object} options Creation options:
- * @param {Client} options.client A {@link Client} instance.
+ * @param {Client} [options.client] A {@link Client} instance.
+ * @param {string} [options.authorization] A tokenizationKey or clientToken. Can be used in place of `options.client`.
  * @param {fieldOptions} options.fields A {@link module:braintree-web/hosted-fields~fieldOptions set of options for each field}.
  * @param {styleOptions} [options.styles] {@link module:braintree-web/hosted-fields~styleOptions Styles} applied to each field.
  * @param {callback} [callback] The second argument, `data`, is the {@link HostedFields} instance. If no callback is provided, `create` returns a promise that resolves with the {@link HostedFields} instance.
@@ -2993,7 +2997,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/basic-component-verification":41,"../lib/braintree-error":43,"../lib/promise":58,"./external/hosted-fields":29,"./shared/errors":34,"@braintree/wrap-promise":20,"restricted-input/supports-input-formatting":25}],32:[function(_dereq_,module,exports){
+},{"../lib/basic-component-verification":41,"../lib/braintree-error":43,"../lib/promise":60,"./external/hosted-fields":29,"./shared/errors":34,"@braintree/wrap-promise":20,"restricted-input/supports-input-formatting":25}],32:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -3010,7 +3014,7 @@ module.exports = {
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.39.0";
+var VERSION = "3.40.0";
 
 var constants = {
   VERSION: VERSION,
@@ -3140,7 +3144,7 @@ constants.events = enumerate([
 
 module.exports = constants;
 
-},{"../../lib/enumerate":51,"./errors":34}],34:[function(_dereq_,module,exports){
+},{"../../lib/enumerate":53,"./errors":34}],34:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -3327,7 +3331,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":47,"./create-authorization-data":49,"./json-clone":55}],38:[function(_dereq_,module,exports){
+},{"./constants":47,"./create-authorization-data":50,"./json-clone":57}],38:[function(_dereq_,module,exports){
 'use strict';
 
 var Promise = _dereq_('./promise');
@@ -3367,7 +3371,7 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":37,"./constants":47,"./promise":58}],39:[function(_dereq_,module,exports){
+},{"./add-metadata":37,"./constants":47,"./promise":60}],39:[function(_dereq_,module,exports){
 'use strict';
 
 var loadScript = _dereq_('@braintree/asset-loader/load-script');
@@ -3407,7 +3411,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.39.0";
+var VERSION = "3.40.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -3449,7 +3453,7 @@ module.exports = {
   verify: basicComponentVerification
 };
 
-},{"./braintree-error":43,"./errors":52,"./promise":58}],42:[function(_dereq_,module,exports){
+},{"./braintree-error":43,"./errors":54,"./promise":60}],42:[function(_dereq_,module,exports){
 'use strict';
 
 var once = _dereq_('./once');
@@ -3495,7 +3499,7 @@ module.exports = function (functions, cb) {
   }
 };
 
-},{"./once":57}],43:[function(_dereq_,module,exports){
+},{"./once":59}],43:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -3580,7 +3584,7 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":51}],44:[function(_dereq_,module,exports){
+},{"./enumerate":53}],44:[function(_dereq_,module,exports){
 'use strict';
 
 var isVerifiedDomain = _dereq_('../is-verified-domain');
@@ -3612,7 +3616,7 @@ module.exports = {
   checkOrigin: checkOrigin
 };
 
-},{"../is-verified-domain":54}],45:[function(_dereq_,module,exports){
+},{"../is-verified-domain":56}],45:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../enumerate');
@@ -3621,7 +3625,7 @@ module.exports = enumerate([
   'CONFIGURATION_REQUEST'
 ], 'bus:');
 
-},{"../enumerate":51}],46:[function(_dereq_,module,exports){
+},{"../enumerate":53}],46:[function(_dereq_,module,exports){
 'use strict';
 
 var bus = _dereq_('framebus');
@@ -3755,7 +3759,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":43,"./check-origin":44,"./events":45,"framebus":22}],47:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.39.0";
+var VERSION = "3.40.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -3810,7 +3814,24 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"./braintree-error":43,"./errors":52}],49:[function(_dereq_,module,exports){
+},{"./braintree-error":43,"./errors":54}],49:[function(_dereq_,module,exports){
+'use strict';
+
+// endRemoveIf(production)
+var ASSETS_URLS = _dereq_('./constants').ASSETS_URLS;
+
+function createAssetsUrl(authorization) {
+  // endRemoveIf(production)
+
+  return ASSETS_URLS.production;
+}
+/* eslint-enable */
+
+module.exports = {
+  create: createAssetsUrl
+};
+
+},{"./constants":47}],50:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/vendor/polyfill').atob;
@@ -3856,7 +3877,61 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/constants":47,"../lib/vendor/polyfill":60}],50:[function(_dereq_,module,exports){
+},{"../lib/constants":47,"../lib/vendor/polyfill":62}],51:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+
+var BraintreeError = _dereq_('./braintree-error');
+var Promise = _dereq_('./promise');
+var assets = _dereq_('./assets');
+var sharedErrors = _dereq_('./errors');
+
+var VERSION = "3.40.0";
+
+function createDeferredClient(options) {
+  var promise = Promise.resolve();
+
+  if (options.client) {
+    return Promise.resolve(options.client);
+  }
+
+  if (!(global.braintree && global.braintree.client)) {
+    promise = assets.loadScript({
+      src: options.assetsUrl + '/web/' + VERSION + '/js/client.min.js'
+    }).catch(function (err) {
+      return Promise.reject(new BraintreeError({
+        type: sharedErrors.CLIENT_SCRIPT_FAILED_TO_LOAD.type,
+        code: sharedErrors.CLIENT_SCRIPT_FAILED_TO_LOAD.code,
+        message: sharedErrors.CLIENT_SCRIPT_FAILED_TO_LOAD.message,
+        details: {
+          originalError: err
+        }
+      }));
+    });
+  }
+
+  return promise.then(function () {
+    if (global.braintree.client.VERSION !== VERSION) {
+      return Promise.reject(new BraintreeError({
+        type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
+        code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
+        message: 'Client (version ' + global.braintree.client.VERSION + ') and ' + options.name + ' (version ' + VERSION + ') components must be from the same SDK version.'
+      }));
+    }
+
+    return global.braintree.client.create({
+      authorization: options.authorization,
+      debug: options.debug
+    });
+  });
+}
+
+module.exports = {
+  create: createDeferredClient
+};
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./assets":39,"./braintree-error":43,"./errors":54,"./promise":60}],52:[function(_dereq_,module,exports){
 'use strict';
 
 var batchExecuteFunctions = _dereq_('./batch-execute-functions');
@@ -3894,7 +3969,7 @@ Destructor.prototype.teardown = function (callback) {
 
 module.exports = Destructor;
 
-},{"./batch-execute-functions":42}],51:[function(_dereq_,module,exports){
+},{"./batch-execute-functions":42}],53:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -3909,7 +3984,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],52:[function(_dereq_,module,exports){
+},{}],54:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -3924,6 +3999,7 @@ module.exports = enumerate;
  * @description Errors that occur when creating components.
  * @property {MERCHANT} INSTANTIATION_OPTION_REQUIRED Occurs when a compoennt is created that is missing a required option.
  * @property {MERCHANT} INCOMPATIBLE_VERSIONS Occurs when a component is created with a client with a different version than the component.
+ * @property {NETWORK} CLIENT_SCRIPT_FAILED_TO_LOAD Occurs when a component attempts to load the Braintree client script, but the request fails.
  */
 
 /**
@@ -3948,6 +4024,11 @@ module.exports = {
     type: BraintreeError.types.MERCHANT,
     code: 'INCOMPATIBLE_VERSIONS'
   },
+  CLIENT_SCRIPT_FAILED_TO_LOAD: {
+    type: BraintreeError.types.NETWORK,
+    code: 'CLIENT_SCRIPT_FAILED_TO_LOAD',
+    message: 'Braintree client script could not be loaded.'
+  },
   METHOD_CALLED_AFTER_TEARDOWN: {
     type: BraintreeError.types.MERCHANT,
     code: 'METHOD_CALLED_AFTER_TEARDOWN'
@@ -3959,7 +4040,7 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":43}],53:[function(_dereq_,module,exports){
+},{"./braintree-error":43}],55:[function(_dereq_,module,exports){
 'use strict';
 
 function EventEmitter() {
@@ -3989,7 +4070,7 @@ EventEmitter.prototype._emit = function (event) {
 
 module.exports = EventEmitter;
 
-},{}],54:[function(_dereq_,module,exports){
+},{}],56:[function(_dereq_,module,exports){
 'use strict';
 
 var parser;
@@ -4024,14 +4105,14 @@ function isVerifiedDomain(url) {
 
 module.exports = isVerifiedDomain;
 
-},{}],55:[function(_dereq_,module,exports){
+},{}],57:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],56:[function(_dereq_,module,exports){
+},{}],58:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -4040,9 +4121,9 @@ module.exports = function (obj) {
   });
 };
 
-},{}],57:[function(_dereq_,module,exports){
+},{}],59:[function(_dereq_,module,exports){
 arguments[4][18][0].apply(exports,arguments)
-},{"dup":18}],58:[function(_dereq_,module,exports){
+},{"dup":18}],60:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -4051,7 +4132,7 @@ var Promise = global.Promise || _dereq_('promise-polyfill');
 module.exports = Promise;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":23}],59:[function(_dereq_,module,exports){
+},{"promise-polyfill":23}],61:[function(_dereq_,module,exports){
 'use strict';
 
 function useMin(isDebug) {
@@ -4060,7 +4141,7 @@ function useMin(isDebug) {
 
 module.exports = useMin;
 
-},{}],60:[function(_dereq_,module,exports){
+},{}],62:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -4101,7 +4182,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],61:[function(_dereq_,module,exports){
+},{}],63:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {

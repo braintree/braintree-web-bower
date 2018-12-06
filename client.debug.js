@@ -11,15 +11,17 @@ module.exports = global.Promise || PromisePolyfill;
 'use strict';
 
 var Promise = _dereq_('./lib/promise');
+var scriptPromiseCache = {};
 
-module.exports = function loadScript(options) {
-  var attrs, container, script;
+function loadScript(options) {
+  var attrs, container, script, scriptLoadPromise;
+  var stringifiedOptions = JSON.stringify(options);
 
   if (!options.forceScriptReload) {
-    script = document.querySelector('script[src="' + options.src + '"]');
+    scriptLoadPromise = scriptPromiseCache[stringifiedOptions];
 
-    if (script) {
-      return Promise.resolve(script);
+    if (scriptLoadPromise) {
+      return scriptLoadPromise;
     }
   }
 
@@ -35,7 +37,7 @@ module.exports = function loadScript(options) {
     script.setAttribute('data-' + key, attrs[key]);
   });
 
-  return new Promise(function (resolve, reject) {
+  scriptLoadPromise = new Promise(function (resolve, reject) {
     script.addEventListener('load', function () {
       resolve(script);
     });
@@ -47,7 +49,17 @@ module.exports = function loadScript(options) {
     });
     container.appendChild(script);
   });
+
+  scriptPromiseCache[stringifiedOptions] = scriptLoadPromise;
+
+  return scriptLoadPromise;
+}
+
+loadScript.clearCache = function () {
+  scriptPromiseCache = {};
 };
+
+module.exports = loadScript;
 
 },{"./lib/promise":1}],3:[function(_dereq_,module,exports){
 (function (global){
@@ -1151,7 +1163,7 @@ module.exports = {
 
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Client = _dereq_('./client');
-var VERSION = "3.39.0";
+var VERSION = "3.40.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -2539,7 +2551,7 @@ module.exports = BraintreeError;
 },{"./enumerate":43}],38:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.39.0";
+var VERSION = "3.40.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -2706,6 +2718,7 @@ module.exports = enumerate;
  * @description Errors that occur when creating components.
  * @property {MERCHANT} INSTANTIATION_OPTION_REQUIRED Occurs when a compoennt is created that is missing a required option.
  * @property {MERCHANT} INCOMPATIBLE_VERSIONS Occurs when a component is created with a client with a different version than the component.
+ * @property {NETWORK} CLIENT_SCRIPT_FAILED_TO_LOAD Occurs when a component attempts to load the Braintree client script, but the request fails.
  */
 
 /**
@@ -2729,6 +2742,11 @@ module.exports = {
   INCOMPATIBLE_VERSIONS: {
     type: BraintreeError.types.MERCHANT,
     code: 'INCOMPATIBLE_VERSIONS'
+  },
+  CLIENT_SCRIPT_FAILED_TO_LOAD: {
+    type: BraintreeError.types.NETWORK,
+    code: 'CLIENT_SCRIPT_FAILED_TO_LOAD',
+    message: 'Braintree client script could not be loaded.'
   },
   METHOD_CALLED_AFTER_TEARDOWN: {
     type: BraintreeError.types.MERCHANT,
