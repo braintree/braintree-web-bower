@@ -1,4 +1,4 @@
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}(g.braintree || (g.braintree = {})).paypal = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(_dereq_,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}(g.braintree || (g.braintree = {})).localPayment = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1015,7 +1015,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":33,"./create-authorization-data":37,"./json-clone":55}],25:[function(_dereq_,module,exports){
+},{"./constants":33,"./create-authorization-data":37,"./json-clone":54}],25:[function(_dereq_,module,exports){
 'use strict';
 
 var Promise = _dereq_('./promise');
@@ -1055,7 +1055,7 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":24,"./constants":33,"./promise":58}],26:[function(_dereq_,module,exports){
+},{"./add-metadata":24,"./constants":33,"./promise":56}],26:[function(_dereq_,module,exports){
 'use strict';
 
 var loadScript = _dereq_('@braintree/asset-loader/load-script');
@@ -1137,7 +1137,7 @@ module.exports = {
   verify: basicComponentVerification
 };
 
-},{"./braintree-error":29,"./errors":41,"./promise":58}],29:[function(_dereq_,module,exports){
+},{"./braintree-error":29,"./errors":40,"./promise":56}],29:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -1222,7 +1222,7 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":40}],30:[function(_dereq_,module,exports){
+},{"./enumerate":39}],30:[function(_dereq_,module,exports){
 'use strict';
 
 var isVerifiedDomain = _dereq_('../is-verified-domain');
@@ -1254,7 +1254,7 @@ module.exports = {
   checkOrigin: checkOrigin
 };
 
-},{"../is-verified-domain":54}],31:[function(_dereq_,module,exports){
+},{"../is-verified-domain":53}],31:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../enumerate');
@@ -1263,7 +1263,7 @@ module.exports = enumerate([
   'CONFIGURATION_REQUEST'
 ], 'bus:');
 
-},{"../enumerate":40}],32:[function(_dereq_,module,exports){
+},{"../enumerate":39}],32:[function(_dereq_,module,exports){
 'use strict';
 
 var bus = _dereq_('framebus');
@@ -1452,7 +1452,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"./braintree-error":29,"./errors":41}],35:[function(_dereq_,module,exports){
+},{"./braintree-error":29,"./errors":40}],35:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -1537,7 +1537,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/constants":33,"../lib/vendor/polyfill":61}],38:[function(_dereq_,module,exports){
+},{"../lib/constants":33,"../lib/vendor/polyfill":59}],38:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1591,21 +1591,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./assets":26,"./braintree-error":29,"./errors":41,"./promise":58}],39:[function(_dereq_,module,exports){
-'use strict';
-
-module.exports = function (fn) {
-  return function () {
-    // IE9 doesn't support passing arguments to setTimeout so we have to emulate it.
-    var args = arguments;
-
-    setTimeout(function () {
-      fn.apply(null, args);
-    }, 1);
-  };
-};
-
-},{}],40:[function(_dereq_,module,exports){
+},{"./assets":26,"./braintree-error":29,"./errors":40,"./promise":56}],39:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -1620,7 +1606,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],41:[function(_dereq_,module,exports){
+},{}],40:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -1676,7 +1662,7 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":29}],42:[function(_dereq_,module,exports){
+},{"./braintree-error":29}],41:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1913,7 +1899,7 @@ FrameService.prototype._getFrameForEnvironment = function (options) {
 module.exports = FrameService;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../braintree-error":29,"../../bus":32,"../../is-https":53,"../../vendor/uuid":62,"../shared/browser-detection":49,"../shared/constants":50,"../shared/errors":51,"../shared/events":52,"./../../assign":27,"./strategies/modal":44,"./strategies/popup":47,"./strategies/popup-bridge":45,"@braintree/iframer":14}],43:[function(_dereq_,module,exports){
+},{"../../braintree-error":29,"../../bus":32,"../../is-https":52,"../../vendor/uuid":60,"../shared/browser-detection":48,"../shared/constants":49,"../shared/errors":50,"../shared/events":51,"./../../assign":27,"./strategies/modal":43,"./strategies/popup":46,"./strategies/popup-bridge":44,"@braintree/iframer":14}],42:[function(_dereq_,module,exports){
 'use strict';
 
 var FrameService = _dereq_('./frame-service');
@@ -1928,7 +1914,7 @@ module.exports = {
   }
 };
 
-},{"./frame-service":42}],44:[function(_dereq_,module,exports){
+},{"./frame-service":41}],43:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -2043,7 +2029,7 @@ Modal.prototype._lockScrolling = function () {
 module.exports = Modal;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../../assign":27,"../../shared/browser-detection":49,"@braintree/iframer":14}],45:[function(_dereq_,module,exports){
+},{"../../../assign":27,"../../shared/browser-detection":48,"@braintree/iframer":14}],44:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -2101,7 +2087,7 @@ PopupBridge.prototype.redirect = function (redirectUrl) {
 module.exports = PopupBridge;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../../braintree-error":29,"../../shared/errors":51}],46:[function(_dereq_,module,exports){
+},{"../../../braintree-error":29,"../../shared/errors":50}],45:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('../../../shared/constants');
@@ -2130,7 +2116,7 @@ module.exports = function composePopupOptions(options) {
   ].join(',');
 };
 
-},{"../../../shared/constants":50,"./position":48}],47:[function(_dereq_,module,exports){
+},{"../../../shared/constants":49,"./position":47}],46:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -2174,7 +2160,7 @@ Popup.prototype.redirect = function (redirectUrl) {
 module.exports = Popup;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./compose-options":46}],48:[function(_dereq_,module,exports){
+},{"./compose-options":45}],47:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -2203,7 +2189,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],49:[function(_dereq_,module,exports){
+},{}],48:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -2214,7 +2200,7 @@ module.exports = {
 };
 
 
-},{"@braintree/browser-detection/is-ie":6,"@braintree/browser-detection/is-ios":11,"@braintree/browser-detection/is-ios-wkwebview":10,"@braintree/browser-detection/supports-popups":13}],50:[function(_dereq_,module,exports){
+},{"@braintree/browser-detection/is-ie":6,"@braintree/browser-detection/is-ios":11,"@braintree/browser-detection/is-ios-wkwebview":10,"@braintree/browser-detection/supports-popups":13}],49:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -2227,7 +2213,7 @@ module.exports = {
   POPUP_CLOSE_TIMEOUT: 100
 };
 
-},{}],51:[function(_dereq_,module,exports){
+},{}],50:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -2259,7 +2245,7 @@ module.exports = {
   }
 };
 
-},{"../../braintree-error":29}],52:[function(_dereq_,module,exports){
+},{"../../braintree-error":29}],51:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../../enumerate');
@@ -2269,7 +2255,7 @@ module.exports = enumerate([
   'DISPATCH_FRAME_REPORT'
 ], 'frameService:');
 
-},{"../../enumerate":40}],53:[function(_dereq_,module,exports){
+},{"../../enumerate":39}],52:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -2284,7 +2270,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],54:[function(_dereq_,module,exports){
+},{}],53:[function(_dereq_,module,exports){
 'use strict';
 
 var parser;
@@ -2319,14 +2305,14 @@ function isVerifiedDomain(url) {
 
 module.exports = isVerifiedDomain;
 
-},{}],55:[function(_dereq_,module,exports){
+},{}],54:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],56:[function(_dereq_,module,exports){
+},{}],55:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -2335,9 +2321,7 @@ module.exports = function (obj) {
   });
 };
 
-},{}],57:[function(_dereq_,module,exports){
-arguments[4][19][0].apply(exports,arguments)
-},{"dup":19}],58:[function(_dereq_,module,exports){
+},{}],56:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -2346,7 +2330,7 @@ var Promise = global.Promise || _dereq_('promise-polyfill');
 module.exports = Promise;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":23}],59:[function(_dereq_,module,exports){
+},{"promise-polyfill":23}],57:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -2440,7 +2424,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],60:[function(_dereq_,module,exports){
+},{}],58:[function(_dereq_,module,exports){
 'use strict';
 
 function useMin(isDebug) {
@@ -2449,7 +2433,7 @@ function useMin(isDebug) {
 
 module.exports = useMin;
 
-},{}],61:[function(_dereq_,module,exports){
+},{}],59:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -2490,7 +2474,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],62:[function(_dereq_,module,exports){
+},{}],60:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {
@@ -2504,404 +2488,322 @@ function uuid() {
 
 module.exports = uuid;
 
-},{}],63:[function(_dereq_,module,exports){
+},{}],61:[function(_dereq_,module,exports){
+'use strict';
+
+module.exports = {
+  REQUIRED_OPTIONS_FOR_START_PAYMENT: ['onPaymentStart', 'paymentType', 'amount', 'fallback']
+};
+
+},{}],62:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
-var convertToBraintreeError = _dereq_('../../lib/convert-to-braintree-error');
 var useMin = _dereq_('../../lib/use-min');
-var once = _dereq_('../../lib/once');
 var VERSION = "3.41.0";
-var constants = _dereq_('../shared/constants');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
 var methods = _dereq_('../../lib/methods');
-var deferred = _dereq_('../../lib/deferred');
-var errors = _dereq_('../shared/errors');
 var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
-var querystring = _dereq_('../../lib/querystring');
+var convertToBraintreeError = _dereq_('../../lib/convert-to-braintree-error');
 var Promise = _dereq_('../../lib/promise');
+var querystring = _dereq_('../../lib/querystring');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-
-/**
- * @typedef {object} PayPal~tokenizePayload
- * @property {string} nonce The payment method nonce.
- * @property {string} type The payment method type, always `PayPalAccount`.
- * @property {object} details Additional PayPal account details.
- * @property {string} details.email User's email address.
- * @property {string} details.payerId User's payer ID, the unique identifier for each PayPal account.
- * @property {string} details.firstName User's given name.
- * @property {string} details.lastName User's surname.
- * @property {?string} details.countryCode User's 2 character country code.
- * @property {?string} details.phone User's phone number (e.g. 555-867-5309).
- * @property {?object} details.shippingAddress User's shipping address details, only available if shipping address is enabled.
- * @property {string} details.shippingAddress.recipientName Recipient of postage.
- * @property {string} details.shippingAddress.line1 Street number and name.
- * @property {string} details.shippingAddress.line2 Extended address.
- * @property {string} details.shippingAddress.city City or locality.
- * @property {string} details.shippingAddress.state State or region.
- * @property {string} details.shippingAddress.postalCode Postal code.
- * @property {string} details.shippingAddress.countryCode 2 character country code (e.g. US).
- * @property {?object} details.billingAddress User's billing address details.
- * Not available to all merchants; [contact PayPal](https://developers.braintreepayments.com/support/guides/paypal/setup-guide#contacting-paypal-support) for details on eligibility and enabling this feature.
- * Alternatively, see `shippingAddress` above as an available client option.
- * @property {string} details.billingAddress.line1 Street number and name.
- * @property {string} details.billingAddress.line2 Extended address.
- * @property {string} details.billingAddress.city City or locality.
- * @property {string} details.billingAddress.state State or region.
- * @property {string} details.billingAddress.postalCode Postal code.
- * @property {string} details.billingAddress.countryCode 2 character country code (e.g. US).
- * @property {?object} creditFinancingOffered This property will only be present when the customer pays with PayPal Credit.
- * @property {object} creditFinancingOffered.totalCost This is the estimated total payment amount including interest and fees the user will pay during the lifetime of the loan.
- * @property {string} creditFinancingOffered.totalCost.value An amount defined by [ISO 4217](http://www.iso.org/iso/home/standards/currency_codes.htm) for the given currency.
- * @property {string} creditFinancingOffered.totalCost.currency 3 letter currency code as defined by [ISO 4217](http://www.iso.org/iso/home/standards/currency_codes.htm).
- * @property {number} creditFinancingOffered.term Length of financing terms in months.
- * @property {object} creditFinancingOffered.monthlyPayment This is the estimated amount per month that the customer will need to pay including fees and interest.
- * @property {string} creditFinancingOffered.monthlyPayment.value An amount defined by [ISO 4217](http://www.iso.org/iso/home/standards/currency_codes.htm) for the given currency.
- * @property {string} creditFinancingOffered.monthlyPayment.currency 3 letter currency code as defined by [ISO 4217](http://www.iso.org/iso/home/standards/currency_codes.htm).
- * @property {object} creditFinancingOffered.totalInterest Estimated interest or fees amount the payer will have to pay during the lifetime of the loan.
- * @property {string} creditFinancingOffered.totalInterest.value An amount defined by [ISO 4217](http://www.iso.org/iso/home/standards/currency_codes.htm) for the given currency.
- * @property {string} creditFinancingOffered.totalInterest.currency 3 letter currency code as defined by [ISO 4217](http://www.iso.org/iso/home/standards/currency_codes.htm).
- * @property {boolean} creditFinancingOffered.payerAcceptance Status of whether the customer ultimately was approved for and chose to make the payment using the approved installment credit.
- * @property {boolean} creditFinancingOffered.cartAmountImmutable Indicates whether the cart amount is editable after payer's acceptance on PayPal side.
- *
- */
-
-/**
- * @typedef {object} PayPal~tokenizeReturn
- * @property {Function} close A handle to close the PayPal checkout flow.
- * @property {Function} focus A handle to focus the PayPal checkout flow. Note that some browsers (notably iOS Safari) do not support focusing popups. Firefox requires the focus call to occur as the result of a user interaction, such as a button click.
- */
+var constants = _dereq_('./constants');
+var errors = _dereq_('../shared/errors');
 
 /**
  * @class
- * @param {object} options see {@link module:braintree-web/paypal.create|paypal.create}
- * @classdesc This class represents a PayPal component. Instances of this class can open a PayPal window for authenticating a PayPal account. Any additional UI, such as disabling the page while authentication is taking place, is up to the developer.
+ * @param {object} options see {@link module:braintree-web/local-payment.create|local-payment.create}
+ * @classdesc This class represents a LocalPayment component. Instances of this class can open a LocalPayment window for paying with alternate payments local to a specific country. Any additional UI, such as disabling the page while authentication is taking place, is up to the developer.
  *
- * This component has been deprecated in favor of the {@link PayPalCheckout|PayPal Checkout component}, which provides a fully managed UI. New features will not be added to this component.
- * @description <strong>Do not use this constructor directly. Use {@link module:braintree-web/paypal.create|braintree-web.paypal.create} instead.</strong>
+ * @description <strong>Do not use this constructor directly. Use {@link module:braintree-web/local-payment.create|braintree-web.local-payment.create} instead.</strong>
  */
-function PayPal(options) {
+function LocalPayment(options) {
   this._client = options.client;
-  this._assetsUrl = options.client.getConfiguration().gatewayConfiguration.paypal.assetsUrl + '/web/' + VERSION;
+  this._assetsUrl = options.client.getConfiguration().gatewayConfiguration.assetsUrl + '/web/' + VERSION;
   this._isDebug = options.client.getConfiguration().isDebug;
-  this._loadingFrameUrl = this._assetsUrl + '/html/paypal-landing-frame' + useMin(this._isDebug) + '.html';
+  this._loadingFrameUrl = this._assetsUrl + '/html/local-payment-landing-frame' + useMin(this._isDebug) + '.html';
   this._authorizationInProgress = false;
+  this._paymentType = 'unknown';
+  this._merchantAccountId = options.merchantAccountId;
 }
 
-PayPal.prototype._initialize = function () {
+LocalPayment.prototype._initialize = function () {
   var self = this;
   var client = this._client;
   var failureTimeout = setTimeout(function () {
-    analytics.sendEvent(client, 'paypal.load.timed-out');
+    analytics.sendEvent(client, 'local-payment.load.timed-out');
   }, INTEGRATION_TIMEOUT_MS);
 
   return new Promise(function (resolve) {
     frameService.create({
-      name: constants.LANDING_FRAME_NAME,
+      name: 'localpaymentlandingpage',
       dispatchFrameUrl: self._assetsUrl + '/html/dispatch-frame' + useMin(self._isDebug) + '.html',
       openFrameUrl: self._loadingFrameUrl
     }, function (service) {
       self._frameService = service;
       clearTimeout(failureTimeout);
-      analytics.sendEvent(client, 'paypal.load.succeeded');
+      analytics.sendEvent(client, 'local-payment.load.succeeded');
       resolve(self);
     });
   });
 };
 
 /**
- * Launches the PayPal login flow and returns a nonce payload. Only one PayPal login flow should be active at a time. One way to achieve this is to disable your PayPal button while the flow is open.
+ * Launches the local payment flow and returns a nonce payload. Only one local payment flow should be active at a time. One way to achieve this is to disable your local payment button while the flow is open.
  * @public
- * @param {object} options All tokenization options for the PayPal component.
- * @param {string} options.flow Set to 'checkout' for one-time payment flow, or 'vault' for Vault flow. If 'vault' is used with a client token generated with a customer id, the PayPal account will be added to that customer as a saved payment method.
- * @param {string} [options.intent=authorize]
- * * `authorize` - Submits the transaction for authorization but not settlement.
- * * `order` - Validates the transaction without an authorization (i.e. without holding funds). Useful for authorizing and capturing funds up to 90 days after the order has been placed. Only available for Checkout flow.
- * * `sale` - Payment will be immediately submitted for settlement upon creating a transaction.
- * @param {boolean} [options.offerCredit=false] Offers PayPal Credit as the default funding instrument for the transaction. If the customer isn't pre-approved for PayPal Credit, they will be prompted to apply for it.
- * @param {string} [options.useraction]
- * Changes the call-to-action in the PayPal flow. By default the final button will show the localized
- * word for "Continue" and implies that the final amount billed is not yet known.
- *
- * Setting this option to `commit` changes the button text to "Pay Now" and page text will convey to
- * the user that billing will take place immediately.
- * @param {string|number} [options.amount] The amount of the transaction. Required when using the Checkout flow.
- * @param {string} [options.currency] The currency code of the amount, such as 'USD'. Required when using the Checkout flow.
- * @param {string} [options.displayName] The merchant name displayed inside of the PayPal lightbox; defaults to the company name on your Braintree account
- * @param {string} [options.locale=en_US] Use this option to change the language, links, and terminology used in the PayPal flow. This locale will be used unless the buyer has set a preferred locale for their account. If an unsupported locale is supplied, a fallback locale (determined by buyer preference or browser data) will be used and no error will be thrown.
- *
- * Supported locales are:
- * `da_DK`,
- * `de_DE`,
- * `en_AU`,
- * `en_GB`,
- * `en_US`,
- * `es_ES`,
- * `fr_CA`,
- * `fr_FR`,
- * `id_ID`,
- * `it_IT`,
- * `ja_JP`,
- * `ko_KR`,
- * `nl_NL`,
- * `no_NO`,
- * `pl_PL`,
- * `pt_BR`,
- * `pt_PT`,
- * `ru_RU`,
- * `sv_SE`,
- * `th_TH`,
- * `zh_CN`,
- * `zh_HK`,
- * and `zh_TW`.
- *
- * @param {boolean} [options.enableShippingAddress=false] Returns a shipping address object in {@link PayPal#tokenize}.
- * @param {object} [options.shippingAddressOverride] Allows you to pass a shipping address you have already collected into the PayPal payment flow.
- * @param {string} options.shippingAddressOverride.line1 Street address.
- * @param {string} [options.shippingAddressOverride.line2] Street address (extended).
- * @param {string} options.shippingAddressOverride.city City.
- * @param {string} options.shippingAddressOverride.state State.
- * @param {string} options.shippingAddressOverride.postalCode Postal code.
- * @param {string} options.shippingAddressOverride.countryCode Country.
- * @param {string} [options.shippingAddressOverride.phone] Phone number.
- * @param {string} [options.shippingAddressOverride.recipientName] Recipient's name.
- * @param {boolean} [options.shippingAddressEditable=true] Set to false to disable user editing of the shipping address.
- * @param {string} [options.billingAgreementDescription] Use this option to set the description of the preapproved payment agreement visible to customers in their PayPal profile during Vault flows. Max 255 characters.
- * @param {string} [options.landingPageType] Use this option to specify the PayPal page to display when a user lands on the PayPal site to complete the payment.
- * * `login` - A PayPal account login page is used.
- * * `billing` - A non-PayPal account landing page is used.
- * @param {callback} callback The second argument, <code>data</code>, is a {@link PayPal~tokenizePayload|tokenizePayload}.
+ * @function
+ * @param {object} options All options for initiating the local payment payment flow.
+ * @param {object} options.fallback Configuration for what to do when app switching back from a Bank app on a mobile device.
+ * @param {string} options.fallback.buttonText The text to insert into a button to redirect back to the merchant page.
+ * @param {string} options.fallback.url The url to redirect to when the redirect button is activated. Query params will be added to the url to process the data returned from the bank.
+ * @param {string} options.amount The amount to authorize for the transaction.
+ * @param {string} options.currencyCode The currency to process the payment.
+ * @param {string} options.paymentType The type of local payment.
+ * @param {string} options.email Payer email of the customer.
+ * @param {string} options.givenName First name of the customer.
+ * @param {string} options.surname Last name of the customer.
+ * @param {string} options.phone Phone number of the customer.
+ * @param {boolean} options.shippingAddressRequired Indicates whether or not the payment needs to be shipped. For digital goods, this should be false. Defaults to false.
+ * @param {string} options.address.streetAddress Line 1 of the Address (eg. number, street, etc). An error will occur if this address is not valid.
+ * @param {string} options.address.extendedAddress Line 2 of the Address (eg. suite, apt #, etc.). An error will occur if this address is not valid.
+ * @param {string} options.address.locality Customer's city.
+ * @param {string} options.address.region Customer's region or state.
+ * @param {string} options.address.postalCode Customer's postal code.
+ * @param {string} options.address.countryCode Customer's country code.
+ * @param {function} options.onPaymentStart A function that will be called with two parameters: an object containing the  `paymentId` and a `continueCallback` that must be called to launch the flow. You can use method to do any preprocessing on your server before the flow begins..
+ * @param {callback} [callback] The second argument, <code>data</code>, is a {@link LocalPayment~startPaymentPayload|startPaymentPayload}. If no callback is provided, the method will return a Promise that resolves with a {@link LocalPayment~startPaymentPayload|startPaymentPayload}.
  * @example
- * <caption>Tokenizing with the vault flow</caption>
  * button.addEventListener('click', function () {
- *   // Disable the button so that we don't attempt to open multiple popups.
+ *   // Disable the button when local payment is in progress
  *   button.setAttribute('disabled', 'disabled');
  *
- *   // if there is any other part of the page that must be disabled
- *   // while authentication is in progress, do so now
- *
- *   // Because PayPal tokenization opens a popup, this must be called
+ *   // Because startPayment opens a new window, this must be called
  *   // as a result of a user action, such as a button click.
- *   paypalInstance.tokenize({
- *     flow: 'vault' // Required
- *     // Any other tokenization options
- *   }, function (tokenizeErr, payload) {
- *     button.removeAttribute('disabled');
- *
- *     // if any other part of the page was disabled, re-enable now
- *
- *     if (tokenizeErr) {
- *       // Handle tokenization errors or premature flow closure
- *
- *       switch (tokenizeErr.code) {
- *         case 'PAYPAL_POPUP_CLOSED':
- *           console.error('Customer closed PayPal popup.');
- *           break;
- *         case 'PAYPAL_ACCOUNT_TOKENIZATION_FAILED':
- *           console.error('PayPal tokenization failed. See details:', tokenizeErr.details);
- *           break;
- *         case 'PAYPAL_FLOW_FAILED':
- *           console.error('Unable to initialize PayPal flow. Are your options correct?', tokenizeErr.details);
- *           break;
- *         default:
- *           console.error('Error!', tokenizeErr);
- *       }
- *     } else {
- *       // Submit payload.nonce to your server
+ *   localPaymentInstance.startPayment({
+ *     paymentType: 'ideal',
+ *     fallback: {
+ *       buttonText: 'Return to Merchant',
+ *       url: 'https://example.com/my-checkout-page'
+ *     },
+ *     amount: '10.00',
+ *     currency: 'EUR',
+ *     onPaymentStart: function (data, continueCallback) {
+ *       // Do any preprocessing before starting the flow
+ *       // data.paymentId is the ID of the localPayment
+ *       continueCallback();
  *     }
+ *   }).then(function (payload) {
+ *     button.removeAttribute('disabled');
+ *     // Submit payload.nonce to your server
+ *   }).catch(function (startPaymentError) {
+ *     button.removeAttribute('disabled');
+ *     // Handle flow errors or premature flow closure
+ *     console.error('Error!', startPaymentError);
  *   });
  * });
-
- * @example
- * <caption>Tokenizing with the checkout flow</caption>
- * button.addEventListener('click', function () {
- *   // Disable the button so that we don't attempt to open multiple popups.
- *   button.setAttribute('disabled', 'disabled');
- *
- *   // Because PayPal tokenization opens a popup, this must be called
- *   // as a result of a user action, such as a button click.
- *   paypalInstance.tokenize({
- *     flow: 'checkout', // Required
- *     amount: '10.00', // Required
- *     currency: 'USD' // Required
- *     // Any other tokenization options
- *   }, function (tokenizeErr, payload) {
- *     button.removeAttribute('disabled');
- *
- *     if (tokenizeErr) {
- *       // Handle tokenization errors or premature flow closure
- *
- *       switch (tokenizeErr.code) {
- *         case 'PAYPAL_POPUP_CLOSED':
- *           console.error('Customer closed PayPal popup.');
- *           break;
- *         case 'PAYPAL_ACCOUNT_TOKENIZATION_FAILED':
- *           console.error('PayPal tokenization failed. See details:', tokenizeErr.details);
- *           break;
- *         case 'PAYPAL_FLOW_FAILED':
- *           console.error('Unable to initialize PayPal flow. Are your options correct?', tokenizeErr.details);
- *           break;
- *         default:
- *           console.error('Error!', tokenizeErr);
- *       }
- *     } else {
- *       // Submit payload.nonce to your server
- *     }
- *   });
- * });
- * @returns {Promise|PayPal~tokenizeReturn} A handle to manage the PayPal checkout frame. If no callback is provided, returns a promise.
+ * @returns {Promise|void}
  */
-PayPal.prototype.tokenize = function (options, callback) {
-  var self = this;
-  var client = this._client;
-  var tokenizePromise, optionError;
+LocalPayment.prototype.startPayment = wrapPromise(function (options) {
+  var address, params;
+  var self = this; // eslint-disable-line no-invalid-this
+  var serviceId = this._frameService._serviceId; // eslint-disable-line no-invalid-this
 
-  if (callback) {
-    callback = once(deferred(callback));
+  if (hasMissingOption(options)) {
+    return Promise.reject(new BraintreeError(errors.LOCAL_PAYMENT_START_PAYMENT_MISSING_REQUIRED_OPTION));
   }
 
-  if (!options || !constants.FLOW_ENDPOINTS.hasOwnProperty(options.flow)) {
-    optionError = new BraintreeError(errors.PAYPAL_FLOW_OPTION_REQUIRED);
+  address = options.address || {};
+  params = {
+    intent: 'sale',
+    returnUrl: querystring.queryify(self._assetsUrl + '/html/local-payment-redirect-frame' + useMin(self._isDebug) + '.html', {
+      channel: serviceId,
+      r: options.fallback.url,
+      t: options.fallback.buttonText
+    }),
+    cancelUrl: querystring.queryify(self._assetsUrl + '/html/local-payment-cancel-frame' + useMin(self._isDebug) + '.html', {
+      channel: serviceId
+    }),
+    experienceProfile: {
+      noShipping: !options.shippingAddressRequired
+    },
+    fundingSource: options.paymentType,
+    amount: options.amount,
+    currencyIsoCode: options.currencyCode,
+    firstName: options.givenName,
+    lastName: options.surname,
+    payerEmail: options.email,
+    phone: options.phone,
+    line1: address.streetAddress,
+    line2: address.extendedAddress,
+    city: address.locality,
+    state: address.region,
+    postalCode: address.postalCode,
+    countryCode: address.countryCode,
+    merchantAccountId: self._merchantAccountId
+  };
 
-    if (callback) {
-      callback(optionError);
+  self._paymentType = options.paymentType.toLowerCase();
+  if (self._authorizationInProgress) {
+    analytics.sendEvent(self._client, self._paymentType + '.local-payment.start-payment.error.already-opened');
 
-      return this._frameService.createNoopHandler();
-    }
-
-    return Promise.reject(optionError);
+    return Promise.reject(new BraintreeError(errors.LOCAL_PAYMENT_ALREADY_IN_PROGRESS));
   }
 
-  tokenizePromise = new Promise(function (resolve, reject) {
-    if (self._authorizationInProgress) {
-      analytics.sendEvent(client, 'paypal.tokenization.error.already-opened');
+  self._authorizationInProgress = true;
 
-      reject(new BraintreeError(errors.PAYPAL_TOKENIZATION_REQUEST_ACTIVE));
-    } else {
-      self._authorizationInProgress = true;
+  return new Promise(function (resolve, reject) {
+    self._startPaymentCallback = self._createStartPaymentCallback(resolve, reject);
 
-      if (!global.popupBridge) {
-        analytics.sendEvent(client, 'paypal.tokenization.opened');
-      }
+    self._frameService.open({}, self._startPaymentCallback);
 
-      if (options.offerCredit === true) {
-        analytics.sendEvent(client, 'paypal.credit.offered');
-      }
+    self._client.request({
+      method: 'post',
+      endpoint: 'paypal_hermes/create_payment_resource',
+      data: params
+    }).then(function (response) {
+      analytics.sendEvent(self._client, self._paymentType + '.local-payment.start-payment.opened');
+      self._startPaymentOptions = options;
+      options.onPaymentStart({paymentId: response.paymentResource.paymentToken}, function () {
+        self._frameService.redirect(response.paymentResource.redirectUrl);
+      });
+    }).catch(function (err) {
+      var status = err.details && err.details.httpStatus;
 
-      self._navigateFrameToAuth(options).catch(reject);
-      // self MUST happen after _navigateFrameToAuth for Metro browsers to work.
-      self._frameService.open({}, self._createFrameServiceCallback(options, resolve, reject));
-    }
-  });
-
-  if (callback) {
-    tokenizePromise.then(function (res) {
-      callback(null, res);
-    }).catch(callback);
-
-    return this._frameService.createHandler({
-      beforeClose: function () {
-        analytics.sendEvent(client, 'paypal.tokenization.closed.by-merchant');
-      }
-    });
-  }
-
-  return tokenizePromise;
-};
-
-PayPal.prototype._createFrameServiceCallback = function (options, resolve, reject) {
-  var self = this;
-  var client = this._client;
-
-  if (global.popupBridge) {
-    return function (err, payload) {
-      var cancelled = payload && payload.path && payload.path.substring(0, 7) === '/cancel';
-
+      self._frameService.close();
       self._authorizationInProgress = false;
 
-      // `err` exists when the user clicks "Done" button of browser view
-      if (err || cancelled) {
-        analytics.sendEvent(client, 'paypal.tokenization.closed-popupbridge.by-user');
-        // Call merchant's tokenize callback with an error
-        reject(new BraintreeError(errors.PAYPAL_POPUP_CLOSED));
-      } else if (payload) {
-        self._tokenizePayPal(options, payload.queryItems).then(resolve).catch(reject);
+      if (status === 422) {
+        reject(new BraintreeError({
+          type: errors.LOCAL_PAYMENT_INVALID_PAYMENT_OPTION.type,
+          code: errors.LOCAL_PAYMENT_INVALID_PAYMENT_OPTION.code,
+          message: errors.LOCAL_PAYMENT_INVALID_PAYMENT_OPTION.message,
+          details: {
+            originalError: err
+          }
+        }));
+
+        return;
       }
-    };
+
+      reject(convertToBraintreeError(err, {
+        type: errors.LOCAL_PAYMENT_START_PAYMENT_FAILED.type,
+        code: errors.LOCAL_PAYMENT_START_PAYMENT_FAILED.code,
+        message: errors.LOCAL_PAYMENT_START_PAYMENT_FAILED.message
+      }));
+    });
+  });
+});
+
+/**
+ * Manually tokenizes params for a local payment received from PayPal.When app switching back from a mobile application (such as a bank application for an iDEAL payment), the window may lose context with the parent page. In that case, a fallback url is used, and this method can be used to finish the flow.
+ * @public
+ * @function
+ * @param {object} [params] All options for tokenizing local payment parameters. If no params are passed in, the params will be pulled off of the query string of the page.
+ * @param {string} params.btLpToken The token representing the local payment. Aliased to `token` if `btLpToken` is not present.
+ * @param {string} params.btLpPaymentId The payment id for the local payment. Aliased to `paymentId` if `btLpPaymentId` is not present.
+ * @param {string} params.btLpPayerId The payer id for the local payment. Aliased to `PayerID` if `btLpPayerId` is not present.
+ * @param {callback} [callback] The second argument, <code>data</code>, is a {@link LocalPayment~startPaymentPayload|startPaymentPayload}. If no callback is provided, the method will return a Promise that resolves with a {@link LocalPayment~startPaymentPayload|startPaymentPayload}.
+ * @example
+ * localPaymentInstance.tokenize().then(function (payload) {
+ *   // send payload.nonce to your server
+ * }).catch(function (err) {
+ *   // handle tokenization error
+ * });
+ * @returns {Promise|void} Returns a promise if no callback is provided.
+ */
+LocalPayment.prototype.tokenize = function (params) {
+  var self = this;
+  var client = this._client;
+
+  params = params || querystring.parse();
+
+  return client.request({
+    endpoint: 'payment_methods/paypal_accounts',
+    method: 'post',
+    data: this._formatTokenizeData(params)
+  }).then(function (response) {
+    var payload = self._formatTokenizePayload(response);
+
+    if (global.popupBridge) {
+      analytics.sendEvent(client, self._paymentType + '.local-payment.tokenization.success-popupbridge');
+    } else {
+      analytics.sendEvent(client, self._paymentType + '.local-payment.tokenization.success');
+    }
+
+    return payload;
+  }).catch(function (err) {
+    analytics.sendEvent(client, self._paymentType + '.local-payment.tokenization.failed');
+
+    return Promise.reject(convertToBraintreeError(err, {
+      type: errors.LOCAL_PAYMENT_TOKENIZATION_FAILED.type,
+      code: errors.LOCAL_PAYMENT_TOKENIZATION_FAILED.code,
+      message: errors.LOCAL_PAYMENT_TOKENIZATION_FAILED.message
+    }));
+  });
+};
+
+/**
+ * Closes the LocalPayment window if it is open.
+ * @public
+ * @example
+ * localPaymentInstance.closeWindow();
+ * @returns {void}
+ */
+LocalPayment.prototype.closeWindow = function () {
+  if (this._authoriztionInProgress) {
+    analytics.sendEvent(this._client, this._paymentType + '.local-payment.start-payment.closed.by-merchant');
   }
+  this._frameService.close();
+};
+
+/**
+ * Focuses the LocalPayment window if it is open.
+ * @public
+ * @example
+ * localPaymentInstance.focusWindow();
+ * @returns {void}
+ */
+LocalPayment.prototype.focusWindow = function () {
+  this._frameService.focus();
+};
+
+LocalPayment.prototype._createStartPaymentCallback = function (resolve, reject) {
+  var self = this;
+  var client = this._client;
 
   return function (err, params) {
     self._authorizationInProgress = false;
-
     if (err) {
       if (err.code === 'FRAME_SERVICE_FRAME_CLOSED') {
-        analytics.sendEvent(client, 'paypal.tokenization.closed.by-user');
-        reject(new BraintreeError(errors.PAYPAL_POPUP_CLOSED));
+        analytics.sendEvent(client, self._paymentType + '.local-payment.tokenization.closed.by-user');
+        reject(new BraintreeError(errors.LOCAL_PAYMENT_WINDOW_CLOSED));
       } else if (err.code && err.code.indexOf('FRAME_SERVICE_FRAME_OPEN_FAILED') > -1) {
         reject(new BraintreeError({
-          code: errors.PAYPAL_POPUP_OPEN_FAILED.code,
-          type: errors.PAYPAL_POPUP_OPEN_FAILED.type,
-          message: errors.PAYPAL_POPUP_OPEN_FAILED.message,
+          code: errors.LOCAL_PAYMENT_WINDOW_OPEN_FAILED.code,
+          type: errors.LOCAL_PAYMENT_WINDOW_OPEN_FAILED.type,
+          message: errors.LOCAL_PAYMENT_WINDOW_OPEN_FAILED.message,
           details: {
             originalError: err
           }
         }));
       }
     } else if (params) {
-      self._tokenizePayPal(options, params).then(resolve).catch(reject);
+      if (!global.popupBridge) {
+        self._frameService.redirect(self._loadingFrameUrl);
+      }
+
+      self.tokenize(params).then(resolve).catch(reject).then(function () {
+        self._frameService.close();
+      });
     }
   };
 };
 
-PayPal.prototype._tokenizePayPal = function (options, params) {
-  var self = this;
-  var client = this._client;
-
-  if (!global.popupBridge) {
-    this._frameService.redirect(this._loadingFrameUrl);
-  }
-
-  return client.request({
-    endpoint: 'payment_methods/paypal_accounts',
-    method: 'post',
-    data: this._formatTokenizeData(options, params)
-  }).then(function (response) {
-    var payload = self._formatTokenizePayload(response);
-
-    if (global.popupBridge) {
-      analytics.sendEvent(client, 'paypal.tokenization.success-popupbridge');
-    } else {
-      analytics.sendEvent(client, 'paypal.tokenization.success');
-    }
-
-    if (payload.creditFinancingOffered) {
-      analytics.sendEvent(client, 'paypal.credit.accepted');
-    }
-
-    self._frameService.close();
-
-    return payload;
-  }).catch(function (err) {
-    if (global.popupBridge) {
-      analytics.sendEvent(client, 'paypal.tokenization.failed-popupbridge');
-    } else {
-      analytics.sendEvent(client, 'paypal.tokenization.failed');
-    }
-
-    self._frameService.close();
-
-    return Promise.reject(convertToBraintreeError(err, {
-      type: errors.PAYPAL_ACCOUNT_TOKENIZATION_FAILED.type,
-      code: errors.PAYPAL_ACCOUNT_TOKENIZATION_FAILED.code,
-      message: errors.PAYPAL_ACCOUNT_TOKENIZATION_FAILED.message
-    }));
-  });
-};
-
-PayPal.prototype._formatTokenizePayload = function (response) {
+LocalPayment.prototype._formatTokenizePayload = function (response) {
   var payload;
   var account = {};
 
@@ -2915,213 +2817,124 @@ PayPal.prototype._formatTokenizePayload = function (response) {
     type: account.type
   };
 
-  if (account.details && account.details.payerInfo) {
-    payload.details = account.details.payerInfo;
-  }
-
-  if (account.details && account.details.creditFinancingOffered) {
-    payload.creditFinancingOffered = account.details.creditFinancingOffered;
+  if (account.details) {
+    if (account.details.payerInfo) {
+      payload.details = account.details.payerInfo;
+    }
+    if (account.details.correlationId) {
+      payload.correlationId = account.details.correlationId;
+    }
   }
 
   return payload;
 };
 
-PayPal.prototype._formatTokenizeData = function (options, params) {
+/**
+ * Checks if required tokenizaiton parameters are available in querystring for manual toenization requests.
+ * @public
+ * @function
+ * @example
+ * // if query string contains
+ * // ?btLpToken=token&btLpPaymentId=payment-id&btLpPayerId=payer-id
+ * localPaymentInstance.hasTokenizationParams(); // true
+ *
+ * // if query string is missing required params
+ * localPaymentInstance.hasTokenizationParams(); // false
+ *
+ * if (localPaymentInstance.hasTokenizationParams()) {
+ *   localPaymentInstance.tokenize();
+ * }
+ * @returns {Boolean} Returns a Boolean value for the state of the query string.
+ */
+LocalPayment.prototype.hasTokenizationParams = function () {
+  var params = querystring.parse();
+
+  return Boolean(params.btLpToken && params.btLpPaymentId && params.btLpPayerId);
+};
+
+LocalPayment.prototype._formatTokenizeData = function (params) {
   var clientConfiguration = this._client.getConfiguration();
   var gatewayConfiguration = clientConfiguration.gatewayConfiguration;
-  var isTokenizationKey = clientConfiguration.authorizationType === 'TOKENIZATION_KEY';
   var data = {
+    merchantAccountId: this._merchantAccountId,
     paypalAccount: {
-      correlationId: params.ba_token || params.token,
-      options: {
-        validate: options.flow === 'vault' && !isTokenizationKey
-      }
+      correlationId: params.btLpToken || params.token,
+      paymentToken: params.btLpPaymentId || params.paymentId,
+      payerId: params.btLpPayerId || params.PayerID,
+      unilateral: gatewayConfiguration.paypal.unvettedMerchant,
+      intent: 'sale'
     }
   };
-
-  if (params.ba_token) {
-    data.paypalAccount.billingAgreementToken = params.ba_token;
-  } else {
-    data.paypalAccount.paymentToken = params.paymentId;
-    data.paypalAccount.payerId = params.PayerID;
-    data.paypalAccount.unilateral = gatewayConfiguration.paypal.unvettedMerchant;
-
-    if (options.hasOwnProperty('intent')) {
-      data.paypalAccount.intent = options.intent;
-    }
-  }
 
   return data;
 };
 
-PayPal.prototype._navigateFrameToAuth = function (options) {
-  var self = this;
-  var client = this._client;
-  var endpoint = 'paypal_hermes/' + constants.FLOW_ENDPOINTS[options.flow];
+function hasMissingOption(options) {
+  var i, option;
 
-  return client.request({
-    endpoint: endpoint,
-    method: 'post',
-    data: this._formatPaymentResourceData(options)
-  }).then(function (response) {
-    var redirectUrl;
-
-    if (options.flow === 'checkout') {
-      redirectUrl = response.paymentResource.redirectUrl;
-    } else {
-      redirectUrl = response.agreementSetup.approvalUrl;
-    }
-
-    if (options.useraction === 'commit') {
-      redirectUrl = querystring.queryify(redirectUrl, {useraction: 'commit'});
-    }
-
-    if (global.popupBridge) {
-      analytics.sendEvent(client, 'paypal.tokenization.opened-popupbridge');
-    }
-
-    self._frameService.redirect(redirectUrl);
-  }).catch(function (err) {
-    var status = err.details && err.details.httpStatus;
-
-    self._frameService.close();
-    self._authorizationInProgress = false;
-
-    if (status === 422) {
-      return Promise.reject(new BraintreeError({
-        type: errors.PAYPAL_INVALID_PAYMENT_OPTION.type,
-        code: errors.PAYPAL_INVALID_PAYMENT_OPTION.code,
-        message: errors.PAYPAL_INVALID_PAYMENT_OPTION.message,
-        details: {
-          originalError: err
-        }
-      }));
-    }
-
-    return Promise.reject(convertToBraintreeError(err, {
-      type: errors.PAYPAL_FLOW_FAILED.type,
-      code: errors.PAYPAL_FLOW_FAILED.code,
-      message: errors.PAYPAL_FLOW_FAILED.message
-    }));
-  });
-};
-
-PayPal.prototype._formatPaymentResourceData = function (options) {
-  var key;
-  var gatewayConfiguration = this._client.getConfiguration().gatewayConfiguration;
-  var serviceId = this._frameService._serviceId;
-  var paymentResource = {
-    returnUrl: gatewayConfiguration.paypal.assetsUrl + '/web/' + VERSION + '/html/paypal-redirect-frame' + useMin(this._isDebug) + '.html?channel=' + serviceId,
-    cancelUrl: gatewayConfiguration.paypal.assetsUrl + '/web/' + VERSION + '/html/paypal-cancel-frame' + useMin(this._isDebug) + '.html?channel=' + serviceId,
-    offerPaypalCredit: options.offerCredit === true,
-    experienceProfile: {
-      brandName: options.displayName || gatewayConfiguration.paypal.displayName,
-      localeCode: options.locale,
-      noShipping: (!options.enableShippingAddress).toString(),
-      addressOverride: options.shippingAddressEditable === false,
-      landingPageType: options.landingPageType
-    }
-  };
-
-  if (global.popupBridge && typeof global.popupBridge.getReturnUrlPrefix === 'function') {
-    paymentResource.returnUrl = global.popupBridge.getReturnUrlPrefix() + 'return';
-    paymentResource.cancelUrl = global.popupBridge.getReturnUrlPrefix() + 'cancel';
+  if (!options) {
+    return true;
   }
 
-  if (options.flow === 'checkout') {
-    paymentResource.amount = options.amount;
-    paymentResource.currencyIsoCode = options.currency;
+  for (i = 0; i < constants.REQUIRED_OPTIONS_FOR_START_PAYMENT.length; i++) {
+    option = constants.REQUIRED_OPTIONS_FOR_START_PAYMENT[i];
 
-    if (options.hasOwnProperty('intent')) {
-      paymentResource.intent = options.intent;
-    }
-
-    for (key in options.shippingAddressOverride) {
-      if (options.shippingAddressOverride.hasOwnProperty(key)) {
-        paymentResource[key] = options.shippingAddressOverride[key];
-      }
-    }
-  } else {
-    paymentResource.shippingAddress = options.shippingAddressOverride;
-
-    if (options.billingAgreementDescription) {
-      paymentResource.description = options.billingAgreementDescription;
+    if (!options.hasOwnProperty(option)) {
+      return true;
     }
   }
 
-  return paymentResource;
-};
-
-/**
- * Closes the PayPal window if it is open.
- * @public
- * @example
- * paypalInstance.closeWindow();
- * @returns {void}
- */
-PayPal.prototype.closeWindow = function () {
-  if (this._authorizationInProgress) {
-    analytics.sendEvent(this._client, 'paypal.tokenize.closed.by-merchant');
+  if (!(options.fallback.url && options.fallback.buttonText)) {
+    return true;
   }
-  this._frameService.close();
-};
+
+  return false;
+}
 
 /**
- * Focuses the PayPal window if it is open.
- * @public
- * @example
- * paypalInstance.focusWindow();
- * @returns {void}
- */
-PayPal.prototype.focusWindow = function () {
-  this._frameService.focus();
-};
-
-/**
- * Cleanly remove anything set up by {@link module:braintree-web/paypal.create|create}.
+ * Cleanly remove anything set up by {@link module:braintree-web/local-payment.create|create}.
  * @public
  * @param {callback} [callback] Called on completion.
  * @example
- * paypalInstance.teardown();
+ * localPaymentInstance.teardown();
  * @example <caption>With callback</caption>
- * paypalInstance.teardown(function () {
+ * localPaymentInstance.teardown(function () {
  *   // teardown is complete
  * });
  * @returns {Promise|void} Returns a promise if no callback is provided.
  */
-PayPal.prototype.teardown = wrapPromise(function () {
+LocalPayment.prototype.teardown = wrapPromise(function () {
   var self = this; // eslint-disable-line no-invalid-this
 
   self._frameService.teardown();
 
-  convertMethodsToError(self, methods(PayPal.prototype));
+  convertMethodsToError(self, methods(LocalPayment.prototype));
 
-  analytics.sendEvent(self._client, 'paypal.teardown-completed');
+  analytics.sendEvent(self._client, 'local-payment.teardown-completed');
 
   return Promise.resolve();
 });
 
-module.exports = PayPal;
+module.exports = LocalPayment;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../lib/analytics":25,"../../lib/braintree-error":29,"../../lib/constants":33,"../../lib/convert-methods-to-error":34,"../../lib/convert-to-braintree-error":35,"../../lib/deferred":39,"../../lib/frame-service/external":43,"../../lib/methods":56,"../../lib/once":57,"../../lib/promise":58,"../../lib/querystring":59,"../../lib/use-min":60,"../shared/constants":65,"../shared/errors":66,"@braintree/wrap-promise":21}],64:[function(_dereq_,module,exports){
+},{"../../lib/analytics":25,"../../lib/braintree-error":29,"../../lib/constants":33,"../../lib/convert-methods-to-error":34,"../../lib/convert-to-braintree-error":35,"../../lib/frame-service/external":42,"../../lib/methods":55,"../../lib/promise":56,"../../lib/querystring":57,"../../lib/use-min":58,"../shared/errors":64,"./constants":61,"@braintree/wrap-promise":21}],63:[function(_dereq_,module,exports){
 'use strict';
 /**
- * @module braintree-web/paypal
- * @description A component to integrate with PayPal.
- * @deprecated Use the {@link PayPalCheckout|PayPal Checkout component} instead.
+ * @module braintree-web/local-payment
+ * @description A component to integrate with local payment methods. *This component is currently in beta and is subject to change.*
  */
 
 var analytics = _dereq_('../lib/analytics');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
+var LocalPayment = _dereq_('./external/local-payment');
+var VERSION = "3.41.0";
+var Promise = _dereq_('../lib/promise');
+var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var errors = _dereq_('./shared/errors');
-var PayPal = _dereq_('./external/paypal');
-var VERSION = "3.41.0";
-var wrapPromise = _dereq_('@braintree/wrap-promise');
-var Promise = _dereq_('../lib/promise');
 
 /**
  * @static
@@ -3129,11 +2942,10 @@ var Promise = _dereq_('../lib/promise');
  * @param {object} options Creation options:
  * @param {Client} [options.client] A {@link Client} instance.
  * @param {string} [options.authorization] A tokenizationKey or clientToken. Can be used in place of `options.client`.
- * @param {callback} callback The second argument, `data`, is the {@link PayPal} instance.
- * @example
- * // We recomend creating your PayPal button with button.js
- * // For an example, see http://codepen.io/braintree/pen/LNKJWa
- * var paypalButton = document.querySelector('.paypal-button');
+ * @param {string} [options.merchantAccountId] A non-default merchant account ID to use for tokenization.
+ * @param {callback} callback The second argument, `data`, is the {@link LocalPayment} instance.
+ * @example <caption>Using the local payment component to set up an iDEAL button</caption>
+ * var idealButton = document.querySelector('.ideal-button');
  *
  * braintree.client.create({
  *   authorization: CLIENT_AUTHORIZATION
@@ -3143,36 +2955,49 @@ var Promise = _dereq_('../lib/promise');
  *     return;
  *   }
  *
- *   braintree.paypal.create({
+ *   braintree.localPayment.create({
  *     client: clientInstance
- *   }, function (paypalErr, paypalInstance) {
- *     if (paypalErr) {
- *       console.error('Error creating PayPal:', paypalErr);
+ *   }, function (localPaymentErr, localPaymentInstance) {
+ *     if (localPaymentErr) {
+ *       console.error('Error creating local payment component:', localPaymentErr);
  *       return;
  *     }
  *
- *     paypalButton.removeAttribute('disabled');
+ *     idealButton.removeAttribute('disabled');
  *
- *     // When the button is clicked, attempt to tokenize.
- *     paypalButton.addEventListener('click', function (event) {
- *       // Because tokenization opens a popup, this has to be called as a result of
+ *     // When the button is clicked, attempt to start the payment flow.
+ *     idealButton.addEventListener('click', function (event) {
+ *       // Because this opens a popup, this has to be called as a result of
  *       // customer action, like clicking a button. You cannot call this at any time.
- *       paypalInstance.tokenize({
- *         flow: 'vault'
- *         // For more tokenization options, see the full PayPal tokenization documentation
- *         // http://braintree.github.io/braintree-web/current/PayPal.html#tokenize
- *       }, function (tokenizeErr, payload) {
- *         if (tokenizeErr) {
- *           if (tokenizeErr.type !== 'CUSTOMER') {
- *             console.error('Error tokenizing:', tokenizeErr);
+ *       localPaymentInstance.startPayment({
+ *         paymentType: 'ideal',
+ *         amount: '10.67',
+ *         city: 'Den Haag',
+ *         countryCode: 'NL',
+ *         firstName: 'Test',
+ *         lastName: 'McTester',
+ *         line1: '123 of 456 Fake Lane',
+ *         line2: 'Apartment 789',
+ *         payerEmail: 'payer@example.com',
+ *         phone: '123456789',
+ *         postalCode: '1234 AA',
+ *         currency: 'EUR',
+ *         onPaymentStart: function (data, continueCallback) {
+ *           // Do any preprocessing to store the ID and setup webhook
+ *           // Call start to initiate the popup
+ *           continueCallback();
+ *         }
+ **       }, function (startPaymentErr, payload) {
+ *         if (startPaymentErr) {
+ *           if (startPaymentErr.type !== 'CUSTOMER') {
+ *             console.error('Error starting payment:', startPaymentErr);
  *           }
  *           return;
  *         }
  *
- *         // Tokenization succeeded
- *         paypalButton.setAttribute('disabled', true);
- *         console.log('Got a nonce! You should submit this to your server.');
- *         console.log(payload.nonce);
+ *         idealButton.setAttribute('disabled', true);
+ *
+ *         console.log(payload.paymentId);
  *       });
  *     }, false);
  *   });
@@ -3180,7 +3005,7 @@ var Promise = _dereq_('../lib/promise');
  * @returns {Promise|void} Returns a promise if no callback is provided.
  */
 function create(options) {
-  var name = 'PayPal';
+  var name = 'Local Payment';
 
   return basicComponentVerification.verify({
     name: name,
@@ -3195,42 +3020,25 @@ function create(options) {
       name: name
     });
   }).then(function (client) {
-    var pp;
+    var localPaymentInstance;
     var config = client.getConfiguration();
 
     options.client = client;
 
     if (config.gatewayConfiguration.paypalEnabled !== true) {
-      return Promise.reject(new BraintreeError(errors.PAYPAL_NOT_ENABLED));
+      return Promise.reject(new BraintreeError(errors.LOCAL_PAYMENT_NOT_ENABLED));
     }
 
-    analytics.sendEvent(options.client, 'paypal.initialized');
+    analytics.sendEvent(client, 'local-payment.initialized');
 
-    pp = new PayPal(options);
+    localPaymentInstance = new LocalPayment(options);
 
-    return pp._initialize();
+    return localPaymentInstance._initialize();
   });
-}
-
-/**
- * @static
- * @function isSupported
- * @description Returns true if PayPal [supports this browser](index.html#browser-support-webviews).
- * @example
- * if (braintree.paypal.isSupported()) {
- *   // Add PayPal button to the page
- * } else {
- *   // Hide PayPal payment option
- * }
- * @returns {Boolean} Returns true if PayPal supports this browser.
- */
-function isSupported() {
-  return true;
 }
 
 module.exports = {
   create: wrapPromise(create),
-  isSupported: isSupported,
   /**
    * @description The current version of the SDK, i.e. `{@pkg version}`.
    * @type {string}
@@ -3238,82 +3046,71 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/analytics":25,"../lib/basic-component-verification":28,"../lib/braintree-error":29,"../lib/create-assets-url":36,"../lib/create-deferred-client":38,"../lib/promise":58,"./external/paypal":63,"./shared/errors":66,"@braintree/wrap-promise":21}],65:[function(_dereq_,module,exports){
-'use strict';
-
-module.exports = {
-  LANDING_FRAME_NAME: 'braintreepaypallanding',
-  FLOW_ENDPOINTS: {
-    checkout: 'create_payment_resource',
-    vault: 'setup_billing_agreement'
-  }
-};
-
-},{}],66:[function(_dereq_,module,exports){
+},{"../lib/analytics":25,"../lib/basic-component-verification":28,"../lib/braintree-error":29,"../lib/create-assets-url":36,"../lib/create-deferred-client":38,"../lib/promise":56,"./external/local-payment":62,"./shared/errors":64,"@braintree/wrap-promise":21}],64:[function(_dereq_,module,exports){
 'use strict';
 
 /**
- * @name BraintreeError.PayPal - Creation Error Codes
- * @description Errors that occur when [creating the PayPal component](/current/module-braintree-web_paypal.html#.create).
- * @property {MERCHANT} PAYPAL_NOT_ENABLED Occurs when PayPal is not enabled on the Braintree control panel.
+ * @name BraintreeError.LocalPayment - Creation Error Codes
+ * @description Errors that occur when [creating the Local Payment component](/current/module-braintree-web_local-payment.html#.create).
+ * @property {MERCHANT} LOCAL_PAYMENT_NOT_ENABLED Occurs when Local Payment is not enabled on the Braintree control panel.
  */
 
 /**
- * @name BraintreeError.PayPal - tokenize Error Codes
- * @description Errors that occur when using the [`tokenize` method](/current/PayPal.html#tokenize).
- * @property {MERCHANT} PAYPAL_TOKENIZATION_REQUEST_ACTIVE Occurs when a tokenization request is already in progress.
- * @property {MERCHANT} PAYPAL_FLOW_OPTION_REQUIRED Occurs when flow option is not provdided.
- * @property {NETWORK} PAYPAL_ACCOUNT_TOKENIZATION_FAILED Occurs when PayPal account could not be tokenized.
- * @property {NETWORK} PAYPAL_FLOW_FAILED Occurs when PayPal flow could not be initiated.
- * @property {MERCHANT} PAYPAL_POPUP_OPEN_FAILED Occurs when PayPal window could not be opened.
- * @property {CUSTOMER} PAYPAL_POPUP_CLOSED Occurs when customer closes the PayPal window before completing the flow.
- * @property {MERCHANT} PAYPAL_INVALID_PAYMENT_OPTION Occurs when an invalid payment option is passed.
+ * @name BraintreeError.LocalPayment - startPayment Error Codes
+ * @description Errors that occur when using the [`startPayment` method](/current/LocalPayment.html#startPayment).
+ * @property {MERCHANT} LOCAL_PAYMENT_START_PAYMENT_MISSING_REQUIRED_OPTION Occurs when a startPayment is missing a required option.
+ * @property {MERCHANT} LOCAL_PAYMENT_ALREADY_IN_PROGRESS Occurs when a startPayment call is already in progress.
+ * @property {MERCHANT} LOCAL_PAYMENT_INVALID_PAYMENT_OPTION Occurs when a startPayment call has an invalid option.
+ * @property {NETWORK} LOCAL_PAYMENT_START_PAYMENT_FAILED Occurs when a startPayment call fails.
+ * @property {NETWORK} LOCAL_PAYMENT_TOKENIZATION_FAILED Occurs when a startPayment call fails to tokenize the result from authorization.
+ * @property {CUSTOMER} LOCAL_PAYMENT_WINDOW_CLOSED Occurs when the customer closes the Local Payment window.
+ * @property {MERCHANT} LOCAL_PAYMENT_WINDOW_OPEN_FAILED Occurs when the Local Payment window fails to open. Usualy because `startPayment` was not called as a direct result of a user action.
  */
 
 var BraintreeError = _dereq_('../../lib/braintree-error');
 
 module.exports = {
-  PAYPAL_NOT_ENABLED: {
+  LOCAL_PAYMENT_NOT_ENABLED: {
     type: BraintreeError.types.MERCHANT,
-    code: 'PAYPAL_NOT_ENABLED',
-    message: 'PayPal is not enabled for this merchant.'
+    code: 'LOCAL_PAYMENT_NOT_ENABLED',
+    message: 'LocalPayment is not enabled for this merchant.'
   },
-  PAYPAL_TOKENIZATION_REQUEST_ACTIVE: {
+  LOCAL_PAYMENT_ALREADY_IN_PROGRESS: {
     type: BraintreeError.types.MERCHANT,
-    code: 'PAYPAL_TOKENIZATION_REQUEST_ACTIVE',
-    message: 'Another tokenization request is active.'
+    code: 'LOCAL_PAYMENT_ALREADY_IN_PROGRESS',
+    message: 'LocalPayment payment is already in progress.'
   },
-  PAYPAL_ACCOUNT_TOKENIZATION_FAILED: {
-    type: BraintreeError.types.NETWORK,
-    code: 'PAYPAL_ACCOUNT_TOKENIZATION_FAILED',
-    message: 'Could not tokenize user\'s PayPal account.'
-  },
-  PAYPAL_FLOW_FAILED: {
-    type: BraintreeError.types.NETWORK,
-    code: 'PAYPAL_FLOW_FAILED',
-    message: 'Could not initialize PayPal flow.'
-  },
-  PAYPAL_FLOW_OPTION_REQUIRED: {
-    type: BraintreeError.types.MERCHANT,
-    code: 'PAYPAL_FLOW_OPTION_REQUIRED',
-    message: 'PayPal flow property is invalid or missing.'
-  },
-  PAYPAL_POPUP_OPEN_FAILED: {
-    type: BraintreeError.types.MERCHANT,
-    code: 'PAYPAL_POPUP_OPEN_FAILED',
-    message: 'PayPal popup failed to open, make sure to tokenize in response to a user action.'
-  },
-  PAYPAL_POPUP_CLOSED: {
+  LOCAL_PAYMENT_WINDOW_CLOSED: {
     type: BraintreeError.types.CUSTOMER,
-    code: 'PAYPAL_POPUP_CLOSED',
-    message: 'Customer closed PayPal popup before authorizing.'
+    code: 'LOCAL_PAYMENT_WINDOW_CLOSED',
+    message: 'Customer closed LocalPayment window before authorizing.'
   },
-  PAYPAL_INVALID_PAYMENT_OPTION: {
+  LOCAL_PAYMENT_WINDOW_OPEN_FAILED: {
     type: BraintreeError.types.MERCHANT,
-    code: 'PAYPAL_INVALID_PAYMENT_OPTION',
-    message: 'PayPal payment options are invalid.'
+    code: 'LOCAL_PAYMENT_WINDOW_OPEN_FAILED',
+    message: 'LocalPayment window failed to open; make sure startPayment was called in response to a user action.'
+  },
+  LOCAL_PAYMENT_START_PAYMENT_FAILED: {
+    type: BraintreeError.types.NETWORK,
+    code: 'LOCAL_PAYMENT_START_PAYMENT_FAILED',
+    message: 'LocalPayment startPayment failed.'
+  },
+  LOCAL_PAYMENT_START_PAYMENT_MISSING_REQUIRED_OPTION: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'LOCAL_PAYMENT_START_PAYMENT_MISSING_REQUIRED_OPTION',
+    message: 'Missing required option for startPayment.'
+  },
+  LOCAL_PAYMENT_TOKENIZATION_FAILED: {
+    type: BraintreeError.types.NETWORK,
+    code: 'LOCAL_PAYMENT_TOKENIZATION_FAILED',
+    message: 'Could not tokenize user\'s local payment method.'
+  },
+  LOCAL_PAYMENT_INVALID_PAYMENT_OPTION: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'LOCAL_PAYMENT_INVALID_PAYMENT_OPTION',
+    message: 'Local payment options are invalid.'
   }
 };
 
-},{"../../lib/braintree-error":29}]},{},[64])(64)
+},{"../../lib/braintree-error":29}]},{},[63])(63)
 });

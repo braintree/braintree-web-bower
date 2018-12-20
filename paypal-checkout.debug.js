@@ -518,7 +518,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.40.0";
+var VERSION = "3.41.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -648,7 +648,7 @@ module.exports = BraintreeError;
 },{"./enumerate":19}],13:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.40.0";
+var VERSION = "3.41.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -797,7 +797,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.40.0";
+var VERSION = "3.41.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1054,7 +1054,7 @@ var errors = _dereq_('./errors');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var PayPalCheckout = _dereq_('./paypal-checkout');
-var VERSION = "3.40.0";
+var VERSION = "3.41.0";
 
 /**
  * @static
@@ -1299,6 +1299,18 @@ function PayPalCheckout(options) {
 }
 
 /**
+ * @typedef {object} PayPalCheckout~lineItem
+ * @property {string} quantity Number of units of the item purchased. This value must be a whole number and can't be negative or zero.
+ * @property {string} unitAmount Per-unit price of the item. Can include up to 2 decimal places. This value can't be negative or zero.
+ * @property {string} name Item name. Maximum 127 characters.
+ * @property {string} kind Indicates whether the line item is a debit (sale) or credit (refund) to the customer. Accepted values: `debit` and `credit`.
+ * @property {?string} unitTaxAmount Per-unit tax price of the item. Can include up to 2 decimal places. This value can't be negative or zero.
+ * @property {?string} description Item description. Maximum 127 characters.
+ * @property {?string} productCode Product or UPC code for the item. Maximum 127 characters.
+ * @property {?string} url The URL to product information.
+ */
+
+/**
  * Creates a PayPal payment ID or billing token using the given options. This is meant to be passed to PayPal's checkout.js library.
  * When a {@link callback} is defined, the function returns undefined and invokes the callback with the id to be used with the checkout.js library. Otherwise, it returns a Promise that resolves with the id.
  * @public
@@ -1354,6 +1366,7 @@ function PayPalCheckout(options) {
  * @param {string} [options.landingPageType] Use this option to specify the PayPal page to display when a user lands on the PayPal site to complete the payment.
  * * `login` - A PayPal account login page is used.
  * * `billing` - A non-PayPal account landing page is used.
+* @property {lineItem[]} [options.lineItems] The line items for this transaction. It can include up to 249 line items.
  * @param {callback} [callback] The second argument is a PayPal `paymentId` or `billingToken` string, depending on whether `options.flow` is `checkout` or `vault`. This is also what is resolved by the promise if no callback is provided.
  * @example
  * // this paypal object is created by checkout.js
@@ -1501,6 +1514,10 @@ PayPalCheckout.prototype._formatPaymentResourceData = function (options) {
 
     if (options.hasOwnProperty('intent')) {
       paymentResource.intent = options.intent;
+    }
+
+    if (options.hasOwnProperty('lineItems')) {
+      paymentResource.lineItems = options.lineItems;
     }
 
     for (key in options.shippingAddressOverride) {

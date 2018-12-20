@@ -928,7 +928,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.40.0";
+var VERSION = "3.41.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1230,7 +1230,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":18,"./check-origin":19,"./events":20,"framebus":11}],22:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.40.0";
+var VERSION = "3.41.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1357,7 +1357,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.40.0";
+var VERSION = "3.41.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1506,7 +1506,7 @@ module.exports = EventEmitter;
 },{}],30:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.40.0";
+var VERSION = "3.41.0";
 var assign = _dereq_('./assign').assign;
 
 function generateTokenizationParameters(configuration, overrides) {
@@ -1620,6 +1620,10 @@ module.exports = function (configuration, googlePayVersion, googleMerchantId) {
 
     if (googleMerchantId) {
       data.merchantId = googleMerchantId;
+    }
+
+    if (googlePayVersion) {
+      data.apiVersion = googlePayVersion;
     }
   }
 
@@ -1765,7 +1769,7 @@ var methods = _dereq_('../../lib/methods');
 var Promise = _dereq_('../../lib/promise');
 var EventEmitter = _dereq_('../../lib/event-emitter');
 var BraintreeError = _dereq_('../../lib/braintree-error');
-var VERSION = "3.40.0";
+var VERSION = "3.41.0";
 var events = _dereq_('../shared/constants').events;
 var errors = _dereq_('../shared/constants').errors;
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -1890,6 +1894,8 @@ function PaymentRequestComponent(options) {
     basicCard: enabledPaymentMethods.basicCard !== false,
     googlePay: enabledPaymentMethods.googlePay !== false
   };
+  this._googlePayVersion = options.googlePayVersion === 2 ? 2 : 1;
+  this._googleMerchantId = BRAINTREE_GOOGLE_PAY_MERCHANT_ID;
   this._supportedPaymentMethods = this._constructDefaultSupportedPaymentMethods();
   this._defaultSupportedPaymentMethods = Object.keys(this._supportedPaymentMethods).map(function (key) {
     return this._supportedPaymentMethods[key];
@@ -1925,10 +1931,9 @@ PaymentRequestComponent.prototype._constructDefaultSupportedPaymentMethods = fun
   if (this._enabledPaymentMethods.googlePay && androidPayConfiguration && androidPayConfiguration.enabled) {
     supportedPaymentMethods.googlePay = {
       supportedMethods: ['https://google.com/pay'],
-      data: assign({
-        apiVersion: 1,
-        merchantId: BRAINTREE_GOOGLE_PAY_MERCHANT_ID
-      }, generateGooglePayConfiguration(configuration))
+      data: generateGooglePayConfiguration(
+        configuration, this._googlePayVersion, this._googleMerchantId
+      )
     };
   }
 
@@ -2291,7 +2296,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.40.0";
+var VERSION = "3.41.0";
 
 /**
  * @static
@@ -2302,6 +2307,7 @@ var VERSION = "3.40.0";
  * @param {object} [options.enabledPaymentMethods] An object representing which payment methods to display.
  * @param {boolean} [options.enabledPaymentMethods.basicCard=true] Whether or not to display credit card as an option in the Payment Request dialog. If left blank or set to true, credit cards will be displayed in the dialog if the merchant account is set up to process credit cards.
  * @param {boolean} [options.enabledPaymentMethods.googlePay=true] Whether or not to display Google Pay as an option in the Payment Request dialog. If left blank or set to true, Google Pay will be displayed in the dialog if the merchant account is set up to process Google Pay.
+ * @param {Number} [options.googlePayVersion=1] Ignored if `options.enabledPaymentMethods.googlePay = false`. If `true`, this option specifies the version of Google Pay to use. Choose either 1 (default) or 2.
  * @param {callback} [callback] The second argument, `data`, is the {@link PaymentRequestComponent} instance. If no callback is provided, `create` returns a promise that resolves with the {@link PaymentRequestComponent} instance.
  * @returns {Promise|void} Returns a promise if no callback is provided.
  * @example
@@ -2321,6 +2327,16 @@ var VERSION = "3.40.0";
  *     basicCard: false
  *   }
  * }, cb);
+ * @example <caption>Using Google Pay v2 or basic card</caption>
+ * braintree.paymentRequest.create({
+ *   client: clientInstance,
+ *   enabledPaymentMethods: {
+ *     basicCard: true,
+ *     googlePay: true
+ *   },
+ *   googlePayVersion: 2
+ * }, cb);
+ *
  */
 function create(options) {
   var name = 'Payment Request';
