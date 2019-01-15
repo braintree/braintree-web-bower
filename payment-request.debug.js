@@ -928,7 +928,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.41.0";
+var VERSION = "3.42.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1230,7 +1230,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":18,"./check-origin":19,"./events":20,"framebus":11}],22:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.41.0";
+var VERSION = "3.42.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1357,7 +1357,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.41.0";
+var VERSION = "3.42.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1430,7 +1430,7 @@ module.exports = enumerate;
 /**
  * @name BraintreeError.Shared Errors - Component Creation Error Codes
  * @description Errors that occur when creating components.
- * @property {MERCHANT} INSTANTIATION_OPTION_REQUIRED Occurs when a compoennt is created that is missing a required option.
+ * @property {MERCHANT} INSTANTIATION_OPTION_REQUIRED Occurs when a component is created that is missing a required option.
  * @property {MERCHANT} INCOMPATIBLE_VERSIONS Occurs when a component is created with a client with a different version than the component.
  * @property {NETWORK} CLIENT_SCRIPT_FAILED_TO_LOAD Occurs when a component attempts to load the Braintree client script, but the request fails.
  */
@@ -1506,7 +1506,7 @@ module.exports = EventEmitter;
 },{}],30:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.41.0";
+var VERSION = "3.42.0";
 var assign = _dereq_('./assign').assign;
 
 function generateTokenizationParameters(configuration, overrides) {
@@ -1755,6 +1755,7 @@ function uuid() {
 module.exports = uuid;
 
 },{}],38:[function(_dereq_,module,exports){
+(function (global){
 'use strict';
 
 var analytics = _dereq_('../../lib/analytics');
@@ -1769,9 +1770,10 @@ var methods = _dereq_('../../lib/methods');
 var Promise = _dereq_('../../lib/promise');
 var EventEmitter = _dereq_('../../lib/event-emitter');
 var BraintreeError = _dereq_('../../lib/braintree-error');
-var VERSION = "3.41.0";
-var events = _dereq_('../shared/constants').events;
-var errors = _dereq_('../shared/constants').errors;
+var VERSION = "3.42.0";
+var constants = _dereq_('../shared/constants');
+var events = constants.events;
+var errors = constants.errors;
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -1794,6 +1796,13 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
  * @property {string} binData.payroll Possible values: 'Yes', 'No', 'Unknown'.
  * @property {string} binData.prepaid Possible values: 'Yes', 'No', 'Unknown'.
  * @property {string} binData.productId The product id.
+ */
+
+/**
+ * @typedef {object} PaymentRequestComponent~paymentRequestConfiguration
+ * @property {object} configuration.details The payment details. For details on this object, see [Google's PaymentRequest API documentation](https://developers.google.com/web/fundamentals/discovery-and-monetization/payment-request/deep-dive-into-payment-request#defining_payment_details).
+ * @property {array} [configuration.supportedPaymentMethods] The supported payment methods. If not passed in, the supported payment methods from the merchant account that generated the authorization for the client will be used. For details on this array, see [Google's PaymentRequest API documentation](https://developers.google.com/web/fundamentals/discovery-and-monetization/payment-request/deep-dive-into-payment-request#defining_supported_payment_methods).
+ * @property {object} [configuration.options] Additional payment request options. For details on this object, see [Google's PaymentRequest API documentation](https://developers.google.com/web/fundamentals/discovery-and-monetization/payment-request/deep-dive-into-payment-request#defining_options_optional).
  */
 
 /**
@@ -1915,7 +1924,7 @@ PaymentRequestComponent.prototype._constructDefaultSupportedPaymentMethods = fun
 
   if (this._enabledPaymentMethods.basicCard && cardConfiguration && cardConfiguration.supportedCardTypes.length > 0) {
     supportedPaymentMethods.basicCard = {
-      supportedMethods: ['basic-card'],
+      supportedMethods: 'basic-card',
       data: {
         supportedNetworks: cardConfiguration.supportedCardTypes.reduce(function (types, cardType) {
           if (cardType in CARD_TYPE_MAPPINGS) {
@@ -1930,7 +1939,7 @@ PaymentRequestComponent.prototype._constructDefaultSupportedPaymentMethods = fun
 
   if (this._enabledPaymentMethods.googlePay && androidPayConfiguration && androidPayConfiguration.enabled) {
     supportedPaymentMethods.googlePay = {
-      supportedMethods: ['https://google.com/pay'],
+      supportedMethods: 'https://google.com/pay',
       data: generateGooglePayConfiguration(
         configuration, this._googlePayVersion, this._googleMerchantId
       )
@@ -2013,7 +2022,7 @@ PaymentRequestComponent.prototype.initialize = function () {
  * @example <caption>Getting the default configuration for a specified type</caption>
  * var configuration = paymentRequestInstance.createSupportedPaymentMethodsConfiguration('basicCard');
  *
- * configuration.supportedMethods; // ['basic-card']
+ * configuration.supportedMethods; // 'basic-card'
  * configuration.data.supportedNetworks; // ['visa', 'mastercard', 'amex'] <- whatever the supported card networks for the merchant account are
  * @example <caption>Specifying overrides</caption>
  * var configuration = paymentRequestInstance.createSupportedPaymentMethodsConfiguration('basicCard', {
@@ -2021,7 +2030,7 @@ PaymentRequestComponent.prototype.initialize = function () {
  *   supportedTypes: ['credit', 'debit']
  * });
  *
- * configuration.supportedMethods; // ['basic-card']
+ * configuration.supportedMethods; // 'basic-card'
  * configuration.data.supportedNetworks; // ['visa']
  * configuration.data.supportedTypes; // ['credit', 'debit']
  * @returns {object} Returns a configuration object for use in the tokenize function.
@@ -2046,10 +2055,7 @@ PaymentRequestComponent.prototype.createSupportedPaymentMethodsConfiguration = f
 /**
  * Tokenizes a Payment Request
  * @public
- * @param {object} configuration The payment details.
- * @param {object} configuration.details The payment details. For details on this object, see [Google's PaymentRequest API documentation](https://developers.google.com/web/fundamentals/discovery-and-monetization/payment-request/deep-dive-into-payment-request#defining_payment_details).
- * @param {array} [configuration.supportedPaymentMethods] The supported payment methods. If not passed in, the supported payment methods from the merchant account that generated the authorization for the client will be used. For details on this array, see [Google's PaymentRequest API documentation](https://developers.google.com/web/fundamentals/discovery-and-monetization/payment-request/deep-dive-into-payment-request#defining_supported_payment_methods).
- * @param {object} [configuration.options] Additional payment request options. For details on this object, see [Google's PaymentRequest API documentation](https://developers.google.com/web/fundamentals/discovery-and-monetization/payment-request/deep-dive-into-payment-request#defining_options_optional).
+ * @param {object} configuration A {@link PaymentRequestComponent~paymentRequestConfiguration|paymentRequestConfiguration}.
  * @param {callback} [callback] The second argument, <code>data</code>, is a {@link PaymentRequest~paymentPayload|paymentPayload}. If no callback is provided, `tokenize` returns a function that resolves with a {@link PaymentRequestComponent~tokenizePayload|tokenizePayload}.
  * @example
  * paymentRequestInstance.tokenize({
@@ -2178,15 +2184,26 @@ PaymentRequestComponent.prototype.createSupportedPaymentMethodsConfiguration = f
  * @returns {Promise|void} Returns a promise if no callback is provided.
  */
 PaymentRequestComponent.prototype.tokenize = function (configuration) {
+  var self = this;
+
+  // NEXT_MAJOR_VERSION fail early if a payment method is passed in
+  // that the component does not support
   return new Promise(function (resolve, reject) {
-    this._bus.emit(events.PAYMENT_REQUEST_INITIALIZED, {
-      supportedPaymentMethods: configuration.supportedPaymentMethods || this._defaultSupportedPaymentMethods,
+    self._bus.emit(events.PAYMENT_REQUEST_INITIALIZED, {
+      supportedPaymentMethods: configuration.supportedPaymentMethods || self._defaultSupportedPaymentMethods,
       details: configuration.details,
       options: configuration.options
-    });
+    }, function (response) {
+      var rawError = response[0];
+      var payload = response[1];
 
-    this._bus.on(events.PAYMENT_REQUEST_SUCCESSFUL, function (payload) {
-      analytics.sendEvent(this._client, 'payment-request.tokenize.succeeded');
+      if (rawError) {
+        reject(self._formatTokenizationError(rawError));
+
+        return;
+      }
+
+      analytics.sendEvent(self._client, 'payment-request.tokenize.succeeded');
       resolve({
         nonce: payload.nonce,
         type: payload.type,
@@ -2199,62 +2216,84 @@ PaymentRequestComponent.prototype.tokenize = function (configuration) {
         },
         binData: payload.binData
       });
-    }.bind(this));
+    });
+  });
+};
 
-    this._bus.on(events.PAYMENT_REQUEST_FAILED, function (error) {
-      var formattedError;
+/**
+ * Check if the customer can make payments.
+ * @public
+ * @param {object} configuration A {@link PaymentRequestComponent~paymentRequestConfiguration|paymentRequestConfiguration}.
+ * @param {callback} [callback] Called on completion.
+ * @example
+ * var paymentDetails = {
+ * 	 total: {
+ *     label: 'Total',
+ *     amount: {
+ *       currency: 'USD',
+ *       value: '10.00',
+ *     }
+ *   }
+ * };
+ *
+ * paymentRequestInstance.canMakePayment({
+ *   details: paymentDetails
+ * }).then(function (result) {
+ *   if (result) {
+ *     // set up payment request button
+ *   }
+ * });
+ * @returns {Promise|void} Returns a promise if no callback is provided.
+ */
+PaymentRequestComponent.prototype.canMakePayment = function (configuration) {
+  var self = this;
+  var unsupportedPaymentMethod;
 
-      if (error.name === 'AbortError') {
-        formattedError = new BraintreeError({
-          type: errors.PAYMENT_REQUEST_CANCELED.type,
-          code: errors.PAYMENT_REQUEST_CANCELED.code,
-          message: errors.PAYMENT_REQUEST_CANCELED.message,
-          details: {
-            originalError: error
-          }
-        });
-        analytics.sendEvent(this._client, 'payment-request.tokenize.canceled');
-      } else if (error.name === 'PAYMENT_REQUEST_INITIALIZATION_FAILED') {
-        formattedError = new BraintreeError({
-          type: errors.PAYMENT_REQUEST_INITIALIZATION_MISCONFIGURED.type,
-          code: errors.PAYMENT_REQUEST_INITIALIZATION_MISCONFIGURED.code,
-          message: errors.PAYMENT_REQUEST_INITIALIZATION_MISCONFIGURED.message,
-          details: {
-            originalError: error
-          }
-        });
-      } else if (error.name === 'BRAINTREE_GATEWAY_GOOGLE_PAYMENT_TOKENIZATION_ERROR') {
-        formattedError = new BraintreeError({
-          type: errors.PAYMENT_REQUEST_GOOGLE_PAYMENT_FAILED_TO_TOKENIZE.type,
-          code: errors.PAYMENT_REQUEST_GOOGLE_PAYMENT_FAILED_TO_TOKENIZE.code,
-          message: errors.PAYMENT_REQUEST_GOOGLE_PAYMENT_FAILED_TO_TOKENIZE.message,
-          details: {
-            originalError: error
-          }
-        });
-      } else if (error.name === 'BRAINTREE_GATEWAY_GOOGLE_PAYMENT_PARSING_ERROR') {
-        formattedError = new BraintreeError({
-          type: errors.PAYMENT_REQUEST_GOOGLE_PAYMENT_PARSING_ERROR.type,
-          code: errors.PAYMENT_REQUEST_GOOGLE_PAYMENT_PARSING_ERROR.code,
-          message: errors.PAYMENT_REQUEST_GOOGLE_PAYMENT_PARSING_ERROR.message,
-          details: {
-            originalError: error
-          }
-        });
-      } else {
-        formattedError = new BraintreeError({
-          code: errors.PAYMENT_REQUEST_NOT_COMPLETED.code,
-          type: error.type || BraintreeError.types.CUSTOMER,
-          message: errors.PAYMENT_REQUEST_NOT_COMPLETED.message,
-          details: {
-            originalError: error
-          }
-        });
-        analytics.sendEvent(this._client, 'payment-request.tokenize.failed');
+  // NEXT_MAJOR_VERSION Move this check to component creation
+  if (!global.PaymentRequest) {
+    analytics.sendEvent(self._client, 'payment-request.can-make-payment.not-available');
+
+    return Promise.resolve(false);
+  }
+
+  if (configuration.supportedPaymentMethods) {
+    configuration.supportedPaymentMethods.forEach(function (config) {
+      var supportedMethods = config.supportedMethods;
+
+      if (!(supportedMethods in constants.SUPPORTED_METHODS)) {
+        unsupportedPaymentMethod = supportedMethods;
       }
-      reject(formattedError);
-    }.bind(this));
-  }.bind(this));
+    });
+
+    if (unsupportedPaymentMethod) {
+      return Promise.reject(new BraintreeError({
+        type: errors.PAYMENT_REQUEST_UNSUPPORTED_PAYMENT_METHOD.type,
+        code: errors.PAYMENT_REQUEST_UNSUPPORTED_PAYMENT_METHOD.code,
+        message: unsupportedPaymentMethod + ' is not a supported payment method.'
+      }));
+    }
+  }
+
+  return new Promise(function (resolve, reject) {
+    self._bus.emit(events.CAN_MAKE_PAYMENT, {
+      supportedPaymentMethods: configuration.supportedPaymentMethods || self._defaultSupportedPaymentMethods,
+      details: configuration.details,
+      options: configuration.options
+    }, function (response) {
+      var error = response[0];
+      var payload = response[1];
+
+      if (error) {
+        reject(self._formatCanMakePaymentError(error));
+
+        return;
+      }
+
+      analytics.sendEvent(self._client, 'payment-request.can-make-payment.' + payload);
+
+      resolve(payload);
+    });
+  });
 };
 
 /**
@@ -2280,8 +2319,112 @@ PaymentRequestComponent.prototype.teardown = function () {
   return Promise.resolve();
 };
 
+PaymentRequestComponent.prototype._formatTokenizationError = function (error) {
+  var formattedError;
+
+  switch (error.name) {
+    case 'AbortError':
+      formattedError = new BraintreeError({
+        type: errors.PAYMENT_REQUEST_CANCELED.type,
+        code: errors.PAYMENT_REQUEST_CANCELED.code,
+        message: errors.PAYMENT_REQUEST_CANCELED.message,
+        details: {
+          originalError: error
+        }
+      });
+
+      analytics.sendEvent(this._client, 'payment-request.tokenize.canceled');
+
+      return formattedError;
+    case 'PAYMENT_REQUEST_INITIALIZATION_FAILED':
+      formattedError = new BraintreeError({
+        type: errors.PAYMENT_REQUEST_INITIALIZATION_MISCONFIGURED.type,
+        code: errors.PAYMENT_REQUEST_INITIALIZATION_MISCONFIGURED.code,
+        message: errors.PAYMENT_REQUEST_INITIALIZATION_MISCONFIGURED.message,
+        details: {
+          originalError: error
+        }
+      });
+      break;
+    case 'BRAINTREE_GATEWAY_GOOGLE_PAYMENT_TOKENIZATION_ERROR':
+      formattedError = new BraintreeError({
+        type: errors.PAYMENT_REQUEST_GOOGLE_PAYMENT_FAILED_TO_TOKENIZE.type,
+        code: errors.PAYMENT_REQUEST_GOOGLE_PAYMENT_FAILED_TO_TOKENIZE.code,
+        message: errors.PAYMENT_REQUEST_GOOGLE_PAYMENT_FAILED_TO_TOKENIZE.message,
+        details: {
+          originalError: error
+        }
+      });
+      break;
+    case 'BRAINTREE_GATEWAY_GOOGLE_PAYMENT_PARSING_ERROR':
+      formattedError = new BraintreeError({
+        type: errors.PAYMENT_REQUEST_GOOGLE_PAYMENT_PARSING_ERROR.type,
+        code: errors.PAYMENT_REQUEST_GOOGLE_PAYMENT_PARSING_ERROR.code,
+        message: errors.PAYMENT_REQUEST_GOOGLE_PAYMENT_PARSING_ERROR.message,
+        details: {
+          originalError: error
+        }
+      });
+      break;
+    default:
+      formattedError = new BraintreeError({
+        code: errors.PAYMENT_REQUEST_NOT_COMPLETED.code,
+        type: error.type || BraintreeError.types.CUSTOMER,
+        message: errors.PAYMENT_REQUEST_NOT_COMPLETED.message,
+        details: {
+          originalError: error
+        }
+      });
+  }
+
+  analytics.sendEvent(this._client, 'payment-request.tokenize.failed');
+
+  return formattedError;
+};
+
+PaymentRequestComponent.prototype._formatCanMakePaymentError = function (error) {
+  var formattedError;
+
+  switch (error.name) {
+    case 'PAYMENT_REQUEST_INITIALIZATION_FAILED':
+      formattedError = new BraintreeError({
+        type: errors.PAYMENT_REQUEST_INITIALIZATION_MISCONFIGURED.type,
+        code: errors.PAYMENT_REQUEST_INITIALIZATION_MISCONFIGURED.code,
+        message: errors.PAYMENT_REQUEST_INITIALIZATION_MISCONFIGURED.message,
+        details: {
+          originalError: error
+        }
+      });
+      break;
+    case 'NotAllowedError':
+      formattedError = new BraintreeError({
+        type: errors.PAYMENT_REQUEST_CAN_MAKE_PAYMENT_NOT_ALLOWED.type,
+        code: errors.PAYMENT_REQUEST_CAN_MAKE_PAYMENT_NOT_ALLOWED.code,
+        message: errors.PAYMENT_REQUEST_CAN_MAKE_PAYMENT_NOT_ALLOWED.message,
+        details: {
+          originalError: error
+        }
+      });
+      break;
+    default:
+      formattedError = new BraintreeError({
+        code: errors.PAYMENT_REQUEST_CAN_MAKE_PAYMENT_FAILED.code,
+        type: errors.PAYMENT_REQUEST_CAN_MAKE_PAYMENT_FAILED.type,
+        message: errors.PAYMENT_REQUEST_CAN_MAKE_PAYMENT_FAILED.message,
+        details: {
+          originalError: error
+        }
+      });
+  }
+
+  analytics.sendEvent(this._client, 'payment-request.can-make-payment.failed');
+
+  return formattedError;
+};
+
 module.exports = wrapPromise.wrapPrototype(PaymentRequestComponent);
 
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"../../lib/analytics":14,"../../lib/assign":16,"../../lib/braintree-error":18,"../../lib/bus":21,"../../lib/convert-methods-to-error":23,"../../lib/event-emitter":29,"../../lib/generate-google-pay-configuration":30,"../../lib/methods":33,"../../lib/promise":34,"../../lib/use-min":35,"../../lib/vendor/uuid":37,"../shared/constants":40,"@braintree/iframer":3,"@braintree/wrap-promise":10}],39:[function(_dereq_,module,exports){
 'use strict';
 /**
@@ -2296,7 +2439,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.41.0";
+var VERSION = "3.42.0";
 
 /**
  * @static
@@ -2381,18 +2524,22 @@ var errors = _dereq_('./errors');
 var constants = {};
 
 constants.events = enumerate([
+  'CAN_MAKE_PAYMENT',
   'FRAME_READY',
   'FRAME_CAN_MAKE_REQUESTS',
   'PAYMENT_REQUEST_INITIALIZED',
   'SHIPPING_ADDRESS_CHANGE',
   'UPDATE_SHIPPING_ADDRESS',
   'SHIPPING_OPTION_CHANGE',
-  'UPDATE_SHIPPING_OPTION',
-  'PAYMENT_REQUEST_FAILED',
-  'PAYMENT_REQUEST_SUCCESSFUL'
+  'UPDATE_SHIPPING_OPTION'
 ], 'payment-request:');
 
 constants.errors = errors;
+
+constants.SUPPORTED_METHODS = {
+  'basic-card': true,
+  'https://google.com/pay': true
+};
 
 module.exports = constants;
 
@@ -2422,6 +2569,15 @@ module.exports = constants;
  * @property {CUSTOMER} PAYMENT_REQUEST_NOT_COMPLETED Occurs when an error prevented the Payment Request from being completed.
  */
 
+/**
+ * @name BraintreeError.Payment Request - canMakePayment  Error Codes
+ * @description Errors that occur when using the [`canMakePayment` method](/current/PaymentRequestComponent.html#canMakePayment)
+ * @property {MERCHANT} PAYMENT_REQUEST_INITIALIZATION_MISCONFIGURED Occurs when the Payment Request is intatiated with misconfigured options.
+ * @property {MERCHANT} PAYMENT_REQUEST_CAN_MAKE_PAYMENT_NOT_ALLOWED Occurs when `canMakePayment` results in a `DomException` with a `NotAllowedError`. This usually occurs when `canMakePayment` is called multiple times with different supported payment options.
+ * @property {MERCHANT} PAYMENT_REQUEST_UNSUPPORTED_PAYMENT_METHOD Occurs when `canMakePayment` is called with a `supportedPaymentMethods` array that contains a payment method that is not supported by the Braintree SDK.
+ * @property {UNKNOWN} PAYMENT_REQUEST_CAN_MAKE_PAYMENT_FAILED Occurs when `canMakePayment` fails for any reason other than a misconfigured Payment Request object.
+ */
+
 var BraintreeError = _dereq_('../../lib/braintree-error');
 
 module.exports = {
@@ -2439,6 +2595,20 @@ module.exports = {
     type: BraintreeError.types.MERCHANT,
     code: 'PAYMENT_REQUEST_INITIALIZATION_MISCONFIGURED',
     message: 'Something went wrong when configuring the payment request.'
+  },
+  PAYMENT_REQUEST_CAN_MAKE_PAYMENT_FAILED: {
+    type: BraintreeError.types.UNKNOWN,
+    code: 'PAYMENT_REQUEST_CAN_MAKE_PAYMENT_FAILED',
+    message: 'Something went wrong when calling `canMakePayment`'
+  },
+  PAYMENT_REQUEST_CAN_MAKE_PAYMENT_NOT_ALLOWED: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'PAYMENT_REQUEST_CAN_MAKE_PAYMENT_NOT_ALLOWED',
+    message: 'Something went wrong when calling `canMakePayment`. Most likely, `canMakePayment` was called multiple times with different supportedMethods configurations.'
+  },
+  PAYMENT_REQUEST_UNSUPPORTED_PAYMENT_METHOD: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'PAYMENT_REQUEST_UNSUPPORTED_PAYMENT_METHOD'
   },
   PAYMENT_REQUEST_GOOGLE_PAYMENT_FAILED_TO_TOKENIZE: {
     type: BraintreeError.types.MERCHANT,

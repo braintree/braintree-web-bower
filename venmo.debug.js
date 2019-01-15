@@ -606,7 +606,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.41.0";
+var VERSION = "3.42.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -736,7 +736,7 @@ module.exports = BraintreeError;
 },{"./enumerate":26}],21:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.41.0";
+var VERSION = "3.42.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -863,7 +863,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.41.0";
+var VERSION = "3.42.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -936,7 +936,7 @@ module.exports = enumerate;
 /**
  * @name BraintreeError.Shared Errors - Component Creation Error Codes
  * @description Errors that occur when creating components.
- * @property {MERCHANT} INSTANTIATION_OPTION_REQUIRED Occurs when a compoennt is created that is missing a required option.
+ * @property {MERCHANT} INSTANTIATION_OPTION_REQUIRED Occurs when a component is created that is missing a required option.
  * @property {MERCHANT} INCOMPATIBLE_VERSIONS Occurs when a component is created with a client with a different version than the component.
  * @property {NETWORK} CLIENT_SCRIPT_FAILED_TO_LOAD Occurs when a component attempts to load the Braintree client script, but the request fails.
  */
@@ -1153,7 +1153,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var Venmo = _dereq_('./venmo');
 var Promise = _dereq_('../lib/promise');
 var supportsVenmo = _dereq_('./shared/supports-venmo');
-var VERSION = "3.41.0";
+var VERSION = "3.42.0";
 
 /**
  * @static
@@ -1370,7 +1370,7 @@ var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.41.0";
+var VERSION = "3.42.0";
 
 /**
  * Venmo tokenize payload.

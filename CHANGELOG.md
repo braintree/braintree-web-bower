@@ -1,6 +1,17 @@
 CHANGELOG
 =========
-## unreleased
+## 3.42.0
+* Update @braintree/sanitize-url to v3.0.0
+* Hosted Fields
+  * Fixes issue where inputs would not focus after initial touch event on iOS Safari (#405, thanks @lgodziejewski)
+  * Allow `maxCardLength` in `number` field
+  * Fix issue where UnionPay cards were not checked for luhn validity
+* PayPal Checkout
+  * When passing in `authorization` instead of a `client` in component creation, the client will be created in the background (improves loading time)
+* Payment Request
+  * Add canMakePayment method
+
+## 3.41.0
 * Add Local Payments component
 * PayPal Checkout
   * Add support for `lineItems`
