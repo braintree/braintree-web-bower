@@ -466,21 +466,34 @@ var FRAUDNET_FNCLS = _dereq_('../lib/constants').FRAUDNET_FNCLS;
 var FRAUDNET_SOURCE = _dereq_('../lib/constants').FRAUDNET_SOURCE;
 var FRAUDNET_URL = _dereq_('../lib/constants').FRAUDNET_URL;
 var loadScript = _dereq_('../lib/assets').loadScript;
+var Promise = _dereq_('../lib/promise');
+
+var cachedSessionId;
 
 function setup() {
   var fraudNet = new Fraudnet();
 
+  if (cachedSessionId) {
+    fraudNet.sessionId = cachedSessionId;
+
+    return Promise.resolve(fraudNet);
+  }
+
   return fraudNet.initialize();
 }
 
+function clearSessionIdCache() {
+  cachedSessionId = null;
+}
+
 function Fraudnet() {
-  this.sessionId = _generateSessionId();
-  this._beaconId = _generateBeaconId(this.sessionId);
 }
 
 Fraudnet.prototype.initialize = function () {
   var self = this;
 
+  this.sessionId = cachedSessionId = _generateSessionId();
+  this._beaconId = _generateBeaconId(this.sessionId);
   this._parameterBlock = _createParameterBlock(this.sessionId, this._beaconId);
 
   return loadScript({
@@ -498,25 +511,18 @@ Fraudnet.prototype.initialize = function () {
 };
 
 Fraudnet.prototype.teardown = function () {
-  var iframe = document.querySelector('iframe[title="ppfniframe"]');
+  removeElementIfOnPage(document.querySelector('iframe[title="ppfniframe"]'));
+  removeElementIfOnPage(document.querySelector('iframe[title="pbf"]'));
 
-  if (iframe) {
-    iframe.parentNode.removeChild(iframe);
-  }
-
-  iframe = document.querySelector('iframe[title="pbf"]');
-  if (iframe) {
-    iframe.parentNode.removeChild(iframe);
-  }
-
-  if (this._parameterBlock) {
-    this._parameterBlock.parentNode.removeChild(this._parameterBlock);
-  }
-
-  if (this._thirdPartyBlock) {
-    this._thirdPartyBlock.parentNode.removeChild(this._thirdPartyBlock);
-  }
+  removeElementIfOnPage(this._parameterBlock);
+  removeElementIfOnPage(this._thirdPartyBlock);
 };
+
+function removeElementIfOnPage(element) {
+  if (element && element.parentNode) {
+    element.parentNode.removeChild(element);
+  }
+}
 
 function _generateSessionId() {
   var i;
@@ -554,10 +560,11 @@ function _createParameterBlock(sessionId, beaconId) {
 }
 
 module.exports = {
-  setup: setup
+  setup: setup,
+  clearSessionIdCache: clearSessionIdCache
 };
 
-},{"../lib/assets":13,"../lib/constants":17}],10:[function(_dereq_,module,exports){
+},{"../lib/assets":13,"../lib/constants":17,"../lib/promise":24}],10:[function(_dereq_,module,exports){
 'use strict';
 /** @module braintree-web/data-collector */
 
@@ -569,7 +576,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var methods = _dereq_('../lib/methods');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
-var VERSION = "3.43.0";
+var VERSION = "3.44.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var errors = _dereq_('./errors');
@@ -896,7 +903,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.43.0";
+var VERSION = "3.44.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1046,7 +1053,7 @@ module.exports = function (obj) {
 },{}],17:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.43.0";
+var VERSION = "3.44.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1127,7 +1134,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.43.0";
+var VERSION = "3.44.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();

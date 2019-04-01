@@ -1807,7 +1807,7 @@ var AmericanExpress = _dereq_('./american-express');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
-var VERSION = "3.43.0";
+var VERSION = "3.44.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -2239,7 +2239,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var errors = _dereq_('./errors');
-var VERSION = "3.43.0";
+var VERSION = "3.44.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -2995,7 +2995,7 @@ module.exports = {
 
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Client = _dereq_('./client');
-var VERSION = "3.43.0";
+var VERSION = "3.44.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -4226,21 +4226,34 @@ var FRAUDNET_FNCLS = _dereq_('../lib/constants').FRAUDNET_FNCLS;
 var FRAUDNET_SOURCE = _dereq_('../lib/constants').FRAUDNET_SOURCE;
 var FRAUDNET_URL = _dereq_('../lib/constants').FRAUDNET_URL;
 var loadScript = _dereq_('../lib/assets').loadScript;
+var Promise = _dereq_('../lib/promise');
+
+var cachedSessionId;
 
 function setup() {
   var fraudNet = new Fraudnet();
 
+  if (cachedSessionId) {
+    fraudNet.sessionId = cachedSessionId;
+
+    return Promise.resolve(fraudNet);
+  }
+
   return fraudNet.initialize();
 }
 
+function clearSessionIdCache() {
+  cachedSessionId = null;
+}
+
 function Fraudnet() {
-  this.sessionId = _generateSessionId();
-  this._beaconId = _generateBeaconId(this.sessionId);
 }
 
 Fraudnet.prototype.initialize = function () {
   var self = this;
 
+  this.sessionId = cachedSessionId = _generateSessionId();
+  this._beaconId = _generateBeaconId(this.sessionId);
   this._parameterBlock = _createParameterBlock(this.sessionId, this._beaconId);
 
   return loadScript({
@@ -4258,25 +4271,18 @@ Fraudnet.prototype.initialize = function () {
 };
 
 Fraudnet.prototype.teardown = function () {
-  var iframe = document.querySelector('iframe[title="ppfniframe"]');
+  removeElementIfOnPage(document.querySelector('iframe[title="ppfniframe"]'));
+  removeElementIfOnPage(document.querySelector('iframe[title="pbf"]'));
 
-  if (iframe) {
-    iframe.parentNode.removeChild(iframe);
-  }
-
-  iframe = document.querySelector('iframe[title="pbf"]');
-  if (iframe) {
-    iframe.parentNode.removeChild(iframe);
-  }
-
-  if (this._parameterBlock) {
-    this._parameterBlock.parentNode.removeChild(this._parameterBlock);
-  }
-
-  if (this._thirdPartyBlock) {
-    this._thirdPartyBlock.parentNode.removeChild(this._thirdPartyBlock);
-  }
+  removeElementIfOnPage(this._parameterBlock);
+  removeElementIfOnPage(this._thirdPartyBlock);
 };
+
+function removeElementIfOnPage(element) {
+  if (element && element.parentNode) {
+    element.parentNode.removeChild(element);
+  }
+}
 
 function _generateSessionId() {
   var i;
@@ -4314,10 +4320,11 @@ function _createParameterBlock(sessionId, beaconId) {
 }
 
 module.exports = {
-  setup: setup
+  setup: setup,
+  clearSessionIdCache: clearSessionIdCache
 };
 
-},{"../lib/assets":93,"../lib/constants":102}],67:[function(_dereq_,module,exports){
+},{"../lib/assets":93,"../lib/constants":102,"../lib/promise":132}],67:[function(_dereq_,module,exports){
 'use strict';
 /** @module braintree-web/data-collector */
 
@@ -4329,7 +4336,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var methods = _dereq_('../lib/methods');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
-var VERSION = "3.43.0";
+var VERSION = "3.44.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var errors = _dereq_('./errors');
@@ -4942,7 +4949,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.43.0";
+var VERSION = "3.44.0";
 
 /**
  * @static
@@ -6337,7 +6344,7 @@ var supportsInputFormatting = _dereq_('restricted-input/supports-input-formattin
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.43.0";
+var VERSION = "3.44.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -6647,7 +6654,7 @@ module.exports = {
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.43.0";
+var VERSION = "3.44.0";
 
 var constants = {
   VERSION: VERSION,
@@ -6951,7 +6958,7 @@ var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../../lib/convert-to-braintree-error');
 var errors = _dereq_('../shared/errors');
-var VERSION = "3.43.0";
+var VERSION = "3.44.0";
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var methods = _dereq_('../../lib/methods');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -7319,7 +7326,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var Ideal = _dereq_('./external/ideal');
-var VERSION = "3.43.0";
+var VERSION = "3.44.0";
 var errors = _dereq_('./shared/errors');
 var sharedErrors = _dereq_('../lib/errors');
 var analytics = _dereq_('../lib/analytics');
@@ -7521,7 +7528,7 @@ var usBankAccount = _dereq_('./us-bank-account');
 var vaultManager = _dereq_('./vault-manager');
 var venmo = _dereq_('./venmo');
 var visaCheckout = _dereq_('./visa-checkout');
-var VERSION = "3.43.0";
+var VERSION = "3.44.0";
 
 module.exports = {
   /** @type {module:braintree-web/american-express} */
@@ -7681,7 +7688,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.43.0";
+var VERSION = "3.44.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -8049,7 +8056,7 @@ module.exports = function (obj) {
 },{}],102:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.43.0";
+var VERSION = "3.44.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -8198,7 +8205,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.43.0";
+var VERSION = "3.44.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -9007,7 +9014,7 @@ module.exports = enumerate([
 },{"../../enumerate":110}],125:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.43.0";
+var VERSION = "3.44.0";
 var assign = _dereq_('./assign').assign;
 
 function generateTokenizationParameters(configuration, overrides) {
@@ -9395,7 +9402,7 @@ module.exports = {
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var useMin = _dereq_('../../lib/use-min');
-var VERSION = "3.43.0";
+var VERSION = "3.44.0";
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
 var methods = _dereq_('../../lib/methods');
@@ -9823,7 +9830,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var LocalPayment = _dereq_('./external/local-payment');
-var VERSION = "3.43.0";
+var VERSION = "3.44.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -10013,7 +10020,7 @@ var Promise = _dereq_('../../lib/promise');
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var errors = _dereq_('../shared/errors');
-var VERSION = "3.43.0";
+var VERSION = "3.44.0";
 var methods = _dereq_('../../lib/methods');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var analytics = _dereq_('../../lib/analytics');
@@ -10412,7 +10419,7 @@ var browserDetection = _dereq_('./shared/browser-detection');
 var Masterpass = _dereq_('./external/masterpass');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
-var VERSION = "3.43.0";
+var VERSION = "3.44.0";
 var errors = _dereq_('./shared/errors');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -10620,7 +10627,7 @@ var methods = _dereq_('../../lib/methods');
 var Promise = _dereq_('../../lib/promise');
 var EventEmitter = _dereq_('../../lib/event-emitter');
 var BraintreeError = _dereq_('../../lib/braintree-error');
-var VERSION = "3.43.0";
+var VERSION = "3.44.0";
 var constants = _dereq_('../shared/constants');
 var events = constants.events;
 var errors = constants.errors;
@@ -11290,7 +11297,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.43.0";
+var VERSION = "3.44.0";
 
 /**
  * @static
@@ -11556,7 +11563,7 @@ module.exports = {
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var PayPalCheckout = _dereq_('./paypal-checkout');
-var VERSION = "3.43.0";
+var VERSION = "3.44.0";
 
 /**
  * @static
@@ -11708,7 +11715,8 @@ var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
  *       return paypalCheckoutInstance.createPayment({
  *         flow: 'checkout',
  *         currency: 'USD',
- *         amount: '10.00'
+ *         amount: '10.00',
+ *         intent: 'capture' // this value must either be `capture` or match the intent passed into the PayPal SDK intent query parameter
  *         // your other createPayment options here
  *       });
  *     },
@@ -11942,7 +11950,7 @@ PayPalCheckout.prototype._initialize = function (options) {
  *       flow: 'checkout',
  *       amount: '10.00',
  *       currency: 'USD',
- *       intent: 'capture'
+ *       intent: 'capture' // this value must either be `capture` or match the intent passed into the PayPal SDK intent query parameter
  *     });
  *   },
  *   // Add other options, e.g. onApproved, onCancel, onError
@@ -12209,7 +12217,7 @@ var BraintreeError = _dereq_('../../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../../lib/convert-to-braintree-error');
 var useMin = _dereq_('../../lib/use-min');
 var once = _dereq_('../../lib/once');
-var VERSION = "3.43.0";
+var VERSION = "3.44.0";
 var constants = _dereq_('../shared/constants');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
@@ -12815,7 +12823,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var errors = _dereq_('./shared/errors');
 var PayPal = _dereq_('./external/paypal');
-var VERSION = "3.43.0";
+var VERSION = "3.44.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var Promise = _dereq_('../lib/promise');
 
@@ -13026,7 +13034,7 @@ var uuid = _dereq_('../../lib/vendor/uuid');
 var deferred = _dereq_('../../lib/deferred');
 var errors = _dereq_('../shared/errors');
 var events = _dereq_('../shared/events');
-var VERSION = "3.43.0";
+var VERSION = "3.44.0";
 var iFramer = _dereq_('@braintree/iframer');
 var Promise = _dereq_('../../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -13406,7 +13414,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.43.0";
+var VERSION = "3.44.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -13573,7 +13581,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.43.0";
+var VERSION = "3.44.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -13765,7 +13773,7 @@ var errors = _dereq_('./errors');
 var events = constants.events;
 var iFramer = _dereq_('@braintree/iframer');
 var methods = _dereq_('../../lib/methods');
-var VERSION = "3.43.0";
+var VERSION = "3.44.0";
 var uuid = _dereq_('../../lib/vendor/uuid');
 var Promise = _dereq_('../../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -14237,7 +14245,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var errors = _dereq_('./errors');
 var USBankAccount = _dereq_('./us-bank-account');
-var VERSION = "3.43.0";
+var VERSION = "3.44.0";
 var sharedErrors = _dereq_('../lib/errors');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -14761,7 +14769,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var VaultManager = _dereq_('./vault-manager');
-var VERSION = "3.43.0";
+var VERSION = "3.44.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -15002,7 +15010,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var Venmo = _dereq_('./venmo');
 var Promise = _dereq_('../lib/promise');
 var supportsVenmo = _dereq_('./shared/supports-venmo');
-var VERSION = "3.43.0";
+var VERSION = "3.44.0";
 
 /**
  * @static
@@ -15219,7 +15227,7 @@ var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.43.0";
+var VERSION = "3.44.0";
 
 /**
  * Venmo tokenize payload.
@@ -15554,7 +15562,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var VisaCheckout = _dereq_('./visa-checkout');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./errors');
-var VERSION = "3.43.0";
+var VERSION = "3.44.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 

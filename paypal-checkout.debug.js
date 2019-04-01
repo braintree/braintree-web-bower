@@ -518,7 +518,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.43.0";
+var VERSION = "3.44.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -648,7 +648,7 @@ module.exports = BraintreeError;
 },{"./enumerate":19}],13:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.43.0";
+var VERSION = "3.44.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -797,7 +797,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.43.0";
+var VERSION = "3.44.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1048,7 +1048,7 @@ module.exports = {
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var PayPalCheckout = _dereq_('./paypal-checkout');
-var VERSION = "3.43.0";
+var VERSION = "3.44.0";
 
 /**
  * @static
@@ -1200,7 +1200,8 @@ var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
  *       return paypalCheckoutInstance.createPayment({
  *         flow: 'checkout',
  *         currency: 'USD',
- *         amount: '10.00'
+ *         amount: '10.00',
+ *         intent: 'capture' // this value must either be `capture` or match the intent passed into the PayPal SDK intent query parameter
  *         // your other createPayment options here
  *       });
  *     },
@@ -1434,7 +1435,7 @@ PayPalCheckout.prototype._initialize = function (options) {
  *       flow: 'checkout',
  *       amount: '10.00',
  *       currency: 'USD',
- *       intent: 'capture'
+ *       intent: 'capture' // this value must either be `capture` or match the intent passed into the PayPal SDK intent query parameter
  *     });
  *   },
  *   // Add other options, e.g. onApproved, onCancel, onError
