@@ -684,7 +684,7 @@ var cardTypes = {
       6292
     ],
     gaps: [4, 8, 12],
-    lengths: [16, 17, 18, 19],
+    lengths: [14, 15, 16, 17, 18, 19],
     code: {
       name: 'CVN',
       size: 3
@@ -1607,6 +1607,7 @@ module.exports = function getStylesFromClass(cssClass) {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"../shared/constants":39}],35:[function(_dereq_,module,exports){
+(function (global){
 'use strict';
 
 var assign = _dereq_('../../lib/assign').assign;
@@ -1917,6 +1918,54 @@ function performBlurFixForIos(container) {
   }
 }
 
+function isVisibleEnough(node) {
+  var boundingBox = node.getBoundingClientRect();
+  var verticalMidpoint = Math.floor(boundingBox.height / 2);
+  var horizontalMidpoint = Math.floor(boundingBox.width / 2);
+
+  return (
+    boundingBox.top < (global.innerHeight - verticalMidpoint || document.documentElement.clientHeight - verticalMidpoint) &&
+    boundingBox.right > horizontalMidpoint &&
+    boundingBox.bottom > verticalMidpoint &&
+    boundingBox.left < (global.innerWidth - horizontalMidpoint || document.documentElement.clientWidth - horizontalMidpoint)
+  );
+}
+
+function fieldsDOMOrder(configFields) {
+  var fieldPosition = [];
+  var fields = configFields;
+  var sortedFieldNames = [];
+  var validFieldsInUse = Object.keys(fields).filter(function (key) {
+    return allowedFields.hasOwnProperty(key);
+  });
+
+  validFieldsInUse.forEach(function (key) {
+    fieldPosition.push([key, fields[key].container]);
+  });
+
+  fieldPosition.sort(function (a, b) {
+    var element1 = a[1];
+    var element2 = b[1];
+    var position = element1.compareDocumentPosition(element2);
+
+    if (element1 === element2) { return 0; }
+
+    if (position & Node.DOCUMENT_POSITION_FOLLOWING || position & Node.DOCUMENT_POSITION_CONTAINED_BY) {
+      return -1;
+    } else if (position & Node.DOCUMENT_POSITION_PRECEDING || position & Node.DOCUMENT_POSITION_CONTAINS) {
+      return 1;
+    }
+
+    return 0;
+  });
+
+  fieldPosition.forEach(function (value) {
+    sortedFieldNames.push(value[0]);
+  });
+
+  return sortedFieldNames;
+}
+
 /**
  * @class HostedFields
  * @param {object} options The Hosted Fields {@link module:braintree-web/hosted-fields.create create} options.
@@ -2085,6 +2134,8 @@ function HostedFields(options) {
     }, 0);
   }.bind(this));
 
+  busOptions.orderedFields = fieldsDOMOrder(this._state.fields);
+
   if (busOptions.styles) {
     Object.keys(busOptions.styles).forEach(function (selector) {
       var className = busOptions.styles[selector];
@@ -2126,6 +2177,21 @@ function HostedFields(options) {
     events.INPUT_EVENT,
     createInputEventHandler(fields).bind(this)
   );
+
+  this._bus.on(events.TRIGGER_INPUT_FOCUS, function (fieldName) {
+    var container = fields[fieldName].containerElement;
+
+    // Inputs outside of the viewport don't always scroll into view on
+    // focus in iOS Safari. 5ms timeout gives the browser a chance to
+    // do the right thing and prevents stuttering.
+    if (browserDetection.isIos()) {
+      setTimeout(function () {
+        if (!isVisibleEnough(container)) {
+          container.scrollIntoView();
+        }
+      }, 5);
+    }
+  });
 
   this._destructor.registerFunctionForTeardown(function () {
     var j, node, parent;
@@ -2734,6 +2800,7 @@ HostedFields.prototype.getState = function () {
 
 module.exports = wrapPromise.wrapPrototype(HostedFields);
 
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"../../lib/analytics":44,"../../lib/assign":46,"../../lib/braintree-error":49,"../../lib/bus":52,"../../lib/constants":53,"../../lib/convert-methods-to-error":54,"../../lib/create-assets-url":55,"../../lib/create-deferred-client":57,"../../lib/destructor":58,"../../lib/errors":60,"../../lib/event-emitter":61,"../../lib/methods":64,"../../lib/promise":66,"../../lib/vendor/uuid":69,"../shared/browser-detection":38,"../shared/constants":39,"../shared/errors":40,"../shared/find-parent-tags":41,"../shared/get-card-types":42,"./attribute-validation-error":32,"./compose-url":33,"./get-styles-from-class":34,"./inject-frame":36,"@braintree/class-list":12,"@braintree/iframer":13,"@braintree/wrap-promise":20}],36:[function(_dereq_,module,exports){
 'use strict';
 
@@ -2762,7 +2829,7 @@ var supportsInputFormatting = _dereq_('restricted-input/supports-input-formattin
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.44.0";
+var VERSION = "3.44.1";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -3072,7 +3139,7 @@ module.exports = {
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.44.0";
+var VERSION = "3.44.1";
 
 var constants = {
   VERSION: VERSION,
@@ -3473,7 +3540,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.44.0";
+var VERSION = "3.44.1";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -3821,7 +3888,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":49,"./check-origin":50,"./events":51,"framebus":28}],53:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.44.0";
+var VERSION = "3.44.1";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -3948,7 +4015,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.44.0";
+var VERSION = "3.44.1";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
