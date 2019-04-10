@@ -473,8 +473,6 @@ var methods = _dereq_('../lib/methods');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
-var DEFAULT_CARD_NETWORKS = ['AMEX', 'DISCOVER', 'MASTERCARD', 'VISA'];
-
 /**
  * @typedef {object} GooglePayment~tokenizePayload
  * @property {string} nonce The payment method nonce.
@@ -523,29 +521,16 @@ GooglePayment.prototype._createV1PaymentDataRequest = function (defaultConfig, p
 };
 
 GooglePayment.prototype._createV2PaymentDataRequest = function (defaultConfig, paymentDataRequest) {
-  var newCardPaymentMethod, defaultConfigCardPaymentMethod, parameters;
-  var defaultConfigPaymentMethods = defaultConfig.allowedPaymentMethods;
-
-  // For the CARD allowed payment method, ensure allowedCardNetworks is set.
   if (paymentDataRequest.allowedPaymentMethods) {
-    newCardPaymentMethod = find(paymentDataRequest.allowedPaymentMethods, 'type', 'CARD');
-    defaultConfigCardPaymentMethod = find(defaultConfigPaymentMethods, 'type', 'CARD');
+    paymentDataRequest.allowedPaymentMethods.forEach(function (paymentMethod) {
+      var defaultPaymentMethod = find(defaultConfig.allowedPaymentMethods, 'type', paymentMethod.type);
 
-    if (newCardPaymentMethod) {
-      newCardPaymentMethod.parameters = assign({}, newCardPaymentMethod.parameters);
-      parameters = newCardPaymentMethod.parameters;
-      if (!parameters.allowedCardNetworks || (parameters.allowedCardNetworks && parameters.allowedCardNetworks.length === 0)) {
-        if (defaultConfigCardPaymentMethod &&
-          defaultConfigCardPaymentMethod.parameters &&
-          defaultConfigCardPaymentMethod.parameters.allowedCardNetworks
-        ) {
-          parameters.allowedCardNetworks = defaultConfigCardPaymentMethod.parameters.allowedCardNetworks;
-        } else {
-          parameters.allowedCardNetworks = DEFAULT_CARD_NETWORKS;
-        }
+      if (defaultPaymentMethod) {
+        applyDefaultsToPaymentMethodConfiguration(paymentMethod, defaultPaymentMethod);
       }
-    }
+    });
   }
+
   paymentDataRequest = assign({}, defaultConfig, paymentDataRequest);
 
   return paymentDataRequest;
@@ -713,6 +698,20 @@ GooglePayment.prototype.teardown = function () {
   return Promise.resolve();
 };
 
+function applyDefaultsToPaymentMethodConfiguration(merchantSubmittedPaymentMethod, defaultPaymentMethod) {
+  Object.keys(defaultPaymentMethod).forEach(function (parameter) {
+    if (typeof defaultPaymentMethod[parameter] === 'object') {
+      merchantSubmittedPaymentMethod[parameter] = assign(
+        {},
+        defaultPaymentMethod[parameter],
+        merchantSubmittedPaymentMethod[parameter]
+      );
+    } else {
+      merchantSubmittedPaymentMethod[parameter] = merchantSubmittedPaymentMethod[parameter] || defaultPaymentMethod[parameter];
+    }
+  });
+}
+
 module.exports = wrapPromise.wrapPrototype(GooglePayment);
 
 },{"../lib/analytics":12,"../lib/assign":14,"../lib/braintree-error":16,"../lib/convert-methods-to-error":18,"../lib/find":24,"../lib/generate-google-pay-configuration":25,"../lib/methods":27,"../lib/promise":28,"./errors":8,"@braintree/wrap-promise":6}],10:[function(_dereq_,module,exports){
@@ -730,7 +729,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.44.1";
+var VERSION = "3.44.2";
 
 /**
  * @static
@@ -992,7 +991,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.44.1";
+var VERSION = "3.44.2";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1122,7 +1121,7 @@ module.exports = BraintreeError;
 },{"./enumerate":22}],17:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.44.1";
+var VERSION = "3.44.2";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1249,7 +1248,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.44.1";
+var VERSION = "3.44.2";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1383,7 +1382,7 @@ module.exports = function (array, key, value) {
 },{}],25:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.44.1";
+var VERSION = "3.44.2";
 var assign = _dereq_('./assign').assign;
 
 function generateTokenizationParameters(configuration, overrides) {
