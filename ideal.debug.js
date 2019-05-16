@@ -308,7 +308,14 @@ function deferred(fn) {
     var args = arguments;
 
     setTimeout(function () {
-      fn.apply(null, args);
+      try {
+        fn.apply(null, args);
+      } catch (err) {
+        /* eslint-disable no-console */
+        console.log('Error in callback function');
+        console.log(err);
+        /* eslint-enable no-console */
+      }
     }, 1);
   };
 }
@@ -367,6 +374,7 @@ function wrapPromise(fn) {
       callback = args.pop();
       callback = once(deferred(callback));
     }
+
     return promiseOrCallback(fn.apply(this, args), callback); // eslint-disable-line no-invalid-this
   };
 }
@@ -998,7 +1006,7 @@ var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../../lib/convert-to-braintree-error');
 var errors = _dereq_('../shared/errors');
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var methods = _dereq_('../../lib/methods');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -1366,7 +1374,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var Ideal = _dereq_('./external/ideal');
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 var errors = _dereq_('./shared/errors');
 var sharedErrors = _dereq_('../lib/errors');
 var analytics = _dereq_('../lib/analytics');
@@ -1625,7 +1633,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1927,7 +1935,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":35,"./check-origin":36,"./events":37,"framebus":22}],39:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -2076,7 +2084,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();

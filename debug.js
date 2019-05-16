@@ -383,7 +383,14 @@ function deferred(fn) {
     var args = arguments;
 
     setTimeout(function () {
-      fn.apply(null, args);
+      try {
+        fn.apply(null, args);
+      } catch (err) {
+        /* eslint-disable no-console */
+        console.log('Error in callback function');
+        console.log(err);
+        /* eslint-enable no-console */
+      }
     }, 1);
   };
 }
@@ -442,6 +449,7 @@ function wrapPromise(fn) {
       callback = args.pop();
       callback = once(deferred(callback));
     }
+
     return promiseOrCallback(fn.apply(this, args), callback); // eslint-disable-line no-invalid-this
   };
 }
@@ -1596,6 +1604,7 @@ function isAndroidChrome(uaArg) {
 
 function isSamsungBrowser(ua) {
   ua = ua || UA;
+
   return /SamsungBrowser/.test(ua) || _isOldSamsungBrowserOrSamsungWebview(ua);
 }
 
@@ -1807,7 +1816,7 @@ var AmericanExpress = _dereq_('./american-express');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -2239,7 +2248,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var errors = _dereq_('./errors');
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -2995,7 +3004,7 @@ module.exports = {
 
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Client = _dereq_('./client');
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -4180,7 +4189,7 @@ module.exports = function (method, body) {
 var isXHRAvailable = global.XMLHttpRequest && 'withCredentials' in new global.XMLHttpRequest();
 
 function getRequestObject() {
-  return isXHRAvailable ? new XMLHttpRequest() : new XDomainRequest();
+  return isXHRAvailable ? new global.XMLHttpRequest() : new global.XDomainRequest();
 }
 
 module.exports = {
@@ -4336,7 +4345,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var methods = _dereq_('../lib/methods');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var errors = _dereq_('./errors');
@@ -4655,6 +4664,7 @@ else break a;sjcl.random.addEntropy(F,1024,"crypto['getRandomValues']")}}catch(a
  * @name BraintreeError.Google Payment - Creation Error Codes
  * @description Errors that occur when [creating the Google Payment component](/current/module-braintree-web_google-payment.html#.create).
  * @property {MERCHANT} GOOGLE_PAYMENT_NOT_ENABLED Occurs when Google Pay is not enabled on the Braintree control panel.
+ * @property {MERCHANT} GOOGLE_PAYMENT_UNSUPPORTED_VERSION Occurs when a Google Pay version is used that is not supported by the Braintree SDK.
  */
 
 /**
@@ -4675,6 +4685,10 @@ module.exports = {
     code: 'GOOGLE_PAYMENT_GATEWAY_ERROR',
     message: 'There was an error when tokenizing the Google Pay payment method.',
     type: BraintreeError.types.UNKNOWN
+  },
+  GOOGLE_PAYMENT_UNSUPPORTED_VERSION: {
+    code: 'GOOGLE_PAYMENT_UNSUPPORTED_VERSION',
+    type: BraintreeError.types.MERCHANT
   }
 };
 
@@ -4691,6 +4705,11 @@ var errors = _dereq_('./errors');
 var methods = _dereq_('../lib/methods');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
+
+var CREATE_PAYMENT_DATA_REQUEST_METHODS = {
+  1: '_createV1PaymentDataRequest',
+  2: '_createV2PaymentDataRequest'
+};
 
 /**
  * @typedef {object} GooglePayment~tokenizePayload
@@ -4725,7 +4744,34 @@ function GooglePayment(options) {
   this._googleMerchantId = options.googleMerchantId;
 }
 
-GooglePayment.prototype._createV1PaymentDataRequest = function (defaultConfig, paymentDataRequest) {
+GooglePayment.prototype._initialize = function () {
+  if (this._isUnsupportedGooglePayAPIVersion()) {
+    return Promise.reject(new BraintreeError({
+      code: errors.GOOGLE_PAYMENT_UNSUPPORTED_VERSION.code,
+      message: 'The Braintree SDK does not support Google Pay version ' + this._googlePayVersion + '. Please upgrade the version of your Braintree SDK and contact support if this error persists.',
+      type: errors.GOOGLE_PAYMENT_UNSUPPORTED_VERSION.type
+    }));
+  }
+
+  return Promise.resolve(this);
+};
+
+GooglePayment.prototype._isUnsupportedGooglePayAPIVersion = function () {
+  // if we don't have createPaymentDatqRequest method for the specific
+  // API version, then the version is not supported
+  return !(this._googlePayVersion in CREATE_PAYMENT_DATA_REQUEST_METHODS);
+};
+
+GooglePayment.prototype._getDefaultConfig = function () {
+  if (!this._defaultConfig) {
+    this._defaultConfig = generateGooglePayConfiguration(this._client.getConfiguration(), this._googlePayVersion, this._googleMerchantId);
+  }
+
+  return this._defaultConfig;
+};
+
+GooglePayment.prototype._createV1PaymentDataRequest = function (paymentDataRequest) {
+  var defaultConfig = this._getDefaultConfig();
   var overrideCardNetworks = paymentDataRequest.cardRequirements && paymentDataRequest.cardRequirements.allowedCardNetworks;
   var defaultConfigCardNetworks = defaultConfig.cardRequirements.allowedCardNetworks;
   var allowedCardNetworks = overrideCardNetworks || defaultConfigCardNetworks;
@@ -4739,7 +4785,9 @@ GooglePayment.prototype._createV1PaymentDataRequest = function (defaultConfig, p
   return paymentDataRequest;
 };
 
-GooglePayment.prototype._createV2PaymentDataRequest = function (defaultConfig, paymentDataRequest) {
+GooglePayment.prototype._createV2PaymentDataRequest = function (paymentDataRequest) {
+  var defaultConfig = this._getDefaultConfig();
+
   if (paymentDataRequest.allowedPaymentMethods) {
     paymentDataRequest.allowedPaymentMethods.forEach(function (paymentMethod) {
       var defaultPaymentMethod = find(defaultConfig.allowedPaymentMethods, 'type', paymentMethod.type);
@@ -4798,18 +4846,12 @@ GooglePayment.prototype._createV2PaymentDataRequest = function (defaultConfig, p
  */
 GooglePayment.prototype.createPaymentDataRequest = function (overrides) {
   var paymentDataRequest = assign({}, overrides);
-  var defaultConfig = generateGooglePayConfiguration(this._client.getConfiguration(), this._googlePayVersion, this._googleMerchantId);
+  var version = this._googlePayVersion;
+  var createPaymentDataRequestMethod = CREATE_PAYMENT_DATA_REQUEST_METHODS[version];
 
-  // Default to using v1 config. If apiVersion is specifically set to 2, use v2 config.
-  if (this._googlePayVersion === 2) {
-    paymentDataRequest = this._createV2PaymentDataRequest(defaultConfig, paymentDataRequest);
-    analytics.sendEvent(this._client, 'google-payment.v2.createPaymentDataRequest');
-  } else {
-    paymentDataRequest = this._createV1PaymentDataRequest(defaultConfig, paymentDataRequest);
-    analytics.sendEvent(this._client, 'google-payment.v1.createPaymentDataRequest');
-  }
+  analytics.sendEvent(this._client, 'google-payment.v' + version + '.createPaymentDataRequest');
 
-  return paymentDataRequest;
+  return this[createPaymentDataRequestMethod](paymentDataRequest);
 };
 
 /**
@@ -4948,7 +4990,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 
 /**
  * @static
@@ -5077,13 +5119,17 @@ function create(options) {
       name: name
     });
   }).then(function (client) {
+    var gp;
+
     options.client = client;
 
     if (!options.client.getConfiguration().gatewayConfiguration.androidPay) {
       return Promise.reject(new BraintreeError(errors.GOOGLE_PAYMENT_NOT_ENABLED));
     }
 
-    return new GooglePayment(options);
+    gp = new GooglePayment(options);
+
+    return gp._initialize();
   });
 }
 
@@ -5874,6 +5920,7 @@ HostedFields.prototype.teardown = function () {
  * @public
  * @param {object} [options] All tokenization options for the Hosted Fields component.
  * @param {boolean} [options.vault=false] When true, will vault the tokenized card. Cards will only be vaulted when using a client created with a client token that includes a customer ID.
+ * @param {array} [options.fieldsToTokenize] By default, all fields will be tokenized. You may specify which fields specifically you wish to tokenize with this property. Valid options are `'number'`, `'cvv'`, `'expirationDate'`, `'expirationMonth'`, `'expirationYear'`, `'postalCode'`.
  * @param {string} [options.cardholderName] When supplied, the cardholder name to be tokenized with the contents of the fields.
  * @param {string} [options.billingAddress.postalCode] When supplied, this postal code will be tokenized along with the contents of the fields. If a postal code is provided as part of the Hosted Fields configuration, the value of the field will be tokenized and this value will be ignored.
  * @param {string} [options.billingAddress.firstName] When supplied, this customer first name will be tokenized along with the contents of the fields.
@@ -6410,7 +6457,7 @@ var supportsInputFormatting = _dereq_('restricted-input/supports-input-formattin
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -6720,7 +6767,7 @@ module.exports = {
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 
 var constants = {
   VERSION: VERSION,
@@ -7024,7 +7071,7 @@ var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../../lib/convert-to-braintree-error');
 var errors = _dereq_('../shared/errors');
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var methods = _dereq_('../../lib/methods');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -7392,7 +7439,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var Ideal = _dereq_('./external/ideal');
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 var errors = _dereq_('./shared/errors');
 var sharedErrors = _dereq_('../lib/errors');
 var analytics = _dereq_('../lib/analytics');
@@ -7594,7 +7641,7 @@ var usBankAccount = _dereq_('./us-bank-account');
 var vaultManager = _dereq_('./vault-manager');
 var venmo = _dereq_('./venmo');
 var visaCheckout = _dereq_('./visa-checkout');
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 
 module.exports = {
   /** @type {module:braintree-web/american-express} */
@@ -7754,7 +7801,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -8122,7 +8169,7 @@ module.exports = function (obj) {
 },{}],102:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -8271,7 +8318,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -9080,7 +9127,7 @@ module.exports = enumerate([
 },{"../../enumerate":110}],125:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 var assign = _dereq_('./assign').assign;
 
 function generateTokenizationParameters(configuration, overrides) {
@@ -9145,28 +9192,27 @@ module.exports = function (configuration, googlePayVersion, googleMerchantId) {
       }
     }
 
-    if (configuration.gatewayConfiguration.paypal &&
-      configuration.gatewayConfiguration.paypal.clientId &&
-      configuration.gatewayConfiguration.paypal.environmentNoNetwork === false
-    ) {
+    if (androidPayConfiguration.paypalClientId) {
       paypalPaymentMethod = {
         type: 'PAYPAL',
         parameters: {
-          purchase_context: { // eslint-disable-line camelcase
-            purchase_units: [ // eslint-disable-line camelcase
+          /* eslint-disable camelcase */
+          purchase_context: {
+            purchase_units: [
               {
                 payee: {
-                  client_id: configuration.gatewayConfiguration.paypal.clientId // eslint-disable-line camelcase
+                  client_id: androidPayConfiguration.paypalClientId
                 },
-                recurring_payment: true // eslint-disable-line camelcase
+                recurring_payment: true
               }
             ]
           }
+          /* eslint-enable camelcase */
         },
         tokenizationSpecification: {
           type: 'PAYMENT_GATEWAY',
           parameters: generateTokenizationParameters(configuration, {
-            'braintree:paypalClientId': configuration.gatewayConfiguration.paypal.clientId
+            'braintree:paypalClientId': androidPayConfiguration.paypalClientId
           })
         }
       };
@@ -9468,7 +9514,7 @@ module.exports = {
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var useMin = _dereq_('../../lib/use-min');
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
 var methods = _dereq_('../../lib/methods');
@@ -9628,7 +9674,7 @@ LocalPayment.prototype.startPayment = wrapPromise(function (options) {
 
     self._client.request({
       method: 'post',
-      endpoint: 'paypal_hermes/create_payment_resource',
+      endpoint: 'local_payments/create',
       data: params
     }).then(function (response) {
       analytics.sendEvent(self._client, self._paymentType + '.local-payment.start-payment.opened');
@@ -9896,7 +9942,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var LocalPayment = _dereq_('./external/local-payment');
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -9908,7 +9954,7 @@ var errors = _dereq_('./shared/errors');
  * @param {object} options Creation options:
  * @param {Client} [options.client] A {@link Client} instance.
  * @param {string} [options.authorization] A tokenizationKey or clientToken. Can be used in place of `options.client`.
- * @param {string} [options.merchantAccountId] A non-default merchant account ID to use for tokenization.
+ * @param {string} [options.merchantAccountId] A non-default merchant account ID to use for tokenization and creation of the authorizing transaction. Braintree strongly recommends specifying this parameter.
  * @param {callback} callback The second argument, `data`, is the {@link LocalPayment} instance.
  * @example <caption>Using the local payment component to set up an iDEAL button</caption>
  * var idealButton = document.querySelector('.ideal-button');
@@ -9922,7 +9968,8 @@ var errors = _dereq_('./shared/errors');
  *   }
  *
  *   braintree.localPayment.create({
- *     client: clientInstance
+ *     client: clientInstance,
+ *     merchantAccountId: 'merchantAccountEUR',
  *   }, function (localPaymentErr, localPaymentInstance) {
  *     if (localPaymentErr) {
  *       console.error('Error creating local payment component:', localPaymentErr);
@@ -10086,7 +10133,7 @@ var Promise = _dereq_('../../lib/promise');
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var errors = _dereq_('../shared/errors');
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 var methods = _dereq_('../../lib/methods');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var analytics = _dereq_('../../lib/analytics');
@@ -10485,7 +10532,7 @@ var browserDetection = _dereq_('./shared/browser-detection');
 var Masterpass = _dereq_('./external/masterpass');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 var errors = _dereq_('./shared/errors');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -10693,7 +10740,7 @@ var methods = _dereq_('../../lib/methods');
 var Promise = _dereq_('../../lib/promise');
 var EventEmitter = _dereq_('../../lib/event-emitter');
 var BraintreeError = _dereq_('../../lib/braintree-error');
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 var constants = _dereq_('../shared/constants');
 var events = constants.events;
 var errors = constants.errors;
@@ -11363,7 +11410,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 
 /**
  * @static
@@ -11629,7 +11676,7 @@ module.exports = {
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var PayPalCheckout = _dereq_('./paypal-checkout');
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 
 /**
  * @static
@@ -12284,7 +12331,7 @@ var BraintreeError = _dereq_('../../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../../lib/convert-to-braintree-error');
 var useMin = _dereq_('../../lib/use-min');
 var once = _dereq_('../../lib/once');
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 var constants = _dereq_('../shared/constants');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
@@ -12589,12 +12636,12 @@ PayPal.prototype._createFrameServiceCallback = function (options, resolve, rejec
 
   if (global.popupBridge) {
     return function (err, payload) {
-      var cancelled = payload && payload.path && payload.path.substring(0, 7) === '/cancel';
+      var canceled = payload && payload.path && payload.path.substring(0, 7) === '/cancel';
 
       self._authorizationInProgress = false;
 
       // `err` exists when the user clicks "Done" button of browser view
-      if (err || cancelled) {
+      if (err || canceled) {
         analytics.sendEvent(client, 'paypal.tokenization.closed-popupbridge.by-user');
         // Call merchant's tokenize callback with an error
         reject(new BraintreeError(errors.PAYPAL_POPUP_CLOSED));
@@ -12890,7 +12937,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var errors = _dereq_('./shared/errors');
 var PayPal = _dereq_('./external/paypal');
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var Promise = _dereq_('../lib/promise');
 
@@ -13101,7 +13148,7 @@ var uuid = _dereq_('../../lib/vendor/uuid');
 var deferred = _dereq_('../../lib/deferred');
 var errors = _dereq_('../shared/errors');
 var events = _dereq_('../shared/events');
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 var iFramer = _dereq_('@braintree/iframer');
 var Promise = _dereq_('../../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -13481,7 +13528,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -13576,7 +13623,7 @@ module.exports = {
 /**
  * @name BraintreeError.3D Secure - cancelVerifyCard Error Codes
  * @description Errors that occur when using the [`cancelVerifyCard` method](/current/ThreeDSecure.html#cancelVerifyCard).
- * @property {MERCHANT} THREEDS_NO_VERIFICATION_PAYLOAD Occurs when the 3D Secure flow is cancelled, but there is no 3D Secure information available.
+ * @property {MERCHANT} THREEDS_NO_VERIFICATION_PAYLOAD Occurs when the 3D Secure flow is canceled, but there is no 3D Secure information available.
  */
 
 /**
@@ -13648,7 +13695,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -13840,7 +13887,7 @@ var errors = _dereq_('./errors');
 var events = constants.events;
 var iFramer = _dereq_('@braintree/iframer');
 var methods = _dereq_('../../lib/methods');
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 var uuid = _dereq_('../../lib/vendor/uuid');
 var Promise = _dereq_('../../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -14312,7 +14359,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var errors = _dereq_('./errors');
 var USBankAccount = _dereq_('./us-bank-account');
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 var sharedErrors = _dereq_('../lib/errors');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -14836,7 +14883,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var VaultManager = _dereq_('./vault-manager');
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -15077,7 +15124,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var Venmo = _dereq_('./venmo');
 var Promise = _dereq_('../lib/promise');
 var supportsVenmo = _dereq_('./shared/supports-venmo');
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 
 /**
  * @static
@@ -15294,7 +15341,7 @@ var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 
 /**
  * Venmo tokenize payload.
@@ -15629,7 +15676,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var VisaCheckout = _dereq_('./visa-checkout');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./errors');
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 

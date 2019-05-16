@@ -141,7 +141,14 @@ function deferred(fn) {
     var args = arguments;
 
     setTimeout(function () {
-      fn.apply(null, args);
+      try {
+        fn.apply(null, args);
+      } catch (err) {
+        /* eslint-disable no-console */
+        console.log('Error in callback function');
+        console.log(err);
+        /* eslint-enable no-console */
+      }
     }, 1);
   };
 }
@@ -200,6 +207,7 @@ function wrapPromise(fn) {
       callback = args.pop();
       callback = once(deferred(callback));
     }
+
     return promiseOrCallback(fn.apply(this, args), callback); // eslint-disable-line no-invalid-this
   };
 }
@@ -928,7 +936,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1230,7 +1238,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":18,"./check-origin":19,"./events":20,"framebus":11}],22:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1357,7 +1365,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1641,7 +1649,7 @@ var uuid = _dereq_('../../lib/vendor/uuid');
 var deferred = _dereq_('../../lib/deferred');
 var errors = _dereq_('../shared/errors');
 var events = _dereq_('../shared/events');
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 var iFramer = _dereq_('@braintree/iframer');
 var Promise = _dereq_('../../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -2021,7 +2029,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -2116,7 +2124,7 @@ module.exports = {
 /**
  * @name BraintreeError.3D Secure - cancelVerifyCard Error Codes
  * @description Errors that occur when using the [`cancelVerifyCard` method](/current/ThreeDSecure.html#cancelVerifyCard).
- * @property {MERCHANT} THREEDS_NO_VERIFICATION_PAYLOAD Occurs when the 3D Secure flow is cancelled, but there is no 3D Secure information available.
+ * @property {MERCHANT} THREEDS_NO_VERIFICATION_PAYLOAD Occurs when the 3D Secure flow is canceled, but there is no 3D Secure information available.
  */
 
 /**

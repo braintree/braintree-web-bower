@@ -280,7 +280,14 @@ function deferred(fn) {
     var args = arguments;
 
     setTimeout(function () {
-      fn.apply(null, args);
+      try {
+        fn.apply(null, args);
+      } catch (err) {
+        /* eslint-disable no-console */
+        console.log('Error in callback function');
+        console.log(err);
+        /* eslint-enable no-console */
+      }
     }, 1);
   };
 }
@@ -339,6 +346,7 @@ function wrapPromise(fn) {
       callback = args.pop();
       callback = once(deferred(callback));
     }
+
     return promiseOrCallback(fn.apply(this, args), callback); // eslint-disable-line no-invalid-this
   };
 }
@@ -1493,6 +1501,7 @@ function isAndroidChrome(uaArg) {
 
 function isSamsungBrowser(ua) {
   ua = ua || UA;
+
   return /SamsungBrowser/.test(ua) || _isOldSamsungBrowserOrSamsungWebview(ua);
 }
 
@@ -2293,6 +2302,7 @@ HostedFields.prototype.teardown = function () {
  * @public
  * @param {object} [options] All tokenization options for the Hosted Fields component.
  * @param {boolean} [options.vault=false] When true, will vault the tokenized card. Cards will only be vaulted when using a client created with a client token that includes a customer ID.
+ * @param {array} [options.fieldsToTokenize] By default, all fields will be tokenized. You may specify which fields specifically you wish to tokenize with this property. Valid options are `'number'`, `'cvv'`, `'expirationDate'`, `'expirationMonth'`, `'expirationYear'`, `'postalCode'`.
  * @param {string} [options.cardholderName] When supplied, the cardholder name to be tokenized with the contents of the fields.
  * @param {string} [options.billingAddress.postalCode] When supplied, this postal code will be tokenized along with the contents of the fields. If a postal code is provided as part of the Hosted Fields configuration, the value of the field will be tokenized and this value will be ignored.
  * @param {string} [options.billingAddress.firstName] When supplied, this customer first name will be tokenized along with the contents of the fields.
@@ -2829,7 +2839,7 @@ var supportsInputFormatting = _dereq_('restricted-input/supports-input-formattin
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -3139,7 +3149,7 @@ module.exports = {
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 
 var constants = {
   VERSION: VERSION,
@@ -3540,7 +3550,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -3888,7 +3898,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":49,"./check-origin":50,"./events":51,"framebus":28}],53:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -4015,7 +4025,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();

@@ -70,7 +70,14 @@ function deferred(fn) {
     var args = arguments;
 
     setTimeout(function () {
-      fn.apply(null, args);
+      try {
+        fn.apply(null, args);
+      } catch (err) {
+        /* eslint-disable no-console */
+        console.log('Error in callback function');
+        console.log(err);
+        /* eslint-enable no-console */
+      }
     }, 1);
   };
 }
@@ -129,6 +136,7 @@ function wrapPromise(fn) {
       callback = args.pop();
       callback = once(deferred(callback));
     }
+
     return promiseOrCallback(fn.apply(this, args), callback); // eslint-disable-line no-invalid-this
   };
 }
@@ -436,6 +444,7 @@ module.exports = Promise;
  * @name BraintreeError.Google Payment - Creation Error Codes
  * @description Errors that occur when [creating the Google Payment component](/current/module-braintree-web_google-payment.html#.create).
  * @property {MERCHANT} GOOGLE_PAYMENT_NOT_ENABLED Occurs when Google Pay is not enabled on the Braintree control panel.
+ * @property {MERCHANT} GOOGLE_PAYMENT_UNSUPPORTED_VERSION Occurs when a Google Pay version is used that is not supported by the Braintree SDK.
  */
 
 /**
@@ -456,6 +465,10 @@ module.exports = {
     code: 'GOOGLE_PAYMENT_GATEWAY_ERROR',
     message: 'There was an error when tokenizing the Google Pay payment method.',
     type: BraintreeError.types.UNKNOWN
+  },
+  GOOGLE_PAYMENT_UNSUPPORTED_VERSION: {
+    code: 'GOOGLE_PAYMENT_UNSUPPORTED_VERSION',
+    type: BraintreeError.types.MERCHANT
   }
 };
 
@@ -472,6 +485,11 @@ var errors = _dereq_('./errors');
 var methods = _dereq_('../lib/methods');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
+
+var CREATE_PAYMENT_DATA_REQUEST_METHODS = {
+  1: '_createV1PaymentDataRequest',
+  2: '_createV2PaymentDataRequest'
+};
 
 /**
  * @typedef {object} GooglePayment~tokenizePayload
@@ -506,7 +524,34 @@ function GooglePayment(options) {
   this._googleMerchantId = options.googleMerchantId;
 }
 
-GooglePayment.prototype._createV1PaymentDataRequest = function (defaultConfig, paymentDataRequest) {
+GooglePayment.prototype._initialize = function () {
+  if (this._isUnsupportedGooglePayAPIVersion()) {
+    return Promise.reject(new BraintreeError({
+      code: errors.GOOGLE_PAYMENT_UNSUPPORTED_VERSION.code,
+      message: 'The Braintree SDK does not support Google Pay version ' + this._googlePayVersion + '. Please upgrade the version of your Braintree SDK and contact support if this error persists.',
+      type: errors.GOOGLE_PAYMENT_UNSUPPORTED_VERSION.type
+    }));
+  }
+
+  return Promise.resolve(this);
+};
+
+GooglePayment.prototype._isUnsupportedGooglePayAPIVersion = function () {
+  // if we don't have createPaymentDatqRequest method for the specific
+  // API version, then the version is not supported
+  return !(this._googlePayVersion in CREATE_PAYMENT_DATA_REQUEST_METHODS);
+};
+
+GooglePayment.prototype._getDefaultConfig = function () {
+  if (!this._defaultConfig) {
+    this._defaultConfig = generateGooglePayConfiguration(this._client.getConfiguration(), this._googlePayVersion, this._googleMerchantId);
+  }
+
+  return this._defaultConfig;
+};
+
+GooglePayment.prototype._createV1PaymentDataRequest = function (paymentDataRequest) {
+  var defaultConfig = this._getDefaultConfig();
   var overrideCardNetworks = paymentDataRequest.cardRequirements && paymentDataRequest.cardRequirements.allowedCardNetworks;
   var defaultConfigCardNetworks = defaultConfig.cardRequirements.allowedCardNetworks;
   var allowedCardNetworks = overrideCardNetworks || defaultConfigCardNetworks;
@@ -520,7 +565,9 @@ GooglePayment.prototype._createV1PaymentDataRequest = function (defaultConfig, p
   return paymentDataRequest;
 };
 
-GooglePayment.prototype._createV2PaymentDataRequest = function (defaultConfig, paymentDataRequest) {
+GooglePayment.prototype._createV2PaymentDataRequest = function (paymentDataRequest) {
+  var defaultConfig = this._getDefaultConfig();
+
   if (paymentDataRequest.allowedPaymentMethods) {
     paymentDataRequest.allowedPaymentMethods.forEach(function (paymentMethod) {
       var defaultPaymentMethod = find(defaultConfig.allowedPaymentMethods, 'type', paymentMethod.type);
@@ -579,18 +626,12 @@ GooglePayment.prototype._createV2PaymentDataRequest = function (defaultConfig, p
  */
 GooglePayment.prototype.createPaymentDataRequest = function (overrides) {
   var paymentDataRequest = assign({}, overrides);
-  var defaultConfig = generateGooglePayConfiguration(this._client.getConfiguration(), this._googlePayVersion, this._googleMerchantId);
+  var version = this._googlePayVersion;
+  var createPaymentDataRequestMethod = CREATE_PAYMENT_DATA_REQUEST_METHODS[version];
 
-  // Default to using v1 config. If apiVersion is specifically set to 2, use v2 config.
-  if (this._googlePayVersion === 2) {
-    paymentDataRequest = this._createV2PaymentDataRequest(defaultConfig, paymentDataRequest);
-    analytics.sendEvent(this._client, 'google-payment.v2.createPaymentDataRequest');
-  } else {
-    paymentDataRequest = this._createV1PaymentDataRequest(defaultConfig, paymentDataRequest);
-    analytics.sendEvent(this._client, 'google-payment.v1.createPaymentDataRequest');
-  }
+  analytics.sendEvent(this._client, 'google-payment.v' + version + '.createPaymentDataRequest');
 
-  return paymentDataRequest;
+  return this[createPaymentDataRequestMethod](paymentDataRequest);
 };
 
 /**
@@ -729,7 +770,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 
 /**
  * @static
@@ -858,13 +899,17 @@ function create(options) {
       name: name
     });
   }).then(function (client) {
+    var gp;
+
     options.client = client;
 
     if (!options.client.getConfiguration().gatewayConfiguration.androidPay) {
       return Promise.reject(new BraintreeError(errors.GOOGLE_PAYMENT_NOT_ENABLED));
     }
 
-    return new GooglePayment(options);
+    gp = new GooglePayment(options);
+
+    return gp._initialize();
   });
 }
 
@@ -991,7 +1036,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1121,7 +1166,7 @@ module.exports = BraintreeError;
 },{"./enumerate":22}],17:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1248,7 +1293,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1382,7 +1427,7 @@ module.exports = function (array, key, value) {
 },{}],25:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 var assign = _dereq_('./assign').assign;
 
 function generateTokenizationParameters(configuration, overrides) {
@@ -1447,28 +1492,27 @@ module.exports = function (configuration, googlePayVersion, googleMerchantId) {
       }
     }
 
-    if (configuration.gatewayConfiguration.paypal &&
-      configuration.gatewayConfiguration.paypal.clientId &&
-      configuration.gatewayConfiguration.paypal.environmentNoNetwork === false
-    ) {
+    if (androidPayConfiguration.paypalClientId) {
       paypalPaymentMethod = {
         type: 'PAYPAL',
         parameters: {
-          purchase_context: { // eslint-disable-line camelcase
-            purchase_units: [ // eslint-disable-line camelcase
+          /* eslint-disable camelcase */
+          purchase_context: {
+            purchase_units: [
               {
                 payee: {
-                  client_id: configuration.gatewayConfiguration.paypal.clientId // eslint-disable-line camelcase
+                  client_id: androidPayConfiguration.paypalClientId
                 },
-                recurring_payment: true // eslint-disable-line camelcase
+                recurring_payment: true
               }
             ]
           }
+          /* eslint-enable camelcase */
         },
         tokenizationSpecification: {
           type: 'PAYMENT_GATEWAY',
           parameters: generateTokenizationParameters(configuration, {
-            'braintree:paypalClientId': configuration.gatewayConfiguration.paypal.clientId
+            'braintree:paypalClientId': androidPayConfiguration.paypalClientId
           })
         }
       };

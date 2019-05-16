@@ -308,7 +308,14 @@ function deferred(fn) {
     var args = arguments;
 
     setTimeout(function () {
-      fn.apply(null, args);
+      try {
+        fn.apply(null, args);
+      } catch (err) {
+        /* eslint-disable no-console */
+        console.log('Error in callback function');
+        console.log(err);
+        /* eslint-enable no-console */
+      }
     }, 1);
   };
 }
@@ -367,6 +374,7 @@ function wrapPromise(fn) {
       callback = args.pop();
       callback = once(deferred(callback));
     }
+
     return promiseOrCallback(fn.apply(this, args), callback); // eslint-disable-line no-invalid-this
   };
 }
@@ -1095,7 +1103,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1397,7 +1405,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":29,"./check-origin":30,"./events":31,"framebus":22}],33:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1546,7 +1554,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -2502,7 +2510,7 @@ module.exports = {
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var useMin = _dereq_('../../lib/use-min');
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
 var methods = _dereq_('../../lib/methods');
@@ -2662,7 +2670,7 @@ LocalPayment.prototype.startPayment = wrapPromise(function (options) {
 
     self._client.request({
       method: 'post',
-      endpoint: 'paypal_hermes/create_payment_resource',
+      endpoint: 'local_payments/create',
       data: params
     }).then(function (response) {
       analytics.sendEvent(self._client, self._paymentType + '.local-payment.start-payment.opened');
@@ -2930,7 +2938,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var LocalPayment = _dereq_('./external/local-payment');
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -2942,7 +2950,7 @@ var errors = _dereq_('./shared/errors');
  * @param {object} options Creation options:
  * @param {Client} [options.client] A {@link Client} instance.
  * @param {string} [options.authorization] A tokenizationKey or clientToken. Can be used in place of `options.client`.
- * @param {string} [options.merchantAccountId] A non-default merchant account ID to use for tokenization.
+ * @param {string} [options.merchantAccountId] A non-default merchant account ID to use for tokenization and creation of the authorizing transaction. Braintree strongly recommends specifying this parameter.
  * @param {callback} callback The second argument, `data`, is the {@link LocalPayment} instance.
  * @example <caption>Using the local payment component to set up an iDEAL button</caption>
  * var idealButton = document.querySelector('.ideal-button');
@@ -2956,7 +2964,8 @@ var errors = _dereq_('./shared/errors');
  *   }
  *
  *   braintree.localPayment.create({
- *     client: clientInstance
+ *     client: clientInstance,
+ *     merchantAccountId: 'merchantAccountEUR',
  *   }, function (localPaymentErr, localPaymentInstance) {
  *     if (localPaymentErr) {
  *       console.error('Error creating local payment component:', localPaymentErr);

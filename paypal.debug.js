@@ -308,7 +308,14 @@ function deferred(fn) {
     var args = arguments;
 
     setTimeout(function () {
-      fn.apply(null, args);
+      try {
+        fn.apply(null, args);
+      } catch (err) {
+        /* eslint-disable no-console */
+        console.log('Error in callback function');
+        console.log(err);
+        /* eslint-enable no-console */
+      }
     }, 1);
   };
 }
@@ -367,6 +374,7 @@ function wrapPromise(fn) {
       callback = args.pop();
       callback = once(deferred(callback));
     }
+
     return promiseOrCallback(fn.apply(this, args), callback); // eslint-disable-line no-invalid-this
   };
 }
@@ -1095,7 +1103,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1397,7 +1405,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":29,"./check-origin":30,"./events":31,"framebus":22}],33:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1546,7 +1554,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -2513,7 +2521,7 @@ var BraintreeError = _dereq_('../../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../../lib/convert-to-braintree-error');
 var useMin = _dereq_('../../lib/use-min');
 var once = _dereq_('../../lib/once');
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 var constants = _dereq_('../shared/constants');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
@@ -2818,12 +2826,12 @@ PayPal.prototype._createFrameServiceCallback = function (options, resolve, rejec
 
   if (global.popupBridge) {
     return function (err, payload) {
-      var cancelled = payload && payload.path && payload.path.substring(0, 7) === '/cancel';
+      var canceled = payload && payload.path && payload.path.substring(0, 7) === '/cancel';
 
       self._authorizationInProgress = false;
 
       // `err` exists when the user clicks "Done" button of browser view
-      if (err || cancelled) {
+      if (err || canceled) {
         analytics.sendEvent(client, 'paypal.tokenization.closed-popupbridge.by-user');
         // Call merchant's tokenize callback with an error
         reject(new BraintreeError(errors.PAYPAL_POPUP_CLOSED));
@@ -3119,7 +3127,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var errors = _dereq_('./shared/errors');
 var PayPal = _dereq_('./external/paypal');
-var VERSION = "3.44.2";
+var VERSION = "3.45.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var Promise = _dereq_('../lib/promise');
 
