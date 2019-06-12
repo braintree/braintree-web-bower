@@ -1744,7 +1744,7 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
  * @function
  * @param {string} event The name of the event to which you are subscribing.
  * @param {function} handler A callback to handle the event.
- * @description Subscribes a handler function to a named event. `event` should be {@link HostedFields#event:blur|blur}, {@link HostedFields#event:focus|focus}, {@link HostedFields#event:empty|empty}, {@link HostedFields#event:notEmpty|notEmpty}, {@link HostedFields#event:cardTypeChange|cardTypeChange}, or {@link HostedFields#event:validityChange|validityChange}. Events will emit a {@link HostedFields~stateObject|stateObject}.
+ * @description Subscribes a handler function to a named event. `event` should be {@link HostedFields#event:blur|blur}, {@link HostedFields#event:focus|focus}, {@link HostedFields#event:empty|empty}, {@link HostedFields#event:notEmpty|notEmpty}, {@link HostedFields#event:cardTypeChange|cardTypeChange}, {@link HostedFields#event:validityChange|validityChange}, or {@link HostedFields#event:inputSubmitRequest|inputSubmitRequest}. Events will emit a {@link HostedFields~stateObject|stateObject}.
  * @example
  * <caption>Listening to a Hosted Field event, in this case 'focus'</caption>
  * hostedFields.create({ ... }, function (createErr, hostedFieldsInstance) {
@@ -2036,7 +2036,12 @@ function HostedFields(options) {
     self._bus.teardown();
   });
 
-  analytics.sendEvent(this._clientPromise, 'custom.hosted-fields.initialized');
+  // NEXT_MAJOR_VERSION analytics events should have present tense verbs
+  if (!options.client) {
+    analytics.sendEvent(this._clientPromise, 'custom.hosted-fields.initialized.deferred-client');
+  } else {
+    analytics.sendEvent(this._clientPromise, 'custom.hosted-fields.initialized');
+  }
 
   Object.keys(options.fields).forEach(function (key) {
     var field, container, frame, frameReadyPromise;
@@ -2839,7 +2844,7 @@ var supportsInputFormatting = _dereq_('restricted-input/supports-input-formattin
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.45.0";
+var VERSION = "3.46.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -2859,7 +2864,22 @@ var VERSION = "3.45.0";
  * For postal code fields, the default value is 3, representing the Icelandic postal code length. This option's primary use case is to increase the `minlength`, e.g. for US customers, the postal code `minlength` can be set to 5.
  * For cvv fields, the default value is 3. The `minlength` attribute only applies to integrations capturing a cvv without a number field.
  * @property {string} [prefill] A value to prefill the field with. For example, when creating an update card form, you can prefill the expiration date fields with the old expiration date data.
- * @property {boolean} [rejectUnsupportedCards=false] Only allow card types that your merchant account is able to process. Unsupported card types will invalidate the card form. e.g. if you only process Visa cards, a customer entering a American Express card would get an invalid card field. This can only be used for the `number` field.
+ * @property {boolean} [rejectUnsupportedCards=false] Deprecated since version 3.46.0, use `supportedCardBrands` instead. Only allow card types that your merchant account is able to process. Unsupported card types will invalidate the card form. e.g. if you only process Visa cards, a customer entering a American Express card would get an invalid card field. This can only be used for the `number` field.
+ * @property {object} [supportedCardBrands] Override card brands that are supported by the card form. Pass `'card-brand-id': true` to override the default in the merchant configuration and enable a card brand. Pass `'card-brand-id': false` to disable a card brand. Unsupported card types will invalidate the card form. e.g. if you only process Visa cards, a customer entering an American Express card would get an invalid card field. This can only be used for the  `number` field. (Note: only allow card types that your merchant account is actually able to process.)
+ *
+ * Valid card brand ids are:
+ * * visa
+ * * mastercard
+ * * american-express
+ * * diners-club
+ * * discover
+ * * jcb
+ * * union-pay
+ * * maestro
+ * * elo
+ * * mir
+ * * hiper
+ * * hipercard
  */
 
 /**
@@ -2949,8 +2969,7 @@ var VERSION = "3.45.0";
  *       placeholder: '•••'
  *     },
  *     expirationDate: {
- *       selector: '#expiration-date',
- *       type: 'month'
+ *       selector: '#expiration-date'
  *     }
  *   }
  * }, callback);
@@ -3050,7 +3069,10 @@ var VERSION = "3.45.0";
  *   fields: {
  *     number: {
  *       selector: '#card-number',
- *       rejectUnsupportedCards: true
+ *       supportedCardBrands: {
+ *         visa: false, // prevents Visas from showing up as valid even when the Braintree control panel is configured to allow them
+ *         'diners-club': true // allow Diners Club cards to be valid (processed as Discover cards on the Braintree backend)
+ *       }
  *     },
  *     cvv: {
  *       selector: '#cvv',
@@ -3149,7 +3171,7 @@ module.exports = {
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.45.0";
+var VERSION = "3.46.0";
 
 var constants = {
   VERSION: VERSION,
@@ -3550,7 +3572,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.45.0";
+var VERSION = "3.46.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -3898,7 +3920,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":49,"./check-origin":50,"./events":51,"framebus":28}],53:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.45.0";
+var VERSION = "3.46.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -4025,7 +4047,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.45.0";
+var VERSION = "3.46.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
