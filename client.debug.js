@@ -33,6 +33,10 @@ function loadScript(options) {
   script.id = options.id;
   script.async = true;
 
+  if (options.crossorigin) {
+    script.setAttribute('crossorigin', options.crossorigin);
+  }
+
   Object.keys(attrs).forEach(function (key) {
     script.setAttribute('data-' + key, attrs[key]);
   });
@@ -214,12 +218,15 @@ function finallyConstructor(callback) {
   var constructor = this.constructor;
   return this.then(
     function(value) {
+      // @ts-ignore
       return constructor.resolve(callback()).then(function() {
         return value;
       });
     },
     function(reason) {
+      // @ts-ignore
       return constructor.resolve(callback()).then(function() {
+        // @ts-ignore
         return constructor.reject(reason);
       });
     }
@@ -229,6 +236,10 @@ function finallyConstructor(callback) {
 // Store setTimeout reference so promise-polyfill will be unaffected by
 // other code modifying setTimeout (like sinon.useFakeTimers())
 var setTimeoutFunc = setTimeout;
+
+function isArray(x) {
+  return Boolean(x && typeof x.length !== 'undefined');
+}
 
 function noop() {}
 
@@ -387,8 +398,10 @@ Promise.prototype['finally'] = finallyConstructor;
 
 Promise.all = function(arr) {
   return new Promise(function(resolve, reject) {
-    if (!arr || typeof arr.length === 'undefined')
-      throw new TypeError('Promise.all accepts an array');
+    if (!isArray(arr)) {
+      return reject(new TypeError('Promise.all accepts an array'));
+    }
+
     var args = Array.prototype.slice.call(arr);
     if (args.length === 0) return resolve([]);
     var remaining = args.length;
@@ -439,18 +452,24 @@ Promise.reject = function(value) {
   });
 };
 
-Promise.race = function(values) {
+Promise.race = function(arr) {
   return new Promise(function(resolve, reject) {
-    for (var i = 0, len = values.length; i < len; i++) {
-      values[i].then(resolve, reject);
+    if (!isArray(arr)) {
+      return reject(new TypeError('Promise.race accepts an array'));
+    }
+
+    for (var i = 0, len = arr.length; i < len; i++) {
+      Promise.resolve(arr[i]).then(resolve, reject);
     }
   });
 };
 
 // Use polyfill for setImmediate for performance gains
 Promise._immediateFn =
+  // @ts-ignore
   (typeof setImmediate === 'function' &&
     function(fn) {
+      // @ts-ignore
       setImmediate(fn);
     }) ||
   function(fn) {
@@ -486,7 +505,6 @@ var request = _dereq_('./request');
 var isVerifiedDomain = _dereq_('../lib/is-verified-domain');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../lib/convert-to-braintree-error');
-var createAuthorizationData = _dereq_('../lib/create-authorization-data');
 var getGatewayConfiguration = _dereq_('./get-configuration').getConfiguration;
 var addMetadata = _dereq_('../lib/add-metadata');
 var Promise = _dereq_('../lib/promise');
@@ -645,7 +663,7 @@ Client.prototype._findOrCreateFraudnetJSON = function (clientMetadataId) {
     rda_tenant: 'bt_card', // eslint-disable-line camelcase
     mid: config.gatewayConfiguration.merchantId
   };
-  authorizationFingerprint = createAuthorizationData(config.authorization).attrs.authorizationFingerprint;
+  authorizationFingerprint = config.authorizationFingerprint;
 
   if (authorizationFingerprint) {
     authorizationFingerprint.split('&').forEach(function (pieces) {
@@ -820,7 +838,7 @@ Client.prototype.request = function (options, callback) {
         }
       }, options.data);
 
-      requestOptions.headers = getAuthorizationHeadersForGraphQL(self._configuration.authorization);
+      requestOptions.headers = getAuthorizationHeadersForGraphQL(self._configuration);
     } else {
       throw new BraintreeError({
         type: errors.CLIENT_OPTION_INVALID.type,
@@ -956,9 +974,8 @@ Client.prototype.teardown = wrapPromise(function () {
   return Promise.resolve();
 });
 
-function getAuthorizationHeadersForGraphQL(authorization) {
-  var authAttrs = createAuthorizationData(authorization).attrs;
-  var token = authAttrs.authorizationFingerprint || authAttrs.tokenizationKey;
+function getAuthorizationHeadersForGraphQL(configuration) {
+  var token = configuration.authorizationFingerprint || configuration.authorization;
 
   return {
     Authorization: 'Bearer ' + token,
@@ -968,7 +985,7 @@ function getAuthorizationHeadersForGraphQL(authorization) {
 
 module.exports = Client;
 
-},{"../lib/add-metadata":33,"../lib/analytics":34,"../lib/assets":35,"../lib/assign":36,"../lib/braintree-error":37,"../lib/constants":38,"../lib/convert-methods-to-error":39,"../lib/convert-to-braintree-error":40,"../lib/create-authorization-data":41,"../lib/deferred":42,"../lib/errors":44,"../lib/is-verified-domain":46,"../lib/methods":48,"../lib/once":49,"../lib/promise":50,"./constants":13,"./errors":14,"./get-configuration":15,"./request":27,"./request/graphql":25,"@braintree/wrap-promise":9}],13:[function(_dereq_,module,exports){
+},{"../lib/add-metadata":33,"../lib/analytics":34,"../lib/assets":35,"../lib/assign":36,"../lib/braintree-error":37,"../lib/constants":38,"../lib/convert-methods-to-error":39,"../lib/convert-to-braintree-error":40,"../lib/deferred":42,"../lib/errors":44,"../lib/is-verified-domain":46,"../lib/methods":48,"../lib/once":49,"../lib/promise":50,"./constants":13,"./errors":14,"./get-configuration":15,"./request":27,"./request/graphql":25,"@braintree/wrap-promise":9}],13:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -1152,6 +1169,7 @@ function getConfiguration(options) {
       configuration = {
         authorization: options.authorization,
         authorizationType: attrs.tokenizationKey ? 'TOKENIZATION_KEY' : 'CLIENT_TOKEN',
+        authorizationFingerprint: attrs.authorizationFingerprint,
         analyticsMetadata: analyticsMetadata,
         gatewayConfiguration: response
       };
@@ -1171,7 +1189,7 @@ module.exports = {
 
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Client = _dereq_('./client');
-var VERSION = "3.46.0";
+var VERSION = "3.47.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -1534,6 +1552,7 @@ function adaptConfigurationResponseBody(body, ctx) {
       supportedCardTypes: mapCardTypes(configuration.creditCard.supportedCardBrands, cardTypeTransforms.creditCard)
     };
     response.threeDSecureEnabled = configuration.creditCard.threeDSecureEnabled;
+    response.threeDSecure = configuration.creditCard.threeDSecure;
   } else {
     response.challenges = [];
     response.creditCards = {
@@ -1795,6 +1814,9 @@ var CONFIGURATION_QUERY = 'query ClientConfiguration { ' +
 '      supportedCardBrands ' +
 '      challenges ' +
 '      threeDSecureEnabled ' +
+'      threeDSecure { ' +
+'        cardinalAuthenticationJWT ' +
+'      } ' +
 '    } ' +
 '    applePayWeb { ' +
 '      countryCode ' +
@@ -2561,7 +2583,7 @@ module.exports = BraintreeError;
 },{"./enumerate":43}],38:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.46.0";
+var VERSION = "3.47.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {

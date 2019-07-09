@@ -33,6 +33,10 @@ function loadScript(options) {
   script.id = options.id;
   script.async = true;
 
+  if (options.crossorigin) {
+    script.setAttribute('crossorigin', options.crossorigin);
+  }
+
   Object.keys(attrs).forEach(function (key) {
     script.setAttribute('data-' + key, attrs[key]);
   });
@@ -186,12 +190,15 @@ function finallyConstructor(callback) {
   var constructor = this.constructor;
   return this.then(
     function(value) {
+      // @ts-ignore
       return constructor.resolve(callback()).then(function() {
         return value;
       });
     },
     function(reason) {
+      // @ts-ignore
       return constructor.resolve(callback()).then(function() {
+        // @ts-ignore
         return constructor.reject(reason);
       });
     }
@@ -201,6 +208,10 @@ function finallyConstructor(callback) {
 // Store setTimeout reference so promise-polyfill will be unaffected by
 // other code modifying setTimeout (like sinon.useFakeTimers())
 var setTimeoutFunc = setTimeout;
+
+function isArray(x) {
+  return Boolean(x && typeof x.length !== 'undefined');
+}
 
 function noop() {}
 
@@ -359,8 +370,10 @@ Promise.prototype['finally'] = finallyConstructor;
 
 Promise.all = function(arr) {
   return new Promise(function(resolve, reject) {
-    if (!arr || typeof arr.length === 'undefined')
-      throw new TypeError('Promise.all accepts an array');
+    if (!isArray(arr)) {
+      return reject(new TypeError('Promise.all accepts an array'));
+    }
+
     var args = Array.prototype.slice.call(arr);
     if (args.length === 0) return resolve([]);
     var remaining = args.length;
@@ -411,18 +424,24 @@ Promise.reject = function(value) {
   });
 };
 
-Promise.race = function(values) {
+Promise.race = function(arr) {
   return new Promise(function(resolve, reject) {
-    for (var i = 0, len = values.length; i < len; i++) {
-      values[i].then(resolve, reject);
+    if (!isArray(arr)) {
+      return reject(new TypeError('Promise.race accepts an array'));
+    }
+
+    for (var i = 0, len = arr.length; i < len; i++) {
+      Promise.resolve(arr[i]).then(resolve, reject);
     }
   });
 };
 
 // Use polyfill for setImmediate for performance gains
 Promise._immediateFn =
+  // @ts-ignore
   (typeof setImmediate === 'function' &&
     function(fn) {
+      // @ts-ignore
       setImmediate(fn);
     }) ||
   function(fn) {
@@ -526,7 +545,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.46.0";
+var VERSION = "3.47.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -656,7 +675,7 @@ module.exports = BraintreeError;
 },{"./enumerate":19}],13:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.46.0";
+var VERSION = "3.47.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -805,7 +824,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.46.0";
+var VERSION = "3.47.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1056,7 +1075,7 @@ module.exports = {
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var PayPalCheckout = _dereq_('./paypal-checkout');
-var VERSION = "3.46.0";
+var VERSION = "3.47.0";
 
 /**
  * @static
