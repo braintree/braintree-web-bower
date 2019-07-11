@@ -513,9 +513,7 @@ var once = _dereq_('../lib/once');
 var deferred = _dereq_('../lib/deferred');
 var assign = _dereq_('../lib/assign').assign;
 var analytics = _dereq_('../lib/analytics');
-var constants = _dereq_('./constants');
 var errors = _dereq_('./errors');
-var sharedErrors = _dereq_('../lib/errors');
 var VERSION = _dereq_('../lib/constants').VERSION;
 var GRAPHQL_URLS = _dereq_('../lib/constants').GRAPHQL_URLS;
 var methods = _dereq_('../lib/methods');
@@ -546,7 +544,7 @@ var cachedClients = {};
  * @classdesc This class is required by many other Braintree components. It serves as the base API layer that communicates with our servers. It is also capable of being used to formulate direct calls to our servers, such as direct credit card tokenization. See {@link Client#request}.
  */
 function Client(configuration) {
-  var configurationJSON, gatewayConfiguration, braintreeApiConfiguration;
+  var configurationJSON, gatewayConfiguration;
 
   configuration = configuration || {};
 
@@ -584,22 +582,6 @@ function Client(configuration) {
   this._configuration = this.getConfiguration();
 
   this._clientApiBaseUrl = gatewayConfiguration.clientApiUrl + '/v1/';
-
-  braintreeApiConfiguration = gatewayConfiguration.braintreeApi;
-  if (braintreeApiConfiguration) {
-    this._braintreeApi = {
-      baseUrl: braintreeApiConfiguration.url + '/',
-      accessToken: braintreeApiConfiguration.accessToken
-    };
-
-    if (!isVerifiedDomain(this._braintreeApi.baseUrl)) {
-      throw new BraintreeError({
-        type: errors.CLIENT_GATEWAY_CONFIGURATION_INVALID_DOMAIN.type,
-        code: errors.CLIENT_GATEWAY_CONFIGURATION_INVALID_DOMAIN.code,
-        message: 'braintreeApi URL is on an invalid domain.'
-      });
-    }
-  }
 
   if (gatewayConfiguration.graphQL) {
     this._graphQL = new GraphQL({
@@ -813,19 +795,6 @@ Client.prototype.request = function (options, callback) {
       baseUrl = self._clientApiBaseUrl;
 
       requestOptions.data = addMetadata(self._configuration, options.data);
-    } else if (api === 'braintreeApi') {
-      if (!self._braintreeApi) {
-        throw new BraintreeError(sharedErrors.BRAINTREE_API_ACCESS_RESTRICTED);
-      }
-
-      baseUrl = self._braintreeApi.baseUrl;
-
-      requestOptions.data = options.data;
-
-      requestOptions.headers = {
-        'Braintree-Version': constants.BRAINTREE_API_VERSION_HEADER,
-        Authorization: 'Bearer ' + self._braintreeApi.accessToken
-      };
     } else if (api === 'graphQLApi') {
       baseUrl = GRAPHQL_URLS[self._configuration.gatewayConfiguration.environment];
       options.endpoint = '';
@@ -985,11 +954,10 @@ function getAuthorizationHeadersForGraphQL(configuration) {
 
 module.exports = Client;
 
-},{"../lib/add-metadata":33,"../lib/analytics":34,"../lib/assets":35,"../lib/assign":36,"../lib/braintree-error":37,"../lib/constants":38,"../lib/convert-methods-to-error":39,"../lib/convert-to-braintree-error":40,"../lib/deferred":42,"../lib/errors":44,"../lib/is-verified-domain":46,"../lib/methods":48,"../lib/once":49,"../lib/promise":50,"./constants":13,"./errors":14,"./get-configuration":15,"./request":27,"./request/graphql":25,"@braintree/wrap-promise":9}],13:[function(_dereq_,module,exports){
+},{"../lib/add-metadata":33,"../lib/analytics":34,"../lib/assets":35,"../lib/assign":36,"../lib/braintree-error":37,"../lib/constants":38,"../lib/convert-methods-to-error":39,"../lib/convert-to-braintree-error":40,"../lib/deferred":42,"../lib/is-verified-domain":46,"../lib/methods":48,"../lib/once":49,"../lib/promise":50,"./constants":13,"./errors":14,"./get-configuration":15,"./request":27,"./request/graphql":25,"@braintree/wrap-promise":9}],13:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
-  BRAINTREE_API_VERSION_HEADER: '2017-04-03',
   BRAINTREE_VERSION: '2018-05-10'
 };
 
@@ -1189,7 +1157,7 @@ module.exports = {
 
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Client = _dereq_('./client');
-var VERSION = "3.47.0";
+var VERSION = "3.48.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -2583,7 +2551,7 @@ module.exports = BraintreeError;
 },{"./enumerate":43}],38:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.47.0";
+var VERSION = "3.48.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -2757,7 +2725,6 @@ module.exports = enumerate;
  * @name BraintreeError.Shared Errors - Component Instance Error Codes
  * @description Errors that occur when using instances of components.
  * @property {MERCHANT} METHOD_CALLED_AFTER_TEARDOWN Occurs when a method is called on a component instance after it has been torn down.
- * @property {MERCHANT} BRAINTREE_API_ACCESS_RESTRICTED Occurs when the client token or tokenization key does not have the correct permissions.
  */
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -2783,11 +2750,6 @@ module.exports = {
   METHOD_CALLED_AFTER_TEARDOWN: {
     type: BraintreeError.types.MERCHANT,
     code: 'METHOD_CALLED_AFTER_TEARDOWN'
-  },
-  BRAINTREE_API_ACCESS_RESTRICTED: {
-    type: BraintreeError.types.MERCHANT,
-    code: 'BRAINTREE_API_ACCESS_RESTRICTED',
-    message: 'Your access is restricted and cannot use this part of the Braintree API.'
   }
 };
 

@@ -998,7 +998,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.47.0";
+var VERSION = "3.48.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1300,7 +1300,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":19,"./check-origin":20,"./events":21,"framebus":12}],23:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.47.0";
+var VERSION = "3.48.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1427,7 +1427,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.47.0";
+var VERSION = "3.48.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1509,7 +1509,6 @@ module.exports = enumerate;
  * @name BraintreeError.Shared Errors - Component Instance Error Codes
  * @description Errors that occur when using instances of components.
  * @property {MERCHANT} METHOD_CALLED_AFTER_TEARDOWN Occurs when a method is called on a component instance after it has been torn down.
- * @property {MERCHANT} BRAINTREE_API_ACCESS_RESTRICTED Occurs when the client token or tokenization key does not have the correct permissions.
  */
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -1535,18 +1534,13 @@ module.exports = {
   METHOD_CALLED_AFTER_TEARDOWN: {
     type: BraintreeError.types.MERCHANT,
     code: 'METHOD_CALLED_AFTER_TEARDOWN'
-  },
-  BRAINTREE_API_ACCESS_RESTRICTED: {
-    type: BraintreeError.types.MERCHANT,
-    code: 'BRAINTREE_API_ACCESS_RESTRICTED',
-    message: 'Your access is restricted and cannot use this part of the Braintree API.'
   }
 };
 
 },{"./braintree-error":19}],30:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.47.0";
+var VERSION = "3.48.0";
 var assign = _dereq_('./assign').assign;
 
 function generateTokenizationParameters(configuration, overrides) {
@@ -1809,7 +1803,7 @@ var methods = _dereq_('../../lib/methods');
 var Promise = _dereq_('../../lib/promise');
 var EventEmitter = _dereq_('@braintree/event-emitter');
 var BraintreeError = _dereq_('../../lib/braintree-error');
-var VERSION = "3.47.0";
+var VERSION = "3.48.0";
 var constants = _dereq_('../shared/constants');
 var events = constants.events;
 var errors = constants.errors;
@@ -2497,7 +2491,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.47.0";
+var VERSION = "3.48.0";
 
 /**
  * @static

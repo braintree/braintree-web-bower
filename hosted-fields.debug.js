@@ -2410,7 +2410,7 @@ HostedFields.prototype.teardown = function () {
  * @param {string} [options.billingAddress.countryCodeAlpha3] When supplied, this alpha 3 representation of a country will be tokenized along with the contents of the fields.
  * @param {string} [options.billingAddress.countryName] When supplied, this country name will be tokenized along with the contents of the fields.
  *
- * @param {callback} [callback] The second argument, <code>data</code>, is a {@link HostedFields~tokenizePayload|tokenizePayload}. If no callback is provided, `tokenize` returns a function that resolves with a {@link HostedFields~tokenizePayload|tokenizePayload}.
+ * @param {callback} [callback] May be used as the only parameter of the function if no options are passed in. The second argument, <code>data</code>, is a {@link HostedFields~tokenizePayload|tokenizePayload}. If no callback is provided, `tokenize` returns a function that resolves with a {@link HostedFields~tokenizePayload|tokenizePayload}.
  * @example <caption>Tokenize a card</caption>
  * hostedFieldsInstance.tokenize(function (tokenizeErr, payload) {
  *   if (tokenizeErr) {
@@ -2981,7 +2981,7 @@ var supportsInputFormatting = _dereq_('restricted-input/supports-input-formattin
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.47.0";
+var VERSION = "3.48.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -3309,7 +3309,7 @@ module.exports = {
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.47.0";
+var VERSION = "3.48.0";
 
 var constants = {
   VERSION: VERSION,
@@ -3712,7 +3712,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.47.0";
+var VERSION = "3.48.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -4060,7 +4060,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":50,"./check-origin":51,"./events":52,"framebus":29}],54:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.47.0";
+var VERSION = "3.48.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -4187,7 +4187,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.47.0";
+var VERSION = "3.48.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -4307,7 +4307,6 @@ module.exports = enumerate;
  * @name BraintreeError.Shared Errors - Component Instance Error Codes
  * @description Errors that occur when using instances of components.
  * @property {MERCHANT} METHOD_CALLED_AFTER_TEARDOWN Occurs when a method is called on a component instance after it has been torn down.
- * @property {MERCHANT} BRAINTREE_API_ACCESS_RESTRICTED Occurs when the client token or tokenization key does not have the correct permissions.
  */
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -4333,11 +4332,6 @@ module.exports = {
   METHOD_CALLED_AFTER_TEARDOWN: {
     type: BraintreeError.types.MERCHANT,
     code: 'METHOD_CALLED_AFTER_TEARDOWN'
-  },
-  BRAINTREE_API_ACCESS_RESTRICTED: {
-    type: BraintreeError.types.MERCHANT,
-    code: 'BRAINTREE_API_ACCESS_RESTRICTED',
-    message: 'Your access is restricted and cannot use this part of the Braintree API.'
   }
 };
 

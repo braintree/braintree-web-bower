@@ -490,7 +490,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":14,"./create-authorization-data":17,"./json-clone":21}],9:[function(_dereq_,module,exports){
+},{"./constants":13,"./create-authorization-data":16,"./json-clone":20}],9:[function(_dereq_,module,exports){
 'use strict';
 
 var Promise = _dereq_('./promise');
@@ -530,7 +530,7 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":8,"./constants":14,"./promise":24}],10:[function(_dereq_,module,exports){
+},{"./add-metadata":8,"./constants":13,"./promise":23}],10:[function(_dereq_,module,exports){
 'use strict';
 
 var loadScript = _dereq_('@braintree/asset-loader/load-script');
@@ -545,7 +545,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.47.0";
+var VERSION = "3.48.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -587,7 +587,7 @@ module.exports = {
   verify: basicComponentVerification
 };
 
-},{"./braintree-error":12,"./errors":20,"./promise":24}],12:[function(_dereq_,module,exports){
+},{"./braintree-error":12,"./errors":19,"./promise":23}],12:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -672,30 +672,10 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":19}],13:[function(_dereq_,module,exports){
+},{"./enumerate":18}],13:[function(_dereq_,module,exports){
 'use strict';
 
-// Taken from https://github.com/sindresorhus/decamelize/blob/95980ab6fb44c40eaca7792bdf93aff7c210c805/index.js
-function transformKey(key) {
-  return key.replace(/([a-z\d])([A-Z])/g, '$1_$2')
-    .replace(/([A-Z]+)([A-Z][a-z\d]+)/g, '$1_$2')
-    .toLowerCase();
-}
-
-module.exports = function (obj) {
-  return Object.keys(obj).reduce(function (newObj, key) {
-    var transformedKey = transformKey(key);
-
-    newObj[transformedKey] = obj[key];
-
-    return newObj;
-  }, {});
-};
-
-},{}],14:[function(_dereq_,module,exports){
-'use strict';
-
-var VERSION = "3.47.0";
+var VERSION = "3.48.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -732,7 +712,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],15:[function(_dereq_,module,exports){
+},{}],14:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -750,7 +730,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"./braintree-error":12,"./errors":20}],16:[function(_dereq_,module,exports){
+},{"./braintree-error":12,"./errors":19}],15:[function(_dereq_,module,exports){
 'use strict';
 
 // endRemoveIf(production)
@@ -767,7 +747,7 @@ module.exports = {
   create: createAssetsUrl
 };
 
-},{"./constants":14}],17:[function(_dereq_,module,exports){
+},{"./constants":13}],16:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/vendor/polyfill').atob;
@@ -813,7 +793,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/constants":14,"../lib/vendor/polyfill":25}],18:[function(_dereq_,module,exports){
+},{"../lib/constants":13,"../lib/vendor/polyfill":24}],17:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -822,7 +802,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.47.0";
+var VERSION = "3.48.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -867,7 +847,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./assets":10,"./braintree-error":12,"./errors":20,"./promise":24}],19:[function(_dereq_,module,exports){
+},{"./assets":10,"./braintree-error":12,"./errors":19,"./promise":23}],18:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -882,7 +862,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],20:[function(_dereq_,module,exports){
+},{}],19:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -904,7 +884,6 @@ module.exports = enumerate;
  * @name BraintreeError.Shared Errors - Component Instance Error Codes
  * @description Errors that occur when using instances of components.
  * @property {MERCHANT} METHOD_CALLED_AFTER_TEARDOWN Occurs when a method is called on a component instance after it has been torn down.
- * @property {MERCHANT} BRAINTREE_API_ACCESS_RESTRICTED Occurs when the client token or tokenization key does not have the correct permissions.
  */
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -930,22 +909,17 @@ module.exports = {
   METHOD_CALLED_AFTER_TEARDOWN: {
     type: BraintreeError.types.MERCHANT,
     code: 'METHOD_CALLED_AFTER_TEARDOWN'
-  },
-  BRAINTREE_API_ACCESS_RESTRICTED: {
-    type: BraintreeError.types.MERCHANT,
-    code: 'BRAINTREE_API_ACCESS_RESTRICTED',
-    message: 'Your access is restricted and cannot use this part of the Braintree API.'
   }
 };
 
-},{"./braintree-error":12}],21:[function(_dereq_,module,exports){
+},{"./braintree-error":12}],20:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],22:[function(_dereq_,module,exports){
+},{}],21:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -954,9 +928,9 @@ module.exports = function (obj) {
   });
 };
 
-},{}],23:[function(_dereq_,module,exports){
+},{}],22:[function(_dereq_,module,exports){
 arguments[4][4][0].apply(exports,arguments)
-},{"dup":4}],24:[function(_dereq_,module,exports){
+},{"dup":4}],23:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -965,7 +939,7 @@ var Promise = global.Promise || _dereq_('promise-polyfill');
 module.exports = Promise;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":7}],25:[function(_dereq_,module,exports){
+},{"promise-polyfill":7}],24:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1006,14 +980,14 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],26:[function(_dereq_,module,exports){
+},{}],25:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   PLAID_LINK_JS: 'https://cdn.plaid.com/link/v2/stable/link-initialize.js'
 };
 
-},{}],27:[function(_dereq_,module,exports){
+},{}],26:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -1083,13 +1057,11 @@ module.exports = {
   }
 };
 
-},{"../lib/braintree-error":12}],28:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":12}],27:[function(_dereq_,module,exports){
 'use strict';
 /**
  * @module braintree-web/us-bank-account
  * @description This module is for accepting payments of US bank accounts.
- *
- * **Note:** This component is currently in beta and the API may include breaking changes when upgrading. Please review the [Changelog](https://github.com/braintree/braintree-web/blob/master/CHANGELOG.md) for upgrade steps whenever you upgrade the version of braintree-web.
  */
 
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
@@ -1098,8 +1070,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var errors = _dereq_('./errors');
 var USBankAccount = _dereq_('./us-bank-account');
-var VERSION = "3.47.0";
-var sharedErrors = _dereq_('../lib/errors');
+var VERSION = "3.48.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -1129,13 +1100,8 @@ function create(options) {
     });
   }).then(function (client) {
     var usBankAccount;
-    var braintreeApi = client.getConfiguration().gatewayConfiguration.braintreeApi;
 
     options.client = client;
-
-    if (!braintreeApi) {
-      return Promise.reject(new BraintreeError(sharedErrors.BRAINTREE_API_ACCESS_RESTRICTED));
-    }
 
     usBankAccount = options.client.getConfiguration().gatewayConfiguration.usBankAccount;
     if (!usBankAccount) {
@@ -1155,7 +1121,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/basic-component-verification":11,"../lib/braintree-error":12,"../lib/create-assets-url":16,"../lib/create-deferred-client":18,"../lib/errors":20,"../lib/promise":24,"./errors":27,"./us-bank-account":29,"@braintree/wrap-promise":6}],29:[function(_dereq_,module,exports){
+},{"../lib/basic-component-verification":11,"../lib/braintree-error":12,"../lib/create-assets-url":15,"../lib/create-deferred-client":17,"../lib/promise":23,"./errors":26,"./us-bank-account":28,"@braintree/wrap-promise":6}],28:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1167,9 +1133,11 @@ var analytics = _dereq_('../lib/analytics');
 var once = _dereq_('../lib/once');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
 var methods = _dereq_('../lib/methods');
-var camelCaseToSnakeCase = _dereq_('../lib/camel-case-to-snake-case');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
+
+var TOKENIZE_BANK_DETAILS_MUTATION = createGraphQLMutation('UsBankAccount');
+var TOKENIZE_BANK_LOGIN_MUTATION = createGraphQLMutation('UsBankLogin');
 
 /**
  * @typedef {object} USBankAccount~tokenizePayload
@@ -1182,8 +1150,6 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
  * @class
  * @param {object} options See {@link module:braintree-web/us-bank-account.create|us-bank-account.create}.
  * @classdesc This class represents a US Bank Account component. Instances of this class can tokenize raw bank details or present a bank login. <strong>You cannot use this constructor directly. Use {@link module:braintree-web/us-bank-account.create|braintree.us-bank-account.create} instead.</strong>
- *
- * **Note:** This component is currently in beta and the API may include breaking changes when upgrading. Please review the [Changelog](https://github.com/braintree/braintree-web/blob/master/CHANGELOG.md) for upgrade steps whenever you upgrade the version of braintree-web.
  */
 function USBankAccount(options) {
   this._client = options.client;
@@ -1356,29 +1322,30 @@ USBankAccount.prototype.tokenize = function (options) {
 USBankAccount.prototype._tokenizeBankDetails = function (options) {
   var client = this._client;
   var bankDetails = options.bankDetails;
+  var data = {
+    achMandate: options.mandateText,
+    routingNumber: bankDetails.routingNumber,
+    accountNumber: bankDetails.accountNumber,
+    accountType: bankDetails.accountType.toUpperCase(),
+    billingAddress: formatBillingAddressForGraphQL(bankDetails.billingAddress || {})
+  };
+
+  formatDataForOwnershipType(data, bankDetails);
 
   return client.request({
-    method: 'POST',
-    endpoint: 'tokens',
-    api: 'braintreeApi',
-    data: camelCaseToSnakeCase({
-      type: 'us_bank_account',
-      routingNumber: bankDetails.routingNumber,
-      accountNumber: bankDetails.accountNumber,
-      firstName: bankDetails.firstName,
-      lastName: bankDetails.lastName,
-      businessName: bankDetails.businessName,
-      accountType: bankDetails.accountType,
-      ownershipType: bankDetails.ownershipType,
-      billingAddress: camelCaseToSnakeCase(bankDetails.billingAddress || {}),
-      achMandate: {
-        text: options.mandateText
+    api: 'graphQLApi',
+    data: {
+      query: TOKENIZE_BANK_DETAILS_MUTATION,
+      variables: {
+        input: {
+          usBankAccount: data
+        }
       }
-    })
+    }
   }).then(function (response) {
     analytics.sendEvent(client, 'usbankaccount.bankdetails.tokenization.succeeded');
 
-    return Promise.resolve(formatTokenizeResponse(response));
+    return Promise.resolve(formatTokenizeResponseFromGraphQL(response, 'tokenizeUsBankAccount'));
   }).catch(function (err) {
     var error = errorFrom(err);
 
@@ -1435,29 +1402,33 @@ USBankAccount.prototype._tokenizeBankLogin = function (options) {
           reject(new BraintreeError(errors.US_BANK_ACCOUNT_LOGIN_CLOSED));
         },
         onSuccess: function (publicToken, metadata) {
+          var bankLogin = options.bankLogin;
+          var data = {
+            publicToken: publicToken,
+            accountId: isProduction ? metadata.account_id : 'plaid_account_id',
+            accountType: metadata.account.subtype.toUpperCase(),
+            achMandate: options.mandateText,
+            billingAddress: formatBillingAddressForGraphQL(bankLogin.billingAddress || {})
+          };
+
+          formatDataForOwnershipType(data, bankLogin);
+
           client.request({
-            method: 'POST',
-            endpoint: 'tokens',
-            api: 'braintreeApi',
-            data: camelCaseToSnakeCase({
-              type: 'plaid_public_token',
-              publicToken: publicToken,
-              accountId: isProduction ? metadata.account_id : 'plaid_account_id',
-              achMandate: {
-                text: options.mandateText
-              },
-              ownershipType: options.bankLogin.ownershipType,
-              firstName: options.bankLogin.firstName,
-              lastName: options.bankLogin.lastName,
-              businessName: options.bankLogin.businessName,
-              billingAddress: camelCaseToSnakeCase(options.bankLogin.billingAddress || {})
-            })
+            api: 'graphQLApi',
+            data: {
+              query: TOKENIZE_BANK_LOGIN_MUTATION,
+              variables: {
+                input: {
+                  usBankLogin: data
+                }
+              }
+            }
           }).then(function (response) {
             self._isTokenizingBankLogin = false;
 
             analytics.sendEvent(client, 'usbankaccount.banklogin.tokenization.succeeded');
 
-            resolve(formatTokenizeResponse(response));
+            resolve(formatTokenizeResponseFromGraphQL(response, 'tokenizeUsBankLogin'));
           }).catch(function (tokenizeErr) {
             var error;
 
@@ -1492,12 +1463,16 @@ function errorFrom(err) {
   return error;
 }
 
-function formatTokenizeResponse(response) {
+function formatTokenizeResponseFromGraphQL(response, type) {
+  var data = response.data[type].paymentMethod;
+  var last4 = data.details.last4;
+  var description = 'US bank account ending in - ' + last4;
+
   return {
-    nonce: response.data.id,
+    nonce: data.id,
     details: {},
-    description: response.data.description,
-    type: response.data.type
+    description: description,
+    type: 'us_bank_account'
   };
 }
 
@@ -1557,6 +1532,45 @@ function addLoadListeners(script, callback) {
   script.addEventListener('readystatechange', loadHandler);
 }
 
+function formatBillingAddressForGraphQL(address) {
+  return {
+    streetAddress: address.streetAddress,
+    extendedAddress: address.extendedAddress,
+    city: address.locality,
+    state: address.region,
+    zipCode: address.postalCode
+  };
+}
+
+function formatDataForOwnershipType(data, details) {
+  if (details.ownershipType === 'personal') {
+    data.individualOwner = {
+      firstName: details.firstName,
+      lastName: details.lastName
+    };
+  } else if (details.ownershipType === 'business') {
+    data.businessOwner = {
+      businessName: details.businessName
+    };
+  }
+}
+
+function createGraphQLMutation(type) {
+  return '' +
+    'mutation Tokenize' + type + '($input: Tokenize' + type + 'Input!) {' +
+    '  tokenize' + type + '(input: $input) {' +
+    '    paymentMethod {' +
+    '      id' +
+    '      details {' +
+    '        ... on UsBankAccountDetails {' +
+    '          last4' +
+    '        }' +
+    '      }' +
+    '    }' +
+    '  }' +
+    '}';
+}
+
 /**
  * Cleanly tear down anything set up by {@link module:braintree-web/us-bank-account.create|create}.
  * @public
@@ -1582,5 +1596,5 @@ USBankAccount.prototype.teardown = function () {
 module.exports = wrapPromise.wrapPrototype(USBankAccount);
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../lib/analytics":9,"../lib/braintree-error":12,"../lib/camel-case-to-snake-case":13,"../lib/convert-methods-to-error":15,"../lib/errors":20,"../lib/methods":22,"../lib/once":23,"../lib/promise":24,"./constants":26,"./errors":27,"@braintree/wrap-promise":6}]},{},[28])(28)
+},{"../lib/analytics":9,"../lib/braintree-error":12,"../lib/convert-methods-to-error":14,"../lib/errors":19,"../lib/methods":21,"../lib/once":22,"../lib/promise":23,"./constants":25,"./errors":26,"@braintree/wrap-promise":6}]},{},[27])(27)
 });

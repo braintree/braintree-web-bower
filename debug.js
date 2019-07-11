@@ -1878,7 +1878,7 @@ var AmericanExpress = _dereq_('./american-express');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
-var VERSION = "3.47.0";
+var VERSION = "3.48.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -2310,7 +2310,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var errors = _dereq_('./errors');
-var VERSION = "3.47.0";
+var VERSION = "3.48.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -2389,9 +2389,7 @@ var once = _dereq_('../lib/once');
 var deferred = _dereq_('../lib/deferred');
 var assign = _dereq_('../lib/assign').assign;
 var analytics = _dereq_('../lib/analytics');
-var constants = _dereq_('./constants');
 var errors = _dereq_('./errors');
-var sharedErrors = _dereq_('../lib/errors');
 var VERSION = _dereq_('../lib/constants').VERSION;
 var GRAPHQL_URLS = _dereq_('../lib/constants').GRAPHQL_URLS;
 var methods = _dereq_('../lib/methods');
@@ -2422,7 +2420,7 @@ var cachedClients = {};
  * @classdesc This class is required by many other Braintree components. It serves as the base API layer that communicates with our servers. It is also capable of being used to formulate direct calls to our servers, such as direct credit card tokenization. See {@link Client#request}.
  */
 function Client(configuration) {
-  var configurationJSON, gatewayConfiguration, braintreeApiConfiguration;
+  var configurationJSON, gatewayConfiguration;
 
   configuration = configuration || {};
 
@@ -2460,22 +2458,6 @@ function Client(configuration) {
   this._configuration = this.getConfiguration();
 
   this._clientApiBaseUrl = gatewayConfiguration.clientApiUrl + '/v1/';
-
-  braintreeApiConfiguration = gatewayConfiguration.braintreeApi;
-  if (braintreeApiConfiguration) {
-    this._braintreeApi = {
-      baseUrl: braintreeApiConfiguration.url + '/',
-      accessToken: braintreeApiConfiguration.accessToken
-    };
-
-    if (!isVerifiedDomain(this._braintreeApi.baseUrl)) {
-      throw new BraintreeError({
-        type: errors.CLIENT_GATEWAY_CONFIGURATION_INVALID_DOMAIN.type,
-        code: errors.CLIENT_GATEWAY_CONFIGURATION_INVALID_DOMAIN.code,
-        message: 'braintreeApi URL is on an invalid domain.'
-      });
-    }
-  }
 
   if (gatewayConfiguration.graphQL) {
     this._graphQL = new GraphQL({
@@ -2689,19 +2671,6 @@ Client.prototype.request = function (options, callback) {
       baseUrl = self._clientApiBaseUrl;
 
       requestOptions.data = addMetadata(self._configuration, options.data);
-    } else if (api === 'braintreeApi') {
-      if (!self._braintreeApi) {
-        throw new BraintreeError(sharedErrors.BRAINTREE_API_ACCESS_RESTRICTED);
-      }
-
-      baseUrl = self._braintreeApi.baseUrl;
-
-      requestOptions.data = options.data;
-
-      requestOptions.headers = {
-        'Braintree-Version': constants.BRAINTREE_API_VERSION_HEADER,
-        Authorization: 'Bearer ' + self._braintreeApi.accessToken
-      };
     } else if (api === 'graphQLApi') {
       baseUrl = GRAPHQL_URLS[self._configuration.gatewayConfiguration.environment];
       options.endpoint = '';
@@ -2861,11 +2830,10 @@ function getAuthorizationHeadersForGraphQL(configuration) {
 
 module.exports = Client;
 
-},{"../lib/add-metadata":86,"../lib/analytics":87,"../lib/assets":88,"../lib/assign":89,"../lib/braintree-error":92,"../lib/constants":97,"../lib/convert-methods-to-error":98,"../lib/convert-to-braintree-error":99,"../lib/deferred":103,"../lib/errors":106,"../lib/is-verified-domain":122,"../lib/methods":124,"../lib/once":125,"../lib/promise":126,"./constants":46,"./errors":47,"./get-configuration":48,"./request":60,"./request/graphql":58,"@braintree/wrap-promise":26}],46:[function(_dereq_,module,exports){
+},{"../lib/add-metadata":86,"../lib/analytics":87,"../lib/assets":88,"../lib/assign":89,"../lib/braintree-error":92,"../lib/constants":97,"../lib/convert-methods-to-error":98,"../lib/convert-to-braintree-error":99,"../lib/deferred":103,"../lib/is-verified-domain":122,"../lib/methods":124,"../lib/once":125,"../lib/promise":126,"./constants":46,"./errors":47,"./get-configuration":48,"./request":60,"./request/graphql":58,"@braintree/wrap-promise":26}],46:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
-  BRAINTREE_API_VERSION_HEADER: '2017-04-03',
   BRAINTREE_VERSION: '2018-05-10'
 };
 
@@ -3065,7 +3033,7 @@ module.exports = {
 
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Client = _dereq_('./client');
-var VERSION = "3.47.0";
+var VERSION = "3.48.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -4410,7 +4378,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var methods = _dereq_('../lib/methods');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
-var VERSION = "3.47.0";
+var VERSION = "3.48.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var errors = _dereq_('./errors');
@@ -5065,7 +5033,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.47.0";
+var VERSION = "3.48.0";
 
 /**
  * @static
@@ -6041,7 +6009,7 @@ HostedFields.prototype.teardown = function () {
  * @param {string} [options.billingAddress.countryCodeAlpha3] When supplied, this alpha 3 representation of a country will be tokenized along with the contents of the fields.
  * @param {string} [options.billingAddress.countryName] When supplied, this country name will be tokenized along with the contents of the fields.
  *
- * @param {callback} [callback] The second argument, <code>data</code>, is a {@link HostedFields~tokenizePayload|tokenizePayload}. If no callback is provided, `tokenize` returns a function that resolves with a {@link HostedFields~tokenizePayload|tokenizePayload}.
+ * @param {callback} [callback] May be used as the only parameter of the function if no options are passed in. The second argument, <code>data</code>, is a {@link HostedFields~tokenizePayload|tokenizePayload}. If no callback is provided, `tokenize` returns a function that resolves with a {@link HostedFields~tokenizePayload|tokenizePayload}.
  * @example <caption>Tokenize a card</caption>
  * hostedFieldsInstance.tokenize(function (tokenizeErr, payload) {
  *   if (tokenizeErr) {
@@ -6612,7 +6580,7 @@ var supportsInputFormatting = _dereq_('restricted-input/supports-input-formattin
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.47.0";
+var VERSION = "3.48.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -6940,7 +6908,7 @@ module.exports = {
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.47.0";
+var VERSION = "3.48.0";
 
 var constants = {
   VERSION: VERSION,
@@ -7285,7 +7253,7 @@ var usBankAccount = _dereq_('./us-bank-account');
 var vaultManager = _dereq_('./vault-manager');
 var venmo = _dereq_('./venmo');
 var visaCheckout = _dereq_('./visa-checkout');
-var VERSION = "3.47.0";
+var VERSION = "3.48.0";
 
 module.exports = {
   /** @type {module:braintree-web/american-express} */
@@ -7443,7 +7411,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.47.0";
+var VERSION = "3.48.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -7811,7 +7779,7 @@ module.exports = function (obj) {
 },{}],97:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.47.0";
+var VERSION = "3.48.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -7960,7 +7928,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.47.0";
+var VERSION = "3.48.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -8094,7 +8062,6 @@ module.exports = enumerate;
  * @name BraintreeError.Shared Errors - Component Instance Error Codes
  * @description Errors that occur when using instances of components.
  * @property {MERCHANT} METHOD_CALLED_AFTER_TEARDOWN Occurs when a method is called on a component instance after it has been torn down.
- * @property {MERCHANT} BRAINTREE_API_ACCESS_RESTRICTED Occurs when the client token or tokenization key does not have the correct permissions.
  */
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -8120,11 +8087,6 @@ module.exports = {
   METHOD_CALLED_AFTER_TEARDOWN: {
     type: BraintreeError.types.MERCHANT,
     code: 'METHOD_CALLED_AFTER_TEARDOWN'
-  },
-  BRAINTREE_API_ACCESS_RESTRICTED: {
-    type: BraintreeError.types.MERCHANT,
-    code: 'BRAINTREE_API_ACCESS_RESTRICTED',
-    message: 'Your access is restricted and cannot use this part of the Braintree API.'
   }
 };
 
@@ -8497,7 +8459,7 @@ Modal.prototype._unlockScrolling = function () {
 Modal.prototype._lockScrolling = function () {
   var doc = document.documentElement;
 
-  // From http://stackoverflow.com/questions/9538868/prevent-body-from-scrolling-when-a-modal-is-opened#comment65626743_24727206
+  // From https://stackoverflow.com/questions/9538868/prevent-body-from-scrolling-when-a-modal-is-opened#comment65626743_24727206
   this._savedBodyProperties = {
     left: (global.pageXOffset || doc.scrollLeft) - (doc.clientLeft || 0),
     top: (global.pageYOffset || doc.scrollTop) - (doc.clientTop || 0),
@@ -8741,7 +8703,7 @@ module.exports = enumerate([
 },{"../../enumerate":105}],119:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.47.0";
+var VERSION = "3.48.0";
 var assign = _dereq_('./assign').assign;
 
 function generateTokenizationParameters(configuration, overrides) {
@@ -9128,7 +9090,7 @@ module.exports = {
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var useMin = _dereq_('../../lib/use-min');
-var VERSION = "3.47.0";
+var VERSION = "3.48.0";
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
 var methods = _dereq_('../../lib/methods');
@@ -9556,7 +9518,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var LocalPayment = _dereq_('./external/local-payment');
-var VERSION = "3.47.0";
+var VERSION = "3.48.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -9747,7 +9709,7 @@ var Promise = _dereq_('../../lib/promise');
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var errors = _dereq_('../shared/errors');
-var VERSION = "3.47.0";
+var VERSION = "3.48.0";
 var methods = _dereq_('../../lib/methods');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var analytics = _dereq_('../../lib/analytics');
@@ -10146,7 +10108,7 @@ var browserDetection = _dereq_('./shared/browser-detection');
 var Masterpass = _dereq_('./external/masterpass');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
-var VERSION = "3.47.0";
+var VERSION = "3.48.0";
 var errors = _dereq_('./shared/errors');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -10354,7 +10316,7 @@ var methods = _dereq_('../../lib/methods');
 var Promise = _dereq_('../../lib/promise');
 var EventEmitter = _dereq_('@braintree/event-emitter');
 var BraintreeError = _dereq_('../../lib/braintree-error');
-var VERSION = "3.47.0";
+var VERSION = "3.48.0";
 var constants = _dereq_('../shared/constants');
 var events = constants.events;
 var errors = constants.errors;
@@ -11042,7 +11004,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.47.0";
+var VERSION = "3.48.0";
 
 /**
  * @static
@@ -11308,7 +11270,7 @@ module.exports = {
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var PayPalCheckout = _dereq_('./paypal-checkout');
-var VERSION = "3.47.0";
+var VERSION = "3.48.0";
 
 /**
  * @static
@@ -11415,15 +11377,15 @@ var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
  * @property {string} details.billingAddress.countryCode 2 character country code (e.g. US).
  * @property {?object} creditFinancingOffered This property will only be present when the customer pays with PayPal Credit.
  * @property {object} creditFinancingOffered.totalCost This is the estimated total payment amount including interest and fees the user will pay during the lifetime of the loan.
- * @property {string} creditFinancingOffered.totalCost.value An amount defined by [ISO 4217](http://www.iso.org/iso/home/standards/currency_codes.htm) for the given currency.
- * @property {string} creditFinancingOffered.totalCost.currency 3 letter currency code as defined by [ISO 4217](http://www.iso.org/iso/home/standards/currency_codes.htm).
+ * @property {string} creditFinancingOffered.totalCost.value An amount defined by [ISO 4217](https://www.iso.org/iso/home/standards/currency_codes.htm) for the given currency.
+ * @property {string} creditFinancingOffered.totalCost.currency 3 letter currency code as defined by [ISO 4217](https://www.iso.org/iso/home/standards/currency_codes.htm).
  * @property {number} creditFinancingOffered.term Length of financing terms in months.
  * @property {object} creditFinancingOffered.monthlyPayment This is the estimated amount per month that the customer will need to pay including fees and interest.
- * @property {string} creditFinancingOffered.monthlyPayment.value An amount defined by [ISO 4217](http://www.iso.org/iso/home/standards/currency_codes.htm) for the given currency.
- * @property {string} creditFinancingOffered.monthlyPayment.currency 3 letter currency code as defined by [ISO 4217](http://www.iso.org/iso/home/standards/currency_codes.htm).
+ * @property {string} creditFinancingOffered.monthlyPayment.value An amount defined by [ISO 4217](https://www.iso.org/iso/home/standards/currency_codes.htm) for the given currency.
+ * @property {string} creditFinancingOffered.monthlyPayment.currency 3 letter currency code as defined by [ISO 4217](https://www.iso.org/iso/home/standards/currency_codes.htm).
  * @property {object} creditFinancingOffered.totalInterest Estimated interest or fees amount the payer will have to pay during the lifetime of the loan.
- * @property {string} creditFinancingOffered.totalInterest.value An amount defined by [ISO 4217](http://www.iso.org/iso/home/standards/currency_codes.htm) for the given currency.
- * @property {string} creditFinancingOffered.totalInterest.currency 3 letter currency code as defined by [ISO 4217](http://www.iso.org/iso/home/standards/currency_codes.htm).
+ * @property {string} creditFinancingOffered.totalInterest.value An amount defined by [ISO 4217](https://www.iso.org/iso/home/standards/currency_codes.htm) for the given currency.
+ * @property {string} creditFinancingOffered.totalInterest.currency 3 letter currency code as defined by [ISO 4217](https://www.iso.org/iso/home/standards/currency_codes.htm).
  * @property {boolean} creditFinancingOffered.payerAcceptance Status of whether the customer ultimately was approved for and chose to make the payment using the approved installment credit.
  * @property {boolean} creditFinancingOffered.cartAmountImmutable Indicates whether the cart amount is editable after payer's acceptance on PayPal side.
  */
@@ -11963,7 +11925,7 @@ var BraintreeError = _dereq_('../../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../../lib/convert-to-braintree-error');
 var useMin = _dereq_('../../lib/use-min');
 var once = _dereq_('../../lib/once');
-var VERSION = "3.47.0";
+var VERSION = "3.48.0";
 var constants = _dereq_('../shared/constants');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
@@ -12005,15 +11967,15 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
  * @property {string} details.billingAddress.countryCode 2 character country code (e.g. US).
  * @property {?object} creditFinancingOffered This property will only be present when the customer pays with PayPal Credit.
  * @property {object} creditFinancingOffered.totalCost This is the estimated total payment amount including interest and fees the user will pay during the lifetime of the loan.
- * @property {string} creditFinancingOffered.totalCost.value An amount defined by [ISO 4217](http://www.iso.org/iso/home/standards/currency_codes.htm) for the given currency.
- * @property {string} creditFinancingOffered.totalCost.currency 3 letter currency code as defined by [ISO 4217](http://www.iso.org/iso/home/standards/currency_codes.htm).
+ * @property {string} creditFinancingOffered.totalCost.value An amount defined by [ISO 4217](https://www.iso.org/iso/home/standards/currency_codes.htm) for the given currency.
+ * @property {string} creditFinancingOffered.totalCost.currency 3 letter currency code as defined by [ISO 4217](https://www.iso.org/iso/home/standards/currency_codes.htm).
  * @property {number} creditFinancingOffered.term Length of financing terms in months.
  * @property {object} creditFinancingOffered.monthlyPayment This is the estimated amount per month that the customer will need to pay including fees and interest.
- * @property {string} creditFinancingOffered.monthlyPayment.value An amount defined by [ISO 4217](http://www.iso.org/iso/home/standards/currency_codes.htm) for the given currency.
- * @property {string} creditFinancingOffered.monthlyPayment.currency 3 letter currency code as defined by [ISO 4217](http://www.iso.org/iso/home/standards/currency_codes.htm).
+ * @property {string} creditFinancingOffered.monthlyPayment.value An amount defined by [ISO 4217](https://www.iso.org/iso/home/standards/currency_codes.htm) for the given currency.
+ * @property {string} creditFinancingOffered.monthlyPayment.currency 3 letter currency code as defined by [ISO 4217](https://www.iso.org/iso/home/standards/currency_codes.htm).
  * @property {object} creditFinancingOffered.totalInterest Estimated interest or fees amount the payer will have to pay during the lifetime of the loan.
- * @property {string} creditFinancingOffered.totalInterest.value An amount defined by [ISO 4217](http://www.iso.org/iso/home/standards/currency_codes.htm) for the given currency.
- * @property {string} creditFinancingOffered.totalInterest.currency 3 letter currency code as defined by [ISO 4217](http://www.iso.org/iso/home/standards/currency_codes.htm).
+ * @property {string} creditFinancingOffered.totalInterest.value An amount defined by [ISO 4217](https://www.iso.org/iso/home/standards/currency_codes.htm) for the given currency.
+ * @property {string} creditFinancingOffered.totalInterest.currency 3 letter currency code as defined by [ISO 4217](https://www.iso.org/iso/home/standards/currency_codes.htm).
  * @property {boolean} creditFinancingOffered.payerAcceptance Status of whether the customer ultimately was approved for and chose to make the payment using the approved installment credit.
  * @property {boolean} creditFinancingOffered.cartAmountImmutable Indicates whether the cart amount is editable after payer's acceptance on PayPal side.
  *
@@ -12569,7 +12531,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var errors = _dereq_('./shared/errors');
 var PayPal = _dereq_('./external/paypal');
-var VERSION = "3.47.0";
+var VERSION = "3.48.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var Promise = _dereq_('../lib/promise');
 
@@ -12582,7 +12544,7 @@ var Promise = _dereq_('../lib/promise');
  * @param {callback} callback The second argument, `data`, is the {@link PayPal} instance.
  * @example
  * // We recomend creating your PayPal button with button.js
- * // For an example, see http://codepen.io/braintree/pen/LNKJWa
+ * // For an example, see https://codepen.io/braintree/pen/LNKJWa
  * var paypalButton = document.querySelector('.paypal-button');
  *
  * braintree.client.create({
@@ -12610,7 +12572,7 @@ var Promise = _dereq_('../lib/promise');
  *       paypalInstance.tokenize({
  *         flow: 'vault'
  *         // For more tokenization options, see the full PayPal tokenization documentation
- *         // http://braintree.github.io/braintree-web/current/PayPal.html#tokenize
+ *         // https://braintree.github.io/braintree-web/current/PayPal.html#tokenize
  *       }, function (tokenizeErr, payload) {
  *         if (tokenizeErr) {
  *           if (tokenizeErr.type !== 'CUSTOMER') {
@@ -12789,7 +12751,7 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 
 var PLATFORM = _dereq_('../../lib/constants').PLATFORM;
-var VERSION = "3.47.0";
+var VERSION = "3.48.0";
 
 var IFRAME_HEIGHT = 400;
 var IFRAME_WIDTH = 400;
@@ -13856,7 +13818,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.47.0";
+var VERSION = "3.48.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -14104,7 +14066,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.47.0";
+var VERSION = "3.48.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -14296,7 +14258,7 @@ var errors = _dereq_('./errors');
 var events = constants.events;
 var iFramer = _dereq_('@braintree/iframer');
 var methods = _dereq_('../../lib/methods');
-var VERSION = "3.47.0";
+var VERSION = "3.48.0";
 var uuid = _dereq_('../../lib/vendor/uuid');
 var Promise = _dereq_('../../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -14761,8 +14723,6 @@ module.exports = {
 /**
  * @module braintree-web/us-bank-account
  * @description This module is for accepting payments of US bank accounts.
- *
- * **Note:** This component is currently in beta and the API may include breaking changes when upgrading. Please review the [Changelog](https://github.com/braintree/braintree-web/blob/master/CHANGELOG.md) for upgrade steps whenever you upgrade the version of braintree-web.
  */
 
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
@@ -14771,8 +14731,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var errors = _dereq_('./errors');
 var USBankAccount = _dereq_('./us-bank-account');
-var VERSION = "3.47.0";
-var sharedErrors = _dereq_('../lib/errors');
+var VERSION = "3.48.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -14802,13 +14761,8 @@ function create(options) {
     });
   }).then(function (client) {
     var usBankAccount;
-    var braintreeApi = client.getConfiguration().gatewayConfiguration.braintreeApi;
 
     options.client = client;
-
-    if (!braintreeApi) {
-      return Promise.reject(new BraintreeError(sharedErrors.BRAINTREE_API_ACCESS_RESTRICTED));
-    }
 
     usBankAccount = options.client.getConfiguration().gatewayConfiguration.usBankAccount;
     if (!usBankAccount) {
@@ -14828,7 +14782,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/basic-component-verification":90,"../lib/braintree-error":92,"../lib/create-assets-url":100,"../lib/create-deferred-client":102,"../lib/errors":106,"../lib/promise":126,"./errors":161,"./us-bank-account":163,"@braintree/wrap-promise":26}],163:[function(_dereq_,module,exports){
+},{"../lib/basic-component-verification":90,"../lib/braintree-error":92,"../lib/create-assets-url":100,"../lib/create-deferred-client":102,"../lib/promise":126,"./errors":161,"./us-bank-account":163,"@braintree/wrap-promise":26}],163:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -14840,9 +14794,11 @@ var analytics = _dereq_('../lib/analytics');
 var once = _dereq_('../lib/once');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
 var methods = _dereq_('../lib/methods');
-var camelCaseToSnakeCase = _dereq_('../lib/camel-case-to-snake-case');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
+
+var TOKENIZE_BANK_DETAILS_MUTATION = createGraphQLMutation('UsBankAccount');
+var TOKENIZE_BANK_LOGIN_MUTATION = createGraphQLMutation('UsBankLogin');
 
 /**
  * @typedef {object} USBankAccount~tokenizePayload
@@ -14855,8 +14811,6 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
  * @class
  * @param {object} options See {@link module:braintree-web/us-bank-account.create|us-bank-account.create}.
  * @classdesc This class represents a US Bank Account component. Instances of this class can tokenize raw bank details or present a bank login. <strong>You cannot use this constructor directly. Use {@link module:braintree-web/us-bank-account.create|braintree.us-bank-account.create} instead.</strong>
- *
- * **Note:** This component is currently in beta and the API may include breaking changes when upgrading. Please review the [Changelog](https://github.com/braintree/braintree-web/blob/master/CHANGELOG.md) for upgrade steps whenever you upgrade the version of braintree-web.
  */
 function USBankAccount(options) {
   this._client = options.client;
@@ -15029,29 +14983,30 @@ USBankAccount.prototype.tokenize = function (options) {
 USBankAccount.prototype._tokenizeBankDetails = function (options) {
   var client = this._client;
   var bankDetails = options.bankDetails;
+  var data = {
+    achMandate: options.mandateText,
+    routingNumber: bankDetails.routingNumber,
+    accountNumber: bankDetails.accountNumber,
+    accountType: bankDetails.accountType.toUpperCase(),
+    billingAddress: formatBillingAddressForGraphQL(bankDetails.billingAddress || {})
+  };
+
+  formatDataForOwnershipType(data, bankDetails);
 
   return client.request({
-    method: 'POST',
-    endpoint: 'tokens',
-    api: 'braintreeApi',
-    data: camelCaseToSnakeCase({
-      type: 'us_bank_account',
-      routingNumber: bankDetails.routingNumber,
-      accountNumber: bankDetails.accountNumber,
-      firstName: bankDetails.firstName,
-      lastName: bankDetails.lastName,
-      businessName: bankDetails.businessName,
-      accountType: bankDetails.accountType,
-      ownershipType: bankDetails.ownershipType,
-      billingAddress: camelCaseToSnakeCase(bankDetails.billingAddress || {}),
-      achMandate: {
-        text: options.mandateText
+    api: 'graphQLApi',
+    data: {
+      query: TOKENIZE_BANK_DETAILS_MUTATION,
+      variables: {
+        input: {
+          usBankAccount: data
+        }
       }
-    })
+    }
   }).then(function (response) {
     analytics.sendEvent(client, 'usbankaccount.bankdetails.tokenization.succeeded');
 
-    return Promise.resolve(formatTokenizeResponse(response));
+    return Promise.resolve(formatTokenizeResponseFromGraphQL(response, 'tokenizeUsBankAccount'));
   }).catch(function (err) {
     var error = errorFrom(err);
 
@@ -15108,29 +15063,33 @@ USBankAccount.prototype._tokenizeBankLogin = function (options) {
           reject(new BraintreeError(errors.US_BANK_ACCOUNT_LOGIN_CLOSED));
         },
         onSuccess: function (publicToken, metadata) {
+          var bankLogin = options.bankLogin;
+          var data = {
+            publicToken: publicToken,
+            accountId: isProduction ? metadata.account_id : 'plaid_account_id',
+            accountType: metadata.account.subtype.toUpperCase(),
+            achMandate: options.mandateText,
+            billingAddress: formatBillingAddressForGraphQL(bankLogin.billingAddress || {})
+          };
+
+          formatDataForOwnershipType(data, bankLogin);
+
           client.request({
-            method: 'POST',
-            endpoint: 'tokens',
-            api: 'braintreeApi',
-            data: camelCaseToSnakeCase({
-              type: 'plaid_public_token',
-              publicToken: publicToken,
-              accountId: isProduction ? metadata.account_id : 'plaid_account_id',
-              achMandate: {
-                text: options.mandateText
-              },
-              ownershipType: options.bankLogin.ownershipType,
-              firstName: options.bankLogin.firstName,
-              lastName: options.bankLogin.lastName,
-              businessName: options.bankLogin.businessName,
-              billingAddress: camelCaseToSnakeCase(options.bankLogin.billingAddress || {})
-            })
+            api: 'graphQLApi',
+            data: {
+              query: TOKENIZE_BANK_LOGIN_MUTATION,
+              variables: {
+                input: {
+                  usBankLogin: data
+                }
+              }
+            }
           }).then(function (response) {
             self._isTokenizingBankLogin = false;
 
             analytics.sendEvent(client, 'usbankaccount.banklogin.tokenization.succeeded');
 
-            resolve(formatTokenizeResponse(response));
+            resolve(formatTokenizeResponseFromGraphQL(response, 'tokenizeUsBankLogin'));
           }).catch(function (tokenizeErr) {
             var error;
 
@@ -15165,12 +15124,16 @@ function errorFrom(err) {
   return error;
 }
 
-function formatTokenizeResponse(response) {
+function formatTokenizeResponseFromGraphQL(response, type) {
+  var data = response.data[type].paymentMethod;
+  var last4 = data.details.last4;
+  var description = 'US bank account ending in - ' + last4;
+
   return {
-    nonce: response.data.id,
+    nonce: data.id,
     details: {},
-    description: response.data.description,
-    type: response.data.type
+    description: description,
+    type: 'us_bank_account'
   };
 }
 
@@ -15230,6 +15193,45 @@ function addLoadListeners(script, callback) {
   script.addEventListener('readystatechange', loadHandler);
 }
 
+function formatBillingAddressForGraphQL(address) {
+  return {
+    streetAddress: address.streetAddress,
+    extendedAddress: address.extendedAddress,
+    city: address.locality,
+    state: address.region,
+    zipCode: address.postalCode
+  };
+}
+
+function formatDataForOwnershipType(data, details) {
+  if (details.ownershipType === 'personal') {
+    data.individualOwner = {
+      firstName: details.firstName,
+      lastName: details.lastName
+    };
+  } else if (details.ownershipType === 'business') {
+    data.businessOwner = {
+      businessName: details.businessName
+    };
+  }
+}
+
+function createGraphQLMutation(type) {
+  return '' +
+    'mutation Tokenize' + type + '($input: Tokenize' + type + 'Input!) {' +
+    '  tokenize' + type + '(input: $input) {' +
+    '    paymentMethod {' +
+    '      id' +
+    '      details {' +
+    '        ... on UsBankAccountDetails {' +
+    '          last4' +
+    '        }' +
+    '      }' +
+    '    }' +
+    '  }' +
+    '}';
+}
+
 /**
  * Cleanly tear down anything set up by {@link module:braintree-web/us-bank-account.create|create}.
  * @public
@@ -15255,7 +15257,7 @@ USBankAccount.prototype.teardown = function () {
 module.exports = wrapPromise.wrapPrototype(USBankAccount);
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../lib/analytics":87,"../lib/braintree-error":92,"../lib/camel-case-to-snake-case":96,"../lib/convert-methods-to-error":98,"../lib/errors":106,"../lib/methods":124,"../lib/once":125,"../lib/promise":126,"./constants":160,"./errors":161,"@braintree/wrap-promise":26}],164:[function(_dereq_,module,exports){
+},{"../lib/analytics":87,"../lib/braintree-error":92,"../lib/convert-methods-to-error":98,"../lib/errors":106,"../lib/methods":124,"../lib/once":125,"../lib/promise":126,"./constants":160,"./errors":161,"@braintree/wrap-promise":26}],164:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -15295,7 +15297,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var VaultManager = _dereq_('./vault-manager');
-var VERSION = "3.47.0";
+var VERSION = "3.48.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -15536,7 +15538,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var Venmo = _dereq_('./venmo');
 var Promise = _dereq_('../lib/promise');
 var supportsVenmo = _dereq_('./shared/supports-venmo');
-var VERSION = "3.47.0";
+var VERSION = "3.48.0";
 
 /**
  * @static
@@ -15753,7 +15755,7 @@ var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.47.0";
+var VERSION = "3.48.0";
 
 /**
  * Venmo tokenize payload.
@@ -16088,7 +16090,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var VisaCheckout = _dereq_('./visa-checkout');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./errors');
-var VERSION = "3.47.0";
+var VERSION = "3.48.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
