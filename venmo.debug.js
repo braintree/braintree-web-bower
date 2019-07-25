@@ -585,22 +585,18 @@ var Promise = _dereq_('./promise');
 var constants = _dereq_('./constants');
 var addMetadata = _dereq_('./add-metadata');
 
-function _millisToSeconds(millis) {
-  return Math.floor(millis / 1000);
-}
-
 function sendAnalyticsEvent(clientInstanceOrPromise, kind, callback) {
-  var timestamp = _millisToSeconds(Date.now());
+  var timestamp = Date.now(); // milliseconds
 
   return Promise.resolve(clientInstanceOrPromise).then(function (client) {
-    var timestampInPromise = _millisToSeconds(Date.now());
+    var timestampInPromise = Date.now();
     var configuration = client.getConfiguration();
     var request = client._request;
     var url = configuration.gatewayConfiguration.analytics.url;
     var data = {
       analytics: [{
         kind: constants.ANALYTICS_PREFIX + kind,
-        isAsync: timestampInPromise !== timestamp,
+        isAsync: Math.floor(timestampInPromise / 1000) !== Math.floor(timestamp / 1000),
         timestamp: timestamp
       }]
     };
@@ -633,7 +629,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.48.0";
+var VERSION = "3.49.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -763,7 +759,7 @@ module.exports = BraintreeError;
 },{"./enumerate":26}],21:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.48.0";
+var VERSION = "3.49.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -890,7 +886,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.48.0";
+var VERSION = "3.49.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1174,7 +1170,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var Venmo = _dereq_('./venmo');
 var Promise = _dereq_('../lib/promise');
 var supportsVenmo = _dereq_('./shared/supports-venmo');
-var VERSION = "3.48.0";
+var VERSION = "3.49.0";
 
 /**
  * @static
@@ -1391,7 +1387,7 @@ var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.48.0";
+var VERSION = "3.49.0";
 
 /**
  * Venmo tokenize payload.

@@ -1049,22 +1049,18 @@ var Promise = _dereq_('./promise');
 var constants = _dereq_('./constants');
 var addMetadata = _dereq_('./add-metadata');
 
-function _millisToSeconds(millis) {
-  return Math.floor(millis / 1000);
-}
-
 function sendAnalyticsEvent(clientInstanceOrPromise, kind, callback) {
-  var timestamp = _millisToSeconds(Date.now());
+  var timestamp = Date.now(); // milliseconds
 
   return Promise.resolve(clientInstanceOrPromise).then(function (client) {
-    var timestampInPromise = _millisToSeconds(Date.now());
+    var timestampInPromise = Date.now();
     var configuration = client.getConfiguration();
     var request = client._request;
     var url = configuration.gatewayConfiguration.analytics.url;
     var data = {
       analytics: [{
         kind: constants.ANALYTICS_PREFIX + kind,
-        isAsync: timestampInPromise !== timestamp,
+        isAsync: Math.floor(timestampInPromise / 1000) !== Math.floor(timestamp / 1000),
         timestamp: timestamp
       }]
     };
@@ -1122,7 +1118,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.48.0";
+var VERSION = "3.49.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1424,7 +1420,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":29,"./check-origin":30,"./events":31,"framebus":22}],33:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.48.0";
+var VERSION = "3.49.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1573,7 +1569,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.48.0";
+var VERSION = "3.49.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -2525,7 +2521,7 @@ module.exports = {
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var useMin = _dereq_('../../lib/use-min');
-var VERSION = "3.48.0";
+var VERSION = "3.49.0";
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
 var methods = _dereq_('../../lib/methods');
@@ -2953,7 +2949,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var LocalPayment = _dereq_('./external/local-payment');
-var VERSION = "3.48.0";
+var VERSION = "3.49.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');

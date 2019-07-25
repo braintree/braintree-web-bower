@@ -1757,6 +1757,12 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
  */
 
 /**
+ * @typedef {object} HostedFields~binPayload
+ * @description The event payload sent from {@link HostedFields#on|on} when the {@link HostedFields#event:binAvailable|binAvailable} event is emitted.
+ * @property {string} bin The first 6 digits of the card number.
+ */
+
+/**
  * @typedef {object} HostedFields~hostedFieldsFieldData
  * @description Data about Hosted Fields fields, sent in {@link HostedFields~stateObject|stateObjects}.
  * @property {HTMLElement} container Reference to the container DOM element on your page associated with the current event.
@@ -1806,7 +1812,19 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
  * @function
  * @param {string} event The name of the event to which you are subscribing.
  * @param {function} handler A callback to handle the event.
- * @description Subscribes a handler function to a named event. `event` should be {@link HostedFields#event:blur|blur}, {@link HostedFields#event:focus|focus}, {@link HostedFields#event:empty|empty}, {@link HostedFields#event:notEmpty|notEmpty}, {@link HostedFields#event:cardTypeChange|cardTypeChange}, {@link HostedFields#event:validityChange|validityChange}, or {@link HostedFields#event:inputSubmitRequest|inputSubmitRequest}. Events will emit a {@link HostedFields~stateObject|stateObject}.
+ * @description Subscribes a handler function to a named event.
+ *
+ * **Events that emit a {@link HostedFields~stateObject|stateObject}.**
+ * * {@link HostedFields#event:blur|blur}
+ * * {@link HostedFields#event:focus|focus}
+ * * {@link HostedFields#event:empty|empty}
+ * * {@link HostedFields#event:notEmpty|notEmpty}
+ * * {@link HostedFields#event:cardTypeChange|cardTypeChange}
+ * * {@link HostedFields#event:validityChange|validityChange}
+ * * {@link HostedFields#event:inputSubmitRequest|inputSubmitRequest}
+ *
+ * **Other Events**
+ * * {@link HostedFields#event:binAvailable|binAvailable} - emits a {@link HostedFields~binPayload|bin payload}
  * @example
  * <caption>Listening to a Hosted Field event, in this case 'focus'</caption>
  * hostedFields.create({ ... }, function (createErr, hostedFieldsInstance) {
@@ -1940,6 +1958,19 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
  *     } else {
  *       console.log(event.emittedBy, 'is not valid');
  *     }
+ *   });
+ * });
+ */
+
+/**
+ * This event is emitted when the first 6 digits of the card number have been entered by the customer.
+ * @event HostedFields#binAvailable
+ * @type {string}
+ * @example
+ * <caption>Listening to a `binAvailable` event</caption>
+ * hostedFields.create({ ... }, function (createErr, hostedFieldsInstance) {
+ *   hostedFieldsInstance.on('binAvailable', function (event) {
+ *     event.bin // send bin to 3rd party bin service
  *   });
  * });
  */
@@ -2258,6 +2289,12 @@ function HostedFields(options) {
 
   this._bus.on(events.CARD_FORM_ENTRY_HAS_BEGUN, function () {
     analytics.sendEvent(self._clientPromise, 'hosted-fields.input.started');
+  });
+
+  this._bus.on(events.BIN_AVAILABLE, function (bin) {
+    self._emit('binAvailable', {
+      bin: bin
+    });
   });
 
   failureTimeout = setTimeout(function () {
@@ -2981,7 +3018,7 @@ var supportsInputFormatting = _dereq_('restricted-input/supports-input-formattin
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.48.0";
+var VERSION = "3.49.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -3309,7 +3346,7 @@ module.exports = {
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.48.0";
+var VERSION = "3.49.0";
 
 var constants = {
   VERSION: VERSION,
@@ -3424,22 +3461,23 @@ var constants = {
 };
 
 constants.events = enumerate([
-  'READY_FOR_CLIENT',
-  'FRAME_READY',
-  'CARD_FORM_ENTRY_HAS_BEGUN',
-  'VALIDATE_STRICT',
-  'CONFIGURATION',
-  'TOKENIZATION_REQUEST',
-  'INPUT_EVENT',
-  'TRIGGER_INPUT_FOCUS',
   'ADD_CLASS',
+  'AUTOFILL_EXPIRATION_DATE',
+  'BIN_AVAILABLE',
+  'CARD_FORM_ENTRY_HAS_BEGUN',
+  'CLEAR_FIELD',
+  'CONFIGURATION',
+  'FRAME_READY',
+  'INPUT_EVENT',
+  'READY_FOR_CLIENT',
+  'REMOVE_ATTRIBUTE',
   'REMOVE_CLASS',
   'SET_ATTRIBUTE',
-  'REMOVE_ATTRIBUTE',
-  'CLEAR_FIELD',
-  'AUTOFILL_EXPIRATION_DATE',
   'SET_MESSAGE',
-  'SET_MONTH_OPTIONS'
+  'SET_MONTH_OPTIONS',
+  'TOKENIZATION_REQUEST',
+  'TRIGGER_INPUT_FOCUS',
+  'VALIDATE_STRICT'
 ], 'hosted-fields:');
 
 module.exports = constants;
@@ -3639,22 +3677,18 @@ var Promise = _dereq_('./promise');
 var constants = _dereq_('./constants');
 var addMetadata = _dereq_('./add-metadata');
 
-function _millisToSeconds(millis) {
-  return Math.floor(millis / 1000);
-}
-
 function sendAnalyticsEvent(clientInstanceOrPromise, kind, callback) {
-  var timestamp = _millisToSeconds(Date.now());
+  var timestamp = Date.now(); // milliseconds
 
   return Promise.resolve(clientInstanceOrPromise).then(function (client) {
-    var timestampInPromise = _millisToSeconds(Date.now());
+    var timestampInPromise = Date.now();
     var configuration = client.getConfiguration();
     var request = client._request;
     var url = configuration.gatewayConfiguration.analytics.url;
     var data = {
       analytics: [{
         kind: constants.ANALYTICS_PREFIX + kind,
-        isAsync: timestampInPromise !== timestamp,
+        isAsync: Math.floor(timestampInPromise / 1000) !== Math.floor(timestamp / 1000),
         timestamp: timestamp
       }]
     };
@@ -3712,7 +3746,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.48.0";
+var VERSION = "3.49.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -4060,7 +4094,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":50,"./check-origin":51,"./events":52,"framebus":29}],54:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.48.0";
+var VERSION = "3.49.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -4187,7 +4221,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.48.0";
+var VERSION = "3.49.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();

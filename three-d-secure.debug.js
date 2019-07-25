@@ -882,22 +882,18 @@ var Promise = _dereq_('./promise');
 var constants = _dereq_('./constants');
 var addMetadata = _dereq_('./add-metadata');
 
-function _millisToSeconds(millis) {
-  return Math.floor(millis / 1000);
-}
-
 function sendAnalyticsEvent(clientInstanceOrPromise, kind, callback) {
-  var timestamp = _millisToSeconds(Date.now());
+  var timestamp = Date.now(); // milliseconds
 
   return Promise.resolve(clientInstanceOrPromise).then(function (client) {
-    var timestampInPromise = _millisToSeconds(Date.now());
+    var timestampInPromise = Date.now();
     var configuration = client.getConfiguration();
     var request = client._request;
     var url = configuration.gatewayConfiguration.analytics.url;
     var data = {
       analytics: [{
         kind: constants.ANALYTICS_PREFIX + kind,
-        isAsync: timestampInPromise !== timestamp,
+        isAsync: Math.floor(timestampInPromise / 1000) !== Math.floor(timestamp / 1000),
         timestamp: timestamp
       }]
     };
@@ -955,7 +951,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.48.0";
+var VERSION = "3.49.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1257,7 +1253,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":18,"./check-origin":19,"./events":20,"framebus":11}],22:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.48.0";
+var VERSION = "3.49.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1406,7 +1402,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.48.0";
+var VERSION = "3.49.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1693,7 +1689,7 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 
 var PLATFORM = _dereq_('../../lib/constants').PLATFORM;
-var VERSION = "3.48.0";
+var VERSION = "3.49.0";
 
 var IFRAME_HEIGHT = 400;
 var IFRAME_WIDTH = 400;
@@ -1750,8 +1746,11 @@ var IFRAME_WIDTH = 400;
  * @property {string} binData.payroll Possible values: 'Yes', 'No', 'Unknown'.
  * @property {string} binData.prepaid Possible values: 'Yes', 'No', 'Unknown'.
  * @property {string} binData.productId The product id.
- * @property {boolean} liabilityShiftPossible Indicates whether the card was eligible for 3D Secure.
- * @property {boolean} liabilityShifted Indicates whether the liability for fraud has been shifted away from the merchant.
+ * @property {boolean} liabilityShiftPossible *Deprecated:* Use `threeDSecureInfo.liabilityShiftPossible` instead.
+ * @property {boolean} liabilityShifted *Deprecated:* Use `threeDSecureInfo.liabilityShifted` instead.
+ * @property {object} threeDSecureInfo 3DS information about the card.
+ * @property {boolean} threeDSecureInfo.liabilityShiftPossible Indicates whether the card was eligible for 3D Secure.
+ * @property {boolean} threeDSecureInfo.liabilityShifted Indicates whether the liability for fraud has been shifted away from the merchant.
  */
 
 /**
@@ -2500,7 +2499,8 @@ ThreeDSecure.prototype._formatAuthResponse = function (paymentMethod, threeDSecu
     details: paymentMethod.details,
     description: paymentMethod.description && paymentMethod.description.replace(/\+/g, ' '),
     liabilityShifted: threeDSecureInfo && threeDSecureInfo.liabilityShifted,
-    liabilityShiftPossible: threeDSecureInfo && threeDSecureInfo.liabilityShiftPossible
+    liabilityShiftPossible: threeDSecureInfo && threeDSecureInfo.liabilityShiftPossible,
+    threeDSecureInfo: paymentMethod.threeDSecureInfo
   };
 };
 
@@ -2760,7 +2760,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.48.0";
+var VERSION = "3.49.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
