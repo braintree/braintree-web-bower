@@ -73,6 +73,7 @@ var isIE11 = _dereq_('./is-ie11');
 
 module.exports = function isIE(ua) {
   ua = ua || global.navigator.userAgent;
+
   return ua.indexOf('MSIE') !== -1 || isIE11(ua);
 };
 
@@ -82,6 +83,7 @@ module.exports = function isIE(ua) {
 
 module.exports = function isIe11(ua) {
   ua = ua || navigator.userAgent;
+
   return ua.indexOf('Trident/7') !== -1;
 };
 
@@ -90,6 +92,7 @@ module.exports = function isIe11(ua) {
 
 module.exports = function isIe9(ua) {
   ua = ua || navigator.userAgent;
+
   return ua.indexOf('MSIE 9') !== -1;
 };
 
@@ -1157,7 +1160,7 @@ module.exports = {
 
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Client = _dereq_('./client');
-var VERSION = "3.50.0";
+var VERSION = "3.50.1";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -2551,7 +2554,7 @@ module.exports = BraintreeError;
 },{"./enumerate":43}],38:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.50.0";
+var VERSION = "3.50.1";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {

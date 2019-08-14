@@ -951,7 +951,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.50.0";
+var VERSION = "3.50.1";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1253,7 +1253,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":18,"./check-origin":19,"./events":20,"framebus":11}],22:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.50.0";
+var VERSION = "3.50.1";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1402,7 +1402,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.50.0";
+var VERSION = "3.50.1";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1689,7 +1689,7 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 
 var PLATFORM = _dereq_('../../lib/constants').PLATFORM;
-var VERSION = "3.50.0";
+var VERSION = "3.50.1";
 
 var IFRAME_HEIGHT = 400;
 var IFRAME_WIDTH = 400;
@@ -1999,6 +1999,45 @@ function ThreeDSecure(options) {
  *     // Decide if you want to submit the nonce
  *   }
  * });
+ * <caption>Handling 3DS lookup errors</caption>
+ * var my3DSContainer;
+ *
+ * threeDSecure.verifyCard({
+ *   amount: '123.45',
+ *   nonce: hostedFieldsTokenizationPayload.nonce,
+ *   bin: hostedFieldsTokenizationPayload.details.bin,
+ *   email: 'test@example.com'
+ *   billingAddress: billingAddressFromCustomer,,
+ *   additionalInformation: additionalInfoFromCustomer,,
+ *   onLookupComplete: function (data, next) {
+ *     // use `data` here, then call `next()`
+ *     next();
+ *   }
+ * }, function (err, payload) {
+ *   if (err) {
+ *     if (err.code.indexOf('THREEDS_LOOKUP') === 0) {
+ *       // an error occurred during the initial lookup request
+ *
+ *       if (err.code === 'THREEDS_LOOKUP_TOKENIZED_CARD_NOT_FOUND_ERROR') {
+ *         // either the passed payment method nonce does not exist
+ *         // or it was already consumed before the lookup call was made
+ *       } else if (err.code.indexOf('THREEDS_LOOKUP_VALIDATION') === 0) {
+ *         // a validation error occurred
+ *         // likely some non-ascii characters were included in the billing
+ *         // address given name or surname fields, or the cardholdername field
+ *
+ *         // Instruct your user to check their data and try again
+ *       } else {
+ *         // an unknown lookup error occurred
+ *       }
+ *     } else {
+ *       // some other kind of error
+ *     }
+ *     return;
+ *   }
+ *
+ *   // handle success
+ * });
  * @example
  * <caption>Deprecated: Verifying an existing nonce with 3DS 1.0</caption>
  * var my3DSContainer;
@@ -2105,6 +2144,31 @@ ThreeDSecure.prototype.verifyCard = function (options) {
       endpoint: url,
       method: 'post',
       data: data
+    }).catch(function (err) {
+      var status = err && err.details && err.details.httpStatus;
+      var analyticsMessage = 'three-d-secure.verification-flow.lookup-failed';
+      var lookupError;
+
+      if (status === 404) {
+        lookupError = errors.THREEDS_LOOKUP_TOKENIZED_CARD_NOT_FOUND_ERROR;
+        analyticsMessage += '.404';
+      } else if (status === 422) {
+        lookupError = errors.THREEDS_LOOKUP_VALIDATION_ERROR;
+        analyticsMessage += '.422';
+      } else {
+        lookupError = errors.THREEDS_LOOKUP_ERROR;
+      }
+
+      analytics.sendEvent(self._options.client, analyticsMessage);
+
+      return Promise.reject(new BraintreeError({
+        type: lookupError.type,
+        code: lookupError.code,
+        message: lookupError.message,
+        details: {
+          originalError: err
+        }
+      }));
     });
   }).then(function (response) {
     analytics.sendEvent(self._options.client, 'three-d-secure.verification-flow.3ds-version.' + response.lookup.threeDSecureVersion);
@@ -2545,7 +2609,7 @@ ThreeDSecure.prototype._createPaymentsSetupCompleteCallback = function (resolve,
   var self = this;
 
   return function (data) {
-    if (self._getDfReferenceIdPromise) {
+    if (self._getDfReferenceIdResolveFunction) {
       self._getDfReferenceIdResolveFunction(data.sessionId);
     } else {
       self._getDfReferenceIdPromise = Promise.resolve(data.sessionId);
@@ -2760,7 +2824,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.50.0";
+var VERSION = "3.50.1";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -2810,7 +2874,8 @@ function create(options) {
       error = errors.THREEDS_HTTPS_REQUIRED;
     }
 
-    if (options.version === 2 && !gwConfig.threeDSecure.cardinalAuthenticationJWT) {
+    if (options.version === 2 && !(gwConfig.threeDSecure && gwConfig.threeDSecure.cardinalAuthenticationJWT)) {
+      analytics.sendEvent(options.client, 'three-d-secure.initialization.failed.missing-cardinalAuthenticationJWT');
       error = errors.THREEDS_NOT_ENABLED_FOR_V2;
     }
 
@@ -2868,7 +2933,7 @@ module.exports = {
  * @property {MERCHANT} THREEDS_CARDINAL_SDK_BAD_JWT Occus when a malformed config causes a either a missing response JWT or a malformed Cardinal response.
  * @property {UNKNOWN} THREEDS_CARDINAL_SDK_ERROR Occurs when a "general error" or a Cardinal hosted fields error happens. Description contains more details.
  * @property {CUSTOMER} THREEDS_CARDINAL_SDK_CANCELED Occurs when customer cancels the transaction mid-flow, usually with alt-pays that have their own cancel buttons.
- */
+*/
 
 /**
  * @name BraintreeError.3D Secure - verifyCard Error Codes
@@ -2876,6 +2941,9 @@ module.exports = {
  * @property {MERCHANT} THREEDS_AUTHENTICATION_IN_PROGRESS Occurs when another verification is already in progress.
  * @property {MERCHANT} THREEDS_MISSING_VERIFY_CARD_OPTION Occurs when a required option is missing.
  * @property {UNKNOWN} THREEDS_JWT_AUTHENTICATION_FAILED Occurs when something went wrong authenticating the JWT from the Cardinal SDK.
+ * @property {MERCHANT} THREEDS_LOOKUP_TOKENIZED_CARD_NOT_FOUND_ERROR Occurs when the supplied payment method nonce does not exist or the payment method nonce has already been consumed.
+ * @property {CUSTOMER} THREEDS_LOOKUP_VALIDATION_ERROR Occurs when a validation error occurs during the 3D Secure lookup.
+ * @property {UNKNOWN} THREEDS_LOOKUP_ERROR An unknown error occurred while attempting the 3D Secure lookup.
  */
 
 /**
@@ -2913,7 +2981,7 @@ module.exports = {
   THREEDS_NOT_ENABLED_FOR_V2: {
     type: BraintreeError.types.MERCHANT,
     code: 'THREEDS_NOT_ENABLED_FOR_V2',
-    message: '3D Secure version 2 is not enabled for this merchant.'
+    message: '3D Secure version 2 is not enabled for this merchant. Contact Braintree Support for assistance at https://help.braintreepayments.com/'
   },
   THREEDS_CARDINAL_SDK_SETUP_FAILED: {
     type: BraintreeError.types.UNKNOWN,
@@ -2968,6 +3036,21 @@ module.exports = {
     type: BraintreeError.types.UNKNOWN,
     code: 'THREEDS_JWT_AUTHENTICATION_FAILED',
     message: 'Something went wrong authenticating the JWT from Cardinal'
+  },
+  THREEDS_LOOKUP_TOKENIZED_CARD_NOT_FOUND_ERROR: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'THREEDS_LOOKUP_TOKENIZED_CARD_NOT_FOUND_ERROR',
+    message: 'Either the payment method nonce passed to `verifyCard` does not exist, or it was already consumed'
+  },
+  THREEDS_LOOKUP_VALIDATION_ERROR: {
+    type: BraintreeError.types.CUSTOMER,
+    code: 'THREEDS_LOOKUP_VALIDATION_ERROR',
+    message: 'The data passed in `verifyCard` did not pass validation checks. See details for more info'
+  },
+  THREEDS_LOOKUP_ERROR: {
+    type: BraintreeError.types.UNKNOWN,
+    code: 'THREEDS_LOOKUP_ERROR',
+    message: 'Something went wrong during the 3D Secure lookup'
   },
   THREEDS_NO_VERIFICATION_PAYLOAD: {
     type: BraintreeError.types.MERCHANT,

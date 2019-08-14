@@ -71,6 +71,7 @@ module.exports = loadScript;
 
 module.exports = function isAndroid(ua) {
   ua = ua || global.navigator.userAgent;
+
   return /Android/.test(ua);
 };
 
@@ -83,6 +84,7 @@ var isSamsung = _dereq_('./is-samsung');
 
 module.exports = function isChrome(ua) {
   ua = ua || navigator.userAgent;
+
   return (ua.indexOf('Chrome') !== -1 || ua.indexOf('CriOS') !== -1) && !isEdge(ua) && !isSamsung(ua);
 };
 
@@ -91,6 +93,7 @@ module.exports = function isChrome(ua) {
 
 module.exports = function isEdge(ua) {
   ua = ua || navigator.userAgent;
+
   return ua.indexOf('Edge/') !== -1;
 };
 
@@ -102,6 +105,7 @@ var isIE11 = _dereq_('./is-ie11');
 
 module.exports = function isIE(ua) {
   ua = ua || global.navigator.userAgent;
+
   return ua.indexOf('MSIE') !== -1 || isIE11(ua);
 };
 
@@ -111,6 +115,7 @@ module.exports = function isIE(ua) {
 
 module.exports = function isIe11(ua) {
   ua = ua || navigator.userAgent;
+
   return ua.indexOf('Trident/7') !== -1;
 };
 
@@ -120,6 +125,7 @@ module.exports = function isIe11(ua) {
 
 module.exports = function isIosFirefox(ua) {
   ua = ua || global.navigator.userAgent;
+
   return /FxiOS/i.test(ua);
 };
 
@@ -142,8 +148,10 @@ module.exports = function isIosWebview(ua) {
     if (isGoogleSearchApp(ua)) {
       return true;
     }
+
     return /.+AppleWebKit(?!.*Safari)/.test(ua);
   }
+
   return false;
 };
 
@@ -156,6 +164,7 @@ var isIosWebview = _dereq_('./is-ios-webview');
 
 module.exports = function isIosWKWebview(ua, statusBarVisible) {
   statusBarVisible = typeof statusBarVisible !== 'undefined' ? statusBarVisible : global.statusbar.visible;
+
   return isIosWebview(ua) && statusBarVisible;
 };
 
@@ -166,6 +175,7 @@ module.exports = function isIosWKWebview(ua, statusBarVisible) {
 
 module.exports = function isIos(ua) {
   ua = ua || global.navigator.userAgent;
+
   return /iPhone|iPod|iPad/i.test(ua);
 };
 
@@ -176,6 +186,7 @@ module.exports = function isIos(ua) {
 
 module.exports = function isSamsungBrowser(ua) {
   ua = ua || global.navigator.userAgent;
+
   return /SamsungBrowser/i.test(ua);
 };
 
@@ -209,6 +220,7 @@ function isUnsupportedIosChrome(ua) {
 
 function isOperaMini(ua) {
   ua = ua || global.navigator.userAgent;
+
   return ua.indexOf('Opera Mini') > -1;
 }
 
@@ -219,6 +231,7 @@ function isAndroidWebview(ua) {
   if (isAndroid(ua)) {
     return androidWebviewRegExp.test(ua) && !isOperaMini(ua);
   }
+
   return false;
 }
 
@@ -228,7 +241,15 @@ function isOldSamsungBrowserOrSamsungWebview(ua) {
 
 module.exports = function supportsPopups(ua) {
   ua = ua || global.navigator.userAgent;
-  return !(isIosWebview(ua) || isIosFirefox(ua) || isAndroidWebview(ua) || isOperaMini(ua) || isUnsupportedIosChrome(ua) || isOldSamsungBrowserOrSamsungWebview(ua));
+
+  return !(
+    isIosWebview(ua) ||
+    isIosFirefox(ua) ||
+    isAndroidWebview(ua) ||
+    isOperaMini(ua) ||
+    isUnsupportedIosChrome(ua) ||
+    isOldSamsungBrowserOrSamsungWebview(ua)
+  );
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
@@ -1118,7 +1139,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.50.0";
+var VERSION = "3.50.1";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1420,7 +1441,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":29,"./check-origin":30,"./events":31,"framebus":22}],33:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.50.0";
+var VERSION = "3.50.1";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1569,7 +1590,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.50.0";
+var VERSION = "3.50.1";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -2412,7 +2433,7 @@ var Promise = _dereq_('../../lib/promise');
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var errors = _dereq_('../shared/errors');
-var VERSION = "3.50.0";
+var VERSION = "3.50.1";
 var methods = _dereq_('../../lib/methods');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var analytics = _dereq_('../../lib/analytics');
@@ -2811,7 +2832,7 @@ var browserDetection = _dereq_('./shared/browser-detection');
 var Masterpass = _dereq_('./external/masterpass');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
-var VERSION = "3.50.0";
+var VERSION = "3.50.1";
 var errors = _dereq_('./shared/errors');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
