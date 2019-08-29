@@ -1913,7 +1913,7 @@ var AmericanExpress = _dereq_('./american-express');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
-var VERSION = "3.50.1";
+var VERSION = "3.51.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -2345,7 +2345,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var errors = _dereq_('./errors');
-var VERSION = "3.50.1";
+var VERSION = "3.51.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -3068,7 +3068,7 @@ module.exports = {
 
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Client = _dereq_('./client');
-var VERSION = "3.50.1";
+var VERSION = "3.51.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -3594,6 +3594,12 @@ function adaptTokenizeCreditCardResponseBody(body) {
     ]
   };
 
+  if (data.authenticationInsight) {
+    response.creditCards[0].authenticationInsight = {
+      regulationEnvironment: data.authenticationInsight.customerAuthenticationRegulationEnvironment
+    };
+  }
+
   return response;
 }
 
@@ -3627,6 +3633,10 @@ function errorWithClassResponseAdapter(responseBody) {
 function userErrorResponseAdapter(responseBody) {
   var fieldErrors = buildFieldErrors(responseBody.errors);
 
+  if (fieldErrors.length === 0) {
+    return {error: {message: responseBody.errors[0].message}};
+  }
+
   return {error: {message: getLegacyMessage(fieldErrors)}, fieldErrors: fieldErrors};
 }
 
@@ -3634,6 +3644,9 @@ function buildFieldErrors(errors) {
   var fieldErrors = [];
 
   errors.forEach(function (error) {
+    if (!(error.extensions && error.extensions.inputPath)) {
+      return;
+    }
     addFieldError(error.extensions.inputPath.slice(1), error, fieldErrors);
   });
 
@@ -3776,31 +3789,49 @@ module.exports = configuration;
 
 var assign = _dereq_('../../../../lib/assign').assign;
 
-var CREDIT_CARD_TOKENIZATION_MUTATION = 'mutation TokenizeCreditCard($input: TokenizeCreditCardInput!) { ' +
-'  tokenizeCreditCard(input: $input) { ' +
-'    token ' +
-'    creditCard { ' +
-'      bin ' +
-'      brandCode ' +
-'      last4 ' +
-'      expirationMonth' +
-'      expirationYear' +
-'      binData { ' +
-'        prepaid ' +
-'        healthcare ' +
-'        debit ' +
-'        durbinRegulated ' +
-'        commercial ' +
-'        payroll ' +
-'        issuingBank ' +
-'        countryOfIssuance ' +
-'        productId ' +
-'      } ' +
-'    } ' +
-'  } ' +
-'}';
+function createMutation(config) {
+  var hasAuthenticationInsight = config.hasAuthenticationInsight;
+  var mutation = 'mutation TokenizeCreditCard($input: TokenizeCreditCardInput!';
 
-function createCreditCardTokenizationBody(body) {
+  if (hasAuthenticationInsight) {
+    mutation += ', $authenticationInsightInput: AuthenticationInsightInput!';
+  }
+
+  mutation += ') { ' +
+    '  tokenizeCreditCard(input: $input) { ' +
+    '    token ' +
+    '    creditCard { ' +
+    '      bin ' +
+    '      brandCode ' +
+    '      last4 ' +
+    '      expirationMonth' +
+    '      expirationYear' +
+    '      binData { ' +
+    '        prepaid ' +
+    '        healthcare ' +
+    '        debit ' +
+    '        durbinRegulated ' +
+    '        commercial ' +
+    '        payroll ' +
+    '        issuingBank ' +
+    '        countryOfIssuance ' +
+    '        productId ' +
+    '      } ' +
+    '    } ';
+
+  if (hasAuthenticationInsight) {
+    mutation += '    authenticationInsight(input: $authenticationInsightInput) {' +
+      '      customerAuthenticationRegulationEnvironment' +
+      '    }';
+  }
+
+  mutation += '  } ' +
+    '}';
+
+  return mutation;
+}
+
+function createCreditCardTokenizationBody(body, options) {
   var cc = body.creditCard;
   var billingAddress = cc && cc.billingAddress;
   var expDate = cc && cc.expirationDate;
@@ -3818,6 +3849,12 @@ function createCreditCardTokenizationBody(body) {
       options: {}
     }
   };
+
+  if (options.hasAuthenticationInsight) {
+    variables.authenticationInsightInput = {
+      merchantAccountId: body.merchantAccountId
+    };
+  }
 
   if (billingAddress) {
     variables.input.creditCard.billingAddress = billingAddress;
@@ -3849,9 +3886,13 @@ function addValidationRule(body, input) {
 }
 
 function creditCardTokenization(body) {
+  var options = {
+    hasAuthenticationInsight: Boolean(body.authenticationInsight && body.merchantAccountId)
+  };
+
   return {
-    query: CREDIT_CARD_TOKENIZATION_MUTATION,
-    variables: createCreditCardTokenizationBody(body),
+    query: createMutation(options),
+    variables: createCreditCardTokenizationBody(body, options),
     operationName: 'TokenizeCreditCard'
   };
 }
@@ -4417,7 +4458,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var methods = _dereq_('../lib/methods');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
-var VERSION = "3.50.1";
+var VERSION = "3.51.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var errors = _dereq_('./errors');
@@ -5072,7 +5113,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.50.1";
+var VERSION = "3.51.0";
 
 /**
  * @static
@@ -5351,6 +5392,8 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
 /**
  * @typedef {object} HostedFields~tokenizePayload
  * @property {string} nonce The payment method nonce.
+ * @property {object} authenticationInsight Info about the [regulatory environment](https://developers.braintreepayments.com/guides/3d-secure/advanced-options/javascript/v3#authentication-insight) of the tokenized card. Only available if `authenticationInsight.merchantAccountId` is passed in the `tokenize` method options.
+ * @property {string} authenticationInsight.regulationEnvironment The [regulation environment](https://developers.braintreepayments.com/guides/3d-secure/advanced-options/javascript/v3#authentication-insight) for the tokenized card.
  * @property {object} details Additional account details.
  * @property {string} details.bin The BIN number of the card.
  * @property {string} details.cardType Type of card, ex: Visa, MasterCard.
@@ -5636,7 +5679,7 @@ function createInputEventHandler(fields) {
     classList.toggle(container, constants.externalClasses.VALID, field.isValid);
     classList.toggle(container, constants.externalClasses.INVALID, !field.isPotentiallyValid);
 
-    this._state = { // eslint-disable-line no-invalid-this
+    this._state = {// eslint-disable-line no-invalid-this
       cards: merchantPayload.cards,
       fields: merchantPayload.fields
     };
@@ -6072,6 +6115,8 @@ HostedFields.prototype.teardown = function () {
  * @public
  * @param {object} [options] All tokenization options for the Hosted Fields component.
  * @param {boolean} [options.vault=false] When true, will vault the tokenized card. Cards will only be vaulted when using a client created with a client token that includes a customer ID. Note: merchants using Advanced Fraud Tools should not use this option, as device data will not be included.
+ * @param {object} [options.authenticationInsight] Options for checking authentication insight - the [regulatory environment](https://developers.braintreepayments.com/guides/3d-secure/advanced-options/javascript/v3#authentication-insight) of the tokenized card.
+ * @param {string} options.authenticationInsight.merchantAccountId The Braintree merchant account id to use to look up the authentication insight information.
  * @param {array} [options.fieldsToTokenize] By default, all fields will be tokenized. You may specify which fields specifically you wish to tokenize with this property. Valid options are `'number'`, `'cvv'`, `'expirationDate'`, `'expirationMonth'`, `'expirationYear'`, `'postalCode'`.
  * @param {string} [options.cardholderName] When supplied, the cardholder name to be tokenized with the contents of the fields.
  * @param {string} [options.billingAddress.postalCode] When supplied, this postal code will be tokenized along with the contents of the fields. If a postal code is provided as part of the Hosted Fields configuration, the value of the field will be tokenized and this value will be ignored.
@@ -6658,7 +6703,7 @@ var supportsInputFormatting = _dereq_('restricted-input/supports-input-formattin
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.50.1";
+var VERSION = "3.51.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -6982,11 +7027,10 @@ module.exports = {
 
 },{"@braintree/browser-detection/is-edge":6,"@braintree/browser-detection/is-ie":7,"@braintree/browser-detection/is-ie9":9,"@braintree/browser-detection/is-ios":14,"@braintree/browser-detection/is-ios-webview":12}],82:[function(_dereq_,module,exports){
 'use strict';
-/* eslint-disable no-reserved-keys */
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.50.1";
+var VERSION = "3.51.0";
 
 var constants = {
   VERSION: VERSION,
@@ -7332,7 +7376,7 @@ var usBankAccount = _dereq_('./us-bank-account');
 var vaultManager = _dereq_('./vault-manager');
 var venmo = _dereq_('./venmo');
 var visaCheckout = _dereq_('./visa-checkout');
-var VERSION = "3.50.1";
+var VERSION = "3.51.0";
 
 module.exports = {
   /** @type {module:braintree-web/american-express} */
@@ -7486,7 +7530,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.50.1";
+var VERSION = "3.51.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -7854,7 +7898,7 @@ module.exports = function (obj) {
 },{}],98:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.50.1";
+var VERSION = "3.51.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -8003,7 +8047,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.50.1";
+var VERSION = "3.51.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -8778,7 +8822,7 @@ module.exports = enumerate([
 },{"../../enumerate":106}],120:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.50.1";
+var VERSION = "3.51.0";
 var assign = _dereq_('./assign').assign;
 
 function generateTokenizationParameters(configuration, overrides) {
@@ -9157,7 +9201,7 @@ module.exports = {
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var useMin = _dereq_('../../lib/use-min');
-var VERSION = "3.50.1";
+var VERSION = "3.51.0";
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
 var methods = _dereq_('../../lib/methods');
@@ -9585,7 +9629,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var LocalPayment = _dereq_('./external/local-payment');
-var VERSION = "3.50.1";
+var VERSION = "3.51.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -9776,7 +9820,7 @@ var Promise = _dereq_('../../lib/promise');
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var errors = _dereq_('../shared/errors');
-var VERSION = "3.50.1";
+var VERSION = "3.51.0";
 var methods = _dereq_('../../lib/methods');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var analytics = _dereq_('../../lib/analytics');
@@ -10175,7 +10219,7 @@ var browserDetection = _dereq_('./shared/browser-detection');
 var Masterpass = _dereq_('./external/masterpass');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
-var VERSION = "3.50.1";
+var VERSION = "3.51.0";
 var errors = _dereq_('./shared/errors');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -10383,7 +10427,7 @@ var methods = _dereq_('../../lib/methods');
 var Promise = _dereq_('../../lib/promise');
 var EventEmitter = _dereq_('@braintree/event-emitter');
 var BraintreeError = _dereq_('../../lib/braintree-error');
-var VERSION = "3.50.1";
+var VERSION = "3.51.0";
 var constants = _dereq_('../shared/constants');
 var events = constants.events;
 var errors = constants.errors;
@@ -11071,7 +11115,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.50.1";
+var VERSION = "3.51.0";
 
 /**
  * @static
@@ -11337,7 +11381,7 @@ module.exports = {
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var PayPalCheckout = _dereq_('./paypal-checkout');
-var VERSION = "3.50.1";
+var VERSION = "3.51.0";
 
 /**
  * @static
@@ -11992,7 +12036,7 @@ var BraintreeError = _dereq_('../../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../../lib/convert-to-braintree-error');
 var useMin = _dereq_('../../lib/use-min');
 var once = _dereq_('../../lib/once');
-var VERSION = "3.50.1";
+var VERSION = "3.51.0";
 var constants = _dereq_('../shared/constants');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
@@ -12598,7 +12642,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var errors = _dereq_('./shared/errors');
 var PayPal = _dereq_('./external/paypal');
-var VERSION = "3.50.1";
+var VERSION = "3.51.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var Promise = _dereq_('../lib/promise');
 
@@ -12818,7 +12862,7 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 
 var PLATFORM = _dereq_('../../lib/constants').PLATFORM;
-var VERSION = "3.50.1";
+var VERSION = "3.51.0";
 
 var IFRAME_HEIGHT = 400;
 var IFRAME_WIDTH = 400;
@@ -12900,7 +12944,7 @@ var IFRAME_WIDTH = 400;
  * @typedef {object} ThreeDSecure~billingAddress
  * @property {string} [givenName] The first name associated with the billing address.
  * @property {string} [surname] The last name associated with the billing address.
- * @property {number} [phoneNumber] The phone number associated with the billing address. Only numbers; remove dashes, paranthesis and other characters.
+ * @property {string} [phoneNumber] The phone number associated with the billing address. Only numbers; remove dashes, paranthesis and other characters.
  * @property {string} [streetAddress] Line 1 of the billing address (eg. number, street, etc).
  * @property {string} [extendedAddress] Line 2 of the billing address (eg. suite, apt #, etc.).
  * @property {string} [line3] Line 3 of the billing address if needed (eg. suite, apt #, etc).
@@ -12912,7 +12956,7 @@ var IFRAME_WIDTH = 400;
 
 /**
  * @typedef {object} ThreeDSecure~additionalInformation
- * @property {number} [workPhoneNumber] The work phone number used for verification. Only numbers; remove dashes, parenthesis and other characters.
+ * @property {string} [workPhoneNumber] The work phone number used for verification. Only numbers; remove dashes, parenthesis and other characters.
  * @property {string} [shippingGivenName] The first name associated with the shipping address.
  * @property {string} [shippingSurname] The last name associated with the shipping address.
  * @property {object} [shippingAddress]
@@ -12923,7 +12967,7 @@ var IFRAME_WIDTH = 400;
  * @property {string} [shippingAddress.region] The 2 letter code for US states, and the equivalent for other countries.
  * @property {string} [shippingAddress.postalCode] The zip code or equivalent for countries that have them.
  * @property {string} [shippingAddress.countryCodeAlpha2] The 2 character country code.
- * @property {number} [shippingPhone] The phone number associated with the shipping address. Only numbers; remove dashes, parenthesis and other characters.
+ * @property {string} [shippingPhone] The phone number associated with the shipping address. Only numbers; remove dashes, parenthesis and other characters.
  * @property {string} [shippingMethod] The 2-digit string indicating the name of the shipping method chosen for the transaction. Possible values:
  * - `01` Same Day
  * - `02` Overnight / Expedited
@@ -12931,7 +12975,7 @@ var IFRAME_WIDTH = 400;
  * - `04` Ground
  * - `05` Electronic Delivery
  * - `06` Ship to Store
- * @property {number} [shippingMethodIndicator] The 2-digit string indicating the shipping method chosen for the transaction Possible values.
+ * @property {string} [shippingMethodIndicator] The 2-digit string indicating the shipping method chosen for the transaction Possible values.
  * - `01` Ship to cardholder billing address
  * - `02` Ship to another verified address on file with merchant
  * - `03` Ship to address that is different than billing address
@@ -12952,85 +12996,85 @@ var IFRAME_WIDTH = 400;
  * - `LUX` Luxury Retail
  * - `ACC` Accommodation Retail
  * - `TBD` Other
- * @property {number} [deliveryTimeframe] The 2-digit number indicating the delivery timeframe. Possible values:
+ * @property {string} [deliveryTimeframe] The 2-digit number indicating the delivery timeframe. Possible values:
  * - `01` Electronic delivery
  * - `02` Same day shipping
  * - `03` Overnight shipping
  * - `04` Two or more day shipping
  * @property {string} [deliveryEmail] For electronic delivery, email address to which the merchandise was delivered.
- * @property {number} [reorderindicator] The 2-digit number indicating whether the cardholder is reordering previously purchased merchandise. possible values:
+ * @property {string} [reorderindicator] The 2-digit number indicating whether the cardholder is reordering previously purchased merchandise. possible values:
  * - `01` First time ordered
  * - `02` Reordered
- * @property {number} [preorderIndicator] The 2-digit number indicating whether cardholder is placing an order with a future availability or release date. possible values:
+ * @property {string} [preorderIndicator] The 2-digit number indicating whether cardholder is placing an order with a future availability or release date. possible values:
  * - `01` Merchandise available
  * - `02` Future availability
- * @property {number} [preorderDate] The 8-digit number (format: YYYYMMDD) indicating expected date that a pre-ordered purchase will be available.
- * @property {number} [giftCardAmount] The purchase amount total for prepaid gift cards in major units.
- * @property {number} [giftCardCurrencyCode] ISO 4217 currency code for the gift card purchased.
- * @property {number} [giftCardCount] Total count of individual prepaid gift cards purchased.
- * @property {number} [accountAgeIndicator] The 2-digit value representing the length of time cardholder has had account. Possible values:
+ * @property {string} [preorderDate] The 8-digit number (format: YYYYMMDD) indicating expected date that a pre-ordered purchase will be available.
+ * @property {string} [giftCardAmount] The purchase amount total for prepaid gift cards in major units.
+ * @property {string} [giftCardCurrencyCode] ISO 4217 currency code for the gift card purchased.
+ * @property {string} [giftCardCount] Total count of individual prepaid gift cards purchased.
+ * @property {string} [accountAgeIndicator] The 2-digit value representing the length of time cardholder has had account. Possible values:
  * - `01` No Account
  * - `02` Created during transaction
  * - `03` Less than 30 days
  * - `04` 30-60 days
  * - `05` More than 60 days
- * @property {number} [accountCreateDate] The 8-digit number (format: YYYYMMDD) indicating the date the cardholder opened the account.
- * @property {number} [accountChangeIndicator] The 2-digit value representing the length of time since the last change to the cardholder account. This includes shipping address, new payment account or new user added. Possible values:
+ * @property {string} [accountCreateDate] The 8-digit number (format: YYYYMMDD) indicating the date the cardholder opened the account.
+ * @property {string} [accountChangeIndicator] The 2-digit value representing the length of time since the last change to the cardholder account. This includes shipping address, new payment account or new user added. Possible values:
  * - `01` Changed during transaction
  * - `02` Less than 30 days
  * - `03` 30-60 days
  * - `04` More than 60 days
- * @property {number} [accountChangeDate] The 8-digit number (format: YYYYMMDD) indicating the date the cardholder's account was last changed. This includes changes to the billing or shipping address, new payment accounts or new users added.
- * @property {number} [accountPwdChangeIndicator] The 2-digit value representing the length of time since the cardholder changed or reset the password on the account. Possible values:
+ * @property {string} [accountChangeDate] The 8-digit number (format: YYYYMMDD) indicating the date the cardholder's account was last changed. This includes changes to the billing or shipping address, new payment accounts or new users added.
+ * @property {string} [accountPwdChangeIndicator] The 2-digit value representing the length of time since the cardholder changed or reset the password on the account. Possible values:
  * - `01` No change
  * - `02` Changed during transaction
  * - `03` Less than 30 days
  * - `04` 30-60 days
  * - `05` More than 60 days
- * @property {number} [accountPwdChangeDate] The 8-digit number (format: YYYYMMDD) indicating the date the cardholder last changed or reset password on account.
- * @property {number} [shippingAddressUsageIndicator] The 2-digit value indicating when the shipping address used for transaction was first used. Possible values:
+ * @property {string} [accountPwdChangeDate] The 8-digit number (format: YYYYMMDD) indicating the date the cardholder last changed or reset password on account.
+ * @property {string} [shippingAddressUsageIndicator] The 2-digit value indicating when the shipping address used for transaction was first used. Possible values:
  * - `01` This transaction
  * - `02` Less than 30 days
  * - `03` 30-60 days
  * - `04` More than 60 days
- * @property {number} [shippingAddressUsageDate] The 8-digit number (format: YYYYMMDD) indicating the date when the shipping address used for this transaction was first used.
- * @property {number} [transactionCountDay] Number of transactions (successful or abandoned) for this cardholder account within the last 24 hours.
- * @property {number} [transactionCountYear] Number of transactions (successful or abandoned) for this cardholder account within the last year.
- * @property {number} [addCardAttempts] Number of add card attempts in the last 24 hours.
- * @property {number} [accountPurchases] Number of purchases with this cardholder account during the previous six months.
- * @property {number} [fraudActivity] The 2-digit value indicating whether the merchant experienced suspicious activity (including previous fraud) on the account. Possible values:
+ * @property {string} [shippingAddressUsageDate] The 8-digit number (format: YYYYMMDD) indicating the date when the shipping address used for this transaction was first used.
+ * @property {string} [transactionCountDay] Number of transactions (successful or abandoned) for this cardholder account within the last 24 hours.
+ * @property {string} [transactionCountYear] Number of transactions (successful or abandoned) for this cardholder account within the last year.
+ * @property {string} [addCardAttempts] Number of add card attempts in the last 24 hours.
+ * @property {string} [accountPurchases] Number of purchases with this cardholder account during the previous six months.
+ * @property {string} [fraudActivity] The 2-digit value indicating whether the merchant experienced suspicious activity (including previous fraud) on the account. Possible values:
  * - `01` No suspicious activity
  * - `02` Suspicious activity observed
- * @property {number} [shippingNameIndicator] The 2-digit value indicating if the cardholder name on the account is identical to the shipping name used for the transaction. Possible values:
+ * @property {string} [shippingNameIndicator] The 2-digit value indicating if the cardholder name on the account is identical to the shipping name used for the transaction. Possible values:
  * - `01` Account and shipping name identical
  * - `02` Account and shipping name differ
- * @property {number} [paymentAccountIndicator] The 2-digit value indicating the length of time that the payment account was enrolled in the merchant account. Possible values:
+ * @property {string} [paymentAccountIndicator] The 2-digit value indicating the length of time that the payment account was enrolled in the merchant account. Possible values:
  * - `01` No account (guest checkout)
  * - `02` During the transaction
  * - `03` Less than 30 days
  * - `04` 30-60 days
  * - `05` More than 60 days
- * @property {number} [paymentAccountAge] The 8-digit number (format: YYYYMMDD) indicating the date the payment account was added to the cardholder account.
- * @property {number} [acsWindowSize] The 2-digit number to set the challenge window size to display to the end cardholder.  The ACS will reply with content that is formatted appropriately to this window size to allow for the best user experience.  The sizes are width x height in pixels of the window displayed in the cardholder browser window. Possible values:
+ * @property {string} [paymentAccountAge] The 8-digit number (format: YYYYMMDD) indicating the date the payment account was added to the cardholder account.
+ * @property {string} [acsWindowSize] The 2-digit number to set the challenge window size to display to the end cardholder.  The ACS will reply with content that is formatted appropriately to this window size to allow for the best user experience.  The sizes are width x height in pixels of the window displayed in the cardholder browser window. Possible values:
  * - `01` 250x400
  * - `02` 390x400
  * - `03` 500x600
  * - `04` 600x400
  * - `05` Full page
- * @property {number} [sdkMaxTimeout] The 2-digit number of minutes (minimum 05) to set the maximum amount of time for all 3DS 2.0 messages to be communicated between all components.
- * @property {number} [addressMatch] The 1-character value (Y/N) indicating whether cardholder billing and shipping addresses match.
+ * @property {string} [sdkMaxTimeout] The 2-digit number of minutes (minimum 05) to set the maximum amount of time for all 3DS 2.0 messages to be communicated between all components.
+ * @property {string} [addressMatch] The 1-character value (Y/N) indicating whether cardholder billing and shipping addresses match.
  * @property {string} [accountId] Additional cardholder account information.
  * @property {string} [ipAddress] The IP address of the consumer. IPv4 and IPv6 are supported.
  * @property {string} [orderDescription] Brief description of items purchased.
- * @property {number} [taxAmount] Unformatted tax amount without any decimalization (ie. $123.67 = 12367).
+ * @property {string} [taxAmount] Unformatted tax amount without any decimalization (ie. $123.67 = 12367).
  * @property {string} [userAgent] The exact content of the HTTP user agent header.
- * @property {number} [authenticationIndicator] The 2-digit number indicating the type of authentication request. This field is required if a recurring or installment transaction request. Possible values:
+ * @property {string} [authenticationIndicator] The 2-digit number indicating the type of authentication request. This field is required if a recurring or installment transaction request. Possible values:
  *  - `02` Recurring
  *  - `03` Installment
- * @property {number} [installment] An integer value greater than 1 indicating the maximum number of permitted authorizations for installment payments. Required for recurring and installement transaction requests.
- * @property {number} [purchaseDate] The 14-digit number (format: YYYYMMDDHHMMSS) indicating the date in UTC of original purchase. Required for recurring and installement transaction requests.
- * @property {number} [recurringEnd] The 8-digit number (format: YYYYMMDD) indicating the date after which no further recurring authorizations should be performed. Required for recurring and installement transaction requests.
- * @property {number} [recurringFrequency] Integer value indicating the minimum number of days between recurring authorizations. A frequency of monthly is indicated by the value 28. Multiple of 28 days will be used to indicate months (ex. 6 months = 168). Required for recurring and installement transaction requests.
+ * @property {string} [installment] An integer value greater than 1 indicating the maximum number of permitted authorizations for installment payments. Required for recurring and installement transaction requests.
+ * @property {string} [purchaseDate] The 14-digit number (format: YYYYMMDDHHMMSS) indicating the date in UTC of original purchase. Required for recurring and installement transaction requests.
+ * @property {string} [recurringEnd] The 8-digit number (format: YYYYMMDD) indicating the date after which no further recurring authorizations should be performed. Required for recurring and installement transaction requests.
+ * @property {string} [recurringFrequency] Integer value indicating the minimum number of days between recurring authorizations. A frequency of monthly is indicated by the value 28. Multiple of 28 days will be used to indicate months (ex. 6 months = 168). Required for recurring and installement transaction requests.
  */
 
 /**
@@ -13059,7 +13103,7 @@ function ThreeDSecure(options) {
  * @param {object} options Options for card verification.
  * @param {string} options.nonce The nonce representing the card from a tokenization payload. For example, this can be a {@link HostedFields~tokenizePayload|tokenizePayload} returned by Hosted Fields under `payload.nonce`.
  * @param {string} options.bin The numeric Bank Identification Number (bin) of the card from a tokenization payload. For example, this can be a {@link HostedFields~tokenizePayload|tokenizePayload} returned by Hosted Fields under `payload.details.bin`.
- * @param {number} options.amount The amount of the transaction in the current merchant account's currency. For example, if you are running a transaction of $123.45 US dollars, `amount` would be 123.45.
+ * @param {string} options.amount The amount of the transaction in the current merchant account's currency. For example, if you are running a transaction of $123.45 US dollars, `amount` would be 123.45.
  * @param {boolean} [options.challengeRequested] If set to true, an authentication challenge will be forced if possible.
  * @param {boolean} [options.exemptionRequested] If set to true, an exemption to the authentication challenge will be requested.
  * @param {function} options.onLookupComplete Function to execute when lookup completes. The first argument, `data`, is a {@link ThreeDSecure~verificationData|verificationData} object, and the second argument, `next`, is a callback. `next` must be called to continue.
@@ -13481,11 +13525,42 @@ ThreeDSecure.prototype._triggerCardinalBinProcess = function (bin) {
 };
 
 /**
- * Cancel the 3DS flow and return the verification payload if available.
+ * Cancel the 3DS flow and return the verification payload if available. If using 3D Secure version 2, this will not close the UI of the authentication modal. It is recommended that this method only be used in the `onLookupComplete` callback.
  * @public
  * @param {callback} [callback] The second argument is a {@link ThreeDSecure~verifyPayload|verifyPayload}. If there is no verifyPayload (the initial lookup did not complete), an error will be returned. If no callback is passed, `cancelVerifyCard` will return a promise.
  * @returns {Promise|void} Returns a promise if no callback is provided.
- * @example
+ * @example <caption>Cancel the verification in onLookupComplete</caption>
+ * threeDSecure.verifyCard({
+ *   amount: '100.00',
+ *   nonce: nonceFromTokenizationPayload,
+ *   bin: binFromTokenizationPayload,
+ *   // other fields such as billing address
+ *   onLookupComplete: function (data, next) {
+ *     // determine if you want to call next to start the challenge,
+ *     // if not, call cancelVerifyCard
+ *     threeDSecure.cancelVerifyCard(function (err, verifyPayload) {
+ *       if (err) {
+ *         // Handle error
+ *         console.log(err.message); // No verification payload available
+ *         return;
+ *       }
+ *
+ *       verifyPayload.nonce; // The nonce returned from the 3ds lookup call
+ *       verifyPayload.liabilityShifted; // boolean
+ *       verifyPayload.liabilityShiftPossible; // boolean
+ *     });
+ *   }
+ * }, function (verifyError, payload) {
+ *   if (verifyError) {
+ *     if (verifyError.code === 'THREEDS_VERIFY_CARD_CANCELED_BY_MERCHANT ') {
+ *       // flow was cancelled by merchant, 3ds info can be found in the payload
+ *       // for cancelVerifyCard
+ *     }
+ *   }
+ * });
+ * @example <caption>Cancel the verification in 3D Secure version 1</caption>
+ * // unlike with v2, this will not cause `verifyCard` to error, it will simply
+ * // never call the callback
  * threeDSecure.cancelVerifyCard(function (err, verifyPayload) {
  *   if (err) {
  *     // Handle error
@@ -13501,13 +13576,6 @@ ThreeDSecure.prototype._triggerCardinalBinProcess = function (bin) {
 ThreeDSecure.prototype.cancelVerifyCard = function () {
   var response;
 
-  if (this._usesSongbirdFlow()) {
-    return Promise.reject(new BraintreeError({
-      type: errors.THREEDS_METHOD_DEPRECATED.type,
-      code: errors.THREEDS_METHOD_DEPRECATED.code,
-      message: 'cancelVerifyCard can not be used with 3D Secure v2.'
-    }));
-  }
   this._verifyCardInProgress = false;
 
   if (!this._lookupPaymentMethod) {
@@ -13519,6 +13587,10 @@ ThreeDSecure.prototype.cancelVerifyCard = function () {
     liabilityShifted: this._lookupPaymentMethod.threeDSecureInfo.liabilityShifted,
     verificationDetails: this._lookupPaymentMethod.threeDSecureInfo.verificationDetails
   });
+
+  if (this._usesSongbirdFlow() && this._verifyCardCallback) {
+    this._verifyCardCallback(new BraintreeError(errors.THREEDS_VERIFY_CARD_CANCELED_BY_MERCHANT));
+  }
 
   return Promise.resolve(response);
 };
@@ -13953,7 +14025,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.50.1";
+var VERSION = "3.51.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -14039,8 +14111,8 @@ module.exports = {
 module.exports = {
   LANDING_FRAME_NAME: 'braintreethreedsecurelanding',
   CARDINAL_SCRIPT_SOURCE: {
-    production: 'https://songbird.cardinalcommerce.com/cardinalcruise/v1/songbird.js',
-    sandbox: 'https://songbirdstag.cardinalcommerce.com/cardinalcruise/v1/songbird.js'
+    production: 'https://songbird.cardinalcommerce.com/edge/v1/songbird.js',
+    sandbox: 'https://songbirdstag.cardinalcommerce.com/edge/v1/songbird.js'
   }
 };
 
@@ -14073,13 +14145,13 @@ module.exports = {
  * @property {MERCHANT} THREEDS_LOOKUP_TOKENIZED_CARD_NOT_FOUND_ERROR Occurs when the supplied payment method nonce does not exist or the payment method nonce has already been consumed.
  * @property {CUSTOMER} THREEDS_LOOKUP_VALIDATION_ERROR Occurs when a validation error occurs during the 3D Secure lookup.
  * @property {UNKNOWN} THREEDS_LOOKUP_ERROR An unknown error occurred while attempting the 3D Secure lookup.
+ * @property {MERCHANT} THREEDS_VERIFY_CARD_CANCELED_BY_MERCHANT Occurs when the 3D Secure flow is canceled by the merchant using `cancelVerifyCard` (3D Secure v2 flows only).
  */
 
 /**
  * @name BraintreeError.3D Secure - cancelVerifyCard Error Codes
  * @description Errors that occur when using the [`cancelVerifyCard` method](/current/ThreeDSecure.html#cancelVerifyCard).
  * @property {MERCHANT} THREEDS_NO_VERIFICATION_PAYLOAD Occurs when the 3D Secure flow is canceled, but there is no 3D Secure information available.
- * @property {MERCHANT} THREEDS_NO_METHOD_DEPRECATED Occurs when `cancelVerifyCard` is called when using 3D Secure version 2.
  */
 
 /**
@@ -14152,6 +14224,11 @@ module.exports = {
     code: 'THREEDS_CARDINAL_SDK_CANCELED',
     message: 'Canceled by user.'
   },
+  THREEDS_VERIFY_CARD_CANCELED_BY_MERCHANT: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'THREEDS_VERIFY_CARD_CANCELED_BY_MERCHANT',
+    message: '3D Secure verfication canceled by merchant.'
+  },
   THREEDS_AUTHENTICATION_IN_PROGRESS: {
     type: BraintreeError.types.MERCHANT,
     code: 'THREEDS_AUTHENTICATION_IN_PROGRESS',
@@ -14186,10 +14263,6 @@ module.exports = {
     code: 'THREEDS_NO_VERIFICATION_PAYLOAD',
     message: 'No verification payload available.'
   },
-  THREEDS_METHOD_DEPRECATED: {
-    type: BraintreeError.types.MERCHANT,
-    code: 'THREEDS_METHOD_DEPRECATED'
-  },
   THREEDS_TERM_URL_REQUIRES_BRAINTREE_DOMAIN: {
     type: BraintreeError.types.INTERNAL,
     code: 'THREEDS_TERM_URL_REQUIRES_BRAINTREE_DOMAIN',
@@ -14220,7 +14293,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.50.1";
+var VERSION = "3.51.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -14412,7 +14485,7 @@ var errors = _dereq_('./errors');
 var events = constants.events;
 var iFramer = _dereq_('@braintree/iframer');
 var methods = _dereq_('../../lib/methods');
-var VERSION = "3.50.1";
+var VERSION = "3.51.0";
 var uuid = _dereq_('../../lib/vendor/uuid');
 var Promise = _dereq_('../../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -14885,7 +14958,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var errors = _dereq_('./errors');
 var USBankAccount = _dereq_('./us-bank-account');
-var VERSION = "3.50.1";
+var VERSION = "3.51.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -15451,7 +15524,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var VaultManager = _dereq_('./vault-manager');
-var VERSION = "3.50.1";
+var VERSION = "3.51.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -15692,7 +15765,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var Venmo = _dereq_('./venmo');
 var Promise = _dereq_('../lib/promise');
 var supportsVenmo = _dereq_('./shared/supports-venmo');
-var VERSION = "3.50.1";
+var VERSION = "3.51.0";
 
 /**
  * @static
@@ -15909,7 +15982,7 @@ var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.50.1";
+var VERSION = "3.51.0";
 
 /**
  * Venmo tokenize payload.
@@ -16244,7 +16317,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var VisaCheckout = _dereq_('./visa-checkout');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./errors');
-var VERSION = "3.50.1";
+var VERSION = "3.51.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 

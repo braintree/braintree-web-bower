@@ -1160,7 +1160,7 @@ module.exports = {
 
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Client = _dereq_('./client');
-var VERSION = "3.50.1";
+var VERSION = "3.51.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -1686,6 +1686,12 @@ function adaptTokenizeCreditCardResponseBody(body) {
     ]
   };
 
+  if (data.authenticationInsight) {
+    response.creditCards[0].authenticationInsight = {
+      regulationEnvironment: data.authenticationInsight.customerAuthenticationRegulationEnvironment
+    };
+  }
+
   return response;
 }
 
@@ -1719,6 +1725,10 @@ function errorWithClassResponseAdapter(responseBody) {
 function userErrorResponseAdapter(responseBody) {
   var fieldErrors = buildFieldErrors(responseBody.errors);
 
+  if (fieldErrors.length === 0) {
+    return {error: {message: responseBody.errors[0].message}};
+  }
+
   return {error: {message: getLegacyMessage(fieldErrors)}, fieldErrors: fieldErrors};
 }
 
@@ -1726,6 +1736,9 @@ function buildFieldErrors(errors) {
   var fieldErrors = [];
 
   errors.forEach(function (error) {
+    if (!(error.extensions && error.extensions.inputPath)) {
+      return;
+    }
     addFieldError(error.extensions.inputPath.slice(1), error, fieldErrors);
   });
 
@@ -1868,31 +1881,49 @@ module.exports = configuration;
 
 var assign = _dereq_('../../../../lib/assign').assign;
 
-var CREDIT_CARD_TOKENIZATION_MUTATION = 'mutation TokenizeCreditCard($input: TokenizeCreditCardInput!) { ' +
-'  tokenizeCreditCard(input: $input) { ' +
-'    token ' +
-'    creditCard { ' +
-'      bin ' +
-'      brandCode ' +
-'      last4 ' +
-'      expirationMonth' +
-'      expirationYear' +
-'      binData { ' +
-'        prepaid ' +
-'        healthcare ' +
-'        debit ' +
-'        durbinRegulated ' +
-'        commercial ' +
-'        payroll ' +
-'        issuingBank ' +
-'        countryOfIssuance ' +
-'        productId ' +
-'      } ' +
-'    } ' +
-'  } ' +
-'}';
+function createMutation(config) {
+  var hasAuthenticationInsight = config.hasAuthenticationInsight;
+  var mutation = 'mutation TokenizeCreditCard($input: TokenizeCreditCardInput!';
 
-function createCreditCardTokenizationBody(body) {
+  if (hasAuthenticationInsight) {
+    mutation += ', $authenticationInsightInput: AuthenticationInsightInput!';
+  }
+
+  mutation += ') { ' +
+    '  tokenizeCreditCard(input: $input) { ' +
+    '    token ' +
+    '    creditCard { ' +
+    '      bin ' +
+    '      brandCode ' +
+    '      last4 ' +
+    '      expirationMonth' +
+    '      expirationYear' +
+    '      binData { ' +
+    '        prepaid ' +
+    '        healthcare ' +
+    '        debit ' +
+    '        durbinRegulated ' +
+    '        commercial ' +
+    '        payroll ' +
+    '        issuingBank ' +
+    '        countryOfIssuance ' +
+    '        productId ' +
+    '      } ' +
+    '    } ';
+
+  if (hasAuthenticationInsight) {
+    mutation += '    authenticationInsight(input: $authenticationInsightInput) {' +
+      '      customerAuthenticationRegulationEnvironment' +
+      '    }';
+  }
+
+  mutation += '  } ' +
+    '}';
+
+  return mutation;
+}
+
+function createCreditCardTokenizationBody(body, options) {
   var cc = body.creditCard;
   var billingAddress = cc && cc.billingAddress;
   var expDate = cc && cc.expirationDate;
@@ -1910,6 +1941,12 @@ function createCreditCardTokenizationBody(body) {
       options: {}
     }
   };
+
+  if (options.hasAuthenticationInsight) {
+    variables.authenticationInsightInput = {
+      merchantAccountId: body.merchantAccountId
+    };
+  }
 
   if (billingAddress) {
     variables.input.creditCard.billingAddress = billingAddress;
@@ -1941,9 +1978,13 @@ function addValidationRule(body, input) {
 }
 
 function creditCardTokenization(body) {
+  var options = {
+    hasAuthenticationInsight: Boolean(body.authenticationInsight && body.merchantAccountId)
+  };
+
   return {
-    query: CREDIT_CARD_TOKENIZATION_MUTATION,
-    variables: createCreditCardTokenizationBody(body),
+    query: createMutation(options),
+    variables: createCreditCardTokenizationBody(body, options),
     operationName: 'TokenizeCreditCard'
   };
 }
@@ -2554,7 +2595,7 @@ module.exports = BraintreeError;
 },{"./enumerate":43}],38:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.50.1";
+var VERSION = "3.51.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
