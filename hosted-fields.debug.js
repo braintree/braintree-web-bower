@@ -242,22 +242,38 @@ EventEmitter.prototype.on = function (event, callback) {
 
 EventEmitter.prototype.off = function (event, callback) {
   var eventCallbacks = this._events[event];
-  var indexOfCallback = eventCallbacks.indexOf(callback);
+  var indexOfCallback;
+
+  if (!eventCallbacks) {
+    return;
+  }
+
+  indexOfCallback = eventCallbacks.indexOf(callback);
 
   eventCallbacks.splice(indexOfCallback, 1);
 };
 
 EventEmitter.prototype._emit = function (event) {
-  var i, args;
-  var callbacks = this._events[event];
+  var args;
+  var eventCallbacks = this._events[event];
 
-  if (!callbacks) { return; }
+  if (!eventCallbacks) { return; }
 
   args = Array.prototype.slice.call(arguments, 1);
 
-  for (i = 0; i < callbacks.length; i++) {
-    callbacks[i].apply(null, args);
+  eventCallbacks.forEach(function (callback) {
+    callback.apply(null, args);
+  });
+};
+
+EventEmitter.prototype.hasListener = function (event) {
+  var eventCallbacks = this._events[event];
+
+  if (!eventCallbacks) {
+    return false;
   }
+
+  return eventCallbacks.length > 0;
 };
 
 EventEmitter.createChild = function (ChildObject) {
@@ -3046,7 +3062,7 @@ var supportsInputFormatting = _dereq_('restricted-input/supports-input-formattin
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.51.0";
+var VERSION = "3.52.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -3124,6 +3140,7 @@ var VERSION = "3.51.0";
  * `line-height`
  * `opacity`
  * `outline`
+ * `margin`
  * `padding`
  * `text-shadow`
  * `transition`
@@ -3373,7 +3390,7 @@ module.exports = {
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.51.0";
+var VERSION = "3.52.0";
 
 var constants = {
   VERSION: VERSION,
@@ -3439,9 +3456,10 @@ var constants = {
     'font-weight',
     'letter-spacing',
     'line-height',
-    'padding',
+    'margin',
     'opacity',
     'outline',
+    'padding',
     'text-shadow',
     'transition'
   ],
@@ -3773,7 +3791,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.51.0";
+var VERSION = "3.52.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -4121,7 +4139,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":51,"./check-origin":52,"./events":53,"framebus":30}],55:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.51.0";
+var VERSION = "3.52.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -4248,7 +4266,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.51.0";
+var VERSION = "3.52.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
