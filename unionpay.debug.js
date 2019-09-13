@@ -926,7 +926,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.52.0";
+var VERSION = "3.52.1";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1228,7 +1228,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":17,"./check-origin":18,"./events":19,"framebus":11}],21:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.52.0";
+var VERSION = "3.52.1";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1355,7 +1355,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.52.0";
+var VERSION = "3.52.1";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1603,7 +1603,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.52.0";
+var VERSION = "3.52.1";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -1795,7 +1795,7 @@ var errors = _dereq_('./errors');
 var events = constants.events;
 var iFramer = _dereq_('@braintree/iframer');
 var methods = _dereq_('../../lib/methods');
-var VERSION = "3.52.0";
+var VERSION = "3.52.1";
 var uuid = _dereq_('../../lib/vendor/uuid');
 var Promise = _dereq_('../../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');

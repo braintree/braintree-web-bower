@@ -1064,6 +1064,7 @@ var constants = _dereq_('../lib/constants');
 var createAuthorizationData = _dereq_('../lib/create-authorization-data');
 var errors = _dereq_('./errors');
 var GraphQL = _dereq_('./request/graphql');
+var GRAPHQL_URLS = _dereq_('../lib/constants').GRAPHQL_URLS;
 var isDateStringBeforeOrOn = _dereq_('../lib/is-date-string-before-or-on');
 
 var BRAINTREE_VERSION = _dereq_('./constants').BRAINTREE_VERSION;
@@ -1113,6 +1114,15 @@ function getConfiguration(options) {
       }
 
       reqOptions.metadata = analyticsMetadata;
+    } else if (attrs.tokenizationKey) {
+      reqOptions.graphQL = new GraphQL({
+        graphQL: {
+          url: GRAPHQL_URLS[authData.environment],
+          features: ['configuration']
+        }
+      });
+
+      reqOptions.metadata = analyticsMetadata;
     }
 
     request(reqOptions, function (err, response, status) {
@@ -1160,7 +1170,7 @@ module.exports = {
 
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Client = _dereq_('./client');
-var VERSION = "3.52.0";
+var VERSION = "3.52.1";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -1632,6 +1642,13 @@ var BIN_DATA_MAP = {
   UNKNOWN: 'Unknown'
 };
 
+var AUTHENTICATION_INSIGHT_MAP = {
+  UNKNOWN: 'unknown',
+  PSDTWO: 'psd2',
+  UNREGULATED: 'unregulated',
+  UNAVAILABLE: 'unavailable'
+};
+
 function creditCardTokenizationResponseAdapter(responseBody) {
   var adaptedResponse;
 
@@ -1649,7 +1666,7 @@ function adaptTokenizeCreditCardResponseBody(body) {
   var creditCard = data.creditCard;
   var lastTwo = creditCard.last4 ? creditCard.last4.substr(2, 4) : '';
   var binData = creditCard.binData;
-  var response;
+  var response, regulationEnvironment;
 
   if (binData) {
     ['commercial', 'debit', 'durbinRegulated', 'healthcare', 'payroll', 'prepaid'].forEach(function (key) {
@@ -1687,8 +1704,9 @@ function adaptTokenizeCreditCardResponseBody(body) {
   };
 
   if (data.authenticationInsight) {
+    regulationEnvironment = data.authenticationInsight.customerAuthenticationRegulationEnvironment;
     response.creditCards[0].authenticationInsight = {
-      regulationEnvironment: data.authenticationInsight.customerAuthenticationRegulationEnvironment
+      regulationEnvironment: AUTHENTICATION_INSIGHT_MAP[regulationEnvironment] || AUTHENTICATION_INSIGHT_MAP.UNKNOWN
     };
   }
 
@@ -2595,7 +2613,7 @@ module.exports = BraintreeError;
 },{"./enumerate":43}],38:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.52.0";
+var VERSION = "3.52.1";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
