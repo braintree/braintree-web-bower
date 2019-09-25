@@ -7,7 +7,7 @@ var PromisePolyfill = _dereq_('promise-polyfill');
 module.exports = global.Promise || PromisePolyfill;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":12}],2:[function(_dereq_,module,exports){
+},{"promise-polyfill":13}],2:[function(_dereq_,module,exports){
 'use strict';
 
 var Promise = _dereq_('./lib/promise');
@@ -68,6 +68,65 @@ module.exports = loadScript;
 },{"./lib/promise":1}],3:[function(_dereq_,module,exports){
 'use strict';
 
+function EventEmitter() {
+  this._events = {};
+}
+
+EventEmitter.prototype.on = function (event, callback) {
+  if (this._events[event]) {
+    this._events[event].push(callback);
+  } else {
+    this._events[event] = [callback];
+  }
+};
+
+EventEmitter.prototype.off = function (event, callback) {
+  var eventCallbacks = this._events[event];
+  var indexOfCallback;
+
+  if (!eventCallbacks) {
+    return;
+  }
+
+  indexOfCallback = eventCallbacks.indexOf(callback);
+
+  eventCallbacks.splice(indexOfCallback, 1);
+};
+
+EventEmitter.prototype._emit = function (event) {
+  var args;
+  var eventCallbacks = this._events[event];
+
+  if (!eventCallbacks) { return; }
+
+  args = Array.prototype.slice.call(arguments, 1);
+
+  eventCallbacks.forEach(function (callback) {
+    callback.apply(null, args);
+  });
+};
+
+EventEmitter.prototype.hasListener = function (event) {
+  var eventCallbacks = this._events[event];
+
+  if (!eventCallbacks) {
+    return false;
+  }
+
+  return eventCallbacks.length > 0;
+};
+
+EventEmitter.createChild = function (ChildObject) {
+  ChildObject.prototype = Object.create(EventEmitter.prototype, {
+    constructor: ChildObject
+  });
+};
+
+module.exports = EventEmitter;
+
+},{}],4:[function(_dereq_,module,exports){
+'use strict';
+
 var setAttributes = _dereq_('./lib/set-attributes');
 var defaultAttributes = _dereq_('./lib/default-attributes');
 var assign = _dereq_('./lib/assign');
@@ -90,7 +149,7 @@ module.exports = function createFrame(options) {
   return iframe;
 };
 
-},{"./lib/assign":4,"./lib/default-attributes":5,"./lib/set-attributes":6}],4:[function(_dereq_,module,exports){
+},{"./lib/assign":5,"./lib/default-attributes":6,"./lib/set-attributes":7}],5:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function assign(target) {
@@ -107,7 +166,7 @@ module.exports = function assign(target) {
   return target;
 }
 
-},{}],5:[function(_dereq_,module,exports){
+},{}],6:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -117,7 +176,7 @@ module.exports = {
   scrolling: 'no'
 };
 
-},{}],6:[function(_dereq_,module,exports){
+},{}],7:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function setAttributes(element, attributes) {
@@ -136,7 +195,7 @@ module.exports = function setAttributes(element, attributes) {
   }
 };
 
-},{}],7:[function(_dereq_,module,exports){
+},{}],8:[function(_dereq_,module,exports){
 'use strict';
 
 function deferred(fn) {
@@ -159,7 +218,7 @@ function deferred(fn) {
 
 module.exports = deferred;
 
-},{}],8:[function(_dereq_,module,exports){
+},{}],9:[function(_dereq_,module,exports){
 'use strict';
 
 function once(fn) {
@@ -175,7 +234,7 @@ function once(fn) {
 
 module.exports = once;
 
-},{}],9:[function(_dereq_,module,exports){
+},{}],10:[function(_dereq_,module,exports){
 'use strict';
 
 function promiseOrCallback(promise, callback) { // eslint-disable-line consistent-return
@@ -194,7 +253,7 @@ function promiseOrCallback(promise, callback) { // eslint-disable-line consisten
 
 module.exports = promiseOrCallback;
 
-},{}],10:[function(_dereq_,module,exports){
+},{}],11:[function(_dereq_,module,exports){
 'use strict';
 
 var deferred = _dereq_('./lib/deferred');
@@ -251,7 +310,7 @@ wrapPromise.wrapPrototype = function (target, options) {
 
 module.exports = wrapPromise;
 
-},{"./lib/deferred":7,"./lib/once":8,"./lib/promise-or-callback":9}],11:[function(_dereq_,module,exports){
+},{"./lib/deferred":8,"./lib/once":9,"./lib/promise-or-callback":10}],12:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -565,7 +624,7 @@ framebus = {
 module.exports = framebus;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],12:[function(_dereq_,module,exports){
+},{}],13:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -841,7 +900,7 @@ Promise._unhandledRejectionFn = function _unhandledRejectionFn(err) {
 
 module.exports = Promise;
 
-},{}],13:[function(_dereq_,module,exports){
+},{}],14:[function(_dereq_,module,exports){
 'use strict';
 
 var createAuthorizationData = _dereq_('./create-authorization-data');
@@ -875,7 +934,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":22,"./create-authorization-data":26,"./json-clone":33}],14:[function(_dereq_,module,exports){
+},{"./constants":23,"./create-authorization-data":27,"./json-clone":34}],15:[function(_dereq_,module,exports){
 'use strict';
 
 var Promise = _dereq_('./promise');
@@ -911,7 +970,7 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":13,"./constants":22,"./promise":35}],15:[function(_dereq_,module,exports){
+},{"./add-metadata":14,"./constants":23,"./promise":37}],16:[function(_dereq_,module,exports){
 'use strict';
 
 var loadScript = _dereq_('@braintree/asset-loader/load-script');
@@ -920,7 +979,7 @@ module.exports = {
   loadScript: loadScript
 };
 
-},{"@braintree/asset-loader/load-script":2}],16:[function(_dereq_,module,exports){
+},{"@braintree/asset-loader/load-script":2}],17:[function(_dereq_,module,exports){
 'use strict';
 
 var assignNormalized = typeof Object.assign === 'function' ? Object.assign : assignPolyfill;
@@ -945,13 +1004,13 @@ module.exports = {
   _assign: assignPolyfill
 };
 
-},{}],17:[function(_dereq_,module,exports){
+},{}],18:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.52.1";
+var VERSION = "3.53.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -993,7 +1052,7 @@ module.exports = {
   verify: basicComponentVerification
 };
 
-},{"./braintree-error":18,"./errors":30,"./promise":35}],18:[function(_dereq_,module,exports){
+},{"./braintree-error":19,"./errors":31,"./promise":37}],19:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -1078,7 +1137,7 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":29}],19:[function(_dereq_,module,exports){
+},{"./enumerate":30}],20:[function(_dereq_,module,exports){
 'use strict';
 
 var isVerifiedDomain = _dereq_('../is-verified-domain');
@@ -1110,7 +1169,7 @@ module.exports = {
   checkOrigin: checkOrigin
 };
 
-},{"../is-verified-domain":32}],20:[function(_dereq_,module,exports){
+},{"../is-verified-domain":33}],21:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../enumerate');
@@ -1119,7 +1178,7 @@ module.exports = enumerate([
   'CONFIGURATION_REQUEST'
 ], 'bus:');
 
-},{"../enumerate":29}],21:[function(_dereq_,module,exports){
+},{"../enumerate":30}],22:[function(_dereq_,module,exports){
 'use strict';
 
 var bus = _dereq_('framebus');
@@ -1250,10 +1309,10 @@ BraintreeBus.events = events;
 
 module.exports = BraintreeBus;
 
-},{"../braintree-error":18,"./check-origin":19,"./events":20,"framebus":11}],22:[function(_dereq_,module,exports){
+},{"../braintree-error":19,"./check-origin":20,"./events":21,"framebus":12}],23:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.52.1";
+var VERSION = "3.53.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1290,7 +1349,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],23:[function(_dereq_,module,exports){
+},{}],24:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -1308,7 +1367,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"./braintree-error":18,"./errors":30}],24:[function(_dereq_,module,exports){
+},{"./braintree-error":19,"./errors":31}],25:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -1330,7 +1389,7 @@ function convertToBraintreeError(originalErr, btErrorObject) {
 
 module.exports = convertToBraintreeError;
 
-},{"./braintree-error":18}],25:[function(_dereq_,module,exports){
+},{"./braintree-error":19}],26:[function(_dereq_,module,exports){
 'use strict';
 
 // endRemoveIf(production)
@@ -1347,7 +1406,7 @@ module.exports = {
   create: createAssetsUrl
 };
 
-},{"./constants":22}],26:[function(_dereq_,module,exports){
+},{"./constants":23}],27:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/vendor/polyfill').atob;
@@ -1393,7 +1452,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/constants":22,"../lib/vendor/polyfill":37}],27:[function(_dereq_,module,exports){
+},{"../lib/constants":23,"../lib/vendor/polyfill":39}],28:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1402,7 +1461,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.52.1";
+var VERSION = "3.53.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1447,7 +1506,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./assets":15,"./braintree-error":18,"./errors":30,"./promise":35}],28:[function(_dereq_,module,exports){
+},{"./assets":16,"./braintree-error":19,"./errors":31,"./promise":37}],29:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (fn) {
@@ -1461,7 +1520,7 @@ module.exports = function (fn) {
   };
 };
 
-},{}],29:[function(_dereq_,module,exports){
+},{}],30:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -1476,7 +1535,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],30:[function(_dereq_,module,exports){
+},{}],31:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -1526,7 +1585,7 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":18}],31:[function(_dereq_,module,exports){
+},{"./braintree-error":19}],32:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1541,7 +1600,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],32:[function(_dereq_,module,exports){
+},{}],33:[function(_dereq_,module,exports){
 'use strict';
 
 var parser;
@@ -1576,14 +1635,14 @@ function isVerifiedDomain(url) {
 
 module.exports = isVerifiedDomain;
 
-},{}],33:[function(_dereq_,module,exports){
+},{}],34:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],34:[function(_dereq_,module,exports){
+},{}],35:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -1592,7 +1651,47 @@ module.exports = function (obj) {
   });
 };
 
-},{}],35:[function(_dereq_,module,exports){
+},{}],36:[function(_dereq_,module,exports){
+'use strict';
+
+var Promise = _dereq_('./promise');
+
+module.exports = function makePromisePlus() {
+  var resolveFunction, rejectFunction;
+
+  var promise = new Promise(function (resolve, reject) {
+    resolveFunction = resolve;
+    rejectFunction = reject;
+  });
+
+  promise.isFulfilled = false;
+  promise.isResolved = false;
+  promise.isRejected = false;
+
+  promise.resolve = function (arg) {
+    if (promise.isFulfilled) {
+      return;
+    }
+    promise.isFulfilled = true;
+    promise.isResolved = true;
+
+    resolveFunction(arg);
+  };
+
+  promise.reject = function (arg) {
+    if (promise.isFulfilled) {
+      return;
+    }
+    promise.isFulfilled = true;
+    promise.isRejected = true;
+
+    rejectFunction(arg);
+  };
+
+  return promise;
+};
+
+},{"./promise":37}],37:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1601,7 +1700,7 @@ var Promise = global.Promise || _dereq_('promise-polyfill');
 module.exports = Promise;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":12}],36:[function(_dereq_,module,exports){
+},{"promise-polyfill":13}],38:[function(_dereq_,module,exports){
 'use strict';
 
 function useMin(isDebug) {
@@ -1610,7 +1709,7 @@ function useMin(isDebug) {
 
 module.exports = useMin;
 
-},{}],37:[function(_dereq_,module,exports){
+},{}],39:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1651,7 +1750,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],38:[function(_dereq_,module,exports){
+},{}],40:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {
@@ -1665,34 +1764,1038 @@ function uuid() {
 
 module.exports = uuid;
 
-},{}],39:[function(_dereq_,module,exports){
+},{}],41:[function(_dereq_,module,exports){
+'use strict';
+
+var assign = _dereq_('../../../lib/assign').assign;
+var analytics = _dereq_('../../../lib/analytics');
+var BraintreeError = _dereq_('../../../lib/braintree-error');
+var Promise = _dereq_('../../../lib/promise');
+var makePromisePlus = _dereq_('../../../lib/promise-plus');
+var EventEmitter = _dereq_('@braintree/event-emitter');
+var errors = _dereq_('../../shared/errors');
+
+var VERSION = "3.53.0";
+
+function BaseFramework(options) {
+  EventEmitter.call(this);
+
+  this._client = options.client;
+  this._isDebug = this._client.getConfiguration().isDebug;
+  this._assetsUrl = this._client.getConfiguration().gatewayConfiguration.assetsUrl + '/web/' + VERSION;
+}
+
+EventEmitter.createChild(BaseFramework);
+
+BaseFramework.prototype.setUpEventListeners = function () {
+  throw new BraintreeError(errors.THREEDS_FRAMEWORK_METHOD_NOT_IMPLEMENTED);
+};
+
+BaseFramework.prototype.verifyCard = function (options, privateOptions) {
+  var formattedOptions, error;
+  var self = this;
+
+  privateOptions = privateOptions || {};
+
+  error = this._checkForVerifyCardError(options, privateOptions);
+
+  if (error) {
+    return Promise.reject(error);
+  }
+
+  this._verifyCardInProgress = true;
+
+  formattedOptions = this._formatVerifyCardOptions(options);
+
+  return this._formatLookupData(formattedOptions).then(function (data) {
+    analytics.sendEvent(self._client, 'three-d-secure.verification-flow.started');
+
+    return self._performLookup(formattedOptions.nonce, data);
+  }).then(function (response) {
+    analytics.sendEvent(self._client, 'three-d-secure.verification-flow.3ds-version.' + response.lookup.threeDSecureVersion);
+
+    return self._onLookupComplete(response, formattedOptions);
+  }).then(function (response) {
+    return self.initializeChallengeWithLookupResponse(response, formattedOptions);
+  }).then(function (payload) {
+    self._resetVerificationState();
+
+    analytics.sendEvent(self._client, 'three-d-secure.verification-flow.completed');
+
+    return payload;
+  }).catch(function (err) {
+    self._resetVerificationState();
+
+    analytics.sendEvent(self._client, 'three-d-secure.verification-flow.failed');
+
+    return Promise.reject(err);
+  });
+};
+
+BaseFramework.prototype._checkForFrameworkSpecificVerifyCardErrors = function () {
+  throw new BraintreeError(errors.THREEDS_FRAMEWORK_METHOD_NOT_IMPLEMENTED);
+};
+
+BaseFramework.prototype._presentChallenge = function () {
+  throw new BraintreeError(errors.THREEDS_FRAMEWORK_METHOD_NOT_IMPLEMENTED);
+};
+
+BaseFramework.prototype.prepareLookup = function () {
+  throw new BraintreeError(errors.THREEDS_FRAMEWORK_METHOD_NOT_IMPLEMENTED);
+};
+
+BaseFramework.prototype._resetVerificationState = function () {
+  this._verifyCardInProgress = false;
+  this._verifyCardPromisePlus = null;
+};
+
+BaseFramework.prototype._performLookup = function (nonce, data) {
+  var self = this;
+  var url = 'payment_methods/' + nonce + '/three_d_secure/lookup';
+
+  return this._client.request({
+    endpoint: url,
+    method: 'post',
+    data: data
+  }).catch(function (err) {
+    var status = err && err.details && err.details.httpStatus;
+    var analyticsMessage = 'three-d-secure.verification-flow.lookup-failed';
+    var lookupError;
+
+    if (status === 404) {
+      lookupError = errors.THREEDS_LOOKUP_TOKENIZED_CARD_NOT_FOUND_ERROR;
+      analyticsMessage += '.404';
+    } else if (status === 422) {
+      lookupError = errors.THREEDS_LOOKUP_VALIDATION_ERROR;
+      analyticsMessage += '.422';
+    } else {
+      lookupError = errors.THREEDS_LOOKUP_ERROR;
+    }
+
+    analytics.sendEvent(self._client, analyticsMessage);
+
+    return Promise.reject(new BraintreeError({
+      type: lookupError.type,
+      code: lookupError.code,
+      message: lookupError.message,
+      details: {
+        originalError: err
+      }
+    }));
+  });
+};
+
+BaseFramework.prototype._checkForVerifyCardError = function (options, privateOptions) {
+  var errorOption;
+
+  if (this._verifyCardInProgress === true) {
+    return new BraintreeError(errors.THREEDS_AUTHENTICATION_IN_PROGRESS);
+  } else if (!options.nonce) {
+    errorOption = 'a nonce';
+  } else if (!options.amount) {
+    errorOption = 'an amount';
+  }
+
+  if (!errorOption) {
+    errorOption = this._checkForFrameworkSpecificVerifyCardErrors(options, privateOptions);
+  }
+
+  if (errorOption) {
+    return new BraintreeError({
+      type: errors.THREEDS_MISSING_VERIFY_CARD_OPTION.type,
+      code: errors.THREEDS_MISSING_VERIFY_CARD_OPTION.code,
+      message: 'verifyCard options must include ' + errorOption + '.'
+    });
+  }
+
+  return null;
+};
+
+BaseFramework.prototype.initializeChallengeWithLookupResponse = function (lookupResponse, options) {
+  var self = this;
+
+  options = options || {};
+
+  this._lookupPaymentMethod = lookupResponse.paymentMethod;
+
+  // sets this in the case that initializeChallengeWithLookupResponse is
+  // called as a standalone method from a server side lookup. In a normal
+  // verifyCard flow, this promise will already exist
+  self._verifyCardPromisePlus = self._verifyCardPromisePlus || makePromisePlus();
+  self._handleLookupResponse(lookupResponse, options);
+
+  return self._verifyCardPromisePlus.then(function (payload) {
+    analytics.sendEvent(self._client, 'three-d-secure.verification-flow.liability-shifted.' + String(payload.liabilityShifted));
+    analytics.sendEvent(self._client, 'three-d-secure.verification-flow.liability-shift-possible.' + String(payload.liabilityShiftPossible));
+
+    return payload;
+  });
+};
+
+BaseFramework.prototype._handleLookupResponse = function (lookupResponse, options) {
+  var challengeShouldBePresented = Boolean(lookupResponse.lookup && lookupResponse.lookup.acsUrl);
+  var details;
+
+  analytics.sendEvent(this._client, 'three-d-secure.verification-flow.challenge-presented.' + String(challengeShouldBePresented));
+
+  if (challengeShouldBePresented) {
+    this._presentChallenge(lookupResponse, options);
+  } else {
+    details = this._formatAuthResponse(lookupResponse.paymentMethod, lookupResponse.threeDSecureInfo);
+    details.verificationDetails = lookupResponse.threeDSecureInfo;
+
+    this._verifyCardPromisePlus.resolve(details);
+  }
+};
+
+BaseFramework.prototype._onLookupComplete = function (response) {
+  this._lookupPaymentMethod = response.paymentMethod;
+  this._verifyCardPromisePlus = makePromisePlus();
+
+  return Promise.resolve(response);
+};
+
+BaseFramework.prototype._formatAuthResponse = function (paymentMethod, threeDSecureInfo) {
+  return {
+    nonce: paymentMethod.nonce,
+    binData: paymentMethod.binData,
+    details: paymentMethod.details,
+    description: paymentMethod.description && paymentMethod.description.replace(/\+/g, ' '),
+    liabilityShifted: threeDSecureInfo && threeDSecureInfo.liabilityShifted,
+    liabilityShiftPossible: threeDSecureInfo && threeDSecureInfo.liabilityShiftPossible,
+    threeDSecureInfo: paymentMethod.threeDSecureInfo
+  };
+};
+
+BaseFramework.prototype._formatVerifyCardOptions = function (options) {
+  return assign({}, options);
+};
+
+BaseFramework.prototype._formatLookupData = function (options) {
+  var data = {
+    amount: options.amount
+  };
+
+  return Promise.resolve(data);
+};
+
+BaseFramework.prototype.cancelVerifyCard = function () {
+  var response, threeDSecureInfo;
+
+  this._verifyCardInProgress = false;
+
+  if (!this._lookupPaymentMethod) {
+    return Promise.reject(new BraintreeError(errors.THREEDS_NO_VERIFICATION_PAYLOAD));
+  }
+
+  threeDSecureInfo = this._lookupPaymentMethod.threeDSecureInfo;
+
+  response = assign({}, this._lookupPaymentMethod, {
+    liabilityShiftPossible: threeDSecureInfo && threeDSecureInfo.liabilityShiftPossible,
+    liabilityShifted: threeDSecureInfo && threeDSecureInfo.liabilityShifted,
+    verificationDetails: threeDSecureInfo && threeDSecureInfo.verificationDetails
+  });
+
+  return Promise.resolve(response);
+};
+
+BaseFramework.prototype.teardown = function () {
+  analytics.sendEvent(this._client, 'three-d-secure.teardown-completed');
+
+  return Promise.resolve();
+};
+
+module.exports = BaseFramework;
+
+},{"../../../lib/analytics":15,"../../../lib/assign":17,"../../../lib/braintree-error":19,"../../../lib/promise":37,"../../../lib/promise-plus":36,"../../shared/errors":51,"@braintree/event-emitter":3}],42:[function(_dereq_,module,exports){
+'use strict';
+
+var SongbirdFramework = _dereq_('./songbird');
+
+function Bootstrap3ModalFramework(options) {
+  SongbirdFramework.call(this, options);
+}
+
+Bootstrap3ModalFramework.prototype = Object.create(SongbirdFramework.prototype, {
+  constructor: SongbirdFramework
+});
+
+Bootstrap3ModalFramework.prototype._createCardinalConfigurationOptions = function (setupOptions) {
+  var options = SongbirdFramework.prototype._createCardinalConfigurationOptions.call(this, setupOptions);
+
+  options.payment = {
+    framework: 'bootstrap3'
+  };
+
+  return options;
+};
+
+module.exports = Bootstrap3ModalFramework;
+
+},{"./songbird":47}],43:[function(_dereq_,module,exports){
+'use strict';
+
+var SongbirdFramework = _dereq_('./songbird');
+
+function CardinalModalFramework(options) {
+  SongbirdFramework.call(this, options);
+}
+
+CardinalModalFramework.prototype = Object.create(SongbirdFramework.prototype, {
+  constructor: SongbirdFramework
+});
+
+module.exports = CardinalModalFramework;
+
+},{"./songbird":47}],44:[function(_dereq_,module,exports){
+'use strict';
+
+var LegacyFramework = _dereq_('./legacy');
+var CardinalModalFramework = _dereq_('./cardinal-modal');
+var Bootstrap3ModalFramework = _dereq_('./bootstrap3-modal');
+var InlineIframeFramework = _dereq_('./inline-iframe');
+
+module.exports = {
+  legacy: LegacyFramework,
+  'cardinal-modal': CardinalModalFramework,
+  'bootstrap3-modal': Bootstrap3ModalFramework,
+  'inline-iframe': InlineIframeFramework
+};
+
+},{"./bootstrap3-modal":42,"./cardinal-modal":43,"./inline-iframe":45,"./legacy":46}],45:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
-var BraintreeError = _dereq_('../../lib/braintree-error');
-var convertToBraintreeError = _dereq_('../../lib/convert-to-braintree-error');
-var analytics = _dereq_('../../lib/analytics');
-var assign = _dereq_('../../lib/assign').assign;
-var assets = _dereq_('../../lib/assets');
-var methods = _dereq_('../../lib/methods');
-var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
-var constants = _dereq_('../shared/constants');
-var useMin = _dereq_('../../lib/use-min');
-var Bus = _dereq_('../../lib/bus');
-var uuid = _dereq_('../../lib/vendor/uuid');
-var deferred = _dereq_('../../lib/deferred');
-var errors = _dereq_('../shared/errors');
-var events = _dereq_('../shared/events');
+var SongbirdFramework = _dereq_('./songbird');
+var BraintreeError = _dereq_('../../../lib/braintree-error');
+var errors = _dereq_('../../shared/errors');
+var enumerate = _dereq_('../../../lib/enumerate');
+
+function InlineIframeFramework(options) {
+  SongbirdFramework.call(this, options);
+}
+
+InlineIframeFramework.prototype = Object.create(SongbirdFramework.prototype, {
+  constructor: SongbirdFramework
+});
+
+InlineIframeFramework.events = enumerate([
+  'AUTHENTICATION_IFRAME_AVAILABLE'
+], 'inline-iframe-framework:');
+
+InlineIframeFramework.prototype.setUpEventListeners = function (reply) {
+  SongbirdFramework.prototype.setUpEventListeners.call(this, reply);
+
+  this.on(InlineIframeFramework.events.AUTHENTICATION_IFRAME_AVAILABLE, function (payload, next) {
+    reply('authentication-iframe-available', payload, next);
+  });
+};
+
+InlineIframeFramework.prototype._createCardinalConfigurationOptions = function (setupOptions) {
+  var options = SongbirdFramework.prototype._createCardinalConfigurationOptions.call(this, setupOptions);
+
+  options.payment = {
+    framework: 'inline'
+  };
+
+  return options;
+};
+
+InlineIframeFramework.prototype._setupFrameworkSpecificListeners = function () {
+  global.Cardinal.on('ui.inline.setup', this._onInlineSetup.bind(this));
+};
+
+InlineIframeFramework.prototype._onInlineSetup = function (htmlTemplate, details, resolve, reject) {
+  var container, hasError;
+
+  if (!htmlTemplate || !details) {
+    hasError = true;
+  } else if (details.paymentType !== 'CCA') {
+    hasError = true;
+  } else if (!(details.data.mode === 'suppress' || details.data.mode === 'static')) {
+    hasError = true;
+  }
+
+  if (hasError) {
+    reject(new BraintreeError(errors.THREEDS_INLINE_IFRAME_DETAILS_INCORRECT));
+
+    return;
+  }
+
+  container = document.createElement('div');
+  container.innerHTML = htmlTemplate;
+
+  if (details.data.mode === 'suppress') {
+    container.style.display = 'none';
+    document.body.appendChild(container);
+    resolve();
+  } else if (details.data.mode === 'static') {
+    this._emit(InlineIframeFramework.events.AUTHENTICATION_IFRAME_AVAILABLE, {
+      element: container
+    }, function () {
+      resolve();
+    });
+  }
+};
+
+module.exports = InlineIframeFramework;
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"../../../lib/braintree-error":19,"../../../lib/enumerate":30,"../../shared/errors":51,"./songbird":47}],46:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+
+var BaseFramework = _dereq_('./base');
+var BraintreeError = _dereq_('../../../lib/braintree-error');
 var iFramer = _dereq_('@braintree/iframer');
-var Promise = _dereq_('../../lib/promise');
-var wrapPromise = _dereq_('@braintree/wrap-promise');
-var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
+var deferred = _dereq_('../../../lib/deferred');
+var Bus = _dereq_('../../../lib/bus');
+var uuid = _dereq_('../../../lib/vendor/uuid');
+var constants = _dereq_('../../shared/constants');
+var useMin = _dereq_('../../../lib/use-min');
 
-var PLATFORM = _dereq_('../../lib/constants').PLATFORM;
-var VERSION = "3.52.1";
+var events = _dereq_('../../shared/events');
 
+var VERSION = "3.53.0";
 var IFRAME_HEIGHT = 400;
 var IFRAME_WIDTH = 400;
+
+function LegacyFramework(options) {
+  BaseFramework.call(this, options);
+}
+
+LegacyFramework.prototype = Object.create(BaseFramework.prototype, {
+  constructor: LegacyFramework
+});
+
+LegacyFramework.prototype.setUpEventListeners = function () {
+  // noop
+};
+
+LegacyFramework.prototype.teardown = function () {
+  if (this._bus) {
+    this._bus.teardown();
+  }
+
+  if (this._bankIframe && this._bankIframe.parentNode) {
+    this._bankIframe.parentNode.removeChild(this._bankIframe);
+  }
+
+  return BaseFramework.prototype.teardown.call(this);
+};
+
+LegacyFramework.prototype.transformV1CustomerBillingAddress = function (customer) {
+  customer.billingAddress.line1 = customer.billingAddress.streetAddress;
+  customer.billingAddress.line2 = customer.billingAddress.extendedAddress;
+  customer.billingAddress.city = customer.billingAddress.locality;
+  customer.billingAddress.state = customer.billingAddress.region;
+  customer.billingAddress.countryCode = customer.billingAddress.countryCodeAlpha2;
+  delete customer.billingAddress.streetAddress;
+  delete customer.billingAddress.extendedAddress;
+  delete customer.billingAddress.locality;
+  delete customer.billingAddress.region;
+  delete customer.billingAddress.countryCodeAlpha2;
+
+  return customer;
+};
+
+LegacyFramework.prototype._createIframe = function (options) {
+  var url;
+  var parentURL = global.location.href;
+  var response = options.response;
+
+  if (parentURL.indexOf('#') > -1) {
+    parentURL = parentURL.split('#')[0];
+  }
+
+  this._setupBusForIframe(parentURL, response, options);
+
+  url = this._assetsUrl + '/html/three-d-secure-bank-frame' + useMin(this._isDebug) + '.html?showLoader=' + options.showLoader;
+
+  this._bankIframe = iFramer({
+    src: url,
+    height: IFRAME_HEIGHT,
+    width: IFRAME_WIDTH,
+    name: constants.LANDING_FRAME_NAME + '_' + this._bus.channel,
+    title: '3D Secure Authorization Frame'
+  });
+
+  return this._bankIframe;
+};
+
+LegacyFramework.prototype._setupBusForIframe = function (parentURL, response, options) {
+  var authenticationCompleteBaseUrl;
+
+  this._bus = new Bus({
+    channel: uuid(),
+    merchantUrl: global.location.href
+  });
+
+  authenticationCompleteBaseUrl = this._assetsUrl + '/html/three-d-secure-authentication-complete-frame.html?channel=' + encodeURIComponent(this._bus.channel) + '&';
+
+  this._bus.on(Bus.events.CONFIGURATION_REQUEST, function (reply) {
+    reply({
+      acsUrl: response.acsUrl,
+      pareq: response.pareq,
+      termUrl: response.termUrl + '&three_d_secure_version=' + VERSION + '&authentication_complete_base_url=' + encodeURIComponent(authenticationCompleteBaseUrl),
+      md: response.md,
+      parentUrl: parentURL
+    });
+  });
+
+  this._bus.on(events.AUTHENTICATION_COMPLETE, function (data) {
+    this._handleAuthResponse(data, options);
+  }.bind(this));
+};
+
+LegacyFramework.prototype._handleAuthResponse = function (data, options) {
+  var authResponse = JSON.parse(data.auth_response);
+
+  this._bus.teardown();
+
+  options.removeFrame();
+
+  // This also has to be in a setTimeout so it executes after the `removeFrame`.
+  deferred(function () {
+    if (authResponse.success) {
+      this._verifyCardPromisePlus.resolve(this._formatAuthResponse(authResponse.paymentMethod, authResponse.threeDSecureInfo));
+    } else if (authResponse.threeDSecureInfo && authResponse.threeDSecureInfo.liabilityShiftPossible) {
+      this._verifyCardPromisePlus.resolve(this._formatAuthResponse(this._lookupPaymentMethod, authResponse.threeDSecureInfo));
+    } else {
+      this._verifyCardPromisePlus.reject(new BraintreeError({
+        type: BraintreeError.types.UNKNOWN,
+        code: 'UNKNOWN_AUTH_RESPONSE',
+        message: authResponse.error.message
+      }));
+    }
+  }.bind(this))();
+};
+
+LegacyFramework.prototype._checkForFrameworkSpecificVerifyCardErrors = function (options) {
+  var errorOption;
+
+  if (typeof options.addFrame !== 'function') {
+    errorOption = 'an addFrame function';
+  } else if (typeof options.removeFrame !== 'function') {
+    errorOption = 'a removeFrame function';
+  }
+
+  return errorOption;
+};
+
+LegacyFramework.prototype._formatVerifyCardOptions = function (options) {
+  var modifiedOptions = BaseFramework.prototype._formatVerifyCardOptions.call(this, options);
+
+  modifiedOptions.addFrame = deferred(options.addFrame);
+  modifiedOptions.removeFrame = deferred(options.removeFrame);
+  modifiedOptions.showLoader = options.showLoader !== false;
+
+  return modifiedOptions;
+};
+
+LegacyFramework.prototype._formatLookupData = function (options) {
+  var self = this;
+
+  return BaseFramework.prototype._formatLookupData.call(this, options).then(function (data) {
+    if (options.customer && options.customer.billingAddress) {
+      data.customer = self.transformV1CustomerBillingAddress(options.customer);
+    }
+
+    return data;
+  });
+};
+
+LegacyFramework.prototype._presentChallenge = function (lookupResponse, options) {
+  options.addFrame(null, this._createIframe({
+    showLoader: options.showLoader,
+    response: lookupResponse.lookup,
+    removeFrame: options.removeFrame
+  }));
+};
+
+module.exports = LegacyFramework;
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"../../../lib/braintree-error":19,"../../../lib/bus":22,"../../../lib/deferred":29,"../../../lib/use-min":38,"../../../lib/vendor/uuid":40,"../../shared/constants":50,"../../shared/events":52,"./base":41,"@braintree/iframer":4}],47:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+
+var BaseFramework = _dereq_('./base');
+var assign = _dereq_('../../../lib/assign').assign;
+var deferred = _dereq_('../../../lib/deferred');
+var BraintreeError = _dereq_('../../../lib/braintree-error');
+var convertToBraintreeError = _dereq_('../../../lib/convert-to-braintree-error');
+var analytics = _dereq_('../../../lib/analytics');
+var assets = _dereq_('../../../lib/assets');
+var errors = _dereq_('../../shared/errors');
+var enumerate = _dereq_('../../../lib/enumerate');
+var constants = _dereq_('../../shared/constants');
+var Promise = _dereq_('../../../lib/promise');
+var makePromisePlus = _dereq_('../../../lib/promise-plus');
+
+var INTEGRATION_TIMEOUT_MS = _dereq_('../../../lib/constants').INTEGRATION_TIMEOUT_MS;
+var PLATFORM = _dereq_('../../../lib/constants').PLATFORM;
+var VERSION = "3.53.0";
+
+function SongbirdFramework(options) {
+  BaseFramework.call(this, options);
+
+  this._clientMetadata = {
+    requestedThreeDSecureVersion: '2',
+    sdkVersion: PLATFORM + '/' + VERSION
+  };
+  this._getDfReferenceIdPromisePlus = makePromisePlus();
+  this.setupSongbird({
+    loggingEnabled: options.loggingEnabled
+  });
+}
+
+SongbirdFramework.prototype = Object.create(BaseFramework.prototype, {
+  constructor: SongbirdFramework
+});
+
+SongbirdFramework.events = enumerate([
+  'ON_LOOKUP_COMPLETE'
+], 'songbird-framework:');
+
+SongbirdFramework.prototype.setUpEventListeners = function (reply) {
+  this.on(SongbirdFramework.events.ON_LOOKUP_COMPLETE, function (data, next) {
+    reply('lookup-complete', data, next);
+  });
+};
+
+SongbirdFramework.prototype.prepareLookup = function (options) {
+  var data = assign({}, options);
+  var self = this;
+
+  return this.getDfReferenceId().then(function (id) {
+    data.dfReferenceId = id;
+  }).then(function () {
+    return self._triggerCardinalBinProcess(options.bin);
+  }).catch(function () {
+    // catch and ignore errors from looking up
+    // df reference and Cardinal bin process
+  }).then(function () {
+    data.clientMetadata = self._clientMetadata;
+    data.authorizationFingerprint = self._client.getConfiguration().authorizationFingerprint;
+    data.braintreeLibraryVersion = 'braintree/web/' + VERSION;
+
+    return data;
+  });
+};
+
+SongbirdFramework.prototype.initializeChallengeWithLookupResponse = function (lookupResponse, options) {
+  return this.setupSongbird().then(function () {
+    return BaseFramework.prototype.initializeChallengeWithLookupResponse.call(this, lookupResponse, options);
+  }.bind(this));
+};
+
+SongbirdFramework.prototype._triggerCardinalBinProcess = function (bin) {
+  var self = this;
+  var issuerStartTime = Date.now();
+
+  if (!bin) {
+    // skip bin lookup because bin wasn't passed in
+    return Promise.resolve();
+  }
+
+  return global.Cardinal.trigger('bin.process', bin).then(function (binResults) {
+    self._clientMetadata.issuerDeviceDataCollectionTimeElapsed = Date.now() - issuerStartTime;
+    self._clientMetadata.issuerDeviceDataCollectionResult = binResults && binResults.Status;
+  });
+};
+
+SongbirdFramework.prototype.transformBillingAddress = function (additionalInformation, billingAddress) {
+  if (billingAddress) {
+    // map from public API to the API that the Gateway expects
+    extractAddressData(billingAddress, additionalInformation, 'billing');
+    additionalInformation.billingPhoneNumber = billingAddress.phoneNumber;
+    additionalInformation.billingGivenName = billingAddress.givenName;
+    additionalInformation.billingSurname = billingAddress.surname;
+  }
+
+  return additionalInformation;
+};
+
+SongbirdFramework.prototype.transformShippingAddress = function (additionalInformation) {
+  var shippingAddress = additionalInformation.shippingAddress;
+
+  if (shippingAddress) {
+    // map from public API to the API that the Gateway expects
+    extractAddressData(shippingAddress, additionalInformation, 'shipping');
+
+    delete additionalInformation.shippingAddress;
+  }
+
+  return additionalInformation;
+};
+
+SongbirdFramework.prototype.setupSongbird = function (setupOptions) {
+  var self = this;
+  var startTime = Date.now();
+
+  if (this._songbirdPromise) {
+    return this._songbirdPromise;
+  }
+
+  setupOptions = setupOptions || {};
+
+  this._songbirdPromise = new Promise(function (resolve, reject) {
+    self._loadCardinalScript(reject, setupOptions).then(function () {
+      return self._configureCardinalSdk({
+        resolveSongbird: resolve,
+        setupOptions: setupOptions,
+        setupStartTime: startTime
+      });
+    }).catch(function (err) {
+      var error = convertToBraintreeError(err, {
+        type: errors.THREEDS_CARDINAL_SDK_SETUP_FAILED.type,
+        code: errors.THREEDS_CARDINAL_SDK_SETUP_FAILED.code,
+        message: errors.THREEDS_CARDINAL_SDK_SETUP_FAILED.message
+      });
+
+      self._getDfReferenceIdPromisePlus.reject(error);
+
+      global.clearTimeout(self._songbirdSetupTimeoutReference);
+      analytics.sendEvent(self._client, 'three-d-secure.cardinal-sdk.init.setup-failed');
+      reject(error);
+    });
+  });
+
+  return this._songbirdPromise;
+};
+
+SongbirdFramework.prototype._configureCardinalSdk = function (config) {
+  var jwt = this._client.getConfiguration().gatewayConfiguration.threeDSecure.cardinalAuthenticationJWT;
+  var resolveSongbird = config.resolveSongbird;
+  var setupOptions = config.setupOptions;
+  var setupStartTime = config.setupStartTime;
+  var cardinalConfiguration = this._createCardinalConfigurationOptions(setupOptions);
+
+  global.Cardinal.on('payments.setupComplete', this._createPaymentsSetupCompleteCallback(resolveSongbird));
+
+  this._setupFrameworkSpecificListeners();
+
+  global.Cardinal.configure(cardinalConfiguration);
+
+  global.Cardinal.setup('init', {
+    jwt: jwt
+  });
+
+  this._clientMetadata.cardinalDeviceDataCollectionTimeElapsed = Date.now() - setupStartTime;
+
+  global.Cardinal.on('payments.validated', this._createPaymentsValidatedCallback());
+};
+
+SongbirdFramework.prototype._setupFrameworkSpecificListeners = function () {
+  // noop
+};
+
+SongbirdFramework.prototype._createCardinalConfigurationOptions = function (setupOptions) {
+  var cardinalConfiguration = {};
+
+  if (setupOptions.loggingEnabled) {
+    cardinalConfiguration.logging = {
+      level: 'verbose'
+    };
+  }
+
+  return cardinalConfiguration;
+};
+
+SongbirdFramework.prototype._loadCardinalScript = function (rejectSongbird, setupOptions) {
+  var self = this;
+  var scriptSource = constants.CARDINAL_SCRIPT_SOURCE.sandbox;
+  var isProduction = this._client.getConfiguration().gatewayConfiguration.environment === 'production';
+
+  this._songbirdSetupTimeoutReference = global.setTimeout(function () {
+    analytics.sendEvent(self._client, 'three-d-secure.cardinal-sdk.init.setup-timeout');
+    rejectSongbird(new BraintreeError(errors.THREEDS_CARDINAL_SDK_SETUP_TIMEDOUT));
+  }, setupOptions.timeout || INTEGRATION_TIMEOUT_MS);
+
+  if (isProduction) {
+    scriptSource = constants.CARDINAL_SCRIPT_SOURCE.production;
+  }
+
+  return assets.loadScript({src: scriptSource}).catch(function (err) {
+    return Promise.reject(convertToBraintreeError(err, errors.THREEDS_CARDINAL_SDK_SCRIPT_LOAD_FAILED));
+  });
+};
+
+SongbirdFramework.prototype._createPaymentsSetupCompleteCallback = function (resolveSongbirdSetup) {
+  var self = this;
+
+  return function (data) {
+    self._getDfReferenceIdPromisePlus.resolve(data.sessionId);
+
+    global.clearTimeout(self._songbirdSetupTimeoutReference);
+    analytics.sendEvent(self._client, 'three-d-secure.cardinal-sdk.init.setup-completed');
+
+    resolveSongbirdSetup();
+  };
+};
+
+SongbirdFramework.prototype.getDfReferenceId = function () {
+  return this._getDfReferenceIdPromisePlus;
+};
+
+SongbirdFramework.prototype._performJWTValidation = function (jwt) {
+  var nonce = this._lookupPaymentMethod.nonce;
+  var url = 'payment_methods/' + nonce + '/three_d_secure/authenticate_from_jwt';
+  var self = this;
+
+  analytics.sendEvent(self._client, 'three-d-secure.verification-flow.upgrade-payment-method.started');
+
+  return this._client.request({
+    method: 'post',
+    endpoint: url,
+    data: {
+      jwt: jwt,
+      paymentMethodNonce: nonce
+    }
+  }).then(function (response) {
+    var paymentMethod = response.paymentMethod || self._lookupPaymentMethod;
+    var formattedResponse = self._formatAuthResponse(paymentMethod, response.threeDSecureInfo);
+
+    analytics.sendEvent(self._client, 'three-d-secure.verification-flow.upgrade-payment-method.succeeded');
+
+    return Promise.resolve(formattedResponse);
+  }).catch(function (err) {
+    var error = new BraintreeError({
+      type: errors.THREEDS_JWT_AUTHENTICATION_FAILED.type,
+      code: errors.THREEDS_JWT_AUTHENTICATION_FAILED.code,
+      message: errors.THREEDS_JWT_AUTHENTICATION_FAILED.message,
+      details: {
+        originalError: err
+      }
+    });
+
+    analytics.sendEvent(self._client, 'three-d-secure.verification-flow.upgrade-payment-method.errored');
+
+    return Promise.reject(error);
+  });
+};
+
+SongbirdFramework.prototype._createPaymentsValidatedCallback = function () {
+  var self = this;
+
+  /**
+   * @param {object} data Response Data
+   * @see {@link https://cardinaldocs.atlassian.net/wiki/spaces/CC/pages/98315/Response+Objects#ResponseObjects-ObjectDefinition}
+   * @param {string} data.ActionCode The resulting state of the transaction.
+   * @param {boolean} data.Validated Represents whether transaction was successfully or not.
+   * @param {number} data.ErrorNumber A non-zero value represents the error encountered while attempting the process the message request.
+   * @param {string} data.ErrorDescription Application error description for the associated error number.
+   * @param {string} validatedJwt Response JWT
+   * @returns {void}
+   * */
+  return function (data, validatedJwt) {
+    var formattedError;
+
+    analytics.sendEvent(self._client, 'three-d-secure.verification-flow.cardinal-sdk.action-code.' + data.ActionCode.toLowerCase());
+
+    switch (data.ActionCode) {
+      // Handle these scenarios based on liability shift information in the response.
+      case 'SUCCESS':
+      case 'NOACTION':
+      case 'FAILURE':
+        self._performJWTValidation(validatedJwt)
+          .then(self._verifyCardPromisePlus.resolve)
+          .catch(self._verifyCardPromisePlus.reject);
+        break;
+
+      case 'ERROR':
+        switch (data.ErrorNumber) {
+          case 10001: // Cardinal Docs: Timeout when sending an /Init message
+          case 10002: // Cardinal Docs: Timeout when sending an /Start message
+            formattedError = new BraintreeError(errors.THREEDS_CARDINAL_SDK_SETUP_TIMEDOUT);
+            break;
+          case 10003: // Cardinal Docs: Timeout when sending an /Validate message. Although this code exists we do not yet have a flow where a validate message is sent to Midas. This error should not yet be triggered
+          case 10007: // Cardinal Docs: Timeout when sending an /Confirm message
+          case 10009: // Cardinal Docs: Timeout when sending an /Continue message
+            formattedError = new BraintreeError(errors.THREEDS_CARDINAL_SDK_RESPONSE_TIMEDOUT);
+            break;
+          case 10005: // Cardinal Docs: Songbird was started without a request jwt.
+          case 10006: // Cardinal Docs: This is a general configuration error. The description is populated by the specific configuration error that caused the error.
+            formattedError = new BraintreeError(errors.THREEDS_CARDINAL_SDK_BAD_CONFIG);
+            break;
+          case 10008: // Cardinal Docs: Songbird was initialized without a merchant JWT.
+          case 10010: // Cardinal Docs: The response JWT was
+            formattedError = new BraintreeError(errors.THREEDS_CARDINAL_SDK_BAD_JWT);
+            break;
+          case 10011:
+            // This may never get called, according to the Cardinal docs:
+            // The user has canceled the transaction. This is generally found in alternative
+            // payments that supply a cancel button on the payment brand side.
+            analytics.sendEvent(self._client, 'three-d-secure.verification-flow.canceled');
+            formattedError = new BraintreeError(errors.THREEDS_CARDINAL_SDK_CANCELED);
+            break;
+          default:
+            formattedError = new BraintreeError(errors.THREEDS_CARDINAL_SDK_ERROR);
+        }
+
+        formattedError.details = {
+          originalError: {
+            code: data.ErrorNumber,
+            description: data.ErrorDescription
+          }
+        };
+
+        if (self._verifyCardPromisePlus) {
+          self._verifyCardPromisePlus.reject(formattedError);
+        } else {
+          self._verifyCardBlockingError = formattedError;
+        }
+        break;
+
+      default:
+    }
+  };
+};
+
+SongbirdFramework.prototype._checkForVerifyCardError = function (options, privateOptions) {
+  if (this._verifyCardBlockingError) {
+    return this._verifyCardBlockingError;
+  }
+
+  return BaseFramework.prototype._checkForVerifyCardError.call(this, options, privateOptions);
+};
+
+SongbirdFramework.prototype._checkForFrameworkSpecificVerifyCardErrors = function (options, privateOptions) {
+  var errorOption;
+
+  if (typeof options.onLookupComplete !== 'function' && !privateOptions.ignoreOnLookupCompleteRequirement) {
+    errorOption = 'an onLookupComplete function';
+  }
+
+  return errorOption;
+};
+
+SongbirdFramework.prototype._formatVerifyCardOptions = function (options) {
+  var modifiedOptions = BaseFramework.prototype._formatVerifyCardOptions.call(this, options);
+  var additionalInformation = modifiedOptions.additionalInformation || {};
+
+  additionalInformation = this.transformBillingAddress(additionalInformation, options.billingAddress);
+  additionalInformation = this.transformShippingAddress(additionalInformation);
+
+  if (options.onLookupComplete) {
+    modifiedOptions.onLookupComplete = deferred(options.onLookupComplete);
+  }
+  if (options.email) {
+    additionalInformation.email = options.email;
+  }
+  if (options.mobilePhoneNumber) {
+    additionalInformation.mobilePhoneNumber = options.mobilePhoneNumber;
+  }
+
+  return modifiedOptions;
+};
+
+SongbirdFramework.prototype._onLookupComplete = function (lookupResponse, options) {
+  var self = this;
+
+  return BaseFramework.prototype._onLookupComplete.call(this, lookupResponse).then(function (response) {
+    return new Promise(function (resolve, reject) {
+      // NEXT_MAJOR_VERSION format this response object to look like the mobile sdk response
+      // which is basically the lookup param at the top level with some additional accessors
+      response.requiresUserAuthentication = Boolean(response.lookup && response.lookup.acsUrl);
+
+      function next() {
+        resolve(response);
+      }
+
+      self._verifyCardPromisePlus.catch(reject);
+
+      // prefer the callback when it is passed into the verifyCard options
+      if (options.onLookupComplete) {
+        options.onLookupComplete(response, next);
+      } else {
+        self._emit(SongbirdFramework.events.ON_LOOKUP_COMPLETE, response, next);
+      }
+    });
+  });
+};
+
+SongbirdFramework.prototype._presentChallenge = function (lookupResponse) {
+  // set up listener for ref id to call out to bt before calling verify callback
+  global.Cardinal.continue('cca',
+    {
+      AcsUrl: lookupResponse.lookup.acsUrl,
+      Payload: lookupResponse.lookup.pareq
+    },
+    {
+      OrderDetails: {TransactionId: lookupResponse.lookup.transactionId}
+    }
+  );
+};
+
+SongbirdFramework.prototype._formatLookupData = function (options) {
+  var self = this;
+
+  return BaseFramework.prototype._formatLookupData.call(this, options).then(function (data) {
+    data.additionalInfo = options.additionalInformation;
+
+    if (options.challengeRequested) {
+      data.challengeRequested = options.challengeRequested;
+    }
+    if (options.exemptionRequested) {
+      data.exemptionRequested = options.exemptionRequested;
+    }
+    if (options.bin) {
+      data.bin = options.bin;
+    }
+
+    return self.prepareLookup(data);
+  });
+};
+
+SongbirdFramework.prototype.cancelVerifyCard = function () {
+  var self = this;
+
+  return BaseFramework.prototype.cancelVerifyCard.call(this).then(function (response) {
+    if (self._verifyCardPromisePlus) {
+      self._verifyCardPromisePlus.reject(new BraintreeError(errors.THREEDS_VERIFY_CARD_CANCELED_BY_MERCHANT));
+    }
+
+    return response;
+  });
+};
+
+SongbirdFramework.prototype.teardown = function () {
+  if (global.Cardinal) {
+    global.Cardinal.off('payments.setupComplete');
+    global.Cardinal.off('payments.validated');
+  }
+
+  // we intentionally do not remove the Cardinal SDK
+  // from the page when tearing down. Subsequent
+  // component creations will be faster because
+  // the asset is already on the page
+
+  return BaseFramework.prototype.teardown.call(this);
+};
+
+function extractAddressData(source, target, prefix) {
+  target[prefix + 'Line1'] = source.streetAddress;
+  target[prefix + 'Line2'] = source.extendedAddress;
+  target[prefix + 'Line3'] = source.line3;
+  target[prefix + 'City'] = source.locality;
+  target[prefix + 'State'] = source.region;
+  target[prefix + 'PostalCode'] = source.postalCode;
+  target[prefix + 'CountryCode'] = source.countryCodeAlpha2;
+}
+
+module.exports = SongbirdFramework;
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"../../../lib/analytics":15,"../../../lib/assets":16,"../../../lib/assign":17,"../../../lib/braintree-error":19,"../../../lib/constants":23,"../../../lib/convert-to-braintree-error":25,"../../../lib/deferred":29,"../../../lib/enumerate":30,"../../../lib/promise":37,"../../../lib/promise-plus":36,"../../shared/constants":50,"../../shared/errors":51,"./base":41}],48:[function(_dereq_,module,exports){
+'use strict';
+
+var wrapPromise = _dereq_('@braintree/wrap-promise');
+var methods = _dereq_('../../lib/methods');
+var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
+var EventEmitter = _dereq_('@braintree/event-emitter');
+var FRAMEWORKS = _dereq_('./frameworks');
 
 /**
  * @deprecated
@@ -1759,6 +2862,7 @@ var IFRAME_WIDTH = 400;
 
 /**
  * @typedef {object} ThreeDSecure~verificationData
+ * @property {boolean} requiresUserAuthentication When `true`, the user will be presented with a 3D Secure challenge when calling `next` in the {@link ThreeDSecure#event:lookup-complete|`lookup-complete` event}.
  * @property {object} threeDSecureInfo Contains liability shift details.
  * @property {boolean} threeDSecureInfo.liabilityShiftPossible Indicates whether the card was eligible for 3D Secure.
  * @property {boolean} threeDSecureInfo.liabilityShifted Indicates whether the liability for fraud has been shifted away from the merchant.
@@ -1895,13 +2999,71 @@ var IFRAME_WIDTH = 400;
  * @property {string} [orderDescription] Brief description of items purchased.
  * @property {string} [taxAmount] Unformatted tax amount without any decimalization (ie. $123.67 = 12367).
  * @property {string} [userAgent] The exact content of the HTTP user agent header.
- * @property {string} [authenticationIndicator] The 2-digit number indicating the type of authentication request. This field is required if a recurring or installment transaction request. Possible values:
+ * @property {string} [authenticationIndicator] The 2-digit number indicating the type of authentication request. Possible values:
  *  - `02` Recurring
  *  - `03` Installment
- * @property {string} [installment] An integer value greater than 1 indicating the maximum number of permitted authorizations for installment payments. Required for recurring and installement transaction requests.
- * @property {string} [purchaseDate] The 14-digit number (format: YYYYMMDDHHMMSS) indicating the date in UTC of original purchase. Required for recurring and installement transaction requests.
- * @property {string} [recurringEnd] The 8-digit number (format: YYYYMMDD) indicating the date after which no further recurring authorizations should be performed. Required for recurring and installement transaction requests.
- * @property {string} [recurringFrequency] Integer value indicating the minimum number of days between recurring authorizations. A frequency of monthly is indicated by the value 28. Multiple of 28 days will be used to indicate months (ex. 6 months = 168). Required for recurring and installement transaction requests.
+ * @property {string} [installment] An integer value greater than 1 indicating the maximum number of permitted authorizations for installment payments.
+ * @property {string} [purchaseDate] The 14-digit number (format: YYYYMMDDHHMMSS) indicating the date in UTC of original purchase.
+ * @property {string} [recurringEnd] The 8-digit number (format: YYYYMMDD) indicating the date after which no further recurring authorizations should be performed.
+ * @property {string} [recurringFrequency] Integer value indicating the minimum number of days between recurring authorizations. A frequency of monthly is indicated by the value 28. Multiple of 28 days will be used to indicate months (ex. 6 months = 168).
+ */
+
+/**
+ * @name ThreeDSecure#on
+ * @function
+ * @param {string} event The name of the event to which you are subscribing.
+ * @param {function} handler A callback to handle the event.
+ * @description Subscribes a handler function to a named event.
+ * @example
+ * <caption>Listening to a 3D Secure event</caption>
+ * braintree.threeDSecure.create({ ... }, function (createErr, threeDSecureInstance) {
+ *   threeDSecureInstance.on('lookup-complete', function (data, next) {
+ *     console.log(event);
+ *     next();
+ *   });
+ * });
+ * @returns {void}
+ */
+
+/**
+ * @name ThreeDSecure#off
+ * @function
+ * @param {string} event The name of the event to which you are unsubscribing.
+ * @param {function} handler The callback for the event you are unsubscribing from.
+ * @description Unsubscribes the handler function to a named event.
+ * @example
+ * <caption>Subscribing and then unsubscribing from a 3D Secure eld event</caption>
+ * braintree.threeDSecure.create({ ... }, function (createErr, threeDSecureInstance) {
+ *   var callback = function (data, next) {
+ *     console.log(data);
+ *     next();
+ *   };
+ *
+ *   threeDSecureInstance.on('lookup-complete', callback);
+ *
+ *   // later on
+ *   threeDSecureInstance.off('lookup-complete', callback);
+ * });
+ * @returns {void}
+ */
+
+/**
+ * This event is emitted when using the 3D Secure 2.0 flow and the initial lookup request completes. If this is not used, a `onLookupComplete` callback must be passed into the `verifyCard` method.
+ * @event ThreeDSecure#lookup-complete
+ * @type {object}
+ * @example
+ * <caption>Listening for when the lookup request is complete</caption>
+ * braintree.threeDSecure.create({
+ *   client: clientInstance,
+ *   framework: 'inline-iframe'
+ * }, function (createErr, threeDSecureInstance) {
+ *   threeDSecureInstance.on('lookup-complete', function (data, next) {
+ *     // inspect the data
+ *
+ *     // call next when ready to proceed with the challenge
+ *     next();
+ *   });
+ * });
  */
 
 /**
@@ -1913,15 +3075,18 @@ var IFRAME_WIDTH = 400;
  * **Note**: 3D Secure 2.0 is documented below and will become the default integration method in a future version of Braintree-web. Until then, version 1.0 will continue to be supported. To view 3D Secure 1.0 documentation, look at Braintree-web documentation from version [3.40.0](https://braintree.github.io/braintree-web/3.40.0/ThreeDSecure.html) and earlier, or upgrade your integration by referring to the [3D Secure 2.0 adoption guide](https://developers.braintreepayments.com/guides/3d-secure/migration/javascript/v3).
  */
 function ThreeDSecure(options) {
-  this._options = options;
-  this._assetsUrl = options.client.getConfiguration().gatewayConfiguration.assetsUrl + '/web/' + VERSION;
-  this._isDebug = options.client.getConfiguration().isDebug;
-  this._client = options.client;
-  this._clientMetadata = {
-    sdkVersion: PLATFORM + '/' + VERSION,
-    requestedThreeDSecureVersion: this._usesSongbirdFlow() ? '2' : '1'
-  };
+  var self = this;
+  var Framework = FRAMEWORKS[options.framework];
+
+  EventEmitter.call(this);
+
+  this._framework = new Framework(options);
+  this._framework.setUpEventListeners(function () {
+    self._emit.apply(self, arguments);
+  });
 }
+
+EventEmitter.createChild(ThreeDSecure);
 
 /**
  * Launch the 3D Secure login flow, returning a nonce payload.
@@ -1933,7 +3098,7 @@ function ThreeDSecure(options) {
  * @param {string} options.amount The amount of the transaction in the current merchant account's currency. For example, if you are running a transaction of $123.45 US dollars, `amount` would be 123.45.
  * @param {boolean} [options.challengeRequested] If set to true, an authentication challenge will be forced if possible.
  * @param {boolean} [options.exemptionRequested] If set to true, an exemption to the authentication challenge will be requested.
- * @param {function} options.onLookupComplete Function to execute when lookup completes. The first argument, `data`, is a {@link ThreeDSecure~verificationData|verificationData} object, and the second argument, `next`, is a callback. `next` must be called to continue.
+ * @param {function} [options.onLookupComplete] *Deprecated:* Use {@link ThreeDSecure#event:lookup-complete|`threeDSecureInstance.on('lookup-complete')`} instead. Function to execute when lookup completes. The first argument, `data`, is a {@link ThreeDSecure~verificationData|verificationData} object, and the second argument, `next`, is a callback. `next` must be called to continue.
  * @param {string} [options.email] The email used for verification.
  * @param {string} [options.mobilePhoneNumber] The mobile phone number used for verification. Only numbers; remove dashes, paranthesis and other characters.
  * @param {object} [options.billingAddress] An {@link ThreeDSecure~billingAddress|billingAddress} object for verification.
@@ -1946,6 +3111,63 @@ function ThreeDSecure(options) {
  * @returns {Promise|void} Returns a promise if no callback is provided.
  * @example
  * <caption>Verifying a payment method nonce with 3DS 2.0</caption>
+ * var my3DSContainer;
+ *
+ * // set up listener after initialization
+ * threeDSecure.on(('lookup-complete', function (data, next) {
+ *   // use `data` here, then call `next()`
+ *   next();
+ * });
+ *
+ * // call verifyCard after tokenizating a card
+ * threeDSecure.verifyCard({
+ *   amount: '123.45',
+ *   nonce: hostedFieldsTokenizationPayload.nonce,
+ *   bin: hostedFieldsTokenizationPayload.details.bin,
+ *   email: 'test@example.com'
+ *   billingAddress: {
+ *     givenName: 'Jill',
+ *     surname: 'Doe',
+ *     phoneNumber: '8101234567',
+ *     streetAddress: '555 Smith St.',
+ *     extendedAddress: '#5',
+ *     locality: 'Oakland',
+ *     region: 'CA',
+ *     postalCode: '12345',
+ *     countryCodeAlpha2: 'US'
+ *   },
+ *   additionalInformation: {
+ *     workPhoneNumber: '5555555555',
+ *     shippingGivenName: 'Jill',
+ *     shippingSurname: 'Doe',
+ *     shippingAddress: {
+ *       streetAddress: '555 Smith st',
+ *       extendedAddress: '#5',
+ *       locality: 'Oakland',
+ *       region: 'CA',
+ *       postalCode: '12345',
+ *       countryCodeAlpha2: 'US'
+ *     }
+ *     shippingPhone: '8101234567'
+ *   }
+ * }, function (err, payload) {
+ *   if (err) {
+ *     console.error(err);
+ *     return;
+ *   }
+ *
+ *   if (payload.liabilityShifted) {
+ *     // Liablity has shifted
+ *     submitNonceToServer(payload.nonce);
+ *   } else if (payload.liabilityShiftPossible) {
+ *     // Liablity may still be shifted
+ *     // Decide if you want to submit the nonce
+ *   } else {
+ *     // Liablity has not shifted and will not shift
+ *     // Decide if you want to submit the nonce
+ *   }
+ * });
+ * <caption>Verifying a payment method nonce with 3DS 2.0 with onLookupComplete callback</caption>
  * var my3DSContainer;
  *
  * threeDSecure.verifyCard({
@@ -1999,20 +3221,24 @@ function ThreeDSecure(options) {
  *     // Decide if you want to submit the nonce
  *   }
  * });
+ * @example
  * <caption>Handling 3DS lookup errors</caption>
  * var my3DSContainer;
  *
+ * // set up listener after initialization
+ * threeDSecure.on(('lookup-complete', function (data, next) {
+ *   // use `data` here, then call `next()`
+ *   next();
+ * });
+ *
+ * // call verifyCard after tokenizating a card
  * threeDSecure.verifyCard({
  *   amount: '123.45',
  *   nonce: hostedFieldsTokenizationPayload.nonce,
  *   bin: hostedFieldsTokenizationPayload.details.bin,
- *   email: 'test@example.com'
- *   billingAddress: billingAddressFromCustomer,,
- *   additionalInformation: additionalInfoFromCustomer,,
- *   onLookupComplete: function (data, next) {
- *     // use `data` here, then call `next()`
- *     next();
- *   }
+ *   email: 'test@example.com',
+ *   billingAddress: billingAddressFromCustomer,
+ *   additionalInformation: additionalInfoFromCustomer
  * }, function (err, payload) {
  *   if (err) {
  *     if (err.code.indexOf('THREEDS_LOOKUP') === 0) {
@@ -2074,162 +3300,15 @@ function ThreeDSecure(options) {
  * });
  */
 ThreeDSecure.prototype.verifyCard = function (options) {
-  var data,
-    showLoader,
-    addFrame,
-    removeFrame,
-    onLookupComplete,
-    error,
-    nonce;
-  var promise = Promise.resolve();
-  var additionalInformation = options.additionalInformation || {};
-  var self = this;
+  var privateOptions;
 
-  options = assign({}, options);
-
-  error = this._checkForVerifyCardError(options);
-
-  if (error) {
-    return Promise.reject(error);
+  if (this.hasListener('lookup-complete')) {
+    privateOptions = {
+      ignoreOnLookupCompleteRequirement: true
+    };
   }
 
-  showLoader = options.showLoader !== false;
-
-  this._verifyCardInProgress = true;
-
-  data = {
-    amount: options.amount
-  };
-
-  nonce = options.nonce;
-
-  if (this._usesSongbirdFlow()) {
-    onLookupComplete = deferred(options.onLookupComplete);
-    additionalInformation = this._transformBillingAddress(additionalInformation, options.billingAddress);
-    additionalInformation = this._transformShippingAddress(additionalInformation);
-    if (options.email) {
-      additionalInformation.email = options.email;
-    }
-    if (options.mobilePhoneNumber) {
-      additionalInformation.mobilePhoneNumber = options.mobilePhoneNumber;
-    }
-
-    data.additionalInfo = additionalInformation;
-
-    if (options.challengeRequested) {
-      data.challengeRequested = options.challengeRequested;
-    }
-    if (options.exemptionRequested) {
-      data.exemptionRequested = options.exemptionRequested;
-    }
-
-    if (options.bin) {
-      data.bin = options.bin;
-    }
-
-    promise = this._prepareRawLookup(data).then(function (transformedData) {
-      data = transformedData;
-    });
-  } else {
-    addFrame = deferred(options.addFrame);
-    removeFrame = deferred(options.removeFrame);
-    if (options.customer && options.customer.billingAddress) {
-      options.customer = this._transformV1CustomerBillingAddress(options.customer);
-      data.customer = options.customer;
-    }
-  }
-
-  analytics.sendEvent(this._options.client, 'three-d-secure.verification-flow.started');
-
-  return promise.then(function () {
-    var url = 'payment_methods/' + nonce + '/three_d_secure/lookup';
-
-    return self._client.request({
-      endpoint: url,
-      method: 'post',
-      data: data
-    }).catch(function (err) {
-      var status = err && err.details && err.details.httpStatus;
-      var analyticsMessage = 'three-d-secure.verification-flow.lookup-failed';
-      var lookupError;
-
-      if (status === 404) {
-        lookupError = errors.THREEDS_LOOKUP_TOKENIZED_CARD_NOT_FOUND_ERROR;
-        analyticsMessage += '.404';
-      } else if (status === 422) {
-        lookupError = errors.THREEDS_LOOKUP_VALIDATION_ERROR;
-        analyticsMessage += '.422';
-      } else {
-        lookupError = errors.THREEDS_LOOKUP_ERROR;
-      }
-
-      analytics.sendEvent(self._options.client, analyticsMessage);
-
-      return Promise.reject(new BraintreeError({
-        type: lookupError.type,
-        code: lookupError.code,
-        message: lookupError.message,
-        details: {
-          originalError: err
-        }
-      }));
-    });
-  }).then(function (response) {
-    analytics.sendEvent(self._options.client, 'three-d-secure.verification-flow.3ds-version.' + response.lookup.threeDSecureVersion);
-
-    return self._initializeChallengeWithLookupResponse(response, {
-      showLoader: showLoader,
-      addFrame: addFrame,
-      removeFrame: removeFrame,
-      onLookupComplete: onLookupComplete
-    });
-  }).then(function (payload) {
-    analytics.sendEvent(self._options.client, 'three-d-secure.verification-flow.completed');
-
-    return payload;
-  }).catch(function (err) {
-    self._verifyCardInProgress = false;
-
-    analytics.sendEvent(self._options.client, 'three-d-secure.verification-flow.failed');
-
-    return Promise.reject(err);
-  });
-};
-
-ThreeDSecure.prototype._checkForVerifyCardError = function (options) {
-  var errorOption;
-
-  if (this._verifyCardBlockingError) {
-    return this._verifyCardBlockingError;
-  } else if (this._verifyCardInProgress === true) {
-    return new BraintreeError(errors.THREEDS_AUTHENTICATION_IN_PROGRESS);
-  } else if (!options.nonce) {
-    errorOption = 'a nonce';
-  } else if (!options.amount) {
-    errorOption = 'an amount';
-  }
-
-  if (!errorOption) {
-    if (this._usesSongbirdFlow()) {
-      if (typeof options.onLookupComplete !== 'function') {
-        errorOption = 'an onLookupComplete function';
-      }
-    } else if (typeof options.addFrame !== 'function') {
-      errorOption = 'an addFrame function';
-    } else if (typeof options.removeFrame !== 'function') {
-      errorOption = 'a removeFrame function';
-    }
-  }
-
-  if (errorOption) {
-    return new BraintreeError({
-      type: errors.THREEDS_MISSING_VERIFY_CARD_OPTION.type,
-      code: errors.THREEDS_MISSING_VERIFY_CARD_OPTION.code,
-      message: 'verifyCard options must include ' + errorOption + '.'
-    });
-  }
-
-  return null;
+  return this._framework.verifyCard(options, privateOptions);
 };
 
 /* eslint-disable-next-line valid-jsdoc */
@@ -2237,7 +3316,7 @@ ThreeDSecure.prototype._checkForVerifyCardError = function (options) {
  * Launch the iframe challenge using a 3D Secure lookup response from a server side lookup.
  *
  * @public
- * @param {object} lookupResponse The lookup response from the server side call to lookup the 3D Secure information.
+ * @param {object|string} lookupResponse The lookup response from the server side call to lookup the 3D Secure information. The raw string or a parsed object can be passed.
  * @returns {Promise} Returns a promise.
  * @example
  * var my3DSContainer;
@@ -2256,38 +3335,11 @@ ThreeDSecure.prototype._checkForVerifyCardError = function (options) {
  * });
  */
 ThreeDSecure.prototype.initializeChallengeWithLookupResponse = function (lookupResponse) {
-  return this._initializeChallengeWithLookupResponse(lookupResponse);
-};
+  if (typeof lookupResponse === 'string') {
+    lookupResponse = JSON.parse(lookupResponse);
+  }
 
-// private version of the public method that allows additional options to be passed
-ThreeDSecure.prototype._initializeChallengeWithLookupResponse = function (lookupResponse, options) {
-  var self = this;
-
-  options = options || {};
-
-  this._lookupPaymentMethod = lookupResponse.paymentMethod;
-
-  return new Promise(function (resolve, reject) {
-    self._verifyCardCallback = function (verifyErr, payload) {
-      self._verifyCardInProgress = false;
-
-      if (verifyErr) {
-        reject(verifyErr);
-      } else {
-        analytics.sendEvent(self._options.client, 'three-d-secure.verification-flow.liability-shifted.' + String(payload.liabilityShifted));
-        analytics.sendEvent(self._options.client, 'three-d-secure.verification-flow.liability-shift-possible.' + String(payload.liabilityShiftPossible));
-
-        resolve(payload);
-      }
-    };
-    self._handleLookupResponse({
-      showLoader: options.showLoader,
-      lookupResponse: lookupResponse,
-      addFrame: options.addFrame,
-      removeFrame: options.removeFrame,
-      onLookupComplete: options.onLookupComplete
-    });
-  });
+  return this._framework.initializeChallengeWithLookupResponse(lookupResponse);
 };
 
 /**
@@ -2315,52 +3367,49 @@ ThreeDSecure.prototype._initializeChallengeWithLookupResponse = function (lookup
  * });
  */
 ThreeDSecure.prototype.prepareLookup = function (options) {
-  return this._prepareRawLookup(options).then(function (result) {
-    return JSON.stringify(result);
-  });
-};
-
-ThreeDSecure.prototype._prepareRawLookup = function (options) {
-  var data = assign({}, options);
-  var self = this;
-
-  return this._getDfReferenceId().then(function (id) {
-    data.dfReferenceId = id;
-  }).then(function () {
-    return self._triggerCardinalBinProcess(options.bin);
-  }).catch(function () {
-    // catch and ignore errors from looking up
-    // df reference and Cardinal bin process
-  }).then(function () {
-    data.clientMetadata = self._clientMetadata;
-    data.authorizationFingerprint = self._client.getConfiguration().authorizationFingerprint;
-    data.braintreeLibraryVersion = 'braintree/web/' + VERSION;
-
-    return data;
-  });
-};
-
-ThreeDSecure.prototype._triggerCardinalBinProcess = function (bin) {
-  var self = this;
-  var issuerStartTime = Date.now();
-
-  if (!bin) {
-    // skip bin lookup because bin wasn't passed in
-    return Promise.resolve();
-  }
-
-  return global.Cardinal.trigger('bin.process', bin).then(function (binResults) {
-    self._clientMetadata.issuerDeviceDataCollectionTimeElapsed = Date.now() - issuerStartTime;
-    self._clientMetadata.issuerDeviceDataCollectionResult = binResults && binResults.Status;
+  return this._framework.prepareLookup(options).then(function (data) {
+    return JSON.stringify(data);
   });
 };
 
 /**
- * Cancel the 3DS flow and return the verification payload if available. If using 3D Secure version 2, this will not close the UI of the authentication modal. It is recommended that this method only be used in the `onLookupComplete` callback.
+ * Cancel the 3DS flow and return the verification payload if available. If using 3D Secure version 2, this will not close the UI of the authentication modal. It is recommended that this method only be used in the {@link ThreeDSecure#event:lookup-complete|`lookup-complete`} event or the `onLookupComplete` callback.
  * @public
  * @param {callback} [callback] The second argument is a {@link ThreeDSecure~verifyPayload|verifyPayload}. If there is no verifyPayload (the initial lookup did not complete), an error will be returned. If no callback is passed, `cancelVerifyCard` will return a promise.
  * @returns {Promise|void} Returns a promise if no callback is provided.
- * @example <caption>Cancel the verification in onLookupComplete</caption>
+ * @example <caption>Cancel the verification in `lookup-complete` event</caption>
+ * // set up listener after instantiation
+ * threeDSecure.on('lookup-complete', function (data, next) {
+ *   // determine if you want to call next to start the challenge,
+ *   // if not, call cancelVerifyCard
+ *   threeDSecure.cancelVerifyCard(function (err, verifyPayload) {
+ *     if (err) {
+ *       // Handle error
+ *       console.log(err.message); // No verification payload available
+ *       return;
+ *     }
+ *
+ *     verifyPayload.nonce; // The nonce returned from the 3ds lookup call
+ *     verifyPayload.liabilityShifted; // boolean
+ *     verifyPayload.liabilityShiftPossible; // boolean
+ *   });
+ * });
+ *
+ * // after tokenizing a credit card
+ * threeDSecure.verifyCard({
+ *   amount: '100.00',
+ *   nonce: nonceFromTokenizationPayload,
+ *   bin: binFromTokenizationPayload
+ *   // other fields such as billing address
+ * }, function (verifyError, payload) {
+ *   if (verifyError) {
+ *     if (verifyError.code === 'THREEDS_VERIFY_CARD_CANCELED_BY_MERCHANT ') {
+ *       // flow was cancelled by merchant, 3ds info can be found in the payload
+ *       // for cancelVerifyCard
+ *     }
+ *   }
+ * });
+ * @example <caption>Cancel the verification in onLookupComplete callback</caption>
  * threeDSecure.verifyCard({
  *   amount: '100.00',
  *   nonce: nonceFromTokenizationPayload,
@@ -2405,199 +3454,7 @@ ThreeDSecure.prototype._triggerCardinalBinProcess = function (bin) {
  * });
  */
 ThreeDSecure.prototype.cancelVerifyCard = function () {
-  var response;
-
-  this._verifyCardInProgress = false;
-
-  if (!this._lookupPaymentMethod) {
-    return Promise.reject(new BraintreeError(errors.THREEDS_NO_VERIFICATION_PAYLOAD));
-  }
-
-  response = assign({}, this._lookupPaymentMethod, {
-    liabilityShiftPossible: this._lookupPaymentMethod.threeDSecureInfo.liabilityShiftPossible,
-    liabilityShifted: this._lookupPaymentMethod.threeDSecureInfo.liabilityShifted,
-    verificationDetails: this._lookupPaymentMethod.threeDSecureInfo.verificationDetails
-  });
-
-  if (this._usesSongbirdFlow() && this._verifyCardCallback) {
-    this._verifyCardCallback(new BraintreeError(errors.THREEDS_VERIFY_CARD_CANCELED_BY_MERCHANT));
-  }
-
-  return Promise.resolve(response);
-};
-
-ThreeDSecure.prototype._handleLookupResponse = function (options) {
-  var details;
-  var self = this;
-  var lookupResponse = options.lookupResponse;
-
-  options.onLookupComplete = options.onLookupComplete || function (data, next) {
-    next();
-  };
-
-  options.onLookupComplete(lookupResponse, function () {
-    var challengePresented = Boolean(lookupResponse.lookup && lookupResponse.lookup.acsUrl);
-
-    analytics.sendEvent(self._options.client, 'three-d-secure.verification-flow.challenge-presented.' + String(challengePresented));
-
-    if (challengePresented) {
-      if (self._usesSongbirdFlow()) {
-        // set up listener for ref id to call out to bt before calling verify callback
-        global.Cardinal.continue('cca',
-          {
-            AcsUrl: lookupResponse.lookup.acsUrl,
-            Payload: lookupResponse.lookup.pareq
-          },
-          {
-            OrderDetails: {TransactionId: lookupResponse.lookup.transactionId}
-          }
-        );
-      } else {
-        // fallback to old iframe flow:
-        options.addFrame(null, self._createIframe({
-          showLoader: options.showLoader,
-          response: lookupResponse.lookup,
-          removeFrame: options.removeFrame
-        }));
-      }
-    } else {
-      details = self._formatAuthResponse(lookupResponse.paymentMethod, lookupResponse.threeDSecureInfo);
-      details.verificationDetails = lookupResponse.threeDSecureInfo;
-
-      self._verifyCardCallback(null, details);
-    }
-  });
-};
-
-ThreeDSecure.prototype._transformV1CustomerBillingAddress = function (customer) {
-  customer.billingAddress.line1 = customer.billingAddress.streetAddress;
-  customer.billingAddress.line2 = customer.billingAddress.extendedAddress;
-  customer.billingAddress.city = customer.billingAddress.locality;
-  customer.billingAddress.state = customer.billingAddress.region;
-  customer.billingAddress.countryCode = customer.billingAddress.countryCodeAlpha2;
-  delete customer.billingAddress.streetAddress;
-  delete customer.billingAddress.extendedAddress;
-  delete customer.billingAddress.locality;
-  delete customer.billingAddress.region;
-  delete customer.billingAddress.countryCodeAlpha2;
-
-  return customer;
-};
-
-ThreeDSecure.prototype._transformBillingAddress = function (additionalInformation, billingAddress) {
-  if (billingAddress) {
-    // map from public API to the API that the Gateway expects
-    additionalInformation.billingLine1 = billingAddress.streetAddress;
-    additionalInformation.billingLine2 = billingAddress.extendedAddress;
-    additionalInformation.billingLine3 = billingAddress.line3;
-    additionalInformation.billingCity = billingAddress.locality;
-    additionalInformation.billingState = billingAddress.region;
-    additionalInformation.billingPostalCode = billingAddress.postalCode;
-    additionalInformation.billingCountryCode = billingAddress.countryCodeAlpha2;
-    additionalInformation.billingPhoneNumber = billingAddress.phoneNumber;
-    additionalInformation.billingGivenName = billingAddress.givenName;
-    additionalInformation.billingSurname = billingAddress.surname;
-  }
-
-  return additionalInformation;
-};
-
-ThreeDSecure.prototype._transformShippingAddress = function (additionalInformation) {
-  var shippingAddress = additionalInformation.shippingAddress;
-
-  if (shippingAddress) {
-    // map from public API to the API that the Gateway expects
-    additionalInformation.shippingLine1 = shippingAddress.streetAddress;
-    additionalInformation.shippingLine2 = shippingAddress.extendedAddress;
-    additionalInformation.shippingLine3 = shippingAddress.line3;
-    additionalInformation.shippingCity = shippingAddress.locality;
-    additionalInformation.shippingState = shippingAddress.region;
-    additionalInformation.shippingPostalCode = shippingAddress.postalCode;
-    additionalInformation.shippingCountryCode = shippingAddress.countryCodeAlpha2;
-
-    delete additionalInformation.shippingAddress;
-  }
-
-  return additionalInformation;
-};
-
-ThreeDSecure.prototype._createIframe = function (options) {
-  var url,
-    authenticationCompleteBaseUrl;
-  var parentURL = window.location.href;
-  var response = options.response;
-
-  this._bus = new Bus({
-    channel: uuid(),
-    merchantUrl: location.href
-  });
-
-  authenticationCompleteBaseUrl = this._assetsUrl + '/html/three-d-secure-authentication-complete-frame.html?channel=' + encodeURIComponent(this._bus.channel) + '&';
-
-  if (parentURL.indexOf('#') > -1) {
-    parentURL = parentURL.split('#')[0];
-  }
-
-  this._bus.on(Bus.events.CONFIGURATION_REQUEST, function (reply) {
-    reply({
-      acsUrl: response.acsUrl,
-      pareq: response.pareq,
-      termUrl: response.termUrl + '&three_d_secure_version=' + VERSION + '&authentication_complete_base_url=' + encodeURIComponent(authenticationCompleteBaseUrl),
-      md: response.md,
-      parentUrl: parentURL
-    });
-  });
-
-  this._bus.on(events.AUTHENTICATION_COMPLETE, function (data) {
-    this._handleAuthResponse(data, options);
-  }.bind(this));
-
-  url = this._assetsUrl + '/html/three-d-secure-bank-frame' + useMin(this._isDebug) + '.html?showLoader=' + options.showLoader;
-
-  this._bankIframe = iFramer({
-    src: url,
-    height: IFRAME_HEIGHT,
-    width: IFRAME_WIDTH,
-    name: constants.LANDING_FRAME_NAME + '_' + this._bus.channel,
-    title: '3D Secure Authorization Frame'
-  });
-
-  return this._bankIframe;
-};
-
-ThreeDSecure.prototype._handleAuthResponse = function (data, options) {
-  var authResponse = JSON.parse(data.auth_response);
-
-  this._bus.teardown();
-
-  options.removeFrame();
-
-  // This also has to be in a setTimeout so it executes after the `removeFrame`.
-  deferred(function () {
-    if (authResponse.success) {
-      this._verifyCardCallback(null, this._formatAuthResponse(authResponse.paymentMethod, authResponse.threeDSecureInfo));
-    } else if (authResponse.threeDSecureInfo && authResponse.threeDSecureInfo.liabilityShiftPossible) {
-      this._verifyCardCallback(null, this._formatAuthResponse(this._lookupPaymentMethod, authResponse.threeDSecureInfo));
-    } else {
-      this._verifyCardCallback(new BraintreeError({
-        type: BraintreeError.types.UNKNOWN,
-        code: 'UNKNOWN_AUTH_RESPONSE',
-        message: authResponse.error.message
-      }));
-    }
-  }.bind(this))();
-};
-
-ThreeDSecure.prototype._formatAuthResponse = function (paymentMethod, threeDSecureInfo) {
-  return {
-    nonce: paymentMethod.nonce,
-    binData: paymentMethod.binData,
-    details: paymentMethod.details,
-    description: paymentMethod.description && paymentMethod.description.replace(/\+/g, ' '),
-    liabilityShifted: threeDSecureInfo && threeDSecureInfo.liabilityShifted,
-    liabilityShiftPossible: threeDSecureInfo && threeDSecureInfo.liabilityShiftPossible,
-    threeDSecureInfo: paymentMethod.threeDSecureInfo
-  };
+  return this._framework.cancelVerifyCard();
 };
 
 /**
@@ -2613,238 +3470,16 @@ ThreeDSecure.prototype._formatAuthResponse = function (paymentMethod, threeDSecu
  * @returns {Promise|void} Returns a promise if no callback is provided.
  */
 ThreeDSecure.prototype.teardown = function () {
-  convertMethodsToError(this, methods(ThreeDSecure.prototype));
+  var methodNames = methods(ThreeDSecure.prototype).concat(methods(EventEmitter.prototype));
 
-  analytics.sendEvent(this._options.client, 'three-d-secure.teardown-completed');
+  convertMethodsToError(this, methodNames);
 
-  if (this._bus) {
-    this._bus.teardown();
-  }
-
-  if (this._bankIframe && this._bankIframe.parentNode) {
-    this._bankIframe.parentNode.removeChild(this._bankIframe);
-  }
-
-  if (global.Cardinal) {
-    global.Cardinal.off('payments.setupComplete');
-    global.Cardinal.off('payments.validated');
-  }
-
-  return Promise.resolve();
-};
-
-ThreeDSecure.prototype._usesSongbirdFlow = function () {
-  return this._options.version === 2;
-};
-
-ThreeDSecure.prototype._createPaymentsSetupCompleteCallback = function (resolve, timeoutReference) {
-  var self = this;
-
-  return function (data) {
-    if (self._getDfReferenceIdResolveFunction) {
-      self._getDfReferenceIdResolveFunction(data.sessionId);
-    } else {
-      self._getDfReferenceIdPromise = Promise.resolve(data.sessionId);
-    }
-
-    global.clearTimeout(timeoutReference);
-    analytics.sendEvent(self._client, 'three-d-secure.cardinal-sdk.init.setup-completed');
-    resolve();
-  };
-};
-
-ThreeDSecure.prototype._createPaymentsValidatedCallback = function () {
-  var self = this;
-
-  /**
-   * @param {object} data Response Data
-   * @see {@link https://cardinaldocs.atlassian.net/wiki/spaces/CC/pages/98315/Response+Objects#ResponseObjects-ObjectDefinition}
-   * @param {string} data.ActionCode The resulting state of the transaction.
-   * @param {boolean} data.Validated Represents whether transaction was successfully or not.
-   * @param {number} data.ErrorNumber A non-zero value represents the error encountered while attempting the process the message request.
-   * @param {string} data.ErrorDescription Application error description for the associated error number.
-   * @param {string} validatedJwt Response JWT
-   * @returns {void}
-   * */
-  return function (data, validatedJwt) {
-    var formattedError = '';
-
-    analytics.sendEvent(self._options.client, 'three-d-secure.verification-flow.cardinal-sdk.action-code.' + data.ActionCode.toLowerCase());
-
-    switch (data.ActionCode) {
-      // Handle these scenarios based on liability shift information in the response.
-      case 'SUCCESS':
-      case 'NOACTION':
-      case 'FAILURE':
-        self._performJWTValidation(validatedJwt).then(function (payload) {
-          self._verifyCardCallback(null, payload);
-        }).catch(function (err) {
-          self._verifyCardCallback(err);
-        });
-        break;
-
-      case 'ERROR':
-        switch (data.ErrorNumber) {
-          case 10001:
-          case 10002:
-            formattedError = new BraintreeError(errors.THREEDS_CARDINAL_SDK_SETUP_TIMEDOUT);
-            break;
-          case 10003:
-          case 10007:
-          case 10009:
-            formattedError = new BraintreeError(errors.THREEDS_CARDINAL_SDK_RESPONSE_TIMEDOUT);
-            break;
-          case 10005:
-          case 10006:
-            formattedError = new BraintreeError(errors.THREEDS_CARDINAL_SDK_BAD_CONFIG);
-            break;
-          case 10008:
-          case 10010:
-            formattedError = new BraintreeError(errors.THREEDS_CARDINAL_SDK_BAD_JWT);
-            break;
-          case 10011:
-            analytics.sendEvent(self._options.client, 'three-d-secure.verification-flow.canceled');
-            formattedError = new BraintreeError(errors.THREEDS_CARDINAL_SDK_CANCELED);
-            break;
-          case 10004:
-          case 10012:
-          default:
-            formattedError = new BraintreeError(errors.THREEDS_CARDINAL_SDK_ERROR);
-        }
-
-        formattedError.details = {
-          originalError: {
-            code: data.ErrorNumber,
-            description: data.ErrorDescription
-          }
-        };
-
-        if (self._verifyCardCallback) {
-          self._verifyCardCallback(formattedError, null);
-        } else {
-          self._verifyCardBlockingError = formattedError;
-        }
-        break;
-
-      default:
-    }
-  };
-};
-
-ThreeDSecure.prototype._setupSongbird = function (setupOptions) {
-  var self = this;
-  var scriptSource = constants.CARDINAL_SCRIPT_SOURCE.sandbox;
-  var jwt = this._client.getConfiguration().gatewayConfiguration.threeDSecure.cardinalAuthenticationJWT;
-  var startTime = Date.now();
-
-  setupOptions = setupOptions || {};
-
-  return new Promise(function (resolve, reject) {
-    var timeoutReference = global.setTimeout(function () {
-      analytics.sendEvent(self._client, 'three-d-secure.cardinal-sdk.init.setup-timeout');
-      reject(new BraintreeError(errors.THREEDS_CARDINAL_SDK_SETUP_TIMEDOUT));
-    }, setupOptions.timeout || INTEGRATION_TIMEOUT_MS);
-
-    if (setupOptions.isProduction) {
-      scriptSource = constants.CARDINAL_SCRIPT_SOURCE.production;
-    }
-    assets.loadScript({src: scriptSource}).catch(function (err) {
-      return Promise.reject(convertToBraintreeError(err, errors.THREEDS_CARDINAL_SDK_SCRIPT_LOAD_FAILED));
-    }).then(function (script) {
-      self._cardinalScript = script;
-      global.Cardinal.on('payments.setupComplete', self._createPaymentsSetupCompleteCallback(resolve, timeoutReference));
-
-      if (setupOptions.loggingEnabled) {
-        global.Cardinal.configure({
-          logging: {
-            level: 'verbose'
-          }
-        });
-      }
-
-      global.Cardinal.setup('init', {
-        jwt: jwt
-      });
-
-      self._clientMetadata.cardinalDeviceDataCollectionTimeElapsed = Date.now() - startTime;
-
-      global.Cardinal.on('payments.validated', self._createPaymentsValidatedCallback());
-    }).catch(function (err) {
-      var error = convertToBraintreeError(err, {
-        type: errors.THREEDS_CARDINAL_SDK_SETUP_FAILED.type,
-        code: errors.THREEDS_CARDINAL_SDK_SETUP_FAILED.code,
-        message: errors.THREEDS_CARDINAL_SDK_SETUP_FAILED.message
-      });
-
-      if (self._getDfReferenceIdPromise) {
-        self._getDfReferenceIdRejectFunction(error);
-      } else {
-        self._getDfReferenceIdError = error;
-      }
-
-      global.clearTimeout(timeoutReference);
-      analytics.sendEvent(self._client, 'three-d-secure.cardinal-sdk.init.setup-failed');
-      reject(error);
-    });
-  });
-};
-
-ThreeDSecure.prototype._getDfReferenceId = function () {
-  if (this._getDfReferenceIdError) {
-    return Promise.reject(this._getDfReferenceIdError);
-  }
-
-  if (!this._getDfReferenceIdPromise) {
-    this._getDfReferenceIdPromise = new Promise(function (resolve, reject) {
-      this._getDfReferenceIdResolveFunction = resolve;
-      this._getDfReferenceIdRejectFunction = reject;
-    }.bind(this));
-  }
-
-  return this._getDfReferenceIdPromise;
-};
-
-ThreeDSecure.prototype._performJWTValidation = function (jwt) {
-  var nonce = this._lookupPaymentMethod.nonce;
-  var url = 'payment_methods/' + nonce + '/three_d_secure/authenticate_from_jwt';
-  var self = this;
-
-  analytics.sendEvent(self._options.client, 'three-d-secure.verification-flow.upgrade-payment-method.started');
-
-  return this._client.request({
-    method: 'post',
-    endpoint: url,
-    data: {
-      jwt: jwt,
-      paymentMethodNonce: nonce
-    }
-  }).then(function (response) {
-    var paymentMethod = response.paymentMethod || self._lookupPaymentMethod;
-    var formattedResponse = self._formatAuthResponse(paymentMethod, response.threeDSecureInfo);
-
-    analytics.sendEvent(self._options.client, 'three-d-secure.verification-flow.upgrade-payment-method.succeeded');
-
-    return Promise.resolve(formattedResponse);
-  }).catch(function (err) {
-    var error = new BraintreeError({
-      type: errors.THREEDS_JWT_AUTHENTICATION_FAILED.type,
-      code: errors.THREEDS_JWT_AUTHENTICATION_FAILED.code,
-      message: errors.THREEDS_JWT_AUTHENTICATION_FAILED.message,
-      details: {
-        originalError: err
-      }
-    });
-
-    analytics.sendEvent(self._options.client, 'three-d-secure.verification-flow.upgrade-payment-method.errored');
-
-    return Promise.reject(error);
-  });
+  return this._framework.teardown();
 };
 
 module.exports = wrapPromise.wrapPrototype(ThreeDSecure);
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../lib/analytics":14,"../../lib/assets":15,"../../lib/assign":16,"../../lib/braintree-error":18,"../../lib/bus":21,"../../lib/constants":22,"../../lib/convert-methods-to-error":23,"../../lib/convert-to-braintree-error":24,"../../lib/deferred":28,"../../lib/methods":34,"../../lib/promise":35,"../../lib/use-min":36,"../../lib/vendor/uuid":38,"../shared/constants":41,"../shared/errors":42,"../shared/events":43,"@braintree/iframer":3,"@braintree/wrap-promise":10}],40:[function(_dereq_,module,exports){
+},{"../../lib/convert-methods-to-error":24,"../../lib/methods":35,"./frameworks":44,"@braintree/event-emitter":3,"@braintree/wrap-promise":11}],49:[function(_dereq_,module,exports){
 'use strict';
 /** @module braintree-web/three-d-secure */
 
@@ -2856,9 +3491,11 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.52.1";
+var VERSION = "3.53.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
+
+var KNOWN_FRAMEWORKS = _dereq_('./external/frameworks/');
 
 /**
  * @static
@@ -2866,7 +3503,7 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
  * @param {object} options Creation options:
  * @param {Client} [options.client] A {@link Client} instance.
  * @param {string} [options.authorization] A tokenizationKey or clientToken. Can be used in place of `options.client`.
- * @param {number} [options.version=1] The version of 3DS to use. Pass in 2 to use 3DS 2.0.
+ * @param {number} [options.version=1] The version of 3D Secure to use. Pass in 2 to use 3D Secure 2.0.
  * @param {callback} [callback] The second argument, `data`, is the {@link ThreeDSecure} instance. If no callback is provided, it returns a promise that resolves the {@link ThreeDSecure} instance.
  * @returns {Promise|void} Returns a promise if no callback is provided.
  */
@@ -2889,6 +3526,7 @@ function create(options) {
     var error, isProduction, instance;
     var config = client.getConfiguration();
     var gwConfig = config.gatewayConfiguration;
+    var framework = getFramework(options);
 
     options.client = client;
 
@@ -2906,7 +3544,7 @@ function create(options) {
       error = errors.THREEDS_HTTPS_REQUIRED;
     }
 
-    if (options.version === 2 && !(gwConfig.threeDSecure && gwConfig.threeDSecure.cardinalAuthenticationJWT)) {
+    if (framework !== 'legacy' && !(gwConfig.threeDSecure && gwConfig.threeDSecure.cardinalAuthenticationJWT)) {
       analytics.sendEvent(options.client, 'three-d-secure.initialization.failed.missing-cardinalAuthenticationJWT');
       error = errors.THREEDS_NOT_ENABLED_FOR_V2;
     }
@@ -2917,14 +3555,33 @@ function create(options) {
 
     analytics.sendEvent(options.client, 'three-d-secure.initialized');
 
-    instance = new ThreeDSecure(options);
-
-    if (options.version === 2) {
-      instance._setupSongbird({isProduction: isProduction, loggingEnabled: options.loggingEnabled});
-    }
+    instance = new ThreeDSecure({
+      client: options.client,
+      framework: framework
+    });
 
     return instance;
   });
+}
+
+function getFramework(options) {
+  if (options.framework) {
+    if (options.framework in KNOWN_FRAMEWORKS) {
+      return options.framework;
+    }
+
+    throw new BraintreeError({
+      code: errors.THREEDS_UNRECOGNIZED_FRAMEWORK.code,
+      type: errors.THREEDS_UNRECOGNIZED_FRAMEWORK.type,
+      message: 'Framework `' + options.framework + '` is not a recognized framework. You may need to update the version of your Braintree SDK to support this framework.'
+    });
+  }
+
+  if (options.version === 2) {
+    return 'cardinal-modal';
+  }
+
+  return 'legacy';
 }
 
 module.exports = {
@@ -2936,7 +3593,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/analytics":14,"../lib/basic-component-verification":17,"../lib/braintree-error":18,"../lib/create-assets-url":25,"../lib/create-deferred-client":27,"../lib/is-https":31,"../lib/promise":35,"./external/three-d-secure":39,"./shared/errors":42,"@braintree/wrap-promise":10}],41:[function(_dereq_,module,exports){
+},{"../lib/analytics":15,"../lib/basic-component-verification":18,"../lib/braintree-error":19,"../lib/create-assets-url":26,"../lib/create-deferred-client":28,"../lib/is-https":32,"../lib/promise":37,"./external/frameworks/":44,"./external/three-d-secure":48,"./shared/errors":51,"@braintree/wrap-promise":11}],50:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -2947,7 +3604,7 @@ module.exports = {
   }
 };
 
-},{}],42:[function(_dereq_,module,exports){
+},{}],51:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -2957,6 +3614,7 @@ module.exports = {
  * @property {MERCHANT} THREEDS_CAN_NOT_USE_TOKENIZATION_KEY Occurs when 3D Secure component is created without a Client Token.
  * @property {MERCHANT} THREEDS_HTTPS_REQUIRED Occurs when 3D Secure component is created in production over HTTPS.
  * @property {MERCHANT} THREEDS_NOT_ENABLED_FOR_V2 Occurs when 3D Secure component is created with version 2 parameter, but merchant is not enabled to use version 2.
+ * @property {MERCHANT} THREEDS_UNRECOGNIZED_FRAMEWORK Occurs when unrecognized framework is passed into the create call.
  * @property {UNKNOWN} THREEDS_CARDINAL_SDK_SETUP_FAILED Occurs when Cardinal's Songbird.js library fails to setup for an unknown reason.
  * @property {NETWORK} THREEDS_CARDINAL_SDK_SCRIPT_LOAD_FAILED Occurs when using version 2 and Cardinal's Songbird.js script could not be loaded.
  * @property {UNKNOWN} THREEDS_CARDINAL_SDK_SETUP_TIMEDOUT Occurs when Cardinal's Songbird.js library takes longer than 60 seconds to set up.
@@ -2977,6 +3635,7 @@ module.exports = {
  * @property {CUSTOMER} THREEDS_LOOKUP_VALIDATION_ERROR Occurs when a validation error occurs during the 3D Secure lookup.
  * @property {UNKNOWN} THREEDS_LOOKUP_ERROR An unknown error occurred while attempting the 3D Secure lookup.
  * @property {MERCHANT} THREEDS_VERIFY_CARD_CANCELED_BY_MERCHANT Occurs when the 3D Secure flow is canceled by the merchant using `cancelVerifyCard` (3D Secure v2 flows only).
+ * @property {UNKNOWN} THREEDS_INLINE_IFRAME_DETAILS_INCORRECT An unknown error occurred while attempting to use the inline iframe framework.
  */
 
 /**
@@ -2990,6 +3649,7 @@ module.exports = {
  * @ignore
  * @description Errors that occur internally
  * @property {INTERNAL} THREEDS_TERM_URL_REQUIRES_BRAINTREE_DOMAIN Occurs when iframe is initialized on a non-verified domain.
+ * @property {INTERNAL} THREEDS_FRAMEWORK_METHOD_NOT_IMPLEMENTED Occurs when a 3D Secure framwork method is not implemented.
  */
 
 var BraintreeError = _dereq_('../../lib/braintree-error');
@@ -3014,6 +3674,10 @@ module.exports = {
     type: BraintreeError.types.MERCHANT,
     code: 'THREEDS_NOT_ENABLED_FOR_V2',
     message: '3D Secure version 2 is not enabled for this merchant. Contact Braintree Support for assistance at https://help.braintreepayments.com/'
+  },
+  THREEDS_UNRECOGNIZED_FRAMEWORK: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'THREEDS_UNRECOGNIZED_FRAMEWORK'
   },
   THREEDS_CARDINAL_SDK_SETUP_FAILED: {
     type: BraintreeError.types.UNKNOWN,
@@ -3089,6 +3753,11 @@ module.exports = {
     code: 'THREEDS_LOOKUP_ERROR',
     message: 'Something went wrong during the 3D Secure lookup'
   },
+  THREEDS_INLINE_IFRAME_DETAILS_INCORRECT: {
+    type: BraintreeError.types.UNKNOWN,
+    code: 'THREEDS_INLINE_IFRAME_DETAILS_INCORRECT',
+    message: 'Something went wrong when attempting to add the authentication iframe to the page.'
+  },
   THREEDS_NO_VERIFICATION_PAYLOAD: {
     type: BraintreeError.types.MERCHANT,
     code: 'THREEDS_NO_VERIFICATION_PAYLOAD',
@@ -3098,10 +3767,15 @@ module.exports = {
     type: BraintreeError.types.INTERNAL,
     code: 'THREEDS_TERM_URL_REQUIRES_BRAINTREE_DOMAIN',
     message: 'Term Url must be on a Braintree domain.'
+  },
+  THREEDS_FRAMEWORK_METHOD_NOT_IMPLEMENTED: {
+    type: BraintreeError.types.INTERNAL,
+    code: 'THREEDS_FRAMEWORK_METHOD_NOT_IMPLEMENTED',
+    message: 'Method not implemented for this framework.'
   }
 };
 
-},{"../../lib/braintree-error":18}],43:[function(_dereq_,module,exports){
+},{"../../lib/braintree-error":19}],52:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../../lib/enumerate');
@@ -3110,5 +3784,5 @@ module.exports = enumerate([
   'AUTHENTICATION_COMPLETE'
 ], 'threedsecure:');
 
-},{"../../lib/enumerate":29}]},{},[40])(40)
+},{"../../lib/enumerate":30}]},{},[49])(49)
 });

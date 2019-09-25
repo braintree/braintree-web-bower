@@ -7,7 +7,7 @@ var PromisePolyfill = _dereq_('promise-polyfill');
 module.exports = global.Promise || PromisePolyfill;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":32}],2:[function(_dereq_,module,exports){
+},{"promise-polyfill":33}],2:[function(_dereq_,module,exports){
 'use strict';
 
 var Promise = _dereq_('./lib/promise');
@@ -99,7 +99,7 @@ module.exports = function isChrome(ua) {
   return (ua.indexOf('Chrome') !== -1 || ua.indexOf('CriOS') !== -1) && !isEdge(ua) && !isSamsung(ua);
 };
 
-},{"./is-edge":6,"./is-samsung":13}],6:[function(_dereq_,module,exports){
+},{"./is-edge":6,"./is-samsung":14}],6:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function isEdge(ua) {
@@ -112,6 +112,17 @@ module.exports = function isEdge(ua) {
 (function (global){
 'use strict';
 
+module.exports = function isFirefox(ua) {
+  ua = ua || global.navigator.userAgent;
+
+  return /Firefox/i.test(ua);
+};
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],8:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+
 var isIE11 = _dereq_('./is-ie11');
 
 module.exports = function isIE(ua) {
@@ -121,7 +132,7 @@ module.exports = function isIE(ua) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./is-ie11":9}],8:[function(_dereq_,module,exports){
+},{"./is-ie11":10}],9:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function isIe10(ua) {
@@ -130,7 +141,7 @@ module.exports = function isIe10(ua) {
   return ua.indexOf('MSIE 10') !== -1;
 };
 
-},{}],9:[function(_dereq_,module,exports){
+},{}],10:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function isIe11(ua) {
@@ -139,7 +150,7 @@ module.exports = function isIe11(ua) {
   return ua.indexOf('Trident/7') !== -1;
 };
 
-},{}],10:[function(_dereq_,module,exports){
+},{}],11:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function isIe9(ua) {
@@ -148,7 +159,7 @@ module.exports = function isIe9(ua) {
   return ua.indexOf('MSIE 9') !== -1;
 };
 
-},{}],11:[function(_dereq_,module,exports){
+},{}],12:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -173,7 +184,7 @@ module.exports = function isIosWebview(ua) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./is-ios":12}],12:[function(_dereq_,module,exports){
+},{"./is-ios":13}],13:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -184,7 +195,7 @@ module.exports = function isIos(ua) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],13:[function(_dereq_,module,exports){
+},{}],14:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -195,7 +206,7 @@ module.exports = function isSamsungBrowser(ua) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],14:[function(_dereq_,module,exports){
+},{}],15:[function(_dereq_,module,exports){
 'use strict';
 
 function _classesOf(element) {
@@ -234,7 +245,7 @@ module.exports = {
   toggle: toggle
 };
 
-},{}],15:[function(_dereq_,module,exports){
+},{}],16:[function(_dereq_,module,exports){
 'use strict';
 
 function EventEmitter() {
@@ -293,7 +304,7 @@ EventEmitter.createChild = function (ChildObject) {
 
 module.exports = EventEmitter;
 
-},{}],16:[function(_dereq_,module,exports){
+},{}],17:[function(_dereq_,module,exports){
 'use strict';
 
 var setAttributes = _dereq_('./lib/set-attributes');
@@ -318,7 +329,7 @@ module.exports = function createFrame(options) {
   return iframe;
 };
 
-},{"./lib/assign":17,"./lib/default-attributes":18,"./lib/set-attributes":19}],17:[function(_dereq_,module,exports){
+},{"./lib/assign":18,"./lib/default-attributes":19,"./lib/set-attributes":20}],18:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function assign(target) {
@@ -335,7 +346,7 @@ module.exports = function assign(target) {
   return target;
 }
 
-},{}],18:[function(_dereq_,module,exports){
+},{}],19:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -345,7 +356,7 @@ module.exports = {
   scrolling: 'no'
 };
 
-},{}],19:[function(_dereq_,module,exports){
+},{}],20:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function setAttributes(element, attributes) {
@@ -364,7 +375,7 @@ module.exports = function setAttributes(element, attributes) {
   }
 };
 
-},{}],20:[function(_dereq_,module,exports){
+},{}],21:[function(_dereq_,module,exports){
 'use strict';
 
 function deferred(fn) {
@@ -387,7 +398,7 @@ function deferred(fn) {
 
 module.exports = deferred;
 
-},{}],21:[function(_dereq_,module,exports){
+},{}],22:[function(_dereq_,module,exports){
 'use strict';
 
 function once(fn) {
@@ -403,7 +414,7 @@ function once(fn) {
 
 module.exports = once;
 
-},{}],22:[function(_dereq_,module,exports){
+},{}],23:[function(_dereq_,module,exports){
 'use strict';
 
 function promiseOrCallback(promise, callback) { // eslint-disable-line consistent-return
@@ -422,7 +433,7 @@ function promiseOrCallback(promise, callback) { // eslint-disable-line consisten
 
 module.exports = promiseOrCallback;
 
-},{}],23:[function(_dereq_,module,exports){
+},{}],24:[function(_dereq_,module,exports){
 'use strict';
 
 var deferred = _dereq_('./lib/deferred');
@@ -479,7 +490,7 @@ wrapPromise.wrapPrototype = function (target, options) {
 
 module.exports = wrapPromise;
 
-},{"./lib/deferred":20,"./lib/once":21,"./lib/promise-or-callback":22}],24:[function(_dereq_,module,exports){
+},{"./lib/deferred":21,"./lib/once":22,"./lib/promise-or-callback":23}],25:[function(_dereq_,module,exports){
 'use strict';
 
 var types = _dereq_('./lib/card-types');
@@ -629,7 +640,7 @@ creditCardType.types = cardNames;
 
 module.exports = creditCardType;
 
-},{"./lib/add-matching-cards-to-results":25,"./lib/card-types":26,"./lib/clone":27,"./lib/find-best-match":28,"./lib/is-valid-input-type":29}],25:[function(_dereq_,module,exports){
+},{"./lib/add-matching-cards-to-results":26,"./lib/card-types":27,"./lib/clone":28,"./lib/find-best-match":29,"./lib/is-valid-input-type":30}],26:[function(_dereq_,module,exports){
 'use strict';
 
 var clone = _dereq_('./clone');
@@ -664,7 +675,7 @@ function addMatchingCardsToResults(cardNumber, cardConfiguration, results) {
 
 module.exports = addMatchingCardsToResults;
 
-},{"./clone":27,"./matches":30}],26:[function(_dereq_,module,exports){
+},{"./clone":28,"./matches":31}],27:[function(_dereq_,module,exports){
 'use strict';
 
 var cardTypes = {
@@ -899,7 +910,7 @@ var cardTypes = {
 
 module.exports = cardTypes;
 
-},{}],27:[function(_dereq_,module,exports){
+},{}],28:[function(_dereq_,module,exports){
 'use strict';
 
 function clone(originalObject) {
@@ -914,7 +925,7 @@ function clone(originalObject) {
 
 module.exports = clone;
 
-},{}],28:[function(_dereq_,module,exports){
+},{}],29:[function(_dereq_,module,exports){
 'use strict';
 
 function hasEnoughResultsToDetermineBestMatch(results) {
@@ -951,7 +962,7 @@ function findBestMatch(results) {
 
 module.exports = findBestMatch;
 
-},{}],29:[function(_dereq_,module,exports){
+},{}],30:[function(_dereq_,module,exports){
 'use strict';
 
 function isValidInputType(cardNumber) {
@@ -960,7 +971,7 @@ function isValidInputType(cardNumber) {
 
 module.exports = isValidInputType;
 
-},{}],30:[function(_dereq_,module,exports){
+},{}],31:[function(_dereq_,module,exports){
 'use strict';
 
 // Adapted from https://github.com/polvo-labs/card-type/blob/aaab11f80fa1939bccc8f24905a06ae3cd864356/src/cardType.js#L37-L42
@@ -991,7 +1002,7 @@ function matches(cardNumber, pattern) {
 
 module.exports = matches;
 
-},{}],31:[function(_dereq_,module,exports){
+},{}],32:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1305,7 +1316,7 @@ framebus = {
 module.exports = framebus;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],32:[function(_dereq_,module,exports){
+},{}],33:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -1581,7 +1592,7 @@ Promise._unhandledRejectionFn = function _unhandledRejectionFn(err) {
 
 module.exports = Promise;
 
-},{}],33:[function(_dereq_,module,exports){
+},{}],34:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1628,7 +1639,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"@braintree/browser-detection/is-android":3,"@braintree/browser-detection/is-chrome":5,"@braintree/browser-detection/is-chrome-os":4,"@braintree/browser-detection/is-ie9":10,"@braintree/browser-detection/is-ios":12}],34:[function(_dereq_,module,exports){
+},{"@braintree/browser-detection/is-android":3,"@braintree/browser-detection/is-chrome":5,"@braintree/browser-detection/is-chrome-os":4,"@braintree/browser-detection/is-ie9":11,"@braintree/browser-detection/is-ios":13}],35:[function(_dereq_,module,exports){
 'use strict';
 
 var device = _dereq_('./lib/device');
@@ -1638,7 +1649,7 @@ module.exports = function () {
   return !device.isSamsungBrowser();
 };
 
-},{"./lib/device":33}],35:[function(_dereq_,module,exports){
+},{"./lib/device":34}],36:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../lib/braintree-error');
@@ -1677,7 +1688,7 @@ function _isValid(attribute, value) {
 
 module.exports = attributeValidationError;
 
-},{"../../lib/braintree-error":54,"../shared/constants":43,"../shared/errors":44}],36:[function(_dereq_,module,exports){
+},{"../../lib/braintree-error":55,"../shared/constants":44,"../shared/errors":45}],37:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('../shared/constants');
@@ -1691,10 +1702,11 @@ module.exports = function composeUrl(assetsUrl, componentId, isDebug) {
     componentId;
 };
 
-},{"../../lib/use-min":71,"../shared/constants":43}],37:[function(_dereq_,module,exports){
+},{"../../lib/use-min":72,"../shared/constants":44}],38:[function(_dereq_,module,exports){
 'use strict';
 
 var directions = _dereq_('../shared/constants').navigationDirections;
+var browserDetection = _dereq_('../shared/browser-detection');
 var focusIntercept = _dereq_('../shared/focus-intercept');
 var findParentTags = _dereq_('../shared/find-parent-tags');
 var userFocusableTagNames = [
@@ -1707,6 +1719,12 @@ var unfocusedInputTypes = [
 ];
 
 function _isUserFocusableElement(element) {
+  if (!browserDetection.hasSoftwareKeyboard()) {
+    // on desktop browsers, the only input type that isn't focusable
+    // is the hidden input
+    return element.type !== 'hidden';
+  }
+
   return userFocusableTagNames.indexOf(element.tagName) > -1 &&
     unfocusedInputTypes.indexOf(element.type) < 0;
 }
@@ -1807,7 +1825,7 @@ module.exports = {
   }
 };
 
-},{"../shared/constants":43,"../shared/find-parent-tags":45,"../shared/focus-intercept":46}],38:[function(_dereq_,module,exports){
+},{"../shared/browser-detection":43,"../shared/constants":44,"../shared/find-parent-tags":46,"../shared/focus-intercept":47}],39:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1845,7 +1863,7 @@ module.exports = function getStylesFromClass(cssClass) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../shared/constants":43}],39:[function(_dereq_,module,exports){
+},{"../shared/constants":44}],40:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -3179,7 +3197,7 @@ HostedFields.prototype.getState = function () {
 module.exports = wrapPromise.wrapPrototype(HostedFields);
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../lib/analytics":49,"../../lib/assign":51,"../../lib/braintree-error":54,"../../lib/bus":57,"../../lib/constants":58,"../../lib/convert-methods-to-error":59,"../../lib/create-assets-url":60,"../../lib/create-deferred-client":62,"../../lib/destructor":63,"../../lib/errors":65,"../../lib/methods":68,"../../lib/promise":70,"../../lib/vendor/uuid":73,"../shared/browser-detection":42,"../shared/constants":43,"../shared/errors":44,"../shared/find-parent-tags":45,"../shared/focus-intercept":46,"../shared/get-card-types":47,"./attribute-validation-error":35,"./compose-url":36,"./focus-change":37,"./get-styles-from-class":38,"./inject-frame":40,"@braintree/class-list":14,"@braintree/event-emitter":15,"@braintree/iframer":16,"@braintree/wrap-promise":23}],40:[function(_dereq_,module,exports){
+},{"../../lib/analytics":50,"../../lib/assign":52,"../../lib/braintree-error":55,"../../lib/bus":58,"../../lib/constants":59,"../../lib/convert-methods-to-error":60,"../../lib/create-assets-url":61,"../../lib/create-deferred-client":63,"../../lib/destructor":64,"../../lib/errors":66,"../../lib/methods":69,"../../lib/promise":71,"../../lib/vendor/uuid":74,"../shared/browser-detection":43,"../shared/constants":44,"../shared/errors":45,"../shared/find-parent-tags":46,"../shared/focus-intercept":47,"../shared/get-card-types":48,"./attribute-validation-error":36,"./compose-url":37,"./focus-change":38,"./get-styles-from-class":39,"./inject-frame":41,"@braintree/class-list":15,"@braintree/event-emitter":16,"@braintree/iframer":17,"@braintree/wrap-promise":24}],41:[function(_dereq_,module,exports){
 'use strict';
 
 var focusIntercept = _dereq_('../shared/focus-intercept');
@@ -3204,7 +3222,7 @@ module.exports = function injectFrame(frame, container, focusHandler) {
   return [frame, clearboth];
 };
 
-},{"../shared/constants":43,"../shared/focus-intercept":46}],41:[function(_dereq_,module,exports){
+},{"../shared/constants":44,"../shared/focus-intercept":47}],42:[function(_dereq_,module,exports){
 'use strict';
 /** @module braintree-web/hosted-fields */
 
@@ -3215,7 +3233,7 @@ var supportsInputFormatting = _dereq_('restricted-input/supports-input-formattin
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.52.1";
+var VERSION = "3.53.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -3527,26 +3545,36 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/basic-component-verification":52,"../lib/braintree-error":54,"../lib/promise":70,"./external/hosted-fields":39,"./shared/errors":44,"@braintree/wrap-promise":23,"restricted-input/supports-input-formatting":34}],42:[function(_dereq_,module,exports){
+},{"../lib/basic-component-verification":53,"../lib/braintree-error":55,"../lib/promise":71,"./external/hosted-fields":40,"./shared/errors":45,"@braintree/wrap-promise":24,"restricted-input/supports-input-formatting":35}],43:[function(_dereq_,module,exports){
 'use strict';
+
+var isAndroid = _dereq_('@braintree/browser-detection/is-android');
+var isChromeOS = _dereq_('@braintree/browser-detection/is-chrome-os');
+var isIos = _dereq_('@braintree/browser-detection/is-ios');
+
+function hasSoftwareKeyboard() {
+  return isAndroid() || isChromeOS() || isIos();
+}
 
 module.exports = {
   isIE: _dereq_('@braintree/browser-detection/is-ie'),
   isEdge: _dereq_('@braintree/browser-detection/is-edge'),
   isIe9: _dereq_('@braintree/browser-detection/is-ie9'),
   isIe10: _dereq_('@braintree/browser-detection/is-ie10'),
-  isAndroid: _dereq_('@braintree/browser-detection/is-android'),
-  isChromeOS: _dereq_('@braintree/browser-detection/is-chrome-os'),
-  isIos: _dereq_('@braintree/browser-detection/is-ios'),
-  isIosWebview: _dereq_('@braintree/browser-detection/is-ios-webview')
+  isAndroid: isAndroid,
+  isChromeOS: isChromeOS,
+  isFirefox: _dereq_('@braintree/browser-detection/is-firefox'),
+  isIos: isIos,
+  isIosWebview: _dereq_('@braintree/browser-detection/is-ios-webview'),
+  hasSoftwareKeyboard: hasSoftwareKeyboard
 };
 
-},{"@braintree/browser-detection/is-android":3,"@braintree/browser-detection/is-chrome-os":4,"@braintree/browser-detection/is-edge":6,"@braintree/browser-detection/is-ie":7,"@braintree/browser-detection/is-ie10":8,"@braintree/browser-detection/is-ie9":10,"@braintree/browser-detection/is-ios":12,"@braintree/browser-detection/is-ios-webview":11}],43:[function(_dereq_,module,exports){
+},{"@braintree/browser-detection/is-android":3,"@braintree/browser-detection/is-chrome-os":4,"@braintree/browser-detection/is-edge":6,"@braintree/browser-detection/is-firefox":7,"@braintree/browser-detection/is-ie":8,"@braintree/browser-detection/is-ie10":9,"@braintree/browser-detection/is-ie9":11,"@braintree/browser-detection/is-ios":13,"@braintree/browser-detection/is-ios-webview":12}],44:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.52.1";
+var VERSION = "3.53.0";
 
 var constants = {
   VERSION: VERSION,
@@ -3689,7 +3717,7 @@ constants.events = enumerate([
 
 module.exports = constants;
 
-},{"../../lib/enumerate":64,"./errors":44}],44:[function(_dereq_,module,exports){
+},{"../../lib/enumerate":65,"./errors":45}],45:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -3802,7 +3830,7 @@ module.exports = {
   }
 };
 
-},{"../../lib/braintree-error":54}],45:[function(_dereq_,module,exports){
+},{"../../lib/braintree-error":55}],46:[function(_dereq_,module,exports){
 'use strict';
 
 function findParentTags(element, tag) {
@@ -3822,7 +3850,7 @@ function findParentTags(element, tag) {
 
 module.exports = findParentTags;
 
-},{}],46:[function(_dereq_,module,exports){
+},{}],47:[function(_dereq_,module,exports){
 'use strict';
 
 var browserDetection = _dereq_('./browser-detection');
@@ -3844,9 +3872,8 @@ var focusIntercept = {
       top: '-1px !important',
       width: '1px !important'
     };
-    var shouldCreateFocusIntercept = browserDetection.isChromeOS() ||
-      browserDetection.isAndroid() ||
-      browserDetection.isIos();
+    var shouldCreateFocusIntercept = browserDetection.hasSoftwareKeyboard() ||
+      browserDetection.isFirefox() || browserDetection.isIE();
 
     if (!shouldCreateFocusIntercept) { return document.createDocumentFragment(); }
 
@@ -3862,7 +3889,22 @@ var focusIntercept = {
 
     classList.add(input, 'focus-intercept');
 
-    input.addEventListener('focus', handler);
+    input.addEventListener('focus', function (event) {
+      handler(event);
+
+      /*
+        Certain browsers without software keyboards (Firefox, Internet
+        Explorer) need the focus intercept inputs that get inserted
+        around the actual input to blur themselves, otherwise the
+        browser gets confused about what should have focus. Can't
+        apply this to browsers with software keyboards however,
+        because it blurs everything, and focus on the actual input is
+        also lost.
+      */
+      if (!browserDetection.hasSoftwareKeyboard()) {
+        input.blur();
+      }
+    });
 
     return input;
   },
@@ -3905,7 +3947,7 @@ var focusIntercept = {
 
 module.exports = focusIntercept;
 
-},{"./browser-detection":42,"./constants":43,"@braintree/class-list":14}],47:[function(_dereq_,module,exports){
+},{"./browser-detection":43,"./constants":44,"@braintree/class-list":15}],48:[function(_dereq_,module,exports){
 'use strict';
 
 var creditCardType = _dereq_('credit-card-type');
@@ -3926,7 +3968,7 @@ module.exports = function (number) {
   return results;
 };
 
-},{"credit-card-type":24}],48:[function(_dereq_,module,exports){
+},{"credit-card-type":25}],49:[function(_dereq_,module,exports){
 'use strict';
 
 var createAuthorizationData = _dereq_('./create-authorization-data');
@@ -3960,7 +4002,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":58,"./create-authorization-data":61,"./json-clone":67}],49:[function(_dereq_,module,exports){
+},{"./constants":59,"./create-authorization-data":62,"./json-clone":68}],50:[function(_dereq_,module,exports){
 'use strict';
 
 var Promise = _dereq_('./promise');
@@ -3996,7 +4038,7 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":48,"./constants":58,"./promise":70}],50:[function(_dereq_,module,exports){
+},{"./add-metadata":49,"./constants":59,"./promise":71}],51:[function(_dereq_,module,exports){
 'use strict';
 
 var loadScript = _dereq_('@braintree/asset-loader/load-script');
@@ -4005,7 +4047,7 @@ module.exports = {
   loadScript: loadScript
 };
 
-},{"@braintree/asset-loader/load-script":2}],51:[function(_dereq_,module,exports){
+},{"@braintree/asset-loader/load-script":2}],52:[function(_dereq_,module,exports){
 'use strict';
 
 var assignNormalized = typeof Object.assign === 'function' ? Object.assign : assignPolyfill;
@@ -4030,13 +4072,13 @@ module.exports = {
   _assign: assignPolyfill
 };
 
-},{}],52:[function(_dereq_,module,exports){
+},{}],53:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.52.1";
+var VERSION = "3.53.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -4078,7 +4120,7 @@ module.exports = {
   verify: basicComponentVerification
 };
 
-},{"./braintree-error":54,"./errors":65,"./promise":70}],53:[function(_dereq_,module,exports){
+},{"./braintree-error":55,"./errors":66,"./promise":71}],54:[function(_dereq_,module,exports){
 'use strict';
 
 var once = _dereq_('./once');
@@ -4124,7 +4166,7 @@ module.exports = function (functions, cb) {
   }
 };
 
-},{"./once":69}],54:[function(_dereq_,module,exports){
+},{"./once":70}],55:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -4209,7 +4251,7 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":64}],55:[function(_dereq_,module,exports){
+},{"./enumerate":65}],56:[function(_dereq_,module,exports){
 'use strict';
 
 var isVerifiedDomain = _dereq_('../is-verified-domain');
@@ -4241,7 +4283,7 @@ module.exports = {
   checkOrigin: checkOrigin
 };
 
-},{"../is-verified-domain":66}],56:[function(_dereq_,module,exports){
+},{"../is-verified-domain":67}],57:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../enumerate');
@@ -4250,7 +4292,7 @@ module.exports = enumerate([
   'CONFIGURATION_REQUEST'
 ], 'bus:');
 
-},{"../enumerate":64}],57:[function(_dereq_,module,exports){
+},{"../enumerate":65}],58:[function(_dereq_,module,exports){
 'use strict';
 
 var bus = _dereq_('framebus');
@@ -4381,10 +4423,10 @@ BraintreeBus.events = events;
 
 module.exports = BraintreeBus;
 
-},{"../braintree-error":54,"./check-origin":55,"./events":56,"framebus":31}],58:[function(_dereq_,module,exports){
+},{"../braintree-error":55,"./check-origin":56,"./events":57,"framebus":32}],59:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.52.1";
+var VERSION = "3.53.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -4421,7 +4463,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],59:[function(_dereq_,module,exports){
+},{}],60:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -4439,7 +4481,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"./braintree-error":54,"./errors":65}],60:[function(_dereq_,module,exports){
+},{"./braintree-error":55,"./errors":66}],61:[function(_dereq_,module,exports){
 'use strict';
 
 // endRemoveIf(production)
@@ -4456,7 +4498,7 @@ module.exports = {
   create: createAssetsUrl
 };
 
-},{"./constants":58}],61:[function(_dereq_,module,exports){
+},{"./constants":59}],62:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/vendor/polyfill').atob;
@@ -4502,7 +4544,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/constants":58,"../lib/vendor/polyfill":72}],62:[function(_dereq_,module,exports){
+},{"../lib/constants":59,"../lib/vendor/polyfill":73}],63:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -4511,7 +4553,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.52.1";
+var VERSION = "3.53.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -4556,7 +4598,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./assets":50,"./braintree-error":54,"./errors":65,"./promise":70}],63:[function(_dereq_,module,exports){
+},{"./assets":51,"./braintree-error":55,"./errors":66,"./promise":71}],64:[function(_dereq_,module,exports){
 'use strict';
 
 var batchExecuteFunctions = _dereq_('./batch-execute-functions');
@@ -4594,7 +4636,7 @@ Destructor.prototype.teardown = function (callback) {
 
 module.exports = Destructor;
 
-},{"./batch-execute-functions":53}],64:[function(_dereq_,module,exports){
+},{"./batch-execute-functions":54}],65:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -4609,7 +4651,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],65:[function(_dereq_,module,exports){
+},{}],66:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -4659,7 +4701,7 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":54}],66:[function(_dereq_,module,exports){
+},{"./braintree-error":55}],67:[function(_dereq_,module,exports){
 'use strict';
 
 var parser;
@@ -4694,14 +4736,14 @@ function isVerifiedDomain(url) {
 
 module.exports = isVerifiedDomain;
 
-},{}],67:[function(_dereq_,module,exports){
+},{}],68:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],68:[function(_dereq_,module,exports){
+},{}],69:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -4710,9 +4752,9 @@ module.exports = function (obj) {
   });
 };
 
-},{}],69:[function(_dereq_,module,exports){
-arguments[4][21][0].apply(exports,arguments)
-},{"dup":21}],70:[function(_dereq_,module,exports){
+},{}],70:[function(_dereq_,module,exports){
+arguments[4][22][0].apply(exports,arguments)
+},{"dup":22}],71:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -4721,7 +4763,7 @@ var Promise = global.Promise || _dereq_('promise-polyfill');
 module.exports = Promise;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":32}],71:[function(_dereq_,module,exports){
+},{"promise-polyfill":33}],72:[function(_dereq_,module,exports){
 'use strict';
 
 function useMin(isDebug) {
@@ -4730,7 +4772,7 @@ function useMin(isDebug) {
 
 module.exports = useMin;
 
-},{}],72:[function(_dereq_,module,exports){
+},{}],73:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -4771,7 +4813,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],73:[function(_dereq_,module,exports){
+},{}],74:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {
@@ -4785,5 +4827,5 @@ function uuid() {
 
 module.exports = uuid;
 
-},{}]},{},[41])(41)
+},{}]},{},[42])(42)
 });

@@ -1170,7 +1170,7 @@ module.exports = {
 
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Client = _dereq_('./client');
-var VERSION = "3.52.1";
+var VERSION = "3.53.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -1643,10 +1643,7 @@ var BIN_DATA_MAP = {
 };
 
 var AUTHENTICATION_INSIGHT_MAP = {
-  UNKNOWN: 'unknown',
-  PSDTWO: 'psd2',
-  UNREGULATED: 'unregulated',
-  UNAVAILABLE: 'unavailable'
+  PSDTWO: 'psd2'
 };
 
 function creditCardTokenizationResponseAdapter(responseBody) {
@@ -1706,7 +1703,7 @@ function adaptTokenizeCreditCardResponseBody(body) {
   if (data.authenticationInsight) {
     regulationEnvironment = data.authenticationInsight.customerAuthenticationRegulationEnvironment;
     response.creditCards[0].authenticationInsight = {
-      regulationEnvironment: AUTHENTICATION_INSIGHT_MAP[regulationEnvironment] || AUTHENTICATION_INSIGHT_MAP.UNKNOWN
+      regulationEnvironment: AUTHENTICATION_INSIGHT_MAP[regulationEnvironment] || regulationEnvironment.toLowerCase()
     };
   }
 
@@ -2613,7 +2610,7 @@ module.exports = BraintreeError;
 },{"./enumerate":43}],38:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.52.1";
+var VERSION = "3.53.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
