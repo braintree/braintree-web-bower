@@ -1955,7 +1955,7 @@ var AmericanExpress = _dereq_('./american-express');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
-var VERSION = "3.53.0";
+var VERSION = "3.54.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -2387,7 +2387,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var errors = _dereq_('./errors');
-var VERSION = "3.53.0";
+var VERSION = "3.54.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -3120,7 +3120,7 @@ module.exports = {
 
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Client = _dereq_('./client');
-var VERSION = "3.53.0";
+var VERSION = "3.54.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -4515,7 +4515,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var methods = _dereq_('../lib/methods');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
-var VERSION = "3.53.0";
+var VERSION = "3.54.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var errors = _dereq_('./errors');
@@ -5170,7 +5170,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.53.0";
+var VERSION = "3.54.0";
 
 /**
  * @static
@@ -6906,7 +6906,7 @@ var supportsInputFormatting = _dereq_('restricted-input/supports-input-formattin
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.53.0";
+var VERSION = "3.54.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -7247,7 +7247,7 @@ module.exports = {
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.53.0";
+var VERSION = "3.54.0";
 
 var constants = {
   VERSION: VERSION,
@@ -7697,7 +7697,7 @@ var usBankAccount = _dereq_('./us-bank-account');
 var vaultManager = _dereq_('./vault-manager');
 var venmo = _dereq_('./venmo');
 var visaCheckout = _dereq_('./visa-checkout');
-var VERSION = "3.53.0";
+var VERSION = "3.54.0";
 
 module.exports = {
   /** @type {module:braintree-web/american-express} */
@@ -7851,7 +7851,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.53.0";
+var VERSION = "3.54.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -8219,7 +8219,7 @@ module.exports = function (obj) {
 },{}],102:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.53.0";
+var VERSION = "3.54.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -8368,7 +8368,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.53.0";
+var VERSION = "3.54.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -9143,7 +9143,7 @@ module.exports = enumerate([
 },{"../../enumerate":110}],124:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.53.0";
+var VERSION = "3.54.0";
 var assign = _dereq_('./assign').assign;
 
 function generateTokenizationParameters(configuration, overrides) {
@@ -9562,7 +9562,7 @@ module.exports = {
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var useMin = _dereq_('../../lib/use-min');
-var VERSION = "3.53.0";
+var VERSION = "3.54.0";
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
 var methods = _dereq_('../../lib/methods');
@@ -9990,7 +9990,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var LocalPayment = _dereq_('./external/local-payment');
-var VERSION = "3.53.0";
+var VERSION = "3.54.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -10181,7 +10181,7 @@ var Promise = _dereq_('../../lib/promise');
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var errors = _dereq_('../shared/errors');
-var VERSION = "3.53.0";
+var VERSION = "3.54.0";
 var methods = _dereq_('../../lib/methods');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var analytics = _dereq_('../../lib/analytics');
@@ -10580,7 +10580,7 @@ var browserDetection = _dereq_('./shared/browser-detection');
 var Masterpass = _dereq_('./external/masterpass');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
-var VERSION = "3.53.0";
+var VERSION = "3.54.0";
 var errors = _dereq_('./shared/errors');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -10788,7 +10788,7 @@ var methods = _dereq_('../../lib/methods');
 var Promise = _dereq_('../../lib/promise');
 var EventEmitter = _dereq_('@braintree/event-emitter');
 var BraintreeError = _dereq_('../../lib/braintree-error');
-var VERSION = "3.53.0";
+var VERSION = "3.54.0";
 var constants = _dereq_('../shared/constants');
 var events = constants.events;
 var errors = constants.errors;
@@ -11476,7 +11476,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.53.0";
+var VERSION = "3.54.0";
 
 /**
  * @static
@@ -11742,7 +11742,7 @@ module.exports = {
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var PayPalCheckout = _dereq_('./paypal-checkout');
-var VERSION = "3.53.0";
+var VERSION = "3.54.0";
 
 /**
  * @static
@@ -12397,7 +12397,7 @@ var BraintreeError = _dereq_('../../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../../lib/convert-to-braintree-error');
 var useMin = _dereq_('../../lib/use-min');
 var once = _dereq_('../../lib/once');
-var VERSION = "3.53.0";
+var VERSION = "3.54.0";
 var constants = _dereq_('../shared/constants');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
@@ -13003,7 +13003,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var errors = _dereq_('./shared/errors');
 var PayPal = _dereq_('./external/paypal');
-var VERSION = "3.53.0";
+var VERSION = "3.54.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var Promise = _dereq_('../lib/promise');
 
@@ -13210,7 +13210,7 @@ var makePromisePlus = _dereq_('../../../lib/promise-plus');
 var EventEmitter = _dereq_('@braintree/event-emitter');
 var errors = _dereq_('../../shared/errors');
 
-var VERSION = "3.53.0";
+var VERSION = "3.54.0";
 
 function BaseFramework(options) {
   EventEmitter.call(this);
@@ -13498,7 +13498,6 @@ module.exports = {
 };
 
 },{"./bootstrap3-modal":158,"./cardinal-modal":159,"./inline-iframe":161,"./legacy":162}],161:[function(_dereq_,module,exports){
-(function (global){
 'use strict';
 
 var SongbirdFramework = _dereq_('./songbird');
@@ -13537,7 +13536,7 @@ InlineIframeFramework.prototype._createCardinalConfigurationOptions = function (
 };
 
 InlineIframeFramework.prototype._setupFrameworkSpecificListeners = function () {
-  global.Cardinal.on('ui.inline.setup', this._onInlineSetup.bind(this));
+  this.setCardinalListener('ui.inline.setup', this._onInlineSetup.bind(this));
 };
 
 InlineIframeFramework.prototype._onInlineSetup = function (htmlTemplate, details, resolve, reject) {
@@ -13575,7 +13574,6 @@ InlineIframeFramework.prototype._onInlineSetup = function (htmlTemplate, details
 
 module.exports = InlineIframeFramework;
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"../../../lib/braintree-error":97,"../../../lib/enumerate":110,"../../shared/errors":167,"./songbird":163}],162:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
@@ -13591,7 +13589,7 @@ var useMin = _dereq_('../../../lib/use-min');
 
 var events = _dereq_('../../shared/events');
 
-var VERSION = "3.53.0";
+var VERSION = "3.54.0";
 var IFRAME_HEIGHT = 400;
 var IFRAME_WIDTH = 400;
 
@@ -13770,7 +13768,7 @@ var makePromisePlus = _dereq_('../../../lib/promise-plus');
 
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var PLATFORM = _dereq_('../../../lib/constants').PLATFORM;
-var VERSION = "3.53.0";
+var VERSION = "3.54.0";
 
 function SongbirdFramework(options) {
   BaseFramework.call(this, options);
@@ -13783,6 +13781,7 @@ function SongbirdFramework(options) {
   this.setupSongbird({
     loggingEnabled: options.loggingEnabled
   });
+  this._cardinalEvents = [];
 }
 
 SongbirdFramework.prototype = Object.create(BaseFramework.prototype, {
@@ -13907,7 +13906,7 @@ SongbirdFramework.prototype._configureCardinalSdk = function (config) {
   var setupStartTime = config.setupStartTime;
   var cardinalConfiguration = this._createCardinalConfigurationOptions(setupOptions);
 
-  global.Cardinal.on('payments.setupComplete', this._createPaymentsSetupCompleteCallback(resolveSongbird));
+  this.setCardinalListener('payments.setupComplete', this._createPaymentsSetupCompleteCallback(resolveSongbird));
 
   this._setupFrameworkSpecificListeners();
 
@@ -13919,7 +13918,12 @@ SongbirdFramework.prototype._configureCardinalSdk = function (config) {
 
   this._clientMetadata.cardinalDeviceDataCollectionTimeElapsed = Date.now() - setupStartTime;
 
-  global.Cardinal.on('payments.validated', this._createPaymentsValidatedCallback());
+  this.setCardinalListener('payments.validated', this._createPaymentsValidatedCallback());
+};
+
+SongbirdFramework.prototype.setCardinalListener = function (eventName, cb) {
+  this._cardinalEvents.push(eventName);
+  global.Cardinal.on(eventName, cb);
 };
 
 SongbirdFramework.prototype._setupFrameworkSpecificListeners = function () {
@@ -14123,6 +14127,8 @@ SongbirdFramework.prototype._formatVerifyCardOptions = function (options) {
     additionalInformation.mobilePhoneNumber = options.mobilePhoneNumber;
   }
 
+  modifiedOptions.additionalInformation = additionalInformation;
+
   return modifiedOptions;
 };
 
@@ -14198,8 +14204,9 @@ SongbirdFramework.prototype.cancelVerifyCard = function () {
 
 SongbirdFramework.prototype.teardown = function () {
   if (global.Cardinal) {
-    global.Cardinal.off('payments.setupComplete');
-    global.Cardinal.off('payments.validated');
+    this._cardinalEvents.forEach(function (eventName) {
+      global.Cardinal.off(eventName);
+    });
   }
 
   // we intentionally do not remove the Cardinal SDK
@@ -14480,6 +14487,20 @@ var FRAMEWORKS = _dereq_('./frameworks');
  *   threeDSecureInstance.off('lookup-complete', callback);
  * });
  * @returns {void}
+ */
+
+/**
+ * This event is emitted when the `inline-iframe` framework is specified when creating the 3D Secure instance and the authentication iframe becomes available.
+ * @event ThreeDSecure#authentication-iframe-available
+ * @type {object}
+ * @example
+ * <caption>Listening for the authentication iframe to be available</caption>
+ *   threeDSecureInstance.on('authentication-iframe-available', function (event, next) {
+ *     document.body.appendChild(event.element); // add iframe element to page
+ *
+ *     next(); // let the SDK know the iframe is ready
+ *   });
+ * });
  */
 
 /**
@@ -14926,11 +14947,9 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.53.0";
+var VERSION = "3.54.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-
-var KNOWN_FRAMEWORKS = _dereq_('./external/frameworks/');
 
 /**
  * @static
@@ -14938,9 +14957,95 @@ var KNOWN_FRAMEWORKS = _dereq_('./external/frameworks/');
  * @param {object} options Creation options:
  * @param {Client} [options.client] A {@link Client} instance.
  * @param {string} [options.authorization] A tokenizationKey or clientToken. Can be used in place of `options.client`.
- * @param {number} [options.version=1] The version of 3D Secure to use. Pass in 2 to use 3D Secure 2.0.
+ * @param {number|string} [options.version=1] The version of 3D Secure to use. Possible options:
+ * * 1 - The legacy 3D Secure v1.0 integration.
+ * * 2 - A 3D Secure v2.0 integration that uses a modal to host the 3D Secure iframe.
+ * * 2-bootstrap3-modal - A 3D Secure v2.0 integration that uses a modal styled with Bootstrap 3 styles to host the 3D Secure iframe. Requires having the Bootstrap 3 script files and stylesheets on your page.
+ * * 2-inline-iframe - A 3D Secure v2.0 integration that provides the authentication iframe directly to the merchant.
  * @param {callback} [callback] The second argument, `data`, is the {@link ThreeDSecure} instance. If no callback is provided, it returns a promise that resolves the {@link ThreeDSecure} instance.
  * @returns {Promise|void} Returns a promise if no callback is provided.
+@example
+ * <caption>Creating a v2 3D Secure component using cardinal-modal framework</caption>
+ * braintree.threeDSecure.create({
+ *   client: clientInstance,
+ *   version: '2'
+ * }, function (createError, threeDSecure) {
+ *   // set up lookup-complete listener
+ *   threeDSecure.on('lookup-complete', function (data, next) {
+ *     // check lookup data
+ *
+ *     next();
+ *   });
+ *
+ *   // using Hosted Fields, use `tokenize` to get back a credit card nonce
+ *
+ *   threeDSecure.verifyCard({
+ *     nonce: nonceFromTokenizationPayload,,
+ *     bin: binFromTokenizationPayload,
+ *     amount: '100.00'
+ *   }, function (verifyError, payload) {
+ *     // inspect payload
+ *     // send payload.nonce to your server
+ *   });
+ * });
+ * @example
+ * <caption>Creating a v2 3D Secure component using bootstrap3-modal framework</caption>
+ * // must have the boostrap js, css and jquery files on your page
+ * braintree.threeDSecure.create({
+ *   client: clientInstance,
+ *   version: '2-bootstrap3-modal'
+ * }, function (createError, threeDSecure) {
+ *   // set up lookup-complete listener
+ *   threeDSecure.on('lookup-complete', function (data, next) {
+ *     // check lookup data
+ *
+ *     next();
+ *   });
+ *
+ *   // using Hosted Fields, use `tokenize` to get back a credit card nonce
+ *
+ *   // challenge will be presented in a bootstrap 3 modal
+ *   threeDSecure.verifyCard({
+ *     nonce: nonceFromTokenizationPayload,
+ *     bin: binFromTokenizationPayload,
+ *     amount: '100.00'
+ *   }, function (verifyError, payload) {
+ *     // inspect payload
+ *     // send payload.nonce to your server
+ *   });
+ * });
+ * @example
+ * <caption>Creating a v2 3D Secure component using inline-iframe framework</caption>
+ * braintree.threeDSecure.create({
+ *   client: clientInstance,
+ *   version: '2-inline-iframe'
+ * }, function (createError, threeDSecure) {
+ *   // set up lookup-complete listener
+ *   threeDSecure.on('lookup-complete', function (data, next) {
+ *     // check lookup data
+ *
+ *     next();
+ *   });
+ *   // set up iframe listener
+ *   threeDSecure.on('authentication-iframe-available', function (event, next) {
+ *     var element = event.element; // an html element that contains the iframe
+ *
+ *     document.body.appendChild(element); // put it on your page
+ *
+ *     next(); // let the sdk know the element has been added to the page
+ *   });
+ *
+ *   // using Hosted Fields, use `tokenize` to get back a credit card nonce
+ *
+ *   threeDSecure.verifyCard({
+ *     nonce: nonceFromTokenizationPayload,,
+ *     bin: binFromTokenizationPayload,
+ *     amount: '100.00'
+ *   }, function (verifyError, payload) {
+ *     // inspect payload
+ *     // send payload.nonce to your server
+ *   });
+ * });
  */
 function create(options) {
   var name = '3D Secure';
@@ -15000,23 +15105,27 @@ function create(options) {
 }
 
 function getFramework(options) {
-  if (options.framework) {
-    if (options.framework in KNOWN_FRAMEWORKS) {
-      return options.framework;
-    }
+  var version = String(options.version || '');
 
-    throw new BraintreeError({
-      code: errors.THREEDS_UNRECOGNIZED_FRAMEWORK.code,
-      type: errors.THREEDS_UNRECOGNIZED_FRAMEWORK.type,
-      message: 'Framework `' + options.framework + '` is not a recognized framework. You may need to update the version of your Braintree SDK to support this framework.'
-    });
+  if (!version || version === '1') {
+    return 'legacy';
   }
 
-  if (options.version === 2) {
-    return 'cardinal-modal';
+  switch (version) {
+    case '2':
+    case '2-cardinal-modal':
+      return 'cardinal-modal';
+    case '2-bootstrap3-modal':
+      return 'bootstrap3-modal';
+    case '2-inline-iframe':
+      return 'inline-iframe';
+    default:
+      throw new BraintreeError({
+        code: errors.THREEDS_UNRECOGNIZED_VERSION.code,
+        type: errors.THREEDS_UNRECOGNIZED_VERSION.type,
+        message: 'Version `' + options.version + '` is not a recognized version. You may need to update the version of your Braintree SDK to support this version.'
+      });
   }
-
-  return 'legacy';
 }
 
 module.exports = {
@@ -15028,7 +15137,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/analytics":92,"../lib/basic-component-verification":95,"../lib/braintree-error":97,"../lib/create-assets-url":105,"../lib/create-deferred-client":107,"../lib/is-https":126,"../lib/promise":132,"./external/frameworks/":160,"./external/three-d-secure":164,"./shared/errors":167,"@braintree/wrap-promise":29}],166:[function(_dereq_,module,exports){
+},{"../lib/analytics":92,"../lib/basic-component-verification":95,"../lib/braintree-error":97,"../lib/create-assets-url":105,"../lib/create-deferred-client":107,"../lib/is-https":126,"../lib/promise":132,"./external/three-d-secure":164,"./shared/errors":167,"@braintree/wrap-promise":29}],166:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -15049,7 +15158,7 @@ module.exports = {
  * @property {MERCHANT} THREEDS_CAN_NOT_USE_TOKENIZATION_KEY Occurs when 3D Secure component is created without a Client Token.
  * @property {MERCHANT} THREEDS_HTTPS_REQUIRED Occurs when 3D Secure component is created in production over HTTPS.
  * @property {MERCHANT} THREEDS_NOT_ENABLED_FOR_V2 Occurs when 3D Secure component is created with version 2 parameter, but merchant is not enabled to use version 2.
- * @property {MERCHANT} THREEDS_UNRECOGNIZED_FRAMEWORK Occurs when unrecognized framework is passed into the create call.
+ * @property {MERCHANT} THREEDS_UNRECOGNIZED_VERSION Occurs when unrecognized version enum is passed into the create call.
  * @property {UNKNOWN} THREEDS_CARDINAL_SDK_SETUP_FAILED Occurs when Cardinal's Songbird.js library fails to setup for an unknown reason.
  * @property {NETWORK} THREEDS_CARDINAL_SDK_SCRIPT_LOAD_FAILED Occurs when using version 2 and Cardinal's Songbird.js script could not be loaded.
  * @property {UNKNOWN} THREEDS_CARDINAL_SDK_SETUP_TIMEDOUT Occurs when Cardinal's Songbird.js library takes longer than 60 seconds to set up.
@@ -15110,9 +15219,9 @@ module.exports = {
     code: 'THREEDS_NOT_ENABLED_FOR_V2',
     message: '3D Secure version 2 is not enabled for this merchant. Contact Braintree Support for assistance at https://help.braintreepayments.com/'
   },
-  THREEDS_UNRECOGNIZED_FRAMEWORK: {
+  THREEDS_UNRECOGNIZED_VERSION: {
     type: BraintreeError.types.MERCHANT,
-    code: 'THREEDS_UNRECOGNIZED_FRAMEWORK'
+    code: 'THREEDS_UNRECOGNIZED_VERSION'
   },
   THREEDS_CARDINAL_SDK_SETUP_FAILED: {
     type: BraintreeError.types.UNKNOWN,
@@ -15233,7 +15342,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.53.0";
+var VERSION = "3.54.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -15425,7 +15534,7 @@ var errors = _dereq_('./errors');
 var events = constants.events;
 var iFramer = _dereq_('@braintree/iframer');
 var methods = _dereq_('../../lib/methods');
-var VERSION = "3.53.0";
+var VERSION = "3.54.0";
 var uuid = _dereq_('../../lib/vendor/uuid');
 var Promise = _dereq_('../../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -15898,7 +16007,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var errors = _dereq_('./errors');
 var USBankAccount = _dereq_('./us-bank-account');
-var VERSION = "3.53.0";
+var VERSION = "3.54.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -16464,7 +16573,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var VaultManager = _dereq_('./vault-manager');
-var VERSION = "3.53.0";
+var VERSION = "3.54.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -16705,7 +16814,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var Venmo = _dereq_('./venmo');
 var Promise = _dereq_('../lib/promise');
 var supportsVenmo = _dereq_('./shared/supports-venmo');
-var VERSION = "3.53.0";
+var VERSION = "3.54.0";
 
 /**
  * @static
@@ -16928,7 +17037,7 @@ var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.53.0";
+var VERSION = "3.54.0";
 
 /**
  * Venmo tokenize payload.
@@ -17263,7 +17372,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var VisaCheckout = _dereq_('./visa-checkout');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./errors');
-var VERSION = "3.53.0";
+var VERSION = "3.54.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
