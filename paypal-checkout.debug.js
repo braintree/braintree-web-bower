@@ -541,7 +541,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -671,7 +671,7 @@ module.exports = BraintreeError;
 },{"./enumerate":19}],13:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -820,7 +820,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1065,7 +1065,7 @@ module.exports = {
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var PayPalCheckout = _dereq_('./paypal-checkout');
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 
 /**
  * @static
@@ -1089,7 +1089,7 @@ var VERSION = "3.54.0";
  * }).catch(function (err) {
  *   console.error('Error!', err);
  * });
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 function create(options) {
   var name = 'PayPal Checkout';
@@ -1395,7 +1395,7 @@ PayPalCheckout.prototype._initialize = function (options) {
  * * `order` - Validates the transaction without an authorization (i.e. without holding funds). Useful for authorizing and capturing funds up to 90 days after the order has been placed. Only available for Checkout flow.
  * * `capture` - Payment will be immediately submitted for settlement upon creating a transaction. `sale` can be used as an alias for this value.
  * @param {boolean} [options.offerCredit=false] Offers PayPal Credit as the default funding instrument for the transaction. If the customer isn't pre-approved for PayPal Credit, they will be prompted to apply for it.
- * @param {string|number} [options.amount] The amount of the transaction. Required when using the Checkout flow.
+ * @param {(string|number)} [options.amount] The amount of the transaction. Required when using the Checkout flow.
  * @param {string} [options.currency] The currency code of the amount, such as 'USD'. Required when using the Checkout flow.
  * @param {string} [options.displayName] The merchant name displayed inside of the PayPal lightbox; defaults to the company name on your Braintree account
  * @param {string} [options.locale=en_US] Use this option to change the language, links, and terminology used in the PayPal flow. This locale will be used unless the buyer has set a preferred locale for their account. If an unsupported locale is supplied, a fallback locale (determined by buyer preference or browser data) will be used and no error will be thrown.
@@ -1458,7 +1458,7 @@ PayPalCheckout.prototype._initialize = function (options) {
  *   // Add other options, e.g. onApproved, onCancel, onError
  * }).render('#paypal-button');
  *
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 PayPalCheckout.prototype.createPayment = function (options) {
   var self = this;
@@ -1528,7 +1528,7 @@ PayPalCheckout.prototype.createPayment = function (options) {
  * @param {string} [tokenizeOptions.paymentId] Payment ID returned by PayPal `onApproved` callback.
  * @param {string} [tokenizeOptions.billingToken] Billing Token returned by PayPal `onApproved` callback.
  * @param {callback} [callback] The second argument, <code>payload</code>, is a {@link PayPalCheckout~tokenizePayload|tokenizePayload}. If no callback is provided, the promise resolves with a {@link PayPalCheckout~tokenizePayload|tokenizePayload}.
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 PayPalCheckout.prototype.tokenizePayment = function (tokenizeOptions) {
   var self = this;
@@ -1701,7 +1701,7 @@ PayPalCheckout.prototype._formatTokenizePayload = function (response) {
  * paypalCheckoutInstance.teardown(function () {
  *   // teardown is complete
  * });
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 PayPalCheckout.prototype.teardown = function () {
   convertMethodsToError(this, methods(PayPalCheckout.prototype));

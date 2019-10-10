@@ -2614,7 +2614,7 @@ HostedFields.prototype._attachInvalidFieldContainersToError = function (err) {
  *     console.info('Hosted Fields has been torn down!');
  *   }
  * });
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 HostedFields.prototype.teardown = function () {
   var self = this;
@@ -2762,7 +2762,7 @@ HostedFields.prototype.teardown = function () {
  *     console.log('Got nonce:', payload.nonce);
  *   }
  * });
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 HostedFields.prototype.tokenize = function (options) {
   var self = this;
@@ -2799,7 +2799,7 @@ HostedFields.prototype.tokenize = function (options) {
  *     console.error(addClassErr);
  *   }
  * });
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 HostedFields.prototype.addClass = function (field, classname) {
   var err;
@@ -2844,7 +2844,7 @@ HostedFields.prototype.addClass = function (field, classname) {
  *   // some time later...
  *   hostedFieldsInstance.removeClass('number', 'custom-class');
  * });
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 HostedFields.prototype.removeClass = function (field, classname) {
   var err;
@@ -2905,7 +2905,7 @@ HostedFields.prototype.removeClass = function (field, classname) {
  *   }
  * });
  *
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 HostedFields.prototype.setAttribute = function (options) {
   var attributeErr, err;
@@ -2962,7 +2962,7 @@ HostedFields.prototype.setAttribute = function (options) {
  *   '12 - diciembre'
  * ]);
  *
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 HostedFields.prototype.setMonthOptions = function (options) {
   var self = this;
@@ -3033,7 +3033,7 @@ HostedFields.prototype.setMessage = function (options) {
  *   }
  * });
  *
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 HostedFields.prototype.removeAttribute = function (options) {
   var attributeErr, err;
@@ -3075,7 +3075,7 @@ HostedFields.prototype.removeAttribute = function (options) {
  * @param {string} placeholder Will be used as the `placeholder` attribute of the input.
  * @param {callback} [callback] Callback executed on completion, containing an error if one occurred. No data is returned if the placeholder updated successfully.
  *
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 HostedFields.prototype.setPlaceholder = function (field, placeholder) {
   return this.setAttribute({
@@ -3090,7 +3090,7 @@ HostedFields.prototype.setPlaceholder = function (field, placeholder) {
  * @public
  * @param {string} field The field you wish to clear. Must be a valid {@link module:braintree-web/hosted-fields~fieldOptions fieldOption}.
  * @param {callback} [callback] Callback executed on completion, containing an error if one occurred. No data is returned if the field cleared successfully.
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  * @example
  * hostedFieldsInstance.clear('number', function (clearErr) {
  *   if (clearErr) {
@@ -3233,20 +3233,20 @@ var supportsInputFormatting = _dereq_('restricted-input/supports-input-formattin
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
  * @typedef {object} field
  * @property {string} selector Deprecated: Now an alias for `options.container`.
- * @property {string|HTMLElement} container A DOM node or CSS selector to find the container where the hosted field will be inserted.
+ * @property {(string|HTMLElement)} container A DOM node or CSS selector to find the container where the hosted field will be inserted.
  * @property {string} [placeholder] Will be used as the `placeholder` attribute of the input. If `placeholder` is not natively supported by the browser, it will be polyfilled.
  * @property {string} [type] Will be used as the `type` attribute of the input. To mask `cvv` input, for instance, `type: "password"` can be used.
  * @property {boolean} [formatInput=true] Enable or disable automatic formatting on this field.
- * @property {object|boolean} [maskInput=false] Enable or disable input masking when input is not focused. If set to `true` instead of an object, the defaults for the `maskInput` parameters will be used.
+ * @property {(object|boolean)} [maskInput=false] Enable or disable input masking when input is not focused. If set to `true` instead of an object, the defaults for the `maskInput` parameters will be used.
  * @property {string} [maskInput.character=•] The character to use when masking the input. The default character ('•') uses a unicode symbol, so the webpage must support UTF-8 characters when using the default.
  * @property {Boolean} [maskInput.showLastFour=false] Only applicable for the credit card field. Whether or not to show the last 4 digits of the card when masking.
- * @property {object|boolean} [select] If truthy, this field becomes a `<select>` dropdown list. This can only be used for `expirationMonth` and `expirationYear` fields. If you do not use a `placeholder` property for the field, the current month/year will be the default selected value.
+ * @property {(object|boolean)} [select] If truthy, this field becomes a `<select>` dropdown list. This can only be used for `expirationMonth` and `expirationYear` fields. If you do not use a `placeholder` property for the field, the current month/year will be the default selected value.
  * @property {string[]} [select.options] An array of 12 strings, one per month. This can only be used for the `expirationMonth` field. For example, the array can look like `['01 - January', '02 - February', ...]`.
  * @property {number} [maxCardLength] This option applies only to the number field. Allows a limit to the length of the card number, even if the card brand may support numbers of a greater length. If the value passed is greater than the max length for a card brand, the smaller number of the 2 values will be used. For example, is `maxCardLength` is set to 16, but an American Express card is entered (which has a max card length of 15), a max card length of 15 will be used.
  * @property {number} [maxlength] This option applies only to the CVV and postal code fields. Will be used as the `maxlength` attribute of the input if it is less than the default. The primary use cases for the `maxlength` option are: limiting the length of the CVV input for CVV-only verifications when the card type is known and limiting the length of the postal code input when cards are coming from a known region.
@@ -3574,7 +3574,7 @@ module.exports = {
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 
 var constants = {
   VERSION: VERSION,
@@ -4078,7 +4078,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -4426,7 +4426,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":55,"./check-origin":56,"./events":57,"framebus":32}],59:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -4553,7 +4553,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();

@@ -683,7 +683,7 @@ GooglePayment.prototype.createPaymentDataRequest = function (overrides) {
  * }).catch(function (err) {
  *   // handle errors
  * });
- * @returns {Promise|void} Returns a promise that resolves the parsed response if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise that resolves the parsed response if no callback is provided.
  */
 GooglePayment.prototype.parseResponse = function (response) {
   var client = this._client;
@@ -750,7 +750,7 @@ GooglePayment.prototype.parseResponse = function (response) {
  * googlePaymentInstance.teardown(function () {
  *   // teardown is complete
  * });
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 GooglePayment.prototype.teardown = function () {
   convertMethodsToError(this, methods(GooglePayment.prototype));
@@ -789,7 +789,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 
 /**
  * @static
@@ -900,7 +900,7 @@ var VERSION = "3.54.0";
  *   // handle setup errors
  * });
  *
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 function create(options) {
   var name = 'Google Pay';
@@ -1051,7 +1051,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1181,7 +1181,7 @@ module.exports = BraintreeError;
 },{"./enumerate":22}],17:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1308,7 +1308,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1436,7 +1436,7 @@ module.exports = function (array, key, value) {
 },{}],25:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 var assign = _dereq_('./assign').assign;
 
 function generateTokenizationParameters(configuration, overrides) {

@@ -648,7 +648,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -778,7 +778,7 @@ module.exports = BraintreeError;
 },{"./enumerate":27}],22:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -905,7 +905,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1189,7 +1189,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var Venmo = _dereq_('./venmo');
 var Promise = _dereq_('../lib/promise');
 var supportsVenmo = _dereq_('./shared/supports-venmo');
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 
 /**
  * @static
@@ -1209,7 +1209,7 @@ var VERSION = "3.54.0";
  * }).catch(function (createErr) {
  *   console.error('Error creating Venmo instance', createErr);
  * });
- * @returns {Promise|void} Returns the Venmo instance.
+ * @returns {(Promise|void)} Returns the Venmo instance.
  */
 function create(options) {
   var name = 'Venmo';
@@ -1412,7 +1412,7 @@ var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 
 /**
  * Venmo tokenize payload.
@@ -1507,7 +1507,7 @@ Venmo.prototype.hasTokenizationResult = function () {
  * Only one Venmo flow can be active at a time. One way to achieve this is to disable your Venmo button while the flow is open.
  * @public
  * @param {callback} [callback] The second argument, <code>data</code>, is a {@link Venmo~tokenizePayload|tokenizePayload}. If no callback is provided, the method will return a Promise that resolves with a {@link Venmo~tokenizePayload|tokenizePayload}.
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  * @example
  * button.addEventListener('click', function () {
  *   // Disable the button so that we don't attempt to open multiple popups.
@@ -1590,7 +1590,7 @@ Venmo.prototype.tokenize = function () {
  * venmoInstance.teardown(function () {
  *   // teardown is complete
  * });
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 Venmo.prototype.teardown = function () {
   this._removeVisibilityEventListener();
@@ -1642,7 +1642,11 @@ function getFragmentParameters() {
 
   return keyValuesArray.reduce(function (toReturn, keyValue) {
     var parts = keyValue.split('=');
-    var key = decodeURIComponent(parts[0]);
+    // some Single Page Apps may pre-pend a / to the first value
+    // in the hash, assuming it's a route in their app
+    // instead of information from Venmo, this removes all
+    // non-alphanumeric characters from the keys in the params
+    var key = decodeURIComponent(parts[0]).replace(/\W/g, '');
     var value = decodeURIComponent(parts[1]);
 
     toReturn[key] = value;

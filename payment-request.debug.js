@@ -1010,7 +1010,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1312,7 +1312,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":19,"./check-origin":20,"./events":21,"framebus":12}],23:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1439,7 +1439,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1552,7 +1552,7 @@ module.exports = {
 },{"./braintree-error":19}],30:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 var assign = _dereq_('./assign').assign;
 
 function generateTokenizationParameters(configuration, overrides) {
@@ -1807,7 +1807,7 @@ var methods = _dereq_('../../lib/methods');
 var Promise = _dereq_('../../lib/promise');
 var EventEmitter = _dereq_('@braintree/event-emitter');
 var BraintreeError = _dereq_('../../lib/braintree-error');
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 var constants = _dereq_('../shared/constants');
 var events = constants.events;
 var errors = constants.errors;
@@ -2237,7 +2237,7 @@ PaymentRequestComponent.prototype.createSupportedPaymentMethodsConfiguration = f
  *   // collect shipping information from payload
  *   console.log(payload.details.rawPaymentResponse.shippingAddress);
  * });
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 PaymentRequestComponent.prototype.tokenize = function (configuration) {
   var self = this;
@@ -2299,7 +2299,7 @@ PaymentRequestComponent.prototype.tokenize = function (configuration) {
  *     // set up payment request button
  *   }
  * });
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 PaymentRequestComponent.prototype.canMakePayment = function (configuration) {
   var self = this;
@@ -2362,7 +2362,7 @@ PaymentRequestComponent.prototype.canMakePayment = function (configuration) {
  * paymentRequestInstance.teardown(function () {
  *   // teardown is complete
  * });
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 PaymentRequestComponent.prototype.teardown = function () {
   this._bus.teardown();
@@ -2495,7 +2495,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 
 /**
  * @static
@@ -2508,7 +2508,7 @@ var VERSION = "3.54.0";
  * @param {boolean} [options.enabledPaymentMethods.googlePay=true] Whether or not to display Google Pay as an option in the Payment Request dialog. If left blank or set to true, Google Pay will be displayed in the dialog if the merchant account is set up to process Google Pay.
  * @param {Number} [options.googlePayVersion=1] Ignored if `options.enabledPaymentMethods.googlePay = false`. If `true`, this option specifies the version of Google Pay to use. Choose either 1 (default) or 2.
  * @param {callback} [callback] The second argument, `data`, is the {@link PaymentRequestComponent} instance. If no callback is provided, `create` returns a promise that resolves with the {@link PaymentRequestComponent} instance.
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  * @example
  * if (window.PaymentRequest) {
  *   braintree.paymentRequest.create({

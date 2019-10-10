@@ -483,7 +483,7 @@ function AmericanExpress(options) {
  * @param {object} options Request options
  * @param {string} options.nonce An existing Braintree nonce.
  * @param {callback} [callback] The second argument, <code>data</code>, is the returned server data. If no callback is provided, `getRewardsBalance` returns a promise that resolves with the server data.
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  * @example
  * var americanExpress = require('braintree-web/american-express');
  *
@@ -540,7 +540,7 @@ AmericanExpress.prototype.getRewardsBalance = function (options) {
  * @param {object} options Request options
  * @param {string} options.nonce An existing nonce from American Express (note that this is <em>not</em> a nonce from Braintree).
  * @param {callback} [callback] The second argument, <code>data</code>, is the returned server data. If no callback is provided, `getExpressCheckoutProfile` returns a promise that resolves with the server data.
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  * @example
  * var americanExpress = require('braintree-web/american-express');
  *
@@ -594,7 +594,7 @@ AmericanExpress.prototype.getExpressCheckoutProfile = function (options) {
  * americanExpressInstance.teardown(function () {
  *   // teardown is complete
  * });
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 AmericanExpress.prototype.teardown = function () {
   convertMethodsToError(this, methods(AmericanExpress.prototype));
@@ -645,7 +645,7 @@ var AmericanExpress = _dereq_('./american-express');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -655,7 +655,7 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
  * @param {Client} [options.client] A {@link Client} instance.
  * @param {string} [options.authorization] A tokenizationKey or clientToken. Can be used in place of `options.client`.
  * @param {callback} [callback] The second argument, `data`, is the {@link AmericanExpress} instance. If no callback is provided, `create` returns a promise that resolves with the {@link AmericanExpress} instance.
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 function create(options) {
   var name = 'American Express';
@@ -728,7 +728,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -858,7 +858,7 @@ module.exports = BraintreeError;
 },{"./enumerate":19}],15:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -939,7 +939,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();

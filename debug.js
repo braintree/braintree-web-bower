@@ -1793,7 +1793,7 @@ function AmericanExpress(options) {
  * @param {object} options Request options
  * @param {string} options.nonce An existing Braintree nonce.
  * @param {callback} [callback] The second argument, <code>data</code>, is the returned server data. If no callback is provided, `getRewardsBalance` returns a promise that resolves with the server data.
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  * @example
  * var americanExpress = require('braintree-web/american-express');
  *
@@ -1850,7 +1850,7 @@ AmericanExpress.prototype.getRewardsBalance = function (options) {
  * @param {object} options Request options
  * @param {string} options.nonce An existing nonce from American Express (note that this is <em>not</em> a nonce from Braintree).
  * @param {callback} [callback] The second argument, <code>data</code>, is the returned server data. If no callback is provided, `getExpressCheckoutProfile` returns a promise that resolves with the server data.
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  * @example
  * var americanExpress = require('braintree-web/american-express');
  *
@@ -1904,7 +1904,7 @@ AmericanExpress.prototype.getExpressCheckoutProfile = function (options) {
  * americanExpressInstance.teardown(function () {
  *   // teardown is complete
  * });
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 AmericanExpress.prototype.teardown = function () {
   convertMethodsToError(this, methods(AmericanExpress.prototype));
@@ -1955,7 +1955,7 @@ var AmericanExpress = _dereq_('./american-express');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -1965,7 +1965,7 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
  * @param {Client} [options.client] A {@link Client} instance.
  * @param {string} [options.authorization] A tokenizationKey or clientToken. Can be used in place of `options.client`.
  * @param {callback} [callback] The second argument, `data`, is the {@link AmericanExpress} instance. If no callback is provided, `create` returns a promise that resolves with the {@link AmericanExpress} instance.
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 function create(options) {
   var name = 'American Express';
@@ -2124,7 +2124,7 @@ ApplePay.prototype.createPaymentRequest = function (paymentRequest) {
  * @param {string} options.displayName The canonical name for your store. Use a non-localized name. This parameter should be a UTF-8 string that is a maximum of 128 characters. The system may display this name to the user.
  * @param {callback} [callback] The second argument, <code>data</code>, is the Apple Pay merchant session object. If no callback is provided, `performValidation` returns a promise.
  * Pass the merchant session to your Apple Pay session's `completeMerchantValidation` method.
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  * @example
  * var applePay = require('braintree-web/apple-pay');
  *
@@ -2218,7 +2218,7 @@ ApplePay.prototype.performValidation = function (options) {
  * @param {object} options Options
  * @param {object} options.token The `payment.token` property of an {@link external:ApplePayPaymentAuthorizedEvent}.
  * @param {callback} [callback] The second argument, <code>data</code>, is a {@link ApplePay~tokenizePayload|tokenizePayload}. If no callback is provided, `tokenize` returns a promise that resolves with a {@link ApplePay~tokenizePayload|tokenizePayload}.
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  * @example
  * var applePay = require('braintree-web/apple-pay');
  *
@@ -2302,7 +2302,7 @@ ApplePay.prototype.tokenize = function (options) {
  * applePayInstance.teardown(function () {
  *   // teardown is complete
  * });
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 ApplePay.prototype.teardown = function () {
   convertMethodsToError(this, methods(ApplePay.prototype));
@@ -2387,7 +2387,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var errors = _dereq_('./errors');
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -2398,7 +2398,7 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
  * @param {Client} [options.client] A {@link Client} instance.
  * @param {string} [options.authorization] A tokenizationKey or clientToken. Can be used in place of `options.client`.
  * @param {callback} [callback] The second argument, `data`, is the {@link ApplePay} instance. If no callback is provided, `create` returns a promise that resolves with the {@link ApplePay} instance.
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 function create(options) {
   var name = 'Apple Pay';
@@ -2707,7 +2707,7 @@ Client.prototype._findOrCreateFraudnetJSON = function (clientMetadataId) {
  *     console.log('Got nonce:', response.creditCards[0].nonce);
  *   });
  * });
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 Client.prototype.request = function (options, callback) {
   var self = this; // eslint-disable-line no-invalid-this
@@ -2885,7 +2885,7 @@ Client.prototype.getVersion = function () {
  * clientInstance.teardown(function () {
  *   // teardown is complete
  * });
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 Client.prototype.teardown = wrapPromise(function () {
   var self = this; // eslint-disable-line no-invalid-this
@@ -3120,7 +3120,7 @@ module.exports = {
 
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Client = _dereq_('./client');
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -3133,7 +3133,7 @@ var sharedErrors = _dereq_('../lib/errors');
  * @param {object} options Object containing all {@link Client} options:
  * @param {string} options.authorization A tokenizationKey or clientToken.
  * @param {callback} [callback] The second argument, <code>data</code>, is the {@link Client} instance.
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  * @example
  * var createClient = require('braintree-web/client').create;
  *
@@ -4515,7 +4515,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var methods = _dereq_('../lib/methods');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var errors = _dereq_('./errors');
@@ -4557,7 +4557,7 @@ var errors = _dereq_('./errors');
  * dataCollectorInstance.teardown(function () {
  *   // teardown is complete
  * });
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 
 /**
@@ -4572,7 +4572,7 @@ var errors = _dereq_('./errors');
  * **Note:** the data sent to Kount is asynchronous and may not have completed by the time the data collector create call is complete. In most cases, this will not matter, but if you create the data collector instance and immediately navigate away from the page, the device information may fail to be sent to Kount.
  * @param {boolean} [options.paypal] If true, PayPal fraud data collection is enabled.
  * @param {callback} [callback] The second argument, `data`, is the {@link DataCollector} instance.
- * @returns {Promise|void} Returns a promise that resolves the {@link DataCollector} instance if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise that resolves the {@link DataCollector} instance if no callback is provided.
  */
 function create(options) {
   var name = 'Data Collector';
@@ -5064,7 +5064,7 @@ GooglePayment.prototype.createPaymentDataRequest = function (overrides) {
  * }).catch(function (err) {
  *   // handle errors
  * });
- * @returns {Promise|void} Returns a promise that resolves the parsed response if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise that resolves the parsed response if no callback is provided.
  */
 GooglePayment.prototype.parseResponse = function (response) {
   var client = this._client;
@@ -5131,7 +5131,7 @@ GooglePayment.prototype.parseResponse = function (response) {
  * googlePaymentInstance.teardown(function () {
  *   // teardown is complete
  * });
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 GooglePayment.prototype.teardown = function () {
   convertMethodsToError(this, methods(GooglePayment.prototype));
@@ -5170,7 +5170,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 
 /**
  * @static
@@ -5281,7 +5281,7 @@ var VERSION = "3.54.0";
  *   // handle setup errors
  * });
  *
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 function create(options) {
   var name = 'Google Pay';
@@ -6287,7 +6287,7 @@ HostedFields.prototype._attachInvalidFieldContainersToError = function (err) {
  *     console.info('Hosted Fields has been torn down!');
  *   }
  * });
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 HostedFields.prototype.teardown = function () {
   var self = this;
@@ -6435,7 +6435,7 @@ HostedFields.prototype.teardown = function () {
  *     console.log('Got nonce:', payload.nonce);
  *   }
  * });
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 HostedFields.prototype.tokenize = function (options) {
   var self = this;
@@ -6472,7 +6472,7 @@ HostedFields.prototype.tokenize = function (options) {
  *     console.error(addClassErr);
  *   }
  * });
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 HostedFields.prototype.addClass = function (field, classname) {
   var err;
@@ -6517,7 +6517,7 @@ HostedFields.prototype.addClass = function (field, classname) {
  *   // some time later...
  *   hostedFieldsInstance.removeClass('number', 'custom-class');
  * });
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 HostedFields.prototype.removeClass = function (field, classname) {
   var err;
@@ -6578,7 +6578,7 @@ HostedFields.prototype.removeClass = function (field, classname) {
  *   }
  * });
  *
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 HostedFields.prototype.setAttribute = function (options) {
   var attributeErr, err;
@@ -6635,7 +6635,7 @@ HostedFields.prototype.setAttribute = function (options) {
  *   '12 - diciembre'
  * ]);
  *
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 HostedFields.prototype.setMonthOptions = function (options) {
   var self = this;
@@ -6706,7 +6706,7 @@ HostedFields.prototype.setMessage = function (options) {
  *   }
  * });
  *
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 HostedFields.prototype.removeAttribute = function (options) {
   var attributeErr, err;
@@ -6748,7 +6748,7 @@ HostedFields.prototype.removeAttribute = function (options) {
  * @param {string} placeholder Will be used as the `placeholder` attribute of the input.
  * @param {callback} [callback] Callback executed on completion, containing an error if one occurred. No data is returned if the placeholder updated successfully.
  *
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 HostedFields.prototype.setPlaceholder = function (field, placeholder) {
   return this.setAttribute({
@@ -6763,7 +6763,7 @@ HostedFields.prototype.setPlaceholder = function (field, placeholder) {
  * @public
  * @param {string} field The field you wish to clear. Must be a valid {@link module:braintree-web/hosted-fields~fieldOptions fieldOption}.
  * @param {callback} [callback] Callback executed on completion, containing an error if one occurred. No data is returned if the field cleared successfully.
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  * @example
  * hostedFieldsInstance.clear('number', function (clearErr) {
  *   if (clearErr) {
@@ -6906,20 +6906,20 @@ var supportsInputFormatting = _dereq_('restricted-input/supports-input-formattin
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
  * @typedef {object} field
  * @property {string} selector Deprecated: Now an alias for `options.container`.
- * @property {string|HTMLElement} container A DOM node or CSS selector to find the container where the hosted field will be inserted.
+ * @property {(string|HTMLElement)} container A DOM node or CSS selector to find the container where the hosted field will be inserted.
  * @property {string} [placeholder] Will be used as the `placeholder` attribute of the input. If `placeholder` is not natively supported by the browser, it will be polyfilled.
  * @property {string} [type] Will be used as the `type` attribute of the input. To mask `cvv` input, for instance, `type: "password"` can be used.
  * @property {boolean} [formatInput=true] Enable or disable automatic formatting on this field.
- * @property {object|boolean} [maskInput=false] Enable or disable input masking when input is not focused. If set to `true` instead of an object, the defaults for the `maskInput` parameters will be used.
+ * @property {(object|boolean)} [maskInput=false] Enable or disable input masking when input is not focused. If set to `true` instead of an object, the defaults for the `maskInput` parameters will be used.
  * @property {string} [maskInput.character=•] The character to use when masking the input. The default character ('•') uses a unicode symbol, so the webpage must support UTF-8 characters when using the default.
  * @property {Boolean} [maskInput.showLastFour=false] Only applicable for the credit card field. Whether or not to show the last 4 digits of the card when masking.
- * @property {object|boolean} [select] If truthy, this field becomes a `<select>` dropdown list. This can only be used for `expirationMonth` and `expirationYear` fields. If you do not use a `placeholder` property for the field, the current month/year will be the default selected value.
+ * @property {(object|boolean)} [select] If truthy, this field becomes a `<select>` dropdown list. This can only be used for `expirationMonth` and `expirationYear` fields. If you do not use a `placeholder` property for the field, the current month/year will be the default selected value.
  * @property {string[]} [select.options] An array of 12 strings, one per month. This can only be used for the `expirationMonth` field. For example, the array can look like `['01 - January', '02 - February', ...]`.
  * @property {number} [maxCardLength] This option applies only to the number field. Allows a limit to the length of the card number, even if the card brand may support numbers of a greater length. If the value passed is greater than the max length for a card brand, the smaller number of the 2 values will be used. For example, is `maxCardLength` is set to 16, but an American Express card is entered (which has a max card length of 15), a max card length of 15 will be used.
  * @property {number} [maxlength] This option applies only to the CVV and postal code fields. Will be used as the `maxlength` attribute of the input if it is less than the default. The primary use cases for the `maxlength` option are: limiting the length of the CVV input for CVV-only verifications when the card type is known and limiting the length of the postal code input when cards are coming from a known region.
@@ -7247,7 +7247,7 @@ module.exports = {
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 
 var constants = {
   VERSION: VERSION,
@@ -7697,7 +7697,7 @@ var usBankAccount = _dereq_('./us-bank-account');
 var vaultManager = _dereq_('./vault-manager');
 var venmo = _dereq_('./venmo');
 var visaCheckout = _dereq_('./visa-checkout');
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 
 module.exports = {
   /** @type {module:braintree-web/american-express} */
@@ -7851,7 +7851,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -8219,7 +8219,7 @@ module.exports = function (obj) {
 },{}],102:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -8368,7 +8368,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -9143,7 +9143,7 @@ module.exports = enumerate([
 },{"../../enumerate":110}],124:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 var assign = _dereq_('./assign').assign;
 
 function generateTokenizationParameters(configuration, overrides) {
@@ -9562,7 +9562,7 @@ module.exports = {
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var useMin = _dereq_('../../lib/use-min');
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
 var methods = _dereq_('../../lib/methods');
@@ -9665,7 +9665,7 @@ LocalPayment.prototype._initialize = function () {
  *     console.error('Error!', startPaymentError);
  *   });
  * });
- * @returns {Promise|void}
+ * @returns {(Promise|void)}
  */
 LocalPayment.prototype.startPayment = wrapPromise(function (options) {
   var address, params;
@@ -9773,7 +9773,7 @@ LocalPayment.prototype.startPayment = wrapPromise(function (options) {
  * }).catch(function (err) {
  *   // handle tokenization error
  * });
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 LocalPayment.prototype.tokenize = function (params) {
   var self = this;
@@ -9961,7 +9961,7 @@ function hasMissingOption(options) {
  * localPaymentInstance.teardown(function () {
  *   // teardown is complete
  * });
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 LocalPayment.prototype.teardown = wrapPromise(function () {
   var self = this; // eslint-disable-line no-invalid-this
@@ -9990,7 +9990,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var LocalPayment = _dereq_('./external/local-payment');
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -10063,7 +10063,7 @@ var errors = _dereq_('./shared/errors');
  *     }, false);
  *   });
  * });
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 function create(options) {
   var name = 'Local Payment';
@@ -10181,7 +10181,7 @@ var Promise = _dereq_('../../lib/promise');
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var errors = _dereq_('../shared/errors');
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 var methods = _dereq_('../../lib/methods');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var analytics = _dereq_('../../lib/analytics');
@@ -10295,7 +10295,7 @@ Masterpass.prototype._initialize = function () {
  * @param {number} [options.frameOptions.top] The top position of the popup window to be used instead of default value, that is calculated based on provided height, and parent window size.
  * @param {number} [options.frameOptions.left] The left position to the popup window to be used instead of default value, that is calculated baed on provided width, and parent window size.
  * @param {callback} [callback] The second argument, <code>data</code>, is a {@link Masterpass~tokenizePayload|tokenizePayload}. If no callback is provided, the method will return a Promise that resolves with a {@link Masterpass~tokenizePayload|tokenizePayload}.
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  * @example
  * button.addEventListener('click', function () {
  *   // Disable the button so that we don't attempt to open multiple popups.
@@ -10534,7 +10534,7 @@ Masterpass.prototype._closeWindow = function () {
  * masterpassInstance.teardown(function () {
  *   // teardown is complete
  * });
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 Masterpass.prototype.teardown = function () {
   var self = this;
@@ -10580,7 +10580,7 @@ var browserDetection = _dereq_('./shared/browser-detection');
 var Masterpass = _dereq_('./external/masterpass');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 var errors = _dereq_('./shared/errors');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -10605,7 +10605,7 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
  *     return;
  *   }
  * });
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 function create(options) {
   var name = 'Masterpass';
@@ -10788,7 +10788,7 @@ var methods = _dereq_('../../lib/methods');
 var Promise = _dereq_('../../lib/promise');
 var EventEmitter = _dereq_('@braintree/event-emitter');
 var BraintreeError = _dereq_('../../lib/braintree-error');
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 var constants = _dereq_('../shared/constants');
 var events = constants.events;
 var errors = constants.errors;
@@ -11218,7 +11218,7 @@ PaymentRequestComponent.prototype.createSupportedPaymentMethodsConfiguration = f
  *   // collect shipping information from payload
  *   console.log(payload.details.rawPaymentResponse.shippingAddress);
  * });
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 PaymentRequestComponent.prototype.tokenize = function (configuration) {
   var self = this;
@@ -11280,7 +11280,7 @@ PaymentRequestComponent.prototype.tokenize = function (configuration) {
  *     // set up payment request button
  *   }
  * });
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 PaymentRequestComponent.prototype.canMakePayment = function (configuration) {
   var self = this;
@@ -11343,7 +11343,7 @@ PaymentRequestComponent.prototype.canMakePayment = function (configuration) {
  * paymentRequestInstance.teardown(function () {
  *   // teardown is complete
  * });
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 PaymentRequestComponent.prototype.teardown = function () {
   this._bus.teardown();
@@ -11476,7 +11476,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 
 /**
  * @static
@@ -11489,7 +11489,7 @@ var VERSION = "3.54.0";
  * @param {boolean} [options.enabledPaymentMethods.googlePay=true] Whether or not to display Google Pay as an option in the Payment Request dialog. If left blank or set to true, Google Pay will be displayed in the dialog if the merchant account is set up to process Google Pay.
  * @param {Number} [options.googlePayVersion=1] Ignored if `options.enabledPaymentMethods.googlePay = false`. If `true`, this option specifies the version of Google Pay to use. Choose either 1 (default) or 2.
  * @param {callback} [callback] The second argument, `data`, is the {@link PaymentRequestComponent} instance. If no callback is provided, `create` returns a promise that resolves with the {@link PaymentRequestComponent} instance.
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  * @example
  * if (window.PaymentRequest) {
  *   braintree.paymentRequest.create({
@@ -11742,7 +11742,7 @@ module.exports = {
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var PayPalCheckout = _dereq_('./paypal-checkout');
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 
 /**
  * @static
@@ -11766,7 +11766,7 @@ var VERSION = "3.54.0";
  * }).catch(function (err) {
  *   console.error('Error!', err);
  * });
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 function create(options) {
   var name = 'PayPal Checkout';
@@ -12072,7 +12072,7 @@ PayPalCheckout.prototype._initialize = function (options) {
  * * `order` - Validates the transaction without an authorization (i.e. without holding funds). Useful for authorizing and capturing funds up to 90 days after the order has been placed. Only available for Checkout flow.
  * * `capture` - Payment will be immediately submitted for settlement upon creating a transaction. `sale` can be used as an alias for this value.
  * @param {boolean} [options.offerCredit=false] Offers PayPal Credit as the default funding instrument for the transaction. If the customer isn't pre-approved for PayPal Credit, they will be prompted to apply for it.
- * @param {string|number} [options.amount] The amount of the transaction. Required when using the Checkout flow.
+ * @param {(string|number)} [options.amount] The amount of the transaction. Required when using the Checkout flow.
  * @param {string} [options.currency] The currency code of the amount, such as 'USD'. Required when using the Checkout flow.
  * @param {string} [options.displayName] The merchant name displayed inside of the PayPal lightbox; defaults to the company name on your Braintree account
  * @param {string} [options.locale=en_US] Use this option to change the language, links, and terminology used in the PayPal flow. This locale will be used unless the buyer has set a preferred locale for their account. If an unsupported locale is supplied, a fallback locale (determined by buyer preference or browser data) will be used and no error will be thrown.
@@ -12135,7 +12135,7 @@ PayPalCheckout.prototype._initialize = function (options) {
  *   // Add other options, e.g. onApproved, onCancel, onError
  * }).render('#paypal-button');
  *
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 PayPalCheckout.prototype.createPayment = function (options) {
   var self = this;
@@ -12205,7 +12205,7 @@ PayPalCheckout.prototype.createPayment = function (options) {
  * @param {string} [tokenizeOptions.paymentId] Payment ID returned by PayPal `onApproved` callback.
  * @param {string} [tokenizeOptions.billingToken] Billing Token returned by PayPal `onApproved` callback.
  * @param {callback} [callback] The second argument, <code>payload</code>, is a {@link PayPalCheckout~tokenizePayload|tokenizePayload}. If no callback is provided, the promise resolves with a {@link PayPalCheckout~tokenizePayload|tokenizePayload}.
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 PayPalCheckout.prototype.tokenizePayment = function (tokenizeOptions) {
   var self = this;
@@ -12378,7 +12378,7 @@ PayPalCheckout.prototype._formatTokenizePayload = function (response) {
  * paypalCheckoutInstance.teardown(function () {
  *   // teardown is complete
  * });
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 PayPalCheckout.prototype.teardown = function () {
   convertMethodsToError(this, methods(PayPalCheckout.prototype));
@@ -12397,7 +12397,7 @@ var BraintreeError = _dereq_('../../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../../lib/convert-to-braintree-error');
 var useMin = _dereq_('../../lib/use-min');
 var once = _dereq_('../../lib/once');
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 var constants = _dereq_('../shared/constants');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
@@ -12512,7 +12512,7 @@ PayPal.prototype._initialize = function () {
  *
  * Setting this option to `commit` changes the button text to "Pay Now" and page text will convey to
  * the user that billing will take place immediately.
- * @param {string|number} [options.amount] The amount of the transaction. Required when using the Checkout flow.
+ * @param {(string|number)} [options.amount] The amount of the transaction. Required when using the Checkout flow.
  * @param {string} [options.currency] The currency code of the amount, such as 'USD'. Required when using the Checkout flow.
  * @param {string} [options.displayName] The merchant name displayed inside of the PayPal lightbox; defaults to the company name on your Braintree account
  * @param {string} [options.locale=en_US] Use this option to change the language, links, and terminology used in the PayPal flow. This locale will be used unless the buyer has set a preferred locale for their account. If an unsupported locale is supplied, a fallback locale (determined by buyer preference or browser data) will be used and no error will be thrown.
@@ -12971,7 +12971,7 @@ PayPal.prototype.focusWindow = function () {
  * paypalInstance.teardown(function () {
  *   // teardown is complete
  * });
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 PayPal.prototype.teardown = wrapPromise(function () {
   var self = this; // eslint-disable-line no-invalid-this
@@ -13003,7 +13003,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var errors = _dereq_('./shared/errors');
 var PayPal = _dereq_('./external/paypal');
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var Promise = _dereq_('../lib/promise');
 
@@ -13061,7 +13061,7 @@ var Promise = _dereq_('../lib/promise');
  *     }, false);
  *   });
  * });
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 function create(options) {
   var name = 'PayPal';
@@ -13210,7 +13210,7 @@ var makePromisePlus = _dereq_('../../../lib/promise-plus');
 var EventEmitter = _dereq_('@braintree/event-emitter');
 var errors = _dereq_('../../shared/errors');
 
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 
 function BaseFramework(options) {
   EventEmitter.call(this);
@@ -13589,7 +13589,7 @@ var useMin = _dereq_('../../../lib/use-min');
 
 var events = _dereq_('../../shared/events');
 
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 var IFRAME_HEIGHT = 400;
 var IFRAME_WIDTH = 400;
 
@@ -13768,7 +13768,7 @@ var makePromisePlus = _dereq_('../../../lib/promise-plus');
 
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var PLATFORM = _dereq_('../../../lib/constants').PLATFORM;
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 
 function SongbirdFramework(options) {
   BaseFramework.call(this, options);
@@ -14490,7 +14490,7 @@ var FRAMEWORKS = _dereq_('./frameworks');
  */
 
 /**
- * This event is emitted when the `inline-iframe` framework is specified when creating the 3D Secure instance and the authentication iframe becomes available.
+ * This event is emitted when the `2-inline-iframe` version is specified when creating the 3D Secure instance and the authentication iframe becomes available.
  * @event ThreeDSecure#authentication-iframe-available
  * @type {object}
  * @example
@@ -14511,7 +14511,7 @@ var FRAMEWORKS = _dereq_('./frameworks');
  * <caption>Listening for when the lookup request is complete</caption>
  * braintree.threeDSecure.create({
  *   client: clientInstance,
- *   framework: 'inline-iframe'
+ *   version: '2-inline-iframe'
  * }, function (createErr, threeDSecureInstance) {
  *   threeDSecureInstance.on('lookup-complete', function (data, next) {
  *     // inspect the data
@@ -14564,7 +14564,7 @@ EventEmitter.createChild(ThreeDSecure);
  * @param {callback} options.removeFrame **Deprecated** For use in 3DS 1.0 Flows. This {@link ThreeDSecure~removeFrameCallback|removeFrameCallback} will be called when the bank frame needs to be removed from your page. Only to be used in 3DS 1.0 integrations.
  * @param {callback} [callback] The second argument, <code>data</code>, is a {@link ThreeDSecure~verifyPayload|verifyPayload}. If no callback is provided, it will return a promise that resolves {@link ThreeDSecure~verifyPayload|verifyPayload}.
 
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  * @example
  * <caption>Verifying a payment method nonce with 3DS 2.0</caption>
  * var my3DSContainer;
@@ -14772,7 +14772,7 @@ ThreeDSecure.prototype.verifyCard = function (options) {
  * Launch the iframe challenge using a 3D Secure lookup response from a server side lookup.
  *
  * @public
- * @param {object|string} lookupResponse The lookup response from the server side call to lookup the 3D Secure information. The raw string or a parsed object can be passed.
+ * @param {(object|string)} lookupResponse The lookup response from the server side call to lookup the 3D Secure information. The raw string or a parsed object can be passed.
  * @returns {Promise} Returns a promise.
  * @example
  * var my3DSContainer;
@@ -14807,7 +14807,7 @@ ThreeDSecure.prototype.initializeChallengeWithLookupResponse = function (lookupR
  * @param {string} [options.bin] The numeric Bank Identification Number (bin) of the card from a tokenization payload. For example, this can be a {@link HostedFields~tokenizePayload|tokenizePayload} returned by Hosted Fields under `payload.details.bin`. Though not required to start the verification, it is required to receive a 3DS 2.0 lookup response.
  * @param {callback} [callback] The second argument, <code>data</code>, is a {@link ThreeDSecure~prepareLookupPayload|prepareLookupPayload}. If no callback is provided, it will return a promise that resolves {@link ThreeDSecure~prepareLookupPayload|prepareLookupPayload}.
 
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  * @example
  * <caption>Preparing data for a 3D Secure lookup</caption>
  * threeDSecure.prepareLookup({
@@ -14832,7 +14832,7 @@ ThreeDSecure.prototype.prepareLookup = function (options) {
  * Cancel the 3DS flow and return the verification payload if available. If using 3D Secure version 2, this will not close the UI of the authentication modal. It is recommended that this method only be used in the {@link ThreeDSecure#event:lookup-complete|`lookup-complete`} event or the `onLookupComplete` callback.
  * @public
  * @param {callback} [callback] The second argument is a {@link ThreeDSecure~verifyPayload|verifyPayload}. If there is no verifyPayload (the initial lookup did not complete), an error will be returned. If no callback is passed, `cancelVerifyCard` will return a promise.
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  * @example <caption>Cancel the verification in `lookup-complete` event</caption>
  * // set up listener after instantiation
  * threeDSecure.on('lookup-complete', function (data, next) {
@@ -14923,7 +14923,7 @@ ThreeDSecure.prototype.cancelVerifyCard = function () {
  * threeDSecure.teardown(function () {
  *   // teardown is complete
  * });
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 ThreeDSecure.prototype.teardown = function () {
   var methodNames = methods(ThreeDSecure.prototype).concat(methods(EventEmitter.prototype));
@@ -14947,7 +14947,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -14957,15 +14957,15 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
  * @param {object} options Creation options:
  * @param {Client} [options.client] A {@link Client} instance.
  * @param {string} [options.authorization] A tokenizationKey or clientToken. Can be used in place of `options.client`.
- * @param {number|string} [options.version=1] The version of 3D Secure to use. Possible options:
+ * @param {(number|string)} [options.version=1] The version of 3D Secure to use. Possible options:
  * * 1 - The legacy 3D Secure v1.0 integration.
  * * 2 - A 3D Secure v2.0 integration that uses a modal to host the 3D Secure iframe.
  * * 2-bootstrap3-modal - A 3D Secure v2.0 integration that uses a modal styled with Bootstrap 3 styles to host the 3D Secure iframe. Requires having the Bootstrap 3 script files and stylesheets on your page.
  * * 2-inline-iframe - A 3D Secure v2.0 integration that provides the authentication iframe directly to the merchant.
  * @param {callback} [callback] The second argument, `data`, is the {@link ThreeDSecure} instance. If no callback is provided, it returns a promise that resolves the {@link ThreeDSecure} instance.
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
 @example
- * <caption>Creating a v2 3D Secure component using cardinal-modal framework</caption>
+ * <caption>Creating a v2 3D Secure component using 2 version (Cardinal modal)</caption>
  * braintree.threeDSecure.create({
  *   client: clientInstance,
  *   version: '2'
@@ -14989,7 +14989,7 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
  *   });
  * });
  * @example
- * <caption>Creating a v2 3D Secure component using bootstrap3-modal framework</caption>
+ * <caption>Creating a v2 3D Secure component using 2-bootstrap3-modal version</caption>
  * // must have the boostrap js, css and jquery files on your page
  * braintree.threeDSecure.create({
  *   client: clientInstance,
@@ -15015,7 +15015,7 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
  *   });
  * });
  * @example
- * <caption>Creating a v2 3D Secure component using inline-iframe framework</caption>
+ * <caption>Creating a v2 3D Secure component using 2-inline-iframe version</caption>
  * braintree.threeDSecure.create({
  *   client: clientInstance,
  *   version: '2-inline-iframe'
@@ -15342,7 +15342,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -15353,7 +15353,7 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
  * @param {Client} [options.client] A {@link Client} instance.
  * @param {string} [options.authorization] A tokenizationKey or clientToken. Can be used in place of `options.client`.
 * @param {callback} [callback] The second argument, `data`, is the {@link UnionPay} instance. If no callback is provided, `create` returns a promise that resolves with the {@link UnionPay} instance.
-* @returns {Promise|void} Returns a promise if no callback is provided.
+* @returns {(Promise|void)} Returns a promise if no callback is provided.
 * @example
 * braintree.unionpay.create({ client: clientInstance }, function (createErr, unionpayInstance) {
 *   if (createErr) {
@@ -15534,7 +15534,7 @@ var errors = _dereq_('./errors');
 var events = constants.events;
 var iFramer = _dereq_('@braintree/iframer');
 var methods = _dereq_('../../lib/methods');
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 var uuid = _dereq_('../../lib/vendor/uuid');
 var Promise = _dereq_('../../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -15566,7 +15566,7 @@ function UnionPay(options) {
  * @param {string} options.card.number Card number.
  * @param {HostedFields} [options.hostedFields] The Hosted Fields instance used to collect card data. Required if you are not using the `card` option.
  * @param {callback} [callback] The second argument, <code>data</code>, is a {@link UnionPay#fetchCapabilitiesPayload fetchCapabilitiesPayload}. If no callback is provided, `fetchCapabilities` returns a promise that resolves with a {@link UnionPay#fetchCapabilitiesPayload fetchCapabilitiesPayload}.
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 UnionPay.prototype.fetchCapabilities = function (options) {
   var self = this;
@@ -15767,7 +15767,7 @@ UnionPay.prototype.enroll = function (options) {
  * @param {string} options.enrollmentId The enrollment ID from {@link UnionPay#enroll}.
  * @param {string} [options.smsCode] The SMS code received from the user if {@link UnionPay#enroll} payload have `smsCodeRequired`. if `smsCodeRequired` is false, smsCode should not be passed.
  * @param {callback} [callback] The second argument, <code>data</code>, is a {@link UnionPay~tokenizePayload|tokenizePayload}. If no callback is provided, `tokenize` returns a promise that resolves with a {@link UnionPay~tokenizePayload|tokenizePayload}.
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 UnionPay.prototype.tokenize = function (options) {
   var data;
@@ -15866,7 +15866,7 @@ UnionPay.prototype.tokenize = function (options) {
  * @param {callback} [callback] Called on completion. If no callback is provided, returns a promise.
  * @example
  * unionpayInstance.teardown();
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 UnionPay.prototype.teardown = function () {
   if (this._bus) {
@@ -16007,7 +16007,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var errors = _dereq_('./errors');
 var USBankAccount = _dereq_('./us-bank-account');
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -16018,7 +16018,7 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
  * @param {Client} [options.client] A {@link Client} instance.
  * @param {string} [options.authorization] A tokenizationKey or clientToken. Can be used in place of `options.client`.
  * @param {callback} [callback] The second argument, `data`, is the {@link USBankAccount} instance. If no callback is provided, `create` returns a promise that resolves with the {@link USBankAccount} instance.
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 function create(options) {
   var name = 'US Bank Account';
@@ -16128,7 +16128,7 @@ function USBankAccount(options) {
  * @param {string} options.bankLogin.billingAddress.region The region for the customer's billing address. This is typically a state, such as `'CA'`.
  * @param {string} options.bankLogin.billingAddress.postalCode The postal code for the customer's billing address. This is typically a ZIP code, such as `'94119'`.
  * @param {callback} [callback] The second argument, <code>data</code>, is a {@link USBankAccount~tokenizePayload|tokenizePayload}. If no callback is provided, `tokenize` returns a promise that resolves with {@link USBankAccount~tokenizePayload|tokenizePayload}.
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  * @example
  * <caption>Tokenizing raw bank details</caption>
  * var routingNumberInput = document.querySelector('input[name="routing-number"]');
@@ -16518,7 +16518,7 @@ function createGraphQLMutation(type) {
  * usBankAccountInstance.teardown(function () {
  *   // teardown is complete
  * });
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 USBankAccount.prototype.teardown = function () {
   if (this._plaidScript) {
@@ -16573,7 +16573,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var VaultManager = _dereq_('./vault-manager');
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -16661,7 +16661,7 @@ function VaultManager(options) {
  * @param {object} [options] Options for fetching payment methods.
  * @param {boolean} [options.defaultFirst = false] If `true`, the payment methods will be returned with the default payment method for the customer first. Otherwise, the payment methods will be returned with the most recently used payment method first.
  * @param {callback} [callback] The second argument is a {@link VaultManager~fetchPaymentMethodsPayload|fetchPaymentMehodsPayload}. This is also what is resolved by the promise if no callback is provided.
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  * @example
  * vaultManagerInstance.fetchPaymentMethods(function (err, paymentMethods) {
  *   paymentMethods.forEach(function (paymentMethod) {
@@ -16699,7 +16699,7 @@ VaultManager.prototype.fetchPaymentMethods = function (options) {
  * @ignore
  * @param {string} paymentMethodNonce The payment method nonce that references a vaulted payment method.
  * @param {callback} [callback] No data is returned if the operation is successful.
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  * @example
  * vaultManagerInstance.deletePaymentMethod('nonce-to-delete', function (err) {
  *   // handle err if it exists
@@ -16790,7 +16790,7 @@ function formatPaymentMethodPayload(paymentMethod) {
  * vaultManagerInstance.teardown(function () {
  *   // teardown is complete
  * });
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 VaultManager.prototype.teardown = function () {
   convertMethodsToError(this, methods(VaultManager.prototype));
@@ -16814,7 +16814,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var Venmo = _dereq_('./venmo');
 var Promise = _dereq_('../lib/promise');
 var supportsVenmo = _dereq_('./shared/supports-venmo');
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 
 /**
  * @static
@@ -16834,7 +16834,7 @@ var VERSION = "3.54.0";
  * }).catch(function (createErr) {
  *   console.error('Error creating Venmo instance', createErr);
  * });
- * @returns {Promise|void} Returns the Venmo instance.
+ * @returns {(Promise|void)} Returns the Venmo instance.
  */
 function create(options) {
   var name = 'Venmo';
@@ -17037,7 +17037,7 @@ var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 
 /**
  * Venmo tokenize payload.
@@ -17132,7 +17132,7 @@ Venmo.prototype.hasTokenizationResult = function () {
  * Only one Venmo flow can be active at a time. One way to achieve this is to disable your Venmo button while the flow is open.
  * @public
  * @param {callback} [callback] The second argument, <code>data</code>, is a {@link Venmo~tokenizePayload|tokenizePayload}. If no callback is provided, the method will return a Promise that resolves with a {@link Venmo~tokenizePayload|tokenizePayload}.
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  * @example
  * button.addEventListener('click', function () {
  *   // Disable the button so that we don't attempt to open multiple popups.
@@ -17215,7 +17215,7 @@ Venmo.prototype.tokenize = function () {
  * venmoInstance.teardown(function () {
  *   // teardown is complete
  * });
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 Venmo.prototype.teardown = function () {
   this._removeVisibilityEventListener();
@@ -17267,7 +17267,11 @@ function getFragmentParameters() {
 
   return keyValuesArray.reduce(function (toReturn, keyValue) {
     var parts = keyValue.split('=');
-    var key = decodeURIComponent(parts[0]);
+    // some Single Page Apps may pre-pend a / to the first value
+    // in the hash, assuming it's a route in their app
+    // instead of information from Venmo, this removes all
+    // non-alphanumeric characters from the keys in the params
+    var key = decodeURIComponent(parts[0]).replace(/\W/g, '');
     var value = decodeURIComponent(parts[1]);
 
     toReturn[key] = value;
@@ -17372,7 +17376,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var VisaCheckout = _dereq_('./visa-checkout');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./errors');
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -17383,7 +17387,7 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
  * @param {Client} [options.client] A {@link Client} instance.
  * @param {string} [options.authorization] A tokenizationKey or clientToken. Can be used in place of `options.client`.
  * @param {callback} [callback] The second argument, `data`, is the {@link VisaCheckout} instance. If no callback is provided, `create` returns a promise that resolves with the {@link VisaCheckout} instance.
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 function create(options) {
   var name = 'Visa Checkout';
@@ -17559,7 +17563,7 @@ VisaCheckout.prototype.createInitOptions = function (options) {
  * @param {string} payment.encKey The encrypted key used to decrypt the payment data.
  * @param {string} payment.encPaymentData The encrypted payment data.
  * @param {callback} [callback] The second argument, <code>tokenizePayload</code> is a {@link VisaCheckout~tokenizePayload|tokenizePayload}. If no callback is provided, `tokenize` returns a promise that resolves with the {@link VisaCheckout~tokenizePayload|tokenizePayload}.
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 VisaCheckout.prototype.tokenize = function (payment) {
   var self = this;
@@ -17609,7 +17613,7 @@ VisaCheckout.prototype.tokenize = function (payment) {
  * visaCheckoutInstance.teardown(function () {
  *   // teardown is complete
  * });
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 VisaCheckout.prototype.teardown = function () {
   convertMethodsToError(this, methods(VisaCheckout.prototype));

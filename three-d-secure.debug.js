@@ -1010,7 +1010,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1312,7 +1312,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":19,"./check-origin":20,"./events":21,"framebus":12}],23:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1461,7 +1461,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1775,7 +1775,7 @@ var makePromisePlus = _dereq_('../../../lib/promise-plus');
 var EventEmitter = _dereq_('@braintree/event-emitter');
 var errors = _dereq_('../../shared/errors');
 
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 
 function BaseFramework(options) {
   EventEmitter.call(this);
@@ -2154,7 +2154,7 @@ var useMin = _dereq_('../../../lib/use-min');
 
 var events = _dereq_('../../shared/events');
 
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 var IFRAME_HEIGHT = 400;
 var IFRAME_WIDTH = 400;
 
@@ -2333,7 +2333,7 @@ var makePromisePlus = _dereq_('../../../lib/promise-plus');
 
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var PLATFORM = _dereq_('../../../lib/constants').PLATFORM;
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 
 function SongbirdFramework(options) {
   BaseFramework.call(this, options);
@@ -3055,7 +3055,7 @@ var FRAMEWORKS = _dereq_('./frameworks');
  */
 
 /**
- * This event is emitted when the `inline-iframe` framework is specified when creating the 3D Secure instance and the authentication iframe becomes available.
+ * This event is emitted when the `2-inline-iframe` version is specified when creating the 3D Secure instance and the authentication iframe becomes available.
  * @event ThreeDSecure#authentication-iframe-available
  * @type {object}
  * @example
@@ -3076,7 +3076,7 @@ var FRAMEWORKS = _dereq_('./frameworks');
  * <caption>Listening for when the lookup request is complete</caption>
  * braintree.threeDSecure.create({
  *   client: clientInstance,
- *   framework: 'inline-iframe'
+ *   version: '2-inline-iframe'
  * }, function (createErr, threeDSecureInstance) {
  *   threeDSecureInstance.on('lookup-complete', function (data, next) {
  *     // inspect the data
@@ -3129,7 +3129,7 @@ EventEmitter.createChild(ThreeDSecure);
  * @param {callback} options.removeFrame **Deprecated** For use in 3DS 1.0 Flows. This {@link ThreeDSecure~removeFrameCallback|removeFrameCallback} will be called when the bank frame needs to be removed from your page. Only to be used in 3DS 1.0 integrations.
  * @param {callback} [callback] The second argument, <code>data</code>, is a {@link ThreeDSecure~verifyPayload|verifyPayload}. If no callback is provided, it will return a promise that resolves {@link ThreeDSecure~verifyPayload|verifyPayload}.
 
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  * @example
  * <caption>Verifying a payment method nonce with 3DS 2.0</caption>
  * var my3DSContainer;
@@ -3337,7 +3337,7 @@ ThreeDSecure.prototype.verifyCard = function (options) {
  * Launch the iframe challenge using a 3D Secure lookup response from a server side lookup.
  *
  * @public
- * @param {object|string} lookupResponse The lookup response from the server side call to lookup the 3D Secure information. The raw string or a parsed object can be passed.
+ * @param {(object|string)} lookupResponse The lookup response from the server side call to lookup the 3D Secure information. The raw string or a parsed object can be passed.
  * @returns {Promise} Returns a promise.
  * @example
  * var my3DSContainer;
@@ -3372,7 +3372,7 @@ ThreeDSecure.prototype.initializeChallengeWithLookupResponse = function (lookupR
  * @param {string} [options.bin] The numeric Bank Identification Number (bin) of the card from a tokenization payload. For example, this can be a {@link HostedFields~tokenizePayload|tokenizePayload} returned by Hosted Fields under `payload.details.bin`. Though not required to start the verification, it is required to receive a 3DS 2.0 lookup response.
  * @param {callback} [callback] The second argument, <code>data</code>, is a {@link ThreeDSecure~prepareLookupPayload|prepareLookupPayload}. If no callback is provided, it will return a promise that resolves {@link ThreeDSecure~prepareLookupPayload|prepareLookupPayload}.
 
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  * @example
  * <caption>Preparing data for a 3D Secure lookup</caption>
  * threeDSecure.prepareLookup({
@@ -3397,7 +3397,7 @@ ThreeDSecure.prototype.prepareLookup = function (options) {
  * Cancel the 3DS flow and return the verification payload if available. If using 3D Secure version 2, this will not close the UI of the authentication modal. It is recommended that this method only be used in the {@link ThreeDSecure#event:lookup-complete|`lookup-complete`} event or the `onLookupComplete` callback.
  * @public
  * @param {callback} [callback] The second argument is a {@link ThreeDSecure~verifyPayload|verifyPayload}. If there is no verifyPayload (the initial lookup did not complete), an error will be returned. If no callback is passed, `cancelVerifyCard` will return a promise.
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  * @example <caption>Cancel the verification in `lookup-complete` event</caption>
  * // set up listener after instantiation
  * threeDSecure.on('lookup-complete', function (data, next) {
@@ -3488,7 +3488,7 @@ ThreeDSecure.prototype.cancelVerifyCard = function () {
  * threeDSecure.teardown(function () {
  *   // teardown is complete
  * });
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 ThreeDSecure.prototype.teardown = function () {
   var methodNames = methods(ThreeDSecure.prototype).concat(methods(EventEmitter.prototype));
@@ -3512,7 +3512,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.54.0";
+var VERSION = "3.54.1";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -3522,15 +3522,15 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
  * @param {object} options Creation options:
  * @param {Client} [options.client] A {@link Client} instance.
  * @param {string} [options.authorization] A tokenizationKey or clientToken. Can be used in place of `options.client`.
- * @param {number|string} [options.version=1] The version of 3D Secure to use. Possible options:
+ * @param {(number|string)} [options.version=1] The version of 3D Secure to use. Possible options:
  * * 1 - The legacy 3D Secure v1.0 integration.
  * * 2 - A 3D Secure v2.0 integration that uses a modal to host the 3D Secure iframe.
  * * 2-bootstrap3-modal - A 3D Secure v2.0 integration that uses a modal styled with Bootstrap 3 styles to host the 3D Secure iframe. Requires having the Bootstrap 3 script files and stylesheets on your page.
  * * 2-inline-iframe - A 3D Secure v2.0 integration that provides the authentication iframe directly to the merchant.
  * @param {callback} [callback] The second argument, `data`, is the {@link ThreeDSecure} instance. If no callback is provided, it returns a promise that resolves the {@link ThreeDSecure} instance.
- * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
 @example
- * <caption>Creating a v2 3D Secure component using cardinal-modal framework</caption>
+ * <caption>Creating a v2 3D Secure component using 2 version (Cardinal modal)</caption>
  * braintree.threeDSecure.create({
  *   client: clientInstance,
  *   version: '2'
@@ -3554,7 +3554,7 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
  *   });
  * });
  * @example
- * <caption>Creating a v2 3D Secure component using bootstrap3-modal framework</caption>
+ * <caption>Creating a v2 3D Secure component using 2-bootstrap3-modal version</caption>
  * // must have the boostrap js, css and jquery files on your page
  * braintree.threeDSecure.create({
  *   client: clientInstance,
@@ -3580,7 +3580,7 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
  *   });
  * });
  * @example
- * <caption>Creating a v2 3D Secure component using inline-iframe framework</caption>
+ * <caption>Creating a v2 3D Secure component using 2-inline-iframe version</caption>
  * braintree.threeDSecure.create({
  *   client: clientInstance,
  *   version: '2-inline-iframe'
