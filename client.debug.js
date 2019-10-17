@@ -509,6 +509,7 @@ var isVerifiedDomain = _dereq_('../lib/is-verified-domain');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../lib/convert-to-braintree-error');
 var getGatewayConfiguration = _dereq_('./get-configuration').getConfiguration;
+var createAuthorizationData = _dereq_('../lib/create-authorization-data');
 var addMetadata = _dereq_('../lib/add-metadata');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -594,7 +595,7 @@ function Client(configuration) {
 }
 
 Client.initialize = function (options) {
-  var clientInstance;
+  var clientInstance, authData;
   var promise = cachedClients[options.authorization];
 
   if (promise) {
@@ -603,10 +604,18 @@ Client.initialize = function (options) {
     return promise;
   }
 
-  promise = getGatewayConfiguration(options).then(function (configuration) {
+  try {
+    authData = createAuthorizationData(options.authorization);
+  } catch (err) {
+    return Promise.reject(new BraintreeError(errors.CLIENT_INVALID_AUTHORIZATION));
+  }
+
+  promise = getGatewayConfiguration(authData).then(function (configuration) {
     if (options.debug) {
       configuration.isDebug = true;
     }
+
+    configuration.authorization = options.authorization;
 
     clientInstance = new Client(configuration);
 
@@ -957,7 +966,7 @@ function getAuthorizationHeadersForGraphQL(configuration) {
 
 module.exports = Client;
 
-},{"../lib/add-metadata":33,"../lib/analytics":34,"../lib/assets":35,"../lib/assign":36,"../lib/braintree-error":37,"../lib/constants":38,"../lib/convert-methods-to-error":39,"../lib/convert-to-braintree-error":40,"../lib/deferred":42,"../lib/is-verified-domain":46,"../lib/methods":48,"../lib/once":49,"../lib/promise":50,"./constants":13,"./errors":14,"./get-configuration":15,"./request":27,"./request/graphql":25,"@braintree/wrap-promise":9}],13:[function(_dereq_,module,exports){
+},{"../lib/add-metadata":33,"../lib/analytics":34,"../lib/assets":35,"../lib/assign":36,"../lib/braintree-error":37,"../lib/constants":38,"../lib/convert-methods-to-error":39,"../lib/convert-to-braintree-error":40,"../lib/create-authorization-data":41,"../lib/deferred":42,"../lib/is-verified-domain":46,"../lib/methods":48,"../lib/once":49,"../lib/promise":50,"./constants":13,"./errors":14,"./get-configuration":15,"./request":27,"./request/graphql":25,"@braintree/wrap-promise":9}],13:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -1061,7 +1070,6 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
 var request = _dereq_('./request');
 var uuid = _dereq_('../lib/vendor/uuid');
 var constants = _dereq_('../lib/constants');
-var createAuthorizationData = _dereq_('../lib/create-authorization-data');
 var errors = _dereq_('./errors');
 var GraphQL = _dereq_('./request/graphql');
 var GRAPHQL_URLS = _dereq_('../lib/constants').GRAPHQL_URLS;
@@ -1069,9 +1077,9 @@ var isDateStringBeforeOrOn = _dereq_('../lib/is-date-string-before-or-on');
 
 var BRAINTREE_VERSION = _dereq_('./constants').BRAINTREE_VERSION;
 
-function getConfiguration(options) {
+function getConfiguration(authData) {
   return new Promise(function (resolve, reject) {
-    var configuration, authData, attrs, configUrl, reqOptions;
+    var configuration, attrs, configUrl, reqOptions;
     var sessionId = uuid();
     var analyticsMetadata = {
       merchantAppId: global.location.host,
@@ -1083,13 +1091,6 @@ function getConfiguration(options) {
       sessionId: sessionId
     };
 
-    try {
-      authData = createAuthorizationData(options.authorization);
-    } catch (err) {
-      reject(new BraintreeError(errors.CLIENT_INVALID_AUTHORIZATION));
-
-      return;
-    }
     attrs = authData.attrs;
     configUrl = authData.configUrl;
 
@@ -1148,7 +1149,6 @@ function getConfiguration(options) {
       }
 
       configuration = {
-        authorization: options.authorization,
         authorizationType: attrs.tokenizationKey ? 'TOKENIZATION_KEY' : 'CLIENT_TOKEN',
         authorizationFingerprint: attrs.authorizationFingerprint,
         analyticsMetadata: analyticsMetadata,
@@ -1165,12 +1165,12 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../lib/braintree-error":37,"../lib/constants":38,"../lib/create-authorization-data":41,"../lib/is-date-string-before-or-on":45,"../lib/promise":50,"../lib/vendor/uuid":53,"./constants":13,"./errors":14,"./request":27,"./request/graphql":25,"@braintree/wrap-promise":9}],16:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":37,"../lib/constants":38,"../lib/is-date-string-before-or-on":45,"../lib/promise":50,"../lib/vendor/uuid":53,"./constants":13,"./errors":14,"./request":27,"./request/graphql":25,"@braintree/wrap-promise":9}],16:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Client = _dereq_('./client');
-var VERSION = "3.54.1";
+var VERSION = "3.54.2";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -2610,7 +2610,7 @@ module.exports = BraintreeError;
 },{"./enumerate":43}],38:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.54.1";
+var VERSION = "3.54.2";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {

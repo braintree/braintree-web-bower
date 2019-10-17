@@ -1139,7 +1139,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.54.1";
+var VERSION = "3.54.2";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1441,7 +1441,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":29,"./check-origin":30,"./events":31,"framebus":22}],33:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.54.1";
+var VERSION = "3.54.2";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1590,7 +1590,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.54.1";
+var VERSION = "3.54.2";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -2542,7 +2542,7 @@ module.exports = {
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var useMin = _dereq_('../../lib/use-min');
-var VERSION = "3.54.1";
+var VERSION = "3.54.2";
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
 var methods = _dereq_('../../lib/methods');
@@ -2645,9 +2645,9 @@ LocalPayment.prototype._initialize = function () {
  *     console.error('Error!', startPaymentError);
  *   });
  * });
- * @returns {(Promise|void)}
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
-LocalPayment.prototype.startPayment = wrapPromise(function (options) {
+LocalPayment.prototype.startPayment = function (options) {
   var address, params;
   var self = this; // eslint-disable-line no-invalid-this
   var serviceId = this._frameService._serviceId; // eslint-disable-line no-invalid-this
@@ -2736,7 +2736,7 @@ LocalPayment.prototype.startPayment = wrapPromise(function (options) {
       }));
     });
   });
-});
+};
 
 /**
  * Manually tokenizes params for a local payment received from PayPal.When app switching back from a mobile application (such as a bank application for an iDEAL payment), the window may lose context with the parent page. In that case, a fallback url is used, and this method can be used to finish the flow.
@@ -2943,7 +2943,7 @@ function hasMissingOption(options) {
  * });
  * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
-LocalPayment.prototype.teardown = wrapPromise(function () {
+LocalPayment.prototype.teardown = function () {
   var self = this; // eslint-disable-line no-invalid-this
 
   self._frameService.teardown();
@@ -2953,9 +2953,9 @@ LocalPayment.prototype.teardown = wrapPromise(function () {
   analytics.sendEvent(self._client, 'local-payment.teardown-completed');
 
   return Promise.resolve();
-});
+};
 
-module.exports = LocalPayment;
+module.exports = wrapPromise.wrapPrototype(LocalPayment);
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"../../lib/analytics":25,"../../lib/braintree-error":29,"../../lib/constants":33,"../../lib/convert-methods-to-error":34,"../../lib/convert-to-braintree-error":35,"../../lib/frame-service/external":42,"../../lib/methods":55,"../../lib/promise":56,"../../lib/querystring":57,"../../lib/use-min":58,"../shared/errors":64,"./constants":61,"@braintree/wrap-promise":21}],63:[function(_dereq_,module,exports){
@@ -2970,7 +2970,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var LocalPayment = _dereq_('./external/local-payment');
-var VERSION = "3.54.1";
+var VERSION = "3.54.2";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');

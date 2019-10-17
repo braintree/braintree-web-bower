@@ -1955,7 +1955,7 @@ var AmericanExpress = _dereq_('./american-express');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
-var VERSION = "3.54.1";
+var VERSION = "3.54.2";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -2387,7 +2387,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var errors = _dereq_('./errors');
-var VERSION = "3.54.1";
+var VERSION = "3.54.2";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -2459,6 +2459,7 @@ var isVerifiedDomain = _dereq_('../lib/is-verified-domain');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../lib/convert-to-braintree-error');
 var getGatewayConfiguration = _dereq_('./get-configuration').getConfiguration;
+var createAuthorizationData = _dereq_('../lib/create-authorization-data');
 var addMetadata = _dereq_('../lib/add-metadata');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -2544,7 +2545,7 @@ function Client(configuration) {
 }
 
 Client.initialize = function (options) {
-  var clientInstance;
+  var clientInstance, authData;
   var promise = cachedClients[options.authorization];
 
   if (promise) {
@@ -2553,10 +2554,18 @@ Client.initialize = function (options) {
     return promise;
   }
 
-  promise = getGatewayConfiguration(options).then(function (configuration) {
+  try {
+    authData = createAuthorizationData(options.authorization);
+  } catch (err) {
+    return Promise.reject(new BraintreeError(errors.CLIENT_INVALID_AUTHORIZATION));
+  }
+
+  promise = getGatewayConfiguration(authData).then(function (configuration) {
     if (options.debug) {
       configuration.isDebug = true;
     }
+
+    configuration.authorization = options.authorization;
 
     clientInstance = new Client(configuration);
 
@@ -2907,7 +2916,7 @@ function getAuthorizationHeadersForGraphQL(configuration) {
 
 module.exports = Client;
 
-},{"../lib/add-metadata":91,"../lib/analytics":92,"../lib/assets":93,"../lib/assign":94,"../lib/braintree-error":97,"../lib/constants":102,"../lib/convert-methods-to-error":103,"../lib/convert-to-braintree-error":104,"../lib/deferred":108,"../lib/is-verified-domain":127,"../lib/methods":129,"../lib/once":130,"../lib/promise":132,"./constants":49,"./errors":50,"./get-configuration":51,"./request":63,"./request/graphql":61,"@braintree/wrap-promise":29}],49:[function(_dereq_,module,exports){
+},{"../lib/add-metadata":91,"../lib/analytics":92,"../lib/assets":93,"../lib/assign":94,"../lib/braintree-error":97,"../lib/constants":102,"../lib/convert-methods-to-error":103,"../lib/convert-to-braintree-error":104,"../lib/create-authorization-data":106,"../lib/deferred":108,"../lib/is-verified-domain":127,"../lib/methods":129,"../lib/once":130,"../lib/promise":132,"./constants":49,"./errors":50,"./get-configuration":51,"./request":63,"./request/graphql":61,"@braintree/wrap-promise":29}],49:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -3011,7 +3020,6 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
 var request = _dereq_('./request');
 var uuid = _dereq_('../lib/vendor/uuid');
 var constants = _dereq_('../lib/constants');
-var createAuthorizationData = _dereq_('../lib/create-authorization-data');
 var errors = _dereq_('./errors');
 var GraphQL = _dereq_('./request/graphql');
 var GRAPHQL_URLS = _dereq_('../lib/constants').GRAPHQL_URLS;
@@ -3019,9 +3027,9 @@ var isDateStringBeforeOrOn = _dereq_('../lib/is-date-string-before-or-on');
 
 var BRAINTREE_VERSION = _dereq_('./constants').BRAINTREE_VERSION;
 
-function getConfiguration(options) {
+function getConfiguration(authData) {
   return new Promise(function (resolve, reject) {
-    var configuration, authData, attrs, configUrl, reqOptions;
+    var configuration, attrs, configUrl, reqOptions;
     var sessionId = uuid();
     var analyticsMetadata = {
       merchantAppId: global.location.host,
@@ -3033,13 +3041,6 @@ function getConfiguration(options) {
       sessionId: sessionId
     };
 
-    try {
-      authData = createAuthorizationData(options.authorization);
-    } catch (err) {
-      reject(new BraintreeError(errors.CLIENT_INVALID_AUTHORIZATION));
-
-      return;
-    }
     attrs = authData.attrs;
     configUrl = authData.configUrl;
 
@@ -3098,7 +3099,6 @@ function getConfiguration(options) {
       }
 
       configuration = {
-        authorization: options.authorization,
         authorizationType: attrs.tokenizationKey ? 'TOKENIZATION_KEY' : 'CLIENT_TOKEN',
         authorizationFingerprint: attrs.authorizationFingerprint,
         analyticsMetadata: analyticsMetadata,
@@ -3115,12 +3115,12 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../lib/braintree-error":97,"../lib/constants":102,"../lib/create-authorization-data":106,"../lib/is-date-string-before-or-on":125,"../lib/promise":132,"../lib/vendor/uuid":136,"./constants":49,"./errors":50,"./request":63,"./request/graphql":61,"@braintree/wrap-promise":29}],52:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":97,"../lib/constants":102,"../lib/is-date-string-before-or-on":125,"../lib/promise":132,"../lib/vendor/uuid":136,"./constants":49,"./errors":50,"./request":63,"./request/graphql":61,"@braintree/wrap-promise":29}],52:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Client = _dereq_('./client');
-var VERSION = "3.54.1";
+var VERSION = "3.54.2";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -4515,7 +4515,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var methods = _dereq_('../lib/methods');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
-var VERSION = "3.54.1";
+var VERSION = "3.54.2";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var errors = _dereq_('./errors');
@@ -5170,7 +5170,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.54.1";
+var VERSION = "3.54.2";
 
 /**
  * @static
@@ -6906,7 +6906,7 @@ var supportsInputFormatting = _dereq_('restricted-input/supports-input-formattin
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.54.1";
+var VERSION = "3.54.2";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -7247,7 +7247,7 @@ module.exports = {
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.54.1";
+var VERSION = "3.54.2";
 
 var constants = {
   VERSION: VERSION,
@@ -7697,7 +7697,7 @@ var usBankAccount = _dereq_('./us-bank-account');
 var vaultManager = _dereq_('./vault-manager');
 var venmo = _dereq_('./venmo');
 var visaCheckout = _dereq_('./visa-checkout');
-var VERSION = "3.54.1";
+var VERSION = "3.54.2";
 
 module.exports = {
   /** @type {module:braintree-web/american-express} */
@@ -7851,7 +7851,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.54.1";
+var VERSION = "3.54.2";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -8219,7 +8219,7 @@ module.exports = function (obj) {
 },{}],102:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.54.1";
+var VERSION = "3.54.2";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -8368,7 +8368,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.54.1";
+var VERSION = "3.54.2";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -9143,7 +9143,7 @@ module.exports = enumerate([
 },{"../../enumerate":110}],124:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.54.1";
+var VERSION = "3.54.2";
 var assign = _dereq_('./assign').assign;
 
 function generateTokenizationParameters(configuration, overrides) {
@@ -9562,7 +9562,7 @@ module.exports = {
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var useMin = _dereq_('../../lib/use-min');
-var VERSION = "3.54.1";
+var VERSION = "3.54.2";
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
 var methods = _dereq_('../../lib/methods');
@@ -9665,9 +9665,9 @@ LocalPayment.prototype._initialize = function () {
  *     console.error('Error!', startPaymentError);
  *   });
  * });
- * @returns {(Promise|void)}
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
-LocalPayment.prototype.startPayment = wrapPromise(function (options) {
+LocalPayment.prototype.startPayment = function (options) {
   var address, params;
   var self = this; // eslint-disable-line no-invalid-this
   var serviceId = this._frameService._serviceId; // eslint-disable-line no-invalid-this
@@ -9756,7 +9756,7 @@ LocalPayment.prototype.startPayment = wrapPromise(function (options) {
       }));
     });
   });
-});
+};
 
 /**
  * Manually tokenizes params for a local payment received from PayPal.When app switching back from a mobile application (such as a bank application for an iDEAL payment), the window may lose context with the parent page. In that case, a fallback url is used, and this method can be used to finish the flow.
@@ -9963,7 +9963,7 @@ function hasMissingOption(options) {
  * });
  * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
-LocalPayment.prototype.teardown = wrapPromise(function () {
+LocalPayment.prototype.teardown = function () {
   var self = this; // eslint-disable-line no-invalid-this
 
   self._frameService.teardown();
@@ -9973,9 +9973,9 @@ LocalPayment.prototype.teardown = wrapPromise(function () {
   analytics.sendEvent(self._client, 'local-payment.teardown-completed');
 
   return Promise.resolve();
-});
+};
 
-module.exports = LocalPayment;
+module.exports = wrapPromise.wrapPrototype(LocalPayment);
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"../../lib/analytics":92,"../../lib/braintree-error":97,"../../lib/constants":102,"../../lib/convert-methods-to-error":103,"../../lib/convert-to-braintree-error":104,"../../lib/frame-service/external":114,"../../lib/methods":129,"../../lib/promise":132,"../../lib/querystring":133,"../../lib/use-min":134,"../shared/errors":140,"./constants":137,"@braintree/wrap-promise":29}],139:[function(_dereq_,module,exports){
@@ -9990,7 +9990,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var LocalPayment = _dereq_('./external/local-payment');
-var VERSION = "3.54.1";
+var VERSION = "3.54.2";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -10181,7 +10181,7 @@ var Promise = _dereq_('../../lib/promise');
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var errors = _dereq_('../shared/errors');
-var VERSION = "3.54.1";
+var VERSION = "3.54.2";
 var methods = _dereq_('../../lib/methods');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var analytics = _dereq_('../../lib/analytics');
@@ -10580,7 +10580,7 @@ var browserDetection = _dereq_('./shared/browser-detection');
 var Masterpass = _dereq_('./external/masterpass');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
-var VERSION = "3.54.1";
+var VERSION = "3.54.2";
 var errors = _dereq_('./shared/errors');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -10788,7 +10788,7 @@ var methods = _dereq_('../../lib/methods');
 var Promise = _dereq_('../../lib/promise');
 var EventEmitter = _dereq_('@braintree/event-emitter');
 var BraintreeError = _dereq_('../../lib/braintree-error');
-var VERSION = "3.54.1";
+var VERSION = "3.54.2";
 var constants = _dereq_('../shared/constants');
 var events = constants.events;
 var errors = constants.errors;
@@ -11476,7 +11476,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.54.1";
+var VERSION = "3.54.2";
 
 /**
  * @static
@@ -11742,7 +11742,7 @@ module.exports = {
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var PayPalCheckout = _dereq_('./paypal-checkout');
-var VERSION = "3.54.1";
+var VERSION = "3.54.2";
 
 /**
  * @static
@@ -12397,7 +12397,7 @@ var BraintreeError = _dereq_('../../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../../lib/convert-to-braintree-error');
 var useMin = _dereq_('../../lib/use-min');
 var once = _dereq_('../../lib/once');
-var VERSION = "3.54.1";
+var VERSION = "3.54.2";
 var constants = _dereq_('../shared/constants');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
@@ -13003,7 +13003,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var errors = _dereq_('./shared/errors');
 var PayPal = _dereq_('./external/paypal');
-var VERSION = "3.54.1";
+var VERSION = "3.54.2";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var Promise = _dereq_('../lib/promise');
 
@@ -13210,7 +13210,7 @@ var makePromisePlus = _dereq_('../../../lib/promise-plus');
 var EventEmitter = _dereq_('@braintree/event-emitter');
 var errors = _dereq_('../../shared/errors');
 
-var VERSION = "3.54.1";
+var VERSION = "3.54.2";
 
 function BaseFramework(options) {
   EventEmitter.call(this);
@@ -13589,7 +13589,7 @@ var useMin = _dereq_('../../../lib/use-min');
 
 var events = _dereq_('../../shared/events');
 
-var VERSION = "3.54.1";
+var VERSION = "3.54.2";
 var IFRAME_HEIGHT = 400;
 var IFRAME_WIDTH = 400;
 
@@ -13768,7 +13768,7 @@ var makePromisePlus = _dereq_('../../../lib/promise-plus');
 
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var PLATFORM = _dereq_('../../../lib/constants').PLATFORM;
-var VERSION = "3.54.1";
+var VERSION = "3.54.2";
 
 function SongbirdFramework(options) {
   BaseFramework.call(this, options);
@@ -14947,7 +14947,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.54.1";
+var VERSION = "3.54.2";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -15342,7 +15342,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.54.1";
+var VERSION = "3.54.2";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -15534,7 +15534,7 @@ var errors = _dereq_('./errors');
 var events = constants.events;
 var iFramer = _dereq_('@braintree/iframer');
 var methods = _dereq_('../../lib/methods');
-var VERSION = "3.54.1";
+var VERSION = "3.54.2";
 var uuid = _dereq_('../../lib/vendor/uuid');
 var Promise = _dereq_('../../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -16007,7 +16007,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var errors = _dereq_('./errors');
 var USBankAccount = _dereq_('./us-bank-account');
-var VERSION = "3.54.1";
+var VERSION = "3.54.2";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -16573,7 +16573,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var VaultManager = _dereq_('./vault-manager');
-var VERSION = "3.54.1";
+var VERSION = "3.54.2";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -16814,7 +16814,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var Venmo = _dereq_('./venmo');
 var Promise = _dereq_('../lib/promise');
 var supportsVenmo = _dereq_('./shared/supports-venmo');
-var VERSION = "3.54.1";
+var VERSION = "3.54.2";
 
 /**
  * @static
@@ -17037,7 +17037,7 @@ var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.54.1";
+var VERSION = "3.54.2";
 
 /**
  * Venmo tokenize payload.
@@ -17376,7 +17376,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var VisaCheckout = _dereq_('./visa-checkout');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./errors');
-var VERSION = "3.54.1";
+var VERSION = "3.54.2";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
