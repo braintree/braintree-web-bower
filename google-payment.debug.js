@@ -517,6 +517,7 @@ var CREATE_PAYMENT_DATA_REQUEST_METHODS = {
  * @property {string} details.cardType Type of card, ex: Visa, MasterCard.
  * @property {string} details.lastFour Last four digits of card number.
  * @property {string} details.lastTwo Last two digits of card number.
+ * @property {boolean} details.isNetworkTokenized True if the card is network tokenized.
  * @property {string} description A human-readable description.
  * @property {string} type The payment method type, `CreditCard` or `AndroidPayCard`.
  * @property {object} binData Information about the card based on the bin.
@@ -722,7 +723,8 @@ GooglePayment.prototype.parseResponse = function (response) {
       details: {
         cardType: payload.details.cardType,
         lastFour: payload.details.lastFour,
-        lastTwo: payload.details.lastTwo
+        lastTwo: payload.details.lastTwo,
+        isNetworkTokenized: payload.details.isNetworkTokenized
       },
       binData: payload.binData
     });
@@ -789,7 +791,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.54.2";
+var VERSION = "3.55.0";
 
 /**
  * @static
@@ -1051,7 +1053,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.54.2";
+var VERSION = "3.55.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1068,7 +1070,7 @@ function basicComponentVerification(options) {
   client = options.client;
   authorization = options.authorization;
 
-  if (client == null && authorization == null) {
+  if (!client && !authorization) {
     return Promise.reject(new BraintreeError({
       type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
       code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
@@ -1181,7 +1183,7 @@ module.exports = BraintreeError;
 },{"./enumerate":22}],17:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.54.2";
+var VERSION = "3.55.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1308,7 +1310,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.54.2";
+var VERSION = "3.55.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1436,7 +1438,7 @@ module.exports = function (array, key, value) {
 },{}],25:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.54.2";
+var VERSION = "3.55.0";
 var assign = _dereq_('./assign').assign;
 
 function generateTokenizationParameters(configuration, overrides) {

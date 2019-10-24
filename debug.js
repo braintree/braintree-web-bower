@@ -1955,7 +1955,7 @@ var AmericanExpress = _dereq_('./american-express');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
-var VERSION = "3.54.2";
+var VERSION = "3.55.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -2387,7 +2387,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var errors = _dereq_('./errors');
-var VERSION = "3.54.2";
+var VERSION = "3.55.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -3120,7 +3120,7 @@ module.exports = {
 
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Client = _dereq_('./client');
-var VERSION = "3.54.2";
+var VERSION = "3.55.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -3169,7 +3169,6 @@ module.exports = {
 'use strict';
 
 var querystring = _dereq_('../../lib/querystring');
-var browserDetection = _dereq_('../browser-detection');
 var assign = _dereq_('../../lib/assign').assign;
 var prepBody = _dereq_('./prep-body');
 var parseBody = _dereq_('./parse-body');
@@ -3182,7 +3181,7 @@ var MAX_TCP_RETRYCOUNT = 1;
 var TCP_PRECONNECT_BUG_STATUS_CODE = 408;
 
 function requestShouldRetry(status) {
-  return (!status || status === TCP_PRECONNECT_BUG_STATUS_CODE) && browserDetection.isIe();
+  return !status || status === TCP_PRECONNECT_BUG_STATUS_CODE;
 }
 
 function graphQLRequestShouldRetryWithClientApi(body) {
@@ -3323,7 +3322,7 @@ module.exports = {
   request: request
 };
 
-},{"../../lib/assign":94,"../../lib/querystring":133,"../browser-detection":47,"./default-request":54,"./graphql/request":62,"./parse-body":66,"./prep-body":67,"./xhr":68}],54:[function(_dereq_,module,exports){
+},{"../../lib/assign":94,"../../lib/querystring":133,"./default-request":54,"./graphql/request":62,"./parse-body":66,"./prep-body":67,"./xhr":68}],54:[function(_dereq_,module,exports){
 'use strict';
 
 function DefaultRequest(options) {
@@ -4515,7 +4514,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var methods = _dereq_('../lib/methods');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
-var VERSION = "3.54.2";
+var VERSION = "3.55.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var errors = _dereq_('./errors');
@@ -4898,6 +4897,7 @@ var CREATE_PAYMENT_DATA_REQUEST_METHODS = {
  * @property {string} details.cardType Type of card, ex: Visa, MasterCard.
  * @property {string} details.lastFour Last four digits of card number.
  * @property {string} details.lastTwo Last two digits of card number.
+ * @property {boolean} details.isNetworkTokenized True if the card is network tokenized.
  * @property {string} description A human-readable description.
  * @property {string} type The payment method type, `CreditCard` or `AndroidPayCard`.
  * @property {object} binData Information about the card based on the bin.
@@ -5103,7 +5103,8 @@ GooglePayment.prototype.parseResponse = function (response) {
       details: {
         cardType: payload.details.cardType,
         lastFour: payload.details.lastFour,
-        lastTwo: payload.details.lastTwo
+        lastTwo: payload.details.lastTwo,
+        isNetworkTokenized: payload.details.isNetworkTokenized
       },
       binData: payload.binData
     });
@@ -5170,7 +5171,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.54.2";
+var VERSION = "3.55.0";
 
 /**
  * @static
@@ -6906,7 +6907,7 @@ var supportsInputFormatting = _dereq_('restricted-input/supports-input-formattin
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.54.2";
+var VERSION = "3.55.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -7247,7 +7248,7 @@ module.exports = {
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.54.2";
+var VERSION = "3.55.0";
 
 var constants = {
   VERSION: VERSION,
@@ -7697,7 +7698,7 @@ var usBankAccount = _dereq_('./us-bank-account');
 var vaultManager = _dereq_('./vault-manager');
 var venmo = _dereq_('./venmo');
 var visaCheckout = _dereq_('./visa-checkout');
-var VERSION = "3.54.2";
+var VERSION = "3.55.0";
 
 module.exports = {
   /** @type {module:braintree-web/american-express} */
@@ -7851,7 +7852,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.54.2";
+var VERSION = "3.55.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -7868,7 +7869,7 @@ function basicComponentVerification(options) {
   client = options.client;
   authorization = options.authorization;
 
-  if (client == null && authorization == null) {
+  if (!client && !authorization) {
     return Promise.reject(new BraintreeError({
       type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
       code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
@@ -8219,7 +8220,7 @@ module.exports = function (obj) {
 },{}],102:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.54.2";
+var VERSION = "3.55.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -8368,7 +8369,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.54.2";
+var VERSION = "3.55.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -9143,7 +9144,7 @@ module.exports = enumerate([
 },{"../../enumerate":110}],124:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.54.2";
+var VERSION = "3.55.0";
 var assign = _dereq_('./assign').assign;
 
 function generateTokenizationParameters(configuration, overrides) {
@@ -9562,7 +9563,7 @@ module.exports = {
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var useMin = _dereq_('../../lib/use-min');
-var VERSION = "3.54.2";
+var VERSION = "3.55.0";
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
 var methods = _dereq_('../../lib/methods');
@@ -9990,7 +9991,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var LocalPayment = _dereq_('./external/local-payment');
-var VERSION = "3.54.2";
+var VERSION = "3.55.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -10181,7 +10182,7 @@ var Promise = _dereq_('../../lib/promise');
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var errors = _dereq_('../shared/errors');
-var VERSION = "3.54.2";
+var VERSION = "3.55.0";
 var methods = _dereq_('../../lib/methods');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var analytics = _dereq_('../../lib/analytics');
@@ -10580,7 +10581,7 @@ var browserDetection = _dereq_('./shared/browser-detection');
 var Masterpass = _dereq_('./external/masterpass');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
-var VERSION = "3.54.2";
+var VERSION = "3.55.0";
 var errors = _dereq_('./shared/errors');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -10788,7 +10789,7 @@ var methods = _dereq_('../../lib/methods');
 var Promise = _dereq_('../../lib/promise');
 var EventEmitter = _dereq_('@braintree/event-emitter');
 var BraintreeError = _dereq_('../../lib/braintree-error');
-var VERSION = "3.54.2";
+var VERSION = "3.55.0";
 var constants = _dereq_('../shared/constants');
 var events = constants.events;
 var errors = constants.errors;
@@ -11476,7 +11477,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.54.2";
+var VERSION = "3.55.0";
 
 /**
  * @static
@@ -11742,7 +11743,7 @@ module.exports = {
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var PayPalCheckout = _dereq_('./paypal-checkout');
-var VERSION = "3.54.2";
+var VERSION = "3.55.0";
 
 /**
  * @static
@@ -12062,6 +12063,19 @@ PayPalCheckout.prototype._initialize = function (options) {
  */
 
 /**
+ * @typedef {object} PayPalCheckout~shippingOption
+ * @property {string} id A unique ID that identifies a payer-selected shipping option.
+ * @property {string} label A description that the payer sees, which helps them choose an appropriate shipping option. For example, `Free Shipping`, `USPS Priority Shipping`, `Expédition prioritaire USPS`, or `USPS yōuxiān fā huò`. Localize this description to the payer's locale.
+ * @property {boolean} selected If `selected = true` is specified as part of the API request it represents the shipping option that the payee/merchant expects to be pre-selected for the payer when they first view the shipping options within the PayPal checkout experience. As part of the response if a shipping option has `selected = true` it represents the shipping option that the payer selected during the course of checkout with PayPal. Only 1 `shippingOption` can be set to `selected = true`.
+ * @property {string} type The method by which the payer wants to get their items. The possible values are:
+ * * `SHIPPING` - The payer intends to receive the items at a specified address.
+ * * `PICKUP` - The payer intends to pick up the items at a specified address. For example, a store address.
+ * @property {object} amount The shipping cost for the selected option.
+ * @property {string} amount.currency The three-character ISO-4217 currency code. PayPal does not support all currencies.
+ * @property {string} amount.value The amount the shipping option will cost. Includes the specified number of digits after decimal separator for the ISO-4217 currency code.
+ */
+
+/**
  * Creates a PayPal payment ID or billing token using the given options. This is meant to be passed to PayPal's checkout.js library.
  * When a {@link callback} is defined, the function returns undefined and invokes the callback with the id to be used with the checkout.js library. Otherwise, it returns a Promise that resolves with the id.
  * @public
@@ -12076,6 +12090,7 @@ PayPalCheckout.prototype._initialize = function (options) {
  * @param {string} [options.currency] The currency code of the amount, such as 'USD'. Required when using the Checkout flow.
  * @param {string} [options.displayName] The merchant name displayed inside of the PayPal lightbox; defaults to the company name on your Braintree account
  * @param {string} [options.locale=en_US] Use this option to change the language, links, and terminology used in the PayPal flow. This locale will be used unless the buyer has set a preferred locale for their account. If an unsupported locale is supplied, a fallback locale (determined by buyer preference or browser data) will be used and no error will be thrown.
+ * @param {string} [options.vaultInitiatedCheckoutPaymentMethodToken] Use the payment method nonce representing a PayPal account with a Billing Agreement ID to create the payment and redirect the customer to select a new financial instrument. This option is only applicable to the `checkout` flow.
  *
  * Supported locales are:
  * `da_DK`,
@@ -12102,6 +12117,7 @@ PayPalCheckout.prototype._initialize = function (options) {
  * `zh_HK`,
  * and `zh_TW`.
  *
+ * @param {shippingOption[]} [options.shippingOptions] List of shipping options offered by the payee or merchant to the payer to ship or pick up their items.
  * @param {boolean} [options.enableShippingAddress=false] Returns a shipping address object in {@link PayPal#tokenize}.
  * @param {object} [options.shippingAddressOverride] Allows you to pass a shipping address you have already collected into the PayPal payment flow.
  * @param {string} options.shippingAddressOverride.line1 Street address.
@@ -12134,6 +12150,70 @@ PayPalCheckout.prototype._initialize = function (options) {
  *   },
  *   // Add other options, e.g. onApproved, onCancel, onError
  * }).render('#paypal-button');
+ *
+ * @example
+ * // shippingOptions are passed to createPayment. You can review the result from onAuthorize to determine which shipping option id was selected.
+ * ```javascript
+ * braintree.client.create({
+ *   authorization: 'authorization'
+ * }).then(function (clientInstance) {
+ *   return braintree.paypalCheckout.create({
+ *     client: clientInstance
+ *   });
+ * }).then(function (paypalCheckoutInstance) {
+ *   return paypal.Button.render({
+ *     env: 'production'
+ *
+ *     payment: function () {
+ *       return paypalCheckoutInstance.createPayment({
+ *         flow: 'checkout',
+ *         amount: '10.00',
+ *         currency: 'USD',
+ *         shippingOptions: [
+ *           {
+ *             id: 'UUID-9',
+ *             type: 'PICKUP',
+ *             label: 'Store Location Five',
+ *             selected: true,
+ *             amount: {
+ *               value: '1.00',
+ *               currency: 'USD'
+ *             }
+ *           },
+ *           {
+ *             id: 'shipping-speed-fast',
+ *             type: 'SHIPPING',
+ *             label: 'Fast Shipping',
+ *             selected: false,
+ *             amount: {
+ *               value: '1.00',
+ *               currency: 'USD'
+ *             }
+ *           },
+ *           {
+ *             id: 'shipping-speed-slow',
+ *             type: 'SHIPPING',
+ *             label: 'Slow Shipping',
+ *             selected: false,
+ *             amount: {
+ *               value: '1.00',
+ *               currency: 'USD'
+ *             }
+ *           }
+ *         ]
+ *       });
+ *     },
+ *
+ *     onAuthorize: function (data, actions) {
+ *       return paypalCheckoutInstance.tokenizePayment(data).then(function (payload) {
+ *         // Submit payload.nonce to your server
+ *       });
+ *     }
+ *   }, '#paypal-button');
+ * }).catch(function (err) {
+ *  console.error('Error!', err);
+ * });
+ * ```
  *
  * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
@@ -12219,7 +12299,8 @@ PayPalCheckout.prototype.tokenizePayment = function (tokenizeOptions) {
     ecToken: tokenizeOptions.paymentToken,
     billingToken: tokenizeOptions.billingToken,
     payerId: tokenizeOptions.payerID,
-    paymentId: tokenizeOptions.paymentID
+    paymentId: tokenizeOptions.paymentID,
+    shippingOptionsId: tokenizeOptions.shippingOptionsId
   };
 
   analytics.sendEvent(this._clientPromise, 'paypal-checkout.tokenization.started');
@@ -12274,7 +12355,8 @@ PayPalCheckout.prototype._formatPaymentResourceData = function (options) {
       noShipping: (!options.enableShippingAddress).toString(),
       addressOverride: options.shippingAddressEditable === false,
       landingPageType: options.landingPageType
-    }
+    },
+    shippingOptions: options.shippingOptions
   };
 
   if (options.flow === 'checkout') {
@@ -12293,6 +12375,14 @@ PayPalCheckout.prototype._formatPaymentResourceData = function (options) {
 
     if (options.hasOwnProperty('lineItems')) {
       paymentResource.lineItems = options.lineItems;
+    }
+
+    if (options.hasOwnProperty('vaultInitiatedCheckoutPaymentMethodToken')) {
+      paymentResource.vaultInitiatedCheckoutPaymentMethodToken = options.vaultInitiatedCheckoutPaymentMethodToken;
+    }
+
+    if (options.hasOwnProperty('shippingOptions')) {
+      paymentResource.shippingOptions = options.shippingOptions;
     }
 
     for (key in options.shippingAddressOverride) {
@@ -12365,6 +12455,10 @@ PayPalCheckout.prototype._formatTokenizePayload = function (response) {
     payload.creditFinancingOffered = account.details.creditFinancingOffered;
   }
 
+  if (account.details && account.details.shippingOptionId) {
+    payload.shippingOptionId = account.details.shippingOptionId;
+  }
+
   return payload;
 };
 
@@ -12397,7 +12491,7 @@ var BraintreeError = _dereq_('../../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../../lib/convert-to-braintree-error');
 var useMin = _dereq_('../../lib/use-min');
 var once = _dereq_('../../lib/once');
-var VERSION = "3.54.2";
+var VERSION = "3.55.0";
 var constants = _dereq_('../shared/constants');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
@@ -13003,7 +13097,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var errors = _dereq_('./shared/errors');
 var PayPal = _dereq_('./external/paypal');
-var VERSION = "3.54.2";
+var VERSION = "3.55.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var Promise = _dereq_('../lib/promise');
 
@@ -13210,7 +13304,7 @@ var makePromisePlus = _dereq_('../../../lib/promise-plus');
 var EventEmitter = _dereq_('@braintree/event-emitter');
 var errors = _dereq_('../../shared/errors');
 
-var VERSION = "3.54.2";
+var VERSION = "3.55.0";
 
 function BaseFramework(options) {
   EventEmitter.call(this);
@@ -13589,7 +13683,7 @@ var useMin = _dereq_('../../../lib/use-min');
 
 var events = _dereq_('../../shared/events');
 
-var VERSION = "3.54.2";
+var VERSION = "3.55.0";
 var IFRAME_HEIGHT = 400;
 var IFRAME_WIDTH = 400;
 
@@ -13768,7 +13862,7 @@ var makePromisePlus = _dereq_('../../../lib/promise-plus');
 
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var PLATFORM = _dereq_('../../../lib/constants').PLATFORM;
-var VERSION = "3.54.2";
+var VERSION = "3.55.0";
 
 function SongbirdFramework(options) {
   BaseFramework.call(this, options);
@@ -14947,7 +15041,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.54.2";
+var VERSION = "3.55.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -15342,7 +15436,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.54.2";
+var VERSION = "3.55.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -15534,7 +15628,7 @@ var errors = _dereq_('./errors');
 var events = constants.events;
 var iFramer = _dereq_('@braintree/iframer');
 var methods = _dereq_('../../lib/methods');
-var VERSION = "3.54.2";
+var VERSION = "3.55.0";
 var uuid = _dereq_('../../lib/vendor/uuid');
 var Promise = _dereq_('../../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -16007,7 +16101,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var errors = _dereq_('./errors');
 var USBankAccount = _dereq_('./us-bank-account');
-var VERSION = "3.54.2";
+var VERSION = "3.55.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -16573,7 +16667,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var VaultManager = _dereq_('./vault-manager');
-var VERSION = "3.54.2";
+var VERSION = "3.55.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -16814,7 +16908,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var Venmo = _dereq_('./venmo');
 var Promise = _dereq_('../lib/promise');
 var supportsVenmo = _dereq_('./shared/supports-venmo');
-var VERSION = "3.54.2";
+var VERSION = "3.55.0";
 
 /**
  * @static
@@ -17037,7 +17131,7 @@ var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.54.2";
+var VERSION = "3.55.0";
 
 /**
  * Venmo tokenize payload.
@@ -17376,7 +17470,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var VisaCheckout = _dereq_('./visa-checkout');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./errors');
-var VERSION = "3.54.2";
+var VERSION = "3.55.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 

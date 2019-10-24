@@ -1170,7 +1170,7 @@ module.exports = {
 
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Client = _dereq_('./client');
-var VERSION = "3.54.2";
+var VERSION = "3.55.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -1219,7 +1219,6 @@ module.exports = {
 'use strict';
 
 var querystring = _dereq_('../../lib/querystring');
-var browserDetection = _dereq_('../browser-detection');
 var assign = _dereq_('../../lib/assign').assign;
 var prepBody = _dereq_('./prep-body');
 var parseBody = _dereq_('./parse-body');
@@ -1232,7 +1231,7 @@ var MAX_TCP_RETRYCOUNT = 1;
 var TCP_PRECONNECT_BUG_STATUS_CODE = 408;
 
 function requestShouldRetry(status) {
-  return (!status || status === TCP_PRECONNECT_BUG_STATUS_CODE) && browserDetection.isIe();
+  return !status || status === TCP_PRECONNECT_BUG_STATUS_CODE;
 }
 
 function graphQLRequestShouldRetryWithClientApi(body) {
@@ -1373,7 +1372,7 @@ module.exports = {
   request: request
 };
 
-},{"../../lib/assign":36,"../../lib/querystring":51,"../browser-detection":11,"./default-request":18,"./graphql/request":26,"./parse-body":30,"./prep-body":31,"./xhr":32}],18:[function(_dereq_,module,exports){
+},{"../../lib/assign":36,"../../lib/querystring":51,"./default-request":18,"./graphql/request":26,"./parse-body":30,"./prep-body":31,"./xhr":32}],18:[function(_dereq_,module,exports){
 'use strict';
 
 function DefaultRequest(options) {
@@ -2610,7 +2609,7 @@ module.exports = BraintreeError;
 },{"./enumerate":43}],38:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.54.2";
+var VERSION = "3.55.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {

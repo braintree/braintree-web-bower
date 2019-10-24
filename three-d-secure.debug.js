@@ -1010,7 +1010,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.54.2";
+var VERSION = "3.55.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1027,7 +1027,7 @@ function basicComponentVerification(options) {
   client = options.client;
   authorization = options.authorization;
 
-  if (client == null && authorization == null) {
+  if (!client && !authorization) {
     return Promise.reject(new BraintreeError({
       type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
       code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
@@ -1312,7 +1312,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":19,"./check-origin":20,"./events":21,"framebus":12}],23:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.54.2";
+var VERSION = "3.55.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1461,7 +1461,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.54.2";
+var VERSION = "3.55.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1775,7 +1775,7 @@ var makePromisePlus = _dereq_('../../../lib/promise-plus');
 var EventEmitter = _dereq_('@braintree/event-emitter');
 var errors = _dereq_('../../shared/errors');
 
-var VERSION = "3.54.2";
+var VERSION = "3.55.0";
 
 function BaseFramework(options) {
   EventEmitter.call(this);
@@ -2154,7 +2154,7 @@ var useMin = _dereq_('../../../lib/use-min');
 
 var events = _dereq_('../../shared/events');
 
-var VERSION = "3.54.2";
+var VERSION = "3.55.0";
 var IFRAME_HEIGHT = 400;
 var IFRAME_WIDTH = 400;
 
@@ -2333,7 +2333,7 @@ var makePromisePlus = _dereq_('../../../lib/promise-plus');
 
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var PLATFORM = _dereq_('../../../lib/constants').PLATFORM;
-var VERSION = "3.54.2";
+var VERSION = "3.55.0";
 
 function SongbirdFramework(options) {
   BaseFramework.call(this, options);
@@ -3512,7 +3512,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.54.2";
+var VERSION = "3.55.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
