@@ -1010,7 +1010,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.55.0";
+var VERSION = "3.56.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1312,7 +1312,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":19,"./check-origin":20,"./events":21,"framebus":12}],23:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.55.0";
+var VERSION = "3.56.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1461,7 +1461,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.55.0";
+var VERSION = "3.56.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1775,7 +1775,7 @@ var makePromisePlus = _dereq_('../../../lib/promise-plus');
 var EventEmitter = _dereq_('@braintree/event-emitter');
 var errors = _dereq_('../../shared/errors');
 
-var VERSION = "3.55.0";
+var VERSION = "3.56.0";
 
 function BaseFramework(options) {
   EventEmitter.call(this);
@@ -2023,9 +2023,7 @@ Bootstrap3ModalFramework.prototype = Object.create(SongbirdFramework.prototype, 
 Bootstrap3ModalFramework.prototype._createCardinalConfigurationOptions = function (setupOptions) {
   var options = SongbirdFramework.prototype._createCardinalConfigurationOptions.call(this, setupOptions);
 
-  options.payment = {
-    framework: 'bootstrap3'
-  };
+  options.payment.framework = 'bootstrap3';
 
   return options;
 };
@@ -2093,9 +2091,7 @@ InlineIframeFramework.prototype.setUpEventListeners = function (reply) {
 InlineIframeFramework.prototype._createCardinalConfigurationOptions = function (setupOptions) {
   var options = SongbirdFramework.prototype._createCardinalConfigurationOptions.call(this, setupOptions);
 
-  options.payment = {
-    framework: 'inline'
-  };
+  options.payment.framework = 'inline';
 
   return options;
 };
@@ -2154,7 +2150,7 @@ var useMin = _dereq_('../../../lib/use-min');
 
 var events = _dereq_('../../shared/events');
 
-var VERSION = "3.55.0";
+var VERSION = "3.56.0";
 var IFRAME_HEIGHT = 400;
 var IFRAME_WIDTH = 400;
 
@@ -2333,7 +2329,7 @@ var makePromisePlus = _dereq_('../../../lib/promise-plus');
 
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var PLATFORM = _dereq_('../../../lib/constants').PLATFORM;
-var VERSION = "3.55.0";
+var VERSION = "3.56.0";
 
 function SongbirdFramework(options) {
   BaseFramework.call(this, options);
@@ -2343,9 +2339,7 @@ function SongbirdFramework(options) {
     sdkVersion: PLATFORM + '/' + VERSION
   };
   this._getDfReferenceIdPromisePlus = makePromisePlus();
-  this.setupSongbird({
-    loggingEnabled: options.loggingEnabled
-  });
+  this.setupSongbird(options);
   this._cardinalEvents = [];
 }
 
@@ -2496,12 +2490,22 @@ SongbirdFramework.prototype._setupFrameworkSpecificListeners = function () {
 };
 
 SongbirdFramework.prototype._createCardinalConfigurationOptions = function (setupOptions) {
-  var cardinalConfiguration = {};
+  var cardinalConfiguration = setupOptions.cardinalSDKConfig || {};
+  var paymentSettings = cardinalConfiguration.payment || {};
 
-  if (setupOptions.loggingEnabled) {
+  if (!cardinalConfiguration.logging && setupOptions.loggingEnabled) {
     cardinalConfiguration.logging = {
       level: 'verbose'
     };
+  }
+
+  cardinalConfiguration.payment = {};
+
+  if (paymentSettings.hasOwnProperty('displayLoading')) {
+    cardinalConfiguration.payment.displayLoading = paymentSettings.displayLoading;
+  }
+  if (paymentSettings.hasOwnProperty('displayExitButton')) {
+    cardinalConfiguration.payment.displayExitButton = paymentSettings.displayExitButton;
   }
 
   return cardinalConfiguration;
@@ -2609,6 +2613,8 @@ SongbirdFramework.prototype._createPaymentsValidatedCallback = function () {
         break;
 
       case 'ERROR':
+        analytics.sendEvent(self._client, 'three-d-secure.verification-flow.cardinal-sdk-error.' + data.ErrorNumber);
+
         switch (data.ErrorNumber) {
           case 10001: // Cardinal Docs: Timeout when sending an /Init message
           case 10002: // Cardinal Docs: Timeout when sending an /Start message
@@ -2823,7 +2829,7 @@ var FRAMEWORKS = _dereq_('./frameworks');
 /**
  * @deprecated
  * @typedef {object} ThreeDSecure~verifyCardCustomerObject
- * @property {string} [customer.mobilePhoneNumber] The mobile phone number used for verification. Only numbers; remove dashes, paranthesis and other characters.
+ * @property {string} [customer.mobilePhoneNumber] The mobile phone number used for verification. Only numbers; remove dashes, parenthesis and other characters.
  * @property {string} [customer.email] The email used for verification.
  * @property {string} [customer.shippingMethod] The 2-digit string indicating the shipping method chosen for the transaction.
  * @property {string} [customer.billingAddress.firstName] The first name associated with the address.
@@ -2834,7 +2840,7 @@ var FRAMEWORKS = _dereq_('./frameworks');
  * @property {string} [customer.billingAddress.region] The 2 letter code for US states, and the equivalent for other countries.
  * @property {string} [customer.billingAddress.postalCode] The zip code or equivalent for countries that have them.
  * @property {string} [customer.billingAddress.countryCodeAlpha2] The 2 character country code.
- * @property {string} [customer.billingAddress.phoneNumber] The phone number associated with the address. Only numbers; remove dashes, paranthesis and other characters.
+ * @property {string} [customer.billingAddress.phoneNumber] The phone number associated with the address. Only numbers; remove dashes, parenthesis and other characters.
  * @description **Deprecated** Optional customer information to be passed to 3DS 1.0 for verification.
  */
 
@@ -2882,7 +2888,7 @@ var FRAMEWORKS = _dereq_('./frameworks');
  * @typedef {object} ThreeDSecure~billingAddress
  * @property {string} [givenName] The first name associated with the billing address.
  * @property {string} [surname] The last name associated with the billing address.
- * @property {string} [phoneNumber] The phone number associated with the billing address. Only numbers; remove dashes, paranthesis and other characters.
+ * @property {string} [phoneNumber] The phone number associated with the billing address. Only numbers; remove dashes, parenthesis and other characters.
  * @property {string} [streetAddress] Line 1 of the billing address (eg. number, street, etc).
  * @property {string} [extendedAddress] Line 2 of the billing address (eg. suite, apt #, etc.).
  * @property {string} [line3] Line 3 of the billing address if needed (eg. suite, apt #, etc).
@@ -2916,7 +2922,7 @@ var FRAMEWORKS = _dereq_('./frameworks');
  * @property {string} [shippingMethodIndicator] The 2-digit string indicating the shipping method chosen for the transaction Possible values.
  * - `01` Ship to cardholder billing address
  * - `02` Ship to another verified address on file with merchant
- * - `03` Ship to address that is different than billing address
+ * - `03` Ship to address that is different from billing address
  * - `04` Ship to store (store address should be populated on request)
  * - `05` Digital goods
  * - `06` Travel and event tickets, not shipped
@@ -2930,11 +2936,11 @@ var FRAMEWORKS = _dereq_('./frameworks');
  * - `TRA` Travel
  * - `DSP` Cash Dispensing
  * - `REN` Car Rental
- * - `GAS` Fueld
+ * - `GAS` Fuel
  * - `LUX` Luxury Retail
  * - `ACC` Accommodation Retail
  * - `TBD` Other
- * @property {string} [deliveryTimeframe] The 2-digit number indicating the delivery timeframe. Possible values:
+ * @property {string} [deliveryTimeframe] The 2-digit number indicating the delivery time frame. Possible values:
  * - `01` Electronic delivery
  * - `02` Same day shipping
  * - `03` Overnight shipping
@@ -3116,12 +3122,12 @@ EventEmitter.createChild(ThreeDSecure);
  * @param {object} options Options for card verification.
  * @param {string} options.nonce The nonce representing the card from a tokenization payload. For example, this can be a {@link HostedFields~tokenizePayload|tokenizePayload} returned by Hosted Fields under `payload.nonce`.
  * @param {string} options.bin The numeric Bank Identification Number (bin) of the card from a tokenization payload. For example, this can be a {@link HostedFields~tokenizePayload|tokenizePayload} returned by Hosted Fields under `payload.details.bin`.
- * @param {string} options.amount The amount of the transaction in the current merchant account's currency. For example, if you are running a transaction of $123.45 US dollars, `amount` would be 123.45.
+ * @param {string} options.amount The amount of the transaction in the current merchant account's currency. This must be expressed in numbers with an optional decimal (using `.`) and precision up to the hundredths place. For example, if you're processing a transaction for 1.234,56 € then `amount` should be `1234.56`.
  * @param {boolean} [options.challengeRequested] If set to true, an authentication challenge will be forced if possible.
  * @param {boolean} [options.exemptionRequested] If set to true, an exemption to the authentication challenge will be requested.
  * @param {function} [options.onLookupComplete] *Deprecated:* Use {@link ThreeDSecure#event:lookup-complete|`threeDSecureInstance.on('lookup-complete')`} instead. Function to execute when lookup completes. The first argument, `data`, is a {@link ThreeDSecure~verificationData|verificationData} object, and the second argument, `next`, is a callback. `next` must be called to continue.
  * @param {string} [options.email] The email used for verification.
- * @param {string} [options.mobilePhoneNumber] The mobile phone number used for verification. Only numbers; remove dashes, paranthesis and other characters.
+ * @param {string} [options.mobilePhoneNumber] The mobile phone number used for verification. Only numbers; remove dashes, parenthesis and other characters.
  * @param {object} [options.billingAddress] An {@link ThreeDSecure~billingAddress|billingAddress} object for verification.
  * @param {object} [options.additionalInformation] An {@link ThreeDSecure~additionalInformation|additionalInformation} object for verification.
  * @param {object} [options.customer] **Deprecated** Customer information for use in 3DS 1.0 verifications. Can contain any subset of a {@link ThreeDSecure~verifyCardCustomerObject|verifyCardCustomerObject}. Only to be used for 3DS 1.0 integrations.
@@ -3140,7 +3146,7 @@ EventEmitter.createChild(ThreeDSecure);
  *   next();
  * });
  *
- * // call verifyCard after tokenizating a card
+ * // call verifyCard after tokenizing a card
  * threeDSecure.verifyCard({
  *   amount: '123.45',
  *   nonce: hostedFieldsTokenizationPayload.nonce,
@@ -3178,13 +3184,13 @@ EventEmitter.createChild(ThreeDSecure);
  *   }
  *
  *   if (payload.liabilityShifted) {
- *     // Liablity has shifted
+ *     // Liability has shifted
  *     submitNonceToServer(payload.nonce);
  *   } else if (payload.liabilityShiftPossible) {
- *     // Liablity may still be shifted
+ *     // Liability may still be shifted
  *     // Decide if you want to submit the nonce
  *   } else {
- *     // Liablity has not shifted and will not shift
+ *     // Liability has not shifted and will not shift
  *     // Decide if you want to submit the nonce
  *   }
  * });
@@ -3232,13 +3238,13 @@ EventEmitter.createChild(ThreeDSecure);
  *   }
  *
  *   if (payload.liabilityShifted) {
- *     // Liablity has shifted
+ *     // Liability has shifted
  *     submitNonceToServer(payload.nonce);
  *   } else if (payload.liabilityShiftPossible) {
- *     // Liablity may still be shifted
+ *     // Liability may still be shifted
  *     // Decide if you want to submit the nonce
  *   } else {
- *     // Liablity has not shifted and will not shift
+ *     // Liability has not shifted and will not shift
  *     // Decide if you want to submit the nonce
  *   }
  * });
@@ -3252,7 +3258,7 @@ EventEmitter.createChild(ThreeDSecure);
  *   next();
  * });
  *
- * // call verifyCard after tokenizating a card
+ * // call verifyCard after tokenizing a card
  * threeDSecure.verifyCard({
  *   amount: '123.45',
  *   nonce: hostedFieldsTokenizationPayload.nonce,
@@ -3309,13 +3315,13 @@ EventEmitter.createChild(ThreeDSecure);
  *   }
  *
  *   if (payload.liabilityShifted) {
- *     // Liablity has shifted
+ *     // Liability has shifted
  *     submitNonceToServer(payload.nonce);
  *   } else if (payload.liabilityShiftPossible) {
- *     // Liablity may still be shifted
+ *     // Liability may still be shifted
  *     // Decide if you want to submit the nonce
  *   } else {
- *     // Liablity has not shifted and will not shift
+ *     // Liability has not shifted and will not shift
  *     // Decide if you want to submit the nonce
  *   }
  * });
@@ -3344,13 +3350,13 @@ ThreeDSecure.prototype.verifyCard = function (options) {
  *
  * threeDSecure.initializeChallengeWithLookupResponse(lookupResponseFromServer).then(function (payload) {
  *   if (payload.liabilityShifted) {
- *     // Liablity has shifted
+ *     // Liability has shifted
  *     submitNonceToServer(payload.nonce);
  *   } else if (payload.liabilityShiftPossible) {
- *     // Liablity may still be shifted
+ *     // Liability may still be shifted
  *     // Decide if you want to submit the nonce
  *   } else {
- *     // Liablity has not shifted and will not shift
+ *     // Liability has not shifted and will not shift
  *     // Decide if you want to submit the nonce
  *   }
  * });
@@ -3512,7 +3518,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.55.0";
+var VERSION = "3.56.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -3520,6 +3526,11 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
  * @static
  * @function create
  * @param {object} options Creation options:
+ * @param {object} [options.cardinalSDKConfig] A config for the underlying Cardinal SDK.
+ * @param {object} [options.cardinalSDKConfig.logging] The logging configuration for the Cardinal SDK. See [Cardinal's documentation for the logging object](https://cardinaldocs.atlassian.net/wiki/spaces/CC/pages/1409568/Configurations#Configurations-Logging) for more information.
+ * @param {number} [options.cardinalSDKConfig.timeout] The time in milliseconds to wait before a request to Cardinal's API times out. See [Cardinal's documentation for root level configuration](https://cardinaldocs.atlassian.net/wiki/spaces/CC/pages/1409568/Configurations#Configurations-RootLevelConfiguration) for more information.
+ * @param {number} [options.cardinalSDKConfig.maxRequestRetries] How many times a request should be re-attempted to Cardinal's API before giving up as a failure. See [Cardinal's documentation for root level configuration](https://cardinaldocs.atlassian.net/wiki/spaces/CC/pages/1409568/Configurations#Configurations-RootLevelConfiguration) for more information.
+ * @param {object} [options.cardinalSDKConfig.payment] An object to describe how you want the user interactions to behave. Only a subset of the [Cardinal SDK payment configuration object](https://cardinaldocs.atlassian.net/wiki/spaces/CC/pages/1409568/Configurations#Configurations-Payment) are supported: `displayLoading` and `displayExitButton`.
  * @param {Client} [options.client] A {@link Client} instance.
  * @param {string} [options.authorization] A tokenizationKey or clientToken. Can be used in place of `options.client`.
  * @param {(number|string)} [options.version=1] The version of 3D Secure to use. Possible options:

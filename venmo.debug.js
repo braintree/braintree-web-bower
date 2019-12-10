@@ -648,7 +648,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.55.0";
+var VERSION = "3.56.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -778,7 +778,7 @@ module.exports = BraintreeError;
 },{"./enumerate":27}],22:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.55.0";
+var VERSION = "3.56.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -905,7 +905,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.55.0";
+var VERSION = "3.56.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1189,7 +1189,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var Venmo = _dereq_('./venmo');
 var Promise = _dereq_('../lib/promise');
 var supportsVenmo = _dereq_('./shared/supports-venmo');
-var VERSION = "3.55.0";
+var VERSION = "3.56.0";
 
 /**
  * @static
@@ -1412,7 +1412,7 @@ var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.55.0";
+var VERSION = "3.56.0";
 
 /**
  * Venmo tokenize payload.
@@ -1557,18 +1557,32 @@ Venmo.prototype.tokenize = function () {
       global.open(self._url);
     }
 
-    // Subscribe to document visibility change events to detect when app switch
-    // has returned.
+    // Detect when app switch has returned with tokenization results in the
+    // URL hash.
+    self._hashChangeListener = function () {
+      self._processResults().then(resolve).catch(reject).then(function () {
+        self._tokenizationInProgress = false;
+        global.removeEventListener('hashchange', self._hashChangeListener);
+        delete self._hashChangeListener;
+        global.location.hash = self._previousHash;
+      });
+    };
+    global.addEventListener('hashchange', self._hashChangeListener);
+
+    // Check if app switch has returned but no tokenization results were found
+    // in URL hash.
     self._visibilityChangeListener = function () {
       if (!global.document.hidden) {
-        self._tokenizationInProgress = false;
-
         setTimeout(function () {
-          self._processResults().then(resolve).catch(reject).then(function () {
-            global.location.hash = self._previousHash;
-            self._removeVisibilityEventListener();
-            delete self._visibilityChangeListener;
-          });
+          // If tokenization is still in progress when this setTimeout fires,
+          // then we process results to show that the user canceled.
+          if (self._tokenizationInProgress) {
+            self._tokenizationInProgress = false;
+            self._processResults().then(resolve).catch(reject);
+          }
+
+          self._removeVisibilityEventListener();
+          delete self._visibilityChangeListener;
         }, constants.PROCESS_RESULTS_DELAY);
       }
     };
