@@ -7,7 +7,7 @@ var PromisePolyfill = _dereq_('promise-polyfill');
 module.exports = global.Promise || PromisePolyfill;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":7}],2:[function(_dereq_,module,exports){
+},{"promise-polyfill":8}],2:[function(_dereq_,module,exports){
 'use strict';
 
 var Promise = _dereq_('./lib/promise');
@@ -66,6 +66,125 @@ loadScript.clearCache = function () {
 module.exports = loadScript;
 
 },{"./lib/promise":1}],3:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise#Methods
+var PROMISE_METHODS = [
+  'all',
+  'allSettled',
+  'race',
+  'reject',
+  'resolve'
+];
+
+function ExtendedPromise(options) {
+  var self = this;
+
+  if (typeof options === 'function') {
+    return new ExtendedPromise.Promise(options);
+  }
+
+  this._promise = new ExtendedPromise.Promise(function (resolve, reject) {
+    self._resolveFunction = resolve;
+    self._rejectFunction = reject;
+  });
+
+  options = options || {};
+  this._onResolve = options.onResolve || ExtendedPromise.defaultOnResolve;
+  this._onReject = options.onReject || ExtendedPromise.defaultOnReject;
+
+  this._resetState();
+
+  this._promise.resolve = this.resolve.bind(this);
+  this._promise.reject = this.reject.bind(this);
+
+  return this._promise;
+}
+
+PROMISE_METHODS.forEach(function (method) {
+  ExtendedPromise[method] = function () {
+    var args = Array.prototype.slice.call(arguments);
+
+    return ExtendedPromise.Promise[method].apply(ExtendedPromise.Promise, args);
+  };
+});
+
+ExtendedPromise.setPromise = function (PromiseClass) {
+  ExtendedPromise.Promise = PromiseClass;
+};
+
+// default to system level Promise, but allow it to be overwritten
+ExtendedPromise.setPromise(global.Promise);
+
+ExtendedPromise.defaultOnResolve = function (result) {
+  return ExtendedPromise.Promise.resolve(result);
+};
+
+ExtendedPromise.defaultOnReject = function (err) {
+  return ExtendedPromise.Promise.reject(err);
+};
+
+ExtendedPromise.prototype.resolve = function (arg) {
+  var self = this;
+
+  if (this._promise.isFulfilled) {
+    return this._promise;
+  }
+  this._setResolved();
+
+  ExtendedPromise.Promise.resolve().then(function () {
+    return self._onResolve(arg);
+  }).then(this._resolveFunction).catch(function (err) {
+    self._resetState();
+
+    self._promise.reject(err);
+  });
+
+  return this._promise;
+};
+
+ExtendedPromise.prototype.reject = function (arg) {
+  var self = this;
+
+  if (this._promise.isFulfilled) {
+    return this._promise;
+  }
+  this._setRejected();
+
+  ExtendedPromise.Promise.resolve().then(function () {
+    return self._onReject(arg);
+  }).then(function (result) {
+    self._setResolved();
+
+    self._resolveFunction(result);
+  }).catch(this._rejectFunction);
+
+  return this._promise;
+};
+
+ExtendedPromise.prototype._resetState = function () {
+  this._promise.isFulfilled = false;
+  this._promise.isResolved = false;
+  this._promise.isRejected = false;
+};
+
+ExtendedPromise.prototype._setResolved = function () {
+  this._promise.isFulfilled = true;
+  this._promise.isResolved = true;
+  this._promise.isRejected = false;
+};
+
+ExtendedPromise.prototype._setRejected = function () {
+  this._promise.isFulfilled = true;
+  this._promise.isResolved = false;
+  this._promise.isRejected = true;
+};
+
+module.exports = ExtendedPromise;
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],4:[function(_dereq_,module,exports){
 'use strict';
 
 function deferred(fn) {
@@ -88,7 +207,7 @@ function deferred(fn) {
 
 module.exports = deferred;
 
-},{}],4:[function(_dereq_,module,exports){
+},{}],5:[function(_dereq_,module,exports){
 'use strict';
 
 function once(fn) {
@@ -104,7 +223,7 @@ function once(fn) {
 
 module.exports = once;
 
-},{}],5:[function(_dereq_,module,exports){
+},{}],6:[function(_dereq_,module,exports){
 'use strict';
 
 function promiseOrCallback(promise, callback) { // eslint-disable-line consistent-return
@@ -123,7 +242,7 @@ function promiseOrCallback(promise, callback) { // eslint-disable-line consisten
 
 module.exports = promiseOrCallback;
 
-},{}],6:[function(_dereq_,module,exports){
+},{}],7:[function(_dereq_,module,exports){
 'use strict';
 
 var deferred = _dereq_('./lib/deferred');
@@ -180,7 +299,7 @@ wrapPromise.wrapPrototype = function (target, options) {
 
 module.exports = wrapPromise;
 
-},{"./lib/deferred":3,"./lib/once":4,"./lib/promise-or-callback":5}],7:[function(_dereq_,module,exports){
+},{"./lib/deferred":4,"./lib/once":5,"./lib/promise-or-callback":6}],8:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -456,7 +575,7 @@ Promise._unhandledRejectionFn = function _unhandledRejectionFn(err) {
 
 module.exports = Promise;
 
-},{}],8:[function(_dereq_,module,exports){
+},{}],9:[function(_dereq_,module,exports){
 'use strict';
 
 var createAuthorizationData = _dereq_('./create-authorization-data');
@@ -490,7 +609,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":13,"./create-authorization-data":16,"./json-clone":20}],9:[function(_dereq_,module,exports){
+},{"./constants":14,"./create-authorization-data":17,"./json-clone":21}],10:[function(_dereq_,module,exports){
 'use strict';
 
 var Promise = _dereq_('./promise');
@@ -526,7 +645,7 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":8,"./constants":13,"./promise":22}],10:[function(_dereq_,module,exports){
+},{"./add-metadata":9,"./constants":14,"./promise":23}],11:[function(_dereq_,module,exports){
 'use strict';
 
 var loadScript = _dereq_('@braintree/asset-loader/load-script');
@@ -535,13 +654,13 @@ module.exports = {
   loadScript: loadScript
 };
 
-},{"@braintree/asset-loader/load-script":2}],11:[function(_dereq_,module,exports){
+},{"@braintree/asset-loader/load-script":2}],12:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.56.0";
+var VERSION = "3.57.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -583,7 +702,7 @@ module.exports = {
   verify: basicComponentVerification
 };
 
-},{"./braintree-error":12,"./errors":19,"./promise":22}],12:[function(_dereq_,module,exports){
+},{"./braintree-error":13,"./errors":20,"./promise":23}],13:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -668,10 +787,10 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":18}],13:[function(_dereq_,module,exports){
+},{"./enumerate":19}],14:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.56.0";
+var VERSION = "3.57.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -708,7 +827,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],14:[function(_dereq_,module,exports){
+},{}],15:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -726,7 +845,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"./braintree-error":12,"./errors":19}],15:[function(_dereq_,module,exports){
+},{"./braintree-error":13,"./errors":20}],16:[function(_dereq_,module,exports){
 'use strict';
 
 // endRemoveIf(production)
@@ -743,7 +862,7 @@ module.exports = {
   create: createAssetsUrl
 };
 
-},{"./constants":13}],16:[function(_dereq_,module,exports){
+},{"./constants":14}],17:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/vendor/polyfill').atob;
@@ -789,7 +908,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/constants":13,"../lib/vendor/polyfill":23}],17:[function(_dereq_,module,exports){
+},{"../lib/constants":14,"../lib/vendor/polyfill":24}],18:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -798,7 +917,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.56.0";
+var VERSION = "3.57.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -843,7 +962,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./assets":10,"./braintree-error":12,"./errors":19,"./promise":22}],18:[function(_dereq_,module,exports){
+},{"./assets":11,"./braintree-error":13,"./errors":20,"./promise":23}],19:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -858,7 +977,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],19:[function(_dereq_,module,exports){
+},{}],20:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -908,14 +1027,14 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":12}],20:[function(_dereq_,module,exports){
+},{"./braintree-error":13}],21:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],21:[function(_dereq_,module,exports){
+},{}],22:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -924,16 +1043,19 @@ module.exports = function (obj) {
   });
 };
 
-},{}],22:[function(_dereq_,module,exports){
+},{}],23:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
 var Promise = global.Promise || _dereq_('promise-polyfill');
+var ExtendedPromise = _dereq_('@braintree/extended-promise');
+
+ExtendedPromise.setPromise(Promise);
 
 module.exports = Promise;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":7}],23:[function(_dereq_,module,exports){
+},{"@braintree/extended-promise":3,"promise-polyfill":8}],24:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -974,7 +1096,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],24:[function(_dereq_,module,exports){
+},{}],25:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -1003,7 +1125,7 @@ module.exports = {
   }
 };
 
-},{"../lib/braintree-error":12}],25:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":13}],26:[function(_dereq_,module,exports){
 'use strict';
 /**
  * @module braintree-web/vault-manager
@@ -1014,7 +1136,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var VaultManager = _dereq_('./vault-manager');
-var VERSION = "3.56.0";
+var VERSION = "3.57.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -1057,7 +1179,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/basic-component-verification":11,"../lib/create-assets-url":15,"../lib/create-deferred-client":17,"./vault-manager":26,"@braintree/wrap-promise":6}],26:[function(_dereq_,module,exports){
+},{"../lib/basic-component-verification":12,"../lib/create-assets-url":16,"../lib/create-deferred-client":18,"./vault-manager":27,"@braintree/wrap-promise":7}],27:[function(_dereq_,module,exports){
 'use strict';
 
 var analytics = _dereq_('../lib/analytics');
@@ -1241,5 +1363,5 @@ VaultManager.prototype.teardown = function () {
 
 module.exports = wrapPromise.wrapPrototype(VaultManager);
 
-},{"../lib/analytics":9,"../lib/braintree-error":12,"../lib/convert-methods-to-error":14,"../lib/methods":21,"../lib/promise":22,"./errors":24,"@braintree/wrap-promise":6}]},{},[25])(25)
+},{"../lib/analytics":10,"../lib/braintree-error":13,"../lib/convert-methods-to-error":15,"../lib/methods":22,"../lib/promise":23,"./errors":25,"@braintree/wrap-promise":7}]},{},[26])(26)
 });

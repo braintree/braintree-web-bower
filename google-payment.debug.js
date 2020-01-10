@@ -7,7 +7,7 @@ var PromisePolyfill = _dereq_('promise-polyfill');
 module.exports = global.Promise || PromisePolyfill;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":7}],2:[function(_dereq_,module,exports){
+},{"promise-polyfill":8}],2:[function(_dereq_,module,exports){
 'use strict';
 
 var Promise = _dereq_('./lib/promise');
@@ -66,6 +66,125 @@ loadScript.clearCache = function () {
 module.exports = loadScript;
 
 },{"./lib/promise":1}],3:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise#Methods
+var PROMISE_METHODS = [
+  'all',
+  'allSettled',
+  'race',
+  'reject',
+  'resolve'
+];
+
+function ExtendedPromise(options) {
+  var self = this;
+
+  if (typeof options === 'function') {
+    return new ExtendedPromise.Promise(options);
+  }
+
+  this._promise = new ExtendedPromise.Promise(function (resolve, reject) {
+    self._resolveFunction = resolve;
+    self._rejectFunction = reject;
+  });
+
+  options = options || {};
+  this._onResolve = options.onResolve || ExtendedPromise.defaultOnResolve;
+  this._onReject = options.onReject || ExtendedPromise.defaultOnReject;
+
+  this._resetState();
+
+  this._promise.resolve = this.resolve.bind(this);
+  this._promise.reject = this.reject.bind(this);
+
+  return this._promise;
+}
+
+PROMISE_METHODS.forEach(function (method) {
+  ExtendedPromise[method] = function () {
+    var args = Array.prototype.slice.call(arguments);
+
+    return ExtendedPromise.Promise[method].apply(ExtendedPromise.Promise, args);
+  };
+});
+
+ExtendedPromise.setPromise = function (PromiseClass) {
+  ExtendedPromise.Promise = PromiseClass;
+};
+
+// default to system level Promise, but allow it to be overwritten
+ExtendedPromise.setPromise(global.Promise);
+
+ExtendedPromise.defaultOnResolve = function (result) {
+  return ExtendedPromise.Promise.resolve(result);
+};
+
+ExtendedPromise.defaultOnReject = function (err) {
+  return ExtendedPromise.Promise.reject(err);
+};
+
+ExtendedPromise.prototype.resolve = function (arg) {
+  var self = this;
+
+  if (this._promise.isFulfilled) {
+    return this._promise;
+  }
+  this._setResolved();
+
+  ExtendedPromise.Promise.resolve().then(function () {
+    return self._onResolve(arg);
+  }).then(this._resolveFunction).catch(function (err) {
+    self._resetState();
+
+    self._promise.reject(err);
+  });
+
+  return this._promise;
+};
+
+ExtendedPromise.prototype.reject = function (arg) {
+  var self = this;
+
+  if (this._promise.isFulfilled) {
+    return this._promise;
+  }
+  this._setRejected();
+
+  ExtendedPromise.Promise.resolve().then(function () {
+    return self._onReject(arg);
+  }).then(function (result) {
+    self._setResolved();
+
+    self._resolveFunction(result);
+  }).catch(this._rejectFunction);
+
+  return this._promise;
+};
+
+ExtendedPromise.prototype._resetState = function () {
+  this._promise.isFulfilled = false;
+  this._promise.isResolved = false;
+  this._promise.isRejected = false;
+};
+
+ExtendedPromise.prototype._setResolved = function () {
+  this._promise.isFulfilled = true;
+  this._promise.isResolved = true;
+  this._promise.isRejected = false;
+};
+
+ExtendedPromise.prototype._setRejected = function () {
+  this._promise.isFulfilled = true;
+  this._promise.isResolved = false;
+  this._promise.isRejected = true;
+};
+
+module.exports = ExtendedPromise;
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],4:[function(_dereq_,module,exports){
 'use strict';
 
 function deferred(fn) {
@@ -88,7 +207,7 @@ function deferred(fn) {
 
 module.exports = deferred;
 
-},{}],4:[function(_dereq_,module,exports){
+},{}],5:[function(_dereq_,module,exports){
 'use strict';
 
 function once(fn) {
@@ -104,7 +223,7 @@ function once(fn) {
 
 module.exports = once;
 
-},{}],5:[function(_dereq_,module,exports){
+},{}],6:[function(_dereq_,module,exports){
 'use strict';
 
 function promiseOrCallback(promise, callback) { // eslint-disable-line consistent-return
@@ -123,7 +242,7 @@ function promiseOrCallback(promise, callback) { // eslint-disable-line consisten
 
 module.exports = promiseOrCallback;
 
-},{}],6:[function(_dereq_,module,exports){
+},{}],7:[function(_dereq_,module,exports){
 'use strict';
 
 var deferred = _dereq_('./lib/deferred');
@@ -180,7 +299,7 @@ wrapPromise.wrapPrototype = function (target, options) {
 
 module.exports = wrapPromise;
 
-},{"./lib/deferred":3,"./lib/once":4,"./lib/promise-or-callback":5}],7:[function(_dereq_,module,exports){
+},{"./lib/deferred":4,"./lib/once":5,"./lib/promise-or-callback":6}],8:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -456,7 +575,7 @@ Promise._unhandledRejectionFn = function _unhandledRejectionFn(err) {
 
 module.exports = Promise;
 
-},{}],8:[function(_dereq_,module,exports){
+},{}],9:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -491,7 +610,7 @@ module.exports = {
   }
 };
 
-},{"../lib/braintree-error":16}],9:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":17}],10:[function(_dereq_,module,exports){
 'use strict';
 
 var analytics = _dereq_('../lib/analytics');
@@ -776,7 +895,7 @@ function applyDefaultsToPaymentMethodConfiguration(merchantSubmittedPaymentMetho
 
 module.exports = wrapPromise.wrapPrototype(GooglePayment);
 
-},{"../lib/analytics":12,"../lib/assign":14,"../lib/braintree-error":16,"../lib/convert-methods-to-error":18,"../lib/find":24,"../lib/generate-google-pay-configuration":25,"../lib/methods":27,"../lib/promise":28,"./errors":8,"@braintree/wrap-promise":6}],10:[function(_dereq_,module,exports){
+},{"../lib/analytics":13,"../lib/assign":15,"../lib/braintree-error":17,"../lib/convert-methods-to-error":19,"../lib/find":25,"../lib/generate-google-pay-configuration":26,"../lib/methods":28,"../lib/promise":29,"./errors":9,"@braintree/wrap-promise":7}],11:[function(_dereq_,module,exports){
 'use strict';
 /**
  * @module braintree-web/google-payment
@@ -791,7 +910,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.56.0";
+var VERSION = "3.57.0";
 
 /**
  * @static
@@ -943,7 +1062,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/basic-component-verification":15,"../lib/braintree-error":16,"../lib/create-assets-url":19,"../lib/create-deferred-client":21,"../lib/promise":28,"./errors":8,"./google-payment":9,"@braintree/wrap-promise":6}],11:[function(_dereq_,module,exports){
+},{"../lib/basic-component-verification":16,"../lib/braintree-error":17,"../lib/create-assets-url":20,"../lib/create-deferred-client":22,"../lib/promise":29,"./errors":9,"./google-payment":10,"@braintree/wrap-promise":7}],12:[function(_dereq_,module,exports){
 'use strict';
 
 var createAuthorizationData = _dereq_('./create-authorization-data');
@@ -977,7 +1096,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":17,"./create-authorization-data":20,"./json-clone":26}],12:[function(_dereq_,module,exports){
+},{"./constants":18,"./create-authorization-data":21,"./json-clone":27}],13:[function(_dereq_,module,exports){
 'use strict';
 
 var Promise = _dereq_('./promise');
@@ -1013,7 +1132,7 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":11,"./constants":17,"./promise":28}],13:[function(_dereq_,module,exports){
+},{"./add-metadata":12,"./constants":18,"./promise":29}],14:[function(_dereq_,module,exports){
 'use strict';
 
 var loadScript = _dereq_('@braintree/asset-loader/load-script');
@@ -1022,7 +1141,7 @@ module.exports = {
   loadScript: loadScript
 };
 
-},{"@braintree/asset-loader/load-script":2}],14:[function(_dereq_,module,exports){
+},{"@braintree/asset-loader/load-script":2}],15:[function(_dereq_,module,exports){
 'use strict';
 
 var assignNormalized = typeof Object.assign === 'function' ? Object.assign : assignPolyfill;
@@ -1047,13 +1166,13 @@ module.exports = {
   _assign: assignPolyfill
 };
 
-},{}],15:[function(_dereq_,module,exports){
+},{}],16:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.56.0";
+var VERSION = "3.57.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1095,7 +1214,7 @@ module.exports = {
   verify: basicComponentVerification
 };
 
-},{"./braintree-error":16,"./errors":23,"./promise":28}],16:[function(_dereq_,module,exports){
+},{"./braintree-error":17,"./errors":24,"./promise":29}],17:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -1180,10 +1299,10 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":22}],17:[function(_dereq_,module,exports){
+},{"./enumerate":23}],18:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.56.0";
+var VERSION = "3.57.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1220,7 +1339,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],18:[function(_dereq_,module,exports){
+},{}],19:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -1238,7 +1357,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"./braintree-error":16,"./errors":23}],19:[function(_dereq_,module,exports){
+},{"./braintree-error":17,"./errors":24}],20:[function(_dereq_,module,exports){
 'use strict';
 
 // endRemoveIf(production)
@@ -1255,7 +1374,7 @@ module.exports = {
   create: createAssetsUrl
 };
 
-},{"./constants":17}],20:[function(_dereq_,module,exports){
+},{"./constants":18}],21:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/vendor/polyfill').atob;
@@ -1301,7 +1420,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/constants":17,"../lib/vendor/polyfill":29}],21:[function(_dereq_,module,exports){
+},{"../lib/constants":18,"../lib/vendor/polyfill":30}],22:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1310,7 +1429,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.56.0";
+var VERSION = "3.57.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1355,7 +1474,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./assets":13,"./braintree-error":16,"./errors":23,"./promise":28}],22:[function(_dereq_,module,exports){
+},{"./assets":14,"./braintree-error":17,"./errors":24,"./promise":29}],23:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -1370,7 +1489,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],23:[function(_dereq_,module,exports){
+},{}],24:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -1420,7 +1539,7 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":16}],24:[function(_dereq_,module,exports){
+},{"./braintree-error":17}],25:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (array, key, value) {
@@ -1435,10 +1554,10 @@ module.exports = function (array, key, value) {
   return null;
 };
 
-},{}],25:[function(_dereq_,module,exports){
+},{}],26:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.56.0";
+var VERSION = "3.57.0";
 var assign = _dereq_('./assign').assign;
 
 function generateTokenizationParameters(configuration, overrides) {
@@ -1553,14 +1672,14 @@ module.exports = function (configuration, googlePayVersion, googleMerchantId) {
   return data;
 };
 
-},{"./assign":14}],26:[function(_dereq_,module,exports){
+},{"./assign":15}],27:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],27:[function(_dereq_,module,exports){
+},{}],28:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -1569,16 +1688,19 @@ module.exports = function (obj) {
   });
 };
 
-},{}],28:[function(_dereq_,module,exports){
+},{}],29:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
 var Promise = global.Promise || _dereq_('promise-polyfill');
+var ExtendedPromise = _dereq_('@braintree/extended-promise');
+
+ExtendedPromise.setPromise(Promise);
 
 module.exports = Promise;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":7}],29:[function(_dereq_,module,exports){
+},{"@braintree/extended-promise":3,"promise-polyfill":8}],30:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1619,5 +1741,5 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}]},{},[10])(10)
+},{}]},{},[11])(11)
 });
