@@ -78,6 +78,14 @@ var PROMISE_METHODS = [
   'resolve'
 ];
 
+function shouldCatchExceptions(options) {
+  if (options.hasOwnProperty('suppressUnhandledPromiseMessage')) {
+    return Boolean(options.suppressUnhandledPromiseMessage);
+  }
+
+  return Boolean(ExtendedPromise.suppressUnhandledPromiseMessage);
+}
+
 function ExtendedPromise(options) {
   var self = this;
 
@@ -93,6 +101,14 @@ function ExtendedPromise(options) {
   options = options || {};
   this._onResolve = options.onResolve || ExtendedPromise.defaultOnResolve;
   this._onReject = options.onReject || ExtendedPromise.defaultOnReject;
+
+  if (shouldCatchExceptions(options)) {
+    this._promise.catch(function () {
+      // prevents unhandled promise rejection warning
+      // in the console for extended promises that
+      // that catch the error in an asynchronous manner
+    });
+  }
 
   this._resetState();
 
@@ -660,7 +676,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.57.0";
+var VERSION = "3.58.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -790,7 +806,7 @@ module.exports = BraintreeError;
 },{"./enumerate":20}],14:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.57.0";
+var VERSION = "3.58.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -939,7 +955,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.57.0";
+var VERSION = "3.58.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1072,6 +1088,7 @@ module.exports = function (obj) {
 var Promise = global.Promise || _dereq_('promise-polyfill');
 var ExtendedPromise = _dereq_('@braintree/extended-promise');
 
+ExtendedPromise.suppressUnhandledPromiseMessage = true;
 ExtendedPromise.setPromise(Promise);
 
 module.exports = Promise;
@@ -1187,7 +1204,7 @@ module.exports = {
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var PayPalCheckout = _dereq_('./paypal-checkout');
-var VERSION = "3.57.0";
+var VERSION = "3.58.0";
 
 /**
  * @static

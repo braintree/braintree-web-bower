@@ -266,6 +266,14 @@ var PROMISE_METHODS = [
   'resolve'
 ];
 
+function shouldCatchExceptions(options) {
+  if (options.hasOwnProperty('suppressUnhandledPromiseMessage')) {
+    return Boolean(options.suppressUnhandledPromiseMessage);
+  }
+
+  return Boolean(ExtendedPromise.suppressUnhandledPromiseMessage);
+}
+
 function ExtendedPromise(options) {
   var self = this;
 
@@ -281,6 +289,14 @@ function ExtendedPromise(options) {
   options = options || {};
   this._onResolve = options.onResolve || ExtendedPromise.defaultOnResolve;
   this._onReject = options.onReject || ExtendedPromise.defaultOnReject;
+
+  if (shouldCatchExceptions(options)) {
+    this._promise.catch(function () {
+      // prevents unhandled promise rejection warning
+      // in the console for extended promises that
+      // that catch the error in an asynchronous manner
+    });
+  }
 
   this._resetState();
 
@@ -1258,7 +1274,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.57.0";
+var VERSION = "3.58.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1560,7 +1576,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":30,"./check-origin":31,"./events":32,"framebus":23}],34:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.57.0";
+var VERSION = "3.58.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1709,7 +1725,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.57.0";
+var VERSION = "3.58.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -2319,6 +2335,9 @@ Popup.prototype.focus = function () {
 };
 
 Popup.prototype.close = function () {
+  if (this._frame.closed) {
+    return;
+  }
   this._frame.close();
 };
 
@@ -2503,6 +2522,7 @@ arguments[4][20][0].apply(exports,arguments)
 var Promise = global.Promise || _dereq_('promise-polyfill');
 var ExtendedPromise = _dereq_('@braintree/extended-promise');
 
+ExtendedPromise.suppressUnhandledPromiseMessage = true;
 ExtendedPromise.setPromise(Promise);
 
 module.exports = Promise;
@@ -2675,7 +2695,7 @@ var BraintreeError = _dereq_('../../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../../lib/convert-to-braintree-error');
 var useMin = _dereq_('../../lib/use-min');
 var once = _dereq_('../../lib/once');
-var VERSION = "3.57.0";
+var VERSION = "3.58.0";
 var constants = _dereq_('../shared/constants');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
@@ -3173,8 +3193,8 @@ PayPal.prototype._formatPaymentResourceData = function (options) {
   var gatewayConfiguration = this._client.getConfiguration().gatewayConfiguration;
   var serviceId = this._frameService._serviceId;
   var paymentResource = {
-    returnUrl: gatewayConfiguration.paypal.assetsUrl + '/web/' + VERSION + '/html/paypal-redirect-frame' + useMin(this._isDebug) + '.html?channel=' + serviceId,
-    cancelUrl: gatewayConfiguration.paypal.assetsUrl + '/web/' + VERSION + '/html/paypal-cancel-frame' + useMin(this._isDebug) + '.html?channel=' + serviceId,
+    returnUrl: gatewayConfiguration.paypal.assetsUrl + '/web/' + VERSION + '/html/redirect-frame' + useMin(this._isDebug) + '.html?channel=' + serviceId,
+    cancelUrl: gatewayConfiguration.paypal.assetsUrl + '/web/' + VERSION + '/html/cancel-frame' + useMin(this._isDebug) + '.html?channel=' + serviceId,
     offerPaypalCredit: options.offerCredit === true,
     experienceProfile: {
       brandName: options.displayName || gatewayConfiguration.paypal.displayName,
@@ -3281,7 +3301,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var errors = _dereq_('./shared/errors');
 var PayPal = _dereq_('./external/paypal');
-var VERSION = "3.57.0";
+var VERSION = "3.58.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var Promise = _dereq_('../lib/promise');
 

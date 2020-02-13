@@ -185,6 +185,14 @@ var PROMISE_METHODS = [
   'resolve'
 ];
 
+function shouldCatchExceptions(options) {
+  if (options.hasOwnProperty('suppressUnhandledPromiseMessage')) {
+    return Boolean(options.suppressUnhandledPromiseMessage);
+  }
+
+  return Boolean(ExtendedPromise.suppressUnhandledPromiseMessage);
+}
+
 function ExtendedPromise(options) {
   var self = this;
 
@@ -200,6 +208,14 @@ function ExtendedPromise(options) {
   options = options || {};
   this._onResolve = options.onResolve || ExtendedPromise.defaultOnResolve;
   this._onReject = options.onReject || ExtendedPromise.defaultOnReject;
+
+  if (shouldCatchExceptions(options)) {
+    this._promise.catch(function () {
+      // prevents unhandled promise rejection warning
+      // in the console for extended promises that
+      // that catch the error in an asynchronous manner
+    });
+  }
 
   this._resetState();
 
@@ -767,7 +783,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.57.0";
+var VERSION = "3.58.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -897,7 +913,7 @@ module.exports = BraintreeError;
 },{"./enumerate":28}],23:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.57.0";
+var VERSION = "3.58.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1024,7 +1040,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.57.0";
+var VERSION = "3.58.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1157,6 +1173,7 @@ module.exports = function (obj) {
 var Promise = global.Promise || _dereq_('promise-polyfill');
 var ExtendedPromise = _dereq_('@braintree/extended-promise');
 
+ExtendedPromise.suppressUnhandledPromiseMessage = true;
 ExtendedPromise.setPromise(Promise);
 
 module.exports = Promise;
@@ -1311,7 +1328,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var Venmo = _dereq_('./venmo');
 var Promise = _dereq_('../lib/promise');
 var supportsVenmo = _dereq_('./shared/supports-venmo');
-var VERSION = "3.57.0";
+var VERSION = "3.58.0";
 
 /**
  * @static
@@ -1429,7 +1446,7 @@ module.exports = {
 
 module.exports = {
   DOCUMENT_VISIBILITY_CHANGE_EVENT_DELAY: 500,
-  PROCESS_RESULTS_DELAY: 1000,
+  DEFAULT_PROCESS_RESULTS_DELAY: 1000,
   VENMO_OPEN_URL: 'https://venmo.com/braintree/checkout'
 };
 
@@ -1534,7 +1551,7 @@ var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.57.0";
+var VERSION = "3.58.0";
 
 /**
  * Venmo tokenize payload.
@@ -1628,6 +1645,8 @@ Venmo.prototype.hasTokenizationResult = function () {
  *
  * Only one Venmo flow can be active at a time. One way to achieve this is to disable your Venmo button while the flow is open.
  * @public
+ * @param {object} [options] Options for tokenization.
+ * @param {number} [options.processResultsDelay=500] The amount of time in milliseeconds to delay processing the results. In most cases, this value should be left as the default.
  * @param {callback} [callback] The second argument, <code>data</code>, is a {@link Venmo~tokenizePayload|tokenizePayload}. If no callback is provided, the method will return a Promise that resolves with a {@link Venmo~tokenizePayload|tokenizePayload}.
  * @returns {(Promise|void)} Returns a promise if no callback is provided.
  * @example
@@ -1657,8 +1676,10 @@ Venmo.prototype.hasTokenizationResult = function () {
  *   });
  * });
  */
-Venmo.prototype.tokenize = function () {
+Venmo.prototype.tokenize = function (options) {
   var self = this;
+
+  options = options || {};
 
   if (this._tokenizationInProgress === true) {
     return Promise.reject(new BraintreeError(errors.VENMO_TOKENIZATION_REQUEST_ACTIVE));
@@ -1679,33 +1700,19 @@ Venmo.prototype.tokenize = function () {
       global.open(self._url);
     }
 
-    // Detect when app switch has returned with tokenization results in the
-    // URL hash.
-    self._hashChangeListener = function () {
-      self._processResults().then(resolve).catch(reject).then(function () {
-        self._tokenizationInProgress = false;
-        global.removeEventListener('hashchange', self._hashChangeListener);
-        delete self._hashChangeListener;
-        global.location.hash = self._previousHash;
-      });
-    };
-    global.addEventListener('hashchange', self._hashChangeListener);
-
-    // Check if app switch has returned but no tokenization results were found
-    // in URL hash.
+    // Subscribe to document visibility change events to detect when app switch
+    // has returned.
     self._visibilityChangeListener = function () {
       if (!global.document.hidden) {
-        setTimeout(function () {
-          // If tokenization is still in progress when this setTimeout fires,
-          // then we process results to show that the user canceled.
-          if (self._tokenizationInProgress) {
-            self._tokenizationInProgress = false;
-            self._processResults().then(resolve).catch(reject);
-          }
+        self._tokenizationInProgress = false;
 
-          self._removeVisibilityEventListener();
-          delete self._visibilityChangeListener;
-        }, constants.PROCESS_RESULTS_DELAY);
+        setTimeout(function () {
+          self._processResults().then(resolve).catch(reject).then(function () {
+            global.location.hash = self._previousHash;
+            self._removeVisibilityEventListener();
+            delete self._visibilityChangeListener;
+          });
+        }, options.processResultsDelay || constants.DEFAULT_PROCESS_RESULTS_DELAY);
       }
     };
 

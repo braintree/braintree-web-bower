@@ -1,4 +1,4 @@
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}(g.braintree || (g.braintree = {})).americanExpress = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(_dereq_,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}(g.braintree || (g.braintree = {})).preferredPaymentMethods = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -594,236 +594,74 @@ module.exports = Promise;
 },{}],9:[function(_dereq_,module,exports){
 'use strict';
 
-var BraintreeError = _dereq_('../lib/braintree-error');
-var errors = _dereq_('./errors');
-var assign = _dereq_('../lib/assign').assign;
-var Promise = _dereq_('../lib/promise');
-var methods = _dereq_('../lib/methods');
-var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
-var wrapPromise = _dereq_('@braintree/wrap-promise');
+var createAuthorizationData = _dereq_('./create-authorization-data');
+var jsonClone = _dereq_('./json-clone');
+var constants = _dereq_('./constants');
 
-/**
- * @class
- * @param {object} options Options
- * @description <strong>You cannot use this constructor directly. Use {@link module:braintree-web/american-express.create|braintree.american-express.create} instead.</strong>
- * @classdesc This class allows you use a nonce to interact with American Express Checkout. To accept American Express cards, use Hosted Fields.
- */
-function AmericanExpress(options) {
-  this._client = options.client;
-}
+function addMetadata(configuration, data) {
+  var key;
+  var attrs = data ? jsonClone(data) : {};
+  var authAttrs = createAuthorizationData(configuration.authorization).attrs;
+  var _meta = jsonClone(configuration.analyticsMetadata);
 
-/**
- * Gets the rewards balance associated with a Braintree nonce.
- * @public
- * @param {object} options Request options
- * @param {string} options.nonce An existing Braintree nonce.
- * @param {callback} [callback] The second argument, <code>data</code>, is the returned server data. If no callback is provided, `getRewardsBalance` returns a promise that resolves with the server data.
- * @returns {(Promise|void)} Returns a promise if no callback is provided.
- * @example
- * var americanExpress = require('braintree-web/american-express');
- *
- * americanExpress.create({client: clientInstance}, function (createErr, americanExpressInstance) {
- *   var options = {nonce: existingBraintreeNonce};
- *   americanExpressInstance.getRewardsBalance(options, function (getErr, payload) {
- *     if (getErr || payload.error) {
- *       // Handle error
- *       return;
- *     }
- *
- *     console.log('Rewards amount: ' + payload.rewardsAmount);
- *   });
- * });
- */
-AmericanExpress.prototype.getRewardsBalance = function (options) {
-  var nonce = options.nonce;
-  var data;
+  attrs.braintreeLibraryVersion = constants.BRAINTREE_LIBRARY_VERSION;
 
-  if (!nonce) {
-    return Promise.reject(new BraintreeError({
-      type: errors.AMEX_NONCE_REQUIRED.type,
-      code: errors.AMEX_NONCE_REQUIRED.code,
-      message: 'getRewardsBalance must be called with a nonce.'
-    }));
-  }
-
-  data = assign({
-    _meta: {source: 'american-express'},
-    paymentMethodNonce: nonce
-  }, options);
-
-  delete data.nonce;
-
-  return this._client.request({
-    method: 'get',
-    endpoint: 'payment_methods/amex_rewards_balance',
-    data: data
-  }).catch(function (err) {
-    return Promise.reject(new BraintreeError({
-      type: errors.AMEX_NETWORK_ERROR.type,
-      code: errors.AMEX_NETWORK_ERROR.code,
-      message: 'A network error occurred when getting the American Express rewards balance.',
-      details: {
-        originalError: err
-      }
-    }));
-  });
-};
-
-/**
- * Gets the Express Checkout nonce profile given a nonce from American Express.
- * @public
- * @param {object} options Request options
- * @param {string} options.nonce An existing nonce from American Express (note that this is <em>not</em> a nonce from Braintree).
- * @param {callback} [callback] The second argument, <code>data</code>, is the returned server data. If no callback is provided, `getExpressCheckoutProfile` returns a promise that resolves with the server data.
- * @returns {(Promise|void)} Returns a promise if no callback is provided.
- * @example
- * var americanExpress = require('braintree-web/american-express');
- *
- * americanExpress.create({client: clientInstance}, function (createErr, americanExpressInstance) {
- *   var options = {nonce: existingAmericanExpressNonce};
- *   americanExpressInstance.getExpressCheckoutProfile(options, function (getErr, payload) {
- *     if (getErr) {
- *       // Handle error
- *       return;
- *     }
- *
- *     console.log('Number of cards: ' + payload.amexExpressCheckoutCards.length);
- *   });
- * });
- */
-AmericanExpress.prototype.getExpressCheckoutProfile = function (options) {
-  if (!options.nonce) {
-    return Promise.reject(new BraintreeError({
-      type: errors.AMEX_NONCE_REQUIRED.type,
-      code: errors.AMEX_NONCE_REQUIRED.code,
-      message: 'getExpressCheckoutProfile must be called with a nonce.'
-    }));
-  }
-
-  return this._client.request({
-    method: 'get',
-    endpoint: 'payment_methods/amex_express_checkout_cards/' + options.nonce,
-    data: {
-      _meta: {source: 'american-express'},
-      paymentMethodNonce: options.nonce
+  for (key in attrs._meta) {
+    if (attrs._meta.hasOwnProperty(key)) {
+      _meta[key] = attrs._meta[key];
     }
-  }).catch(function (err) {
-    return Promise.reject(new BraintreeError({
-      type: errors.AMEX_NETWORK_ERROR.type,
-      code: errors.AMEX_NETWORK_ERROR.code,
-      message: 'A network error occurred when getting the American Express Checkout nonce profile.',
-      details: {
-        originalError: err
-      }
-    }));
-  });
-};
-
-/**
- * Cleanly tear down anything set up by {@link module:braintree-web/american-express.create|create}.
- * @public
- * @param {callback} [callback] Called once teardown is complete. No data is returned if teardown completes successfully.
- * @example
- * americanExpressInstance.teardown();
- * @example <caption>With callback</caption>
- * americanExpressInstance.teardown(function () {
- *   // teardown is complete
- * });
- * @returns {(Promise|void)} Returns a promise if no callback is provided.
- */
-AmericanExpress.prototype.teardown = function () {
-  convertMethodsToError(this, methods(AmericanExpress.prototype));
-
-  return Promise.resolve();
-};
-
-module.exports = wrapPromise.wrapPrototype(AmericanExpress);
-
-},{"../lib/assign":13,"../lib/braintree-error":15,"../lib/convert-methods-to-error":17,"../lib/methods":22,"../lib/promise":23,"./errors":10,"@braintree/wrap-promise":7}],10:[function(_dereq_,module,exports){
-'use strict';
-
-/**
- * @name BraintreeError.American Express - getRewardsBalance Error Codes
- * @description Errors that occur when creating components.
- * @property {MERCHANT} AMEX_NONCE_REQUIRED Occurs when a nonce is not provided to method.
- * @property {NETWORK} AMEX_NETWORK_ERROR Occurs when there is an error communicating with the Braintree gateway.
- */
-
-/**
- * @name BraintreeError.American Express - getExpressCheckoutProfile Error Codes
- * @description Errors that occur when creating components.
- * @property {MERCHANT} AMEX_NONCE_REQUIRED Occurs when a nonce is not provided to method.
- * @property {NETWORK} AMEX_NETWORK_ERROR Occurs when there is an error communicating with the Braintree gateway.
- */
-
-var BraintreeError = _dereq_('../lib/braintree-error');
-
-module.exports = {
-  AMEX_NONCE_REQUIRED: {
-    type: BraintreeError.types.MERCHANT,
-    code: 'AMEX_NONCE_REQUIRED'
-  },
-  AMEX_NETWORK_ERROR: {
-    type: BraintreeError.types.NETWORK,
-    code: 'AMEX_NETWORK_ERROR'
   }
-};
 
-},{"../lib/braintree-error":15}],11:[function(_dereq_,module,exports){
+  attrs._meta = _meta;
+
+  if (authAttrs.tokenizationKey) {
+    attrs.tokenizationKey = authAttrs.tokenizationKey;
+  } else {
+    attrs.authorizationFingerprint = authAttrs.authorizationFingerprint;
+  }
+
+  return attrs;
+}
+
+module.exports = addMetadata;
+
+},{"./constants":14,"./create-authorization-data":16,"./json-clone":20}],10:[function(_dereq_,module,exports){
 'use strict';
-/**
- * @module braintree-web/american-express
- * @description This module is for use with Amex Express Checkout. To accept American Express cards, use Hosted Fields.
- */
 
-var AmericanExpress = _dereq_('./american-express');
-var basicComponentVerification = _dereq_('../lib/basic-component-verification');
-var createDeferredClient = _dereq_('../lib/create-deferred-client');
-var createAssetsUrl = _dereq_('../lib/create-assets-url');
-var VERSION = "3.58.0";
-var wrapPromise = _dereq_('@braintree/wrap-promise');
+var Promise = _dereq_('./promise');
+var constants = _dereq_('./constants');
+var addMetadata = _dereq_('./add-metadata');
 
-/**
- * @static
- * @function create
- * @param {object} options Creation options:
- * @param {Client} [options.client] A {@link Client} instance.
- * @param {string} [options.authorization] A tokenizationKey or clientToken. Can be used in place of `options.client`.
- * @param {callback} [callback] The second argument, `data`, is the {@link AmericanExpress} instance. If no callback is provided, `create` returns a promise that resolves with the {@link AmericanExpress} instance.
- * @returns {(Promise|void)} Returns a promise if no callback is provided.
- */
-function create(options) {
-  var name = 'American Express';
+function sendAnalyticsEvent(clientInstanceOrPromise, kind, callback) {
+  var timestamp = Date.now(); // milliseconds
 
-  return basicComponentVerification.verify({
-    name: name,
-    client: options.client,
-    authorization: options.authorization
-  }).then(function () {
-    return createDeferredClient.create({
-      authorization: options.authorization,
-      client: options.client,
-      debug: options.debug,
-      assetsUrl: createAssetsUrl.create(options.authorization),
-      name: name
-    });
-  }).then(function (client) {
-    options.client = client;
+  return Promise.resolve(clientInstanceOrPromise).then(function (client) {
+    var timestampInPromise = Date.now();
+    var configuration = client.getConfiguration();
+    var request = client._request;
+    var url = configuration.gatewayConfiguration.analytics.url;
+    var data = {
+      analytics: [{
+        kind: constants.ANALYTICS_PREFIX + kind,
+        isAsync: Math.floor(timestampInPromise / 1000) !== Math.floor(timestamp / 1000),
+        timestamp: timestamp
+      }]
+    };
 
-    return new AmericanExpress(options);
+    request({
+      url: url,
+      method: 'post',
+      data: addMetadata(configuration, data),
+      timeout: constants.ANALYTICS_REQUEST_TIMEOUT_MS
+    }, callback);
   });
 }
 
 module.exports = {
-  create: wrapPromise(create),
-  /**
-   * @description The current version of the SDK, i.e. `{@pkg version}`.
-   * @type {string}
-   */
-  VERSION: VERSION
+  sendEvent: sendAnalyticsEvent
 };
 
-},{"../lib/basic-component-verification":14,"../lib/create-assets-url":18,"../lib/create-deferred-client":19,"./american-express":9,"@braintree/wrap-promise":7}],12:[function(_dereq_,module,exports){
+},{"./add-metadata":9,"./constants":14,"./promise":21}],11:[function(_dereq_,module,exports){
 'use strict';
 
 var loadScript = _dereq_('@braintree/asset-loader/load-script');
@@ -832,32 +670,7 @@ module.exports = {
   loadScript: loadScript
 };
 
-},{"@braintree/asset-loader/load-script":2}],13:[function(_dereq_,module,exports){
-'use strict';
-
-var assignNormalized = typeof Object.assign === 'function' ? Object.assign : assignPolyfill;
-
-function assignPolyfill(destination) {
-  var i, source, key;
-
-  for (i = 1; i < arguments.length; i++) {
-    source = arguments[i];
-    for (key in source) {
-      if (source.hasOwnProperty(key)) {
-        destination[key] = source[key];
-      }
-    }
-  }
-
-  return destination;
-}
-
-module.exports = {
-  assign: assignNormalized,
-  _assign: assignPolyfill
-};
-
-},{}],14:[function(_dereq_,module,exports){
+},{"@braintree/asset-loader/load-script":2}],12:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -905,7 +718,7 @@ module.exports = {
   verify: basicComponentVerification
 };
 
-},{"./braintree-error":15,"./errors":21,"./promise":23}],15:[function(_dereq_,module,exports){
+},{"./braintree-error":13,"./errors":19,"./promise":21}],13:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -990,7 +803,7 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":20}],16:[function(_dereq_,module,exports){
+},{"./enumerate":18}],14:[function(_dereq_,module,exports){
 'use strict';
 
 var VERSION = "3.58.0";
@@ -1030,25 +843,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],17:[function(_dereq_,module,exports){
-'use strict';
-
-var BraintreeError = _dereq_('./braintree-error');
-var sharedErrors = _dereq_('./errors');
-
-module.exports = function (instance, methodNames) {
-  methodNames.forEach(function (methodName) {
-    instance[methodName] = function () {
-      throw new BraintreeError({
-        type: sharedErrors.METHOD_CALLED_AFTER_TEARDOWN.type,
-        code: sharedErrors.METHOD_CALLED_AFTER_TEARDOWN.code,
-        message: methodName + ' cannot be called after teardown.'
-      });
-    };
-  });
-};
-
-},{"./braintree-error":15,"./errors":21}],18:[function(_dereq_,module,exports){
+},{}],15:[function(_dereq_,module,exports){
 'use strict';
 
 // endRemoveIf(production)
@@ -1065,7 +860,53 @@ module.exports = {
   create: createAssetsUrl
 };
 
-},{"./constants":16}],19:[function(_dereq_,module,exports){
+},{"./constants":14}],16:[function(_dereq_,module,exports){
+'use strict';
+
+var atob = _dereq_('../lib/vendor/polyfill').atob;
+var CLIENT_API_URLS = _dereq_('../lib/constants').CLIENT_API_URLS;
+
+function _isTokenizationKey(str) {
+  return /^[a-zA-Z0-9]+_[a-zA-Z0-9]+_[a-zA-Z0-9_]+$/.test(str);
+}
+
+function _parseTokenizationKey(tokenizationKey) {
+  var tokens = tokenizationKey.split('_');
+  var environment = tokens[0];
+  var merchantId = tokens.slice(2).join('_');
+
+  return {
+    merchantId: merchantId,
+    environment: environment
+  };
+}
+
+function createAuthorizationData(authorization) {
+  var parsedClientToken, parsedTokenizationKey;
+  var data = {
+    attrs: {},
+    configUrl: ''
+  };
+
+  if (_isTokenizationKey(authorization)) {
+    parsedTokenizationKey = _parseTokenizationKey(authorization);
+    data.environment = parsedTokenizationKey.environment;
+    data.attrs.tokenizationKey = authorization;
+    data.configUrl = CLIENT_API_URLS[parsedTokenizationKey.environment] + '/merchants/' + parsedTokenizationKey.merchantId + '/client_api/v1/configuration';
+  } else {
+    parsedClientToken = JSON.parse(atob(authorization));
+    data.environment = parsedClientToken.environment;
+    data.attrs.authorizationFingerprint = parsedClientToken.authorizationFingerprint;
+    data.configUrl = parsedClientToken.configUrl;
+    data.graphQL = parsedClientToken.graphQL;
+  }
+
+  return data;
+}
+
+module.exports = createAuthorizationData;
+
+},{"../lib/constants":14,"../lib/vendor/polyfill":22}],17:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1119,7 +960,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./assets":12,"./braintree-error":15,"./errors":21,"./promise":23}],20:[function(_dereq_,module,exports){
+},{"./assets":11,"./braintree-error":13,"./errors":19,"./promise":21}],18:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -1134,7 +975,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],21:[function(_dereq_,module,exports){
+},{}],19:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -1184,16 +1025,14 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":15}],22:[function(_dereq_,module,exports){
+},{"./braintree-error":13}],20:[function(_dereq_,module,exports){
 'use strict';
 
-module.exports = function (obj) {
-  return Object.keys(obj).filter(function (key) {
-    return typeof obj[key] === 'function';
-  });
+module.exports = function (value) {
+  return JSON.parse(JSON.stringify(value));
 };
 
-},{}],23:[function(_dereq_,module,exports){
+},{}],21:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1206,5 +1045,186 @@ ExtendedPromise.setPromise(Promise);
 module.exports = Promise;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"@braintree/extended-promise":3,"promise-polyfill":8}]},{},[11])(11)
+},{"@braintree/extended-promise":3,"promise-polyfill":8}],22:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+
+var atobNormalized = typeof global.atob === 'function' ? global.atob : atob;
+
+function atob(base64String) {
+  var a, b, c, b1, b2, b3, b4, i;
+  var base64Matcher = new RegExp('^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})([=]{1,2})?$');
+  var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+  var result = '';
+
+  if (!base64Matcher.test(base64String)) {
+    throw new Error('Non base64 encoded input passed to window.atob polyfill');
+  }
+
+  i = 0;
+  do {
+    b1 = characters.indexOf(base64String.charAt(i++));
+    b2 = characters.indexOf(base64String.charAt(i++));
+    b3 = characters.indexOf(base64String.charAt(i++));
+    b4 = characters.indexOf(base64String.charAt(i++));
+
+    a = (b1 & 0x3F) << 2 | b2 >> 4 & 0x3;
+    b = (b2 & 0xF) << 4 | b3 >> 2 & 0xF;
+    c = (b3 & 0x3) << 6 | b4 & 0x3F;
+
+    result += String.fromCharCode(a) + (b ? String.fromCharCode(b) : '') + (c ? String.fromCharCode(c) : '');
+  } while (i < base64String.length);
+
+  return result;
+}
+
+module.exports = {
+  atob: function (base64String) {
+    return atobNormalized.call(global, base64String);
+  },
+  _atob: atob
+};
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],23:[function(_dereq_,module,exports){
+'use strict';
+/** @module braintree-web/preferred-payment-methods */
+
+var wrapPromise = _dereq_('@braintree/wrap-promise');
+var basicComponentVerification = _dereq_('../lib/basic-component-verification');
+var PreferredPaymentMethods = _dereq_('./preferred-payment-methods');
+var VERSION = "3.58.0";
+
+/**
+ * @static
+ * @function create
+ * @param {object} options Creation options:
+ * @param {Client} [options.client] A {@link Client} instance.
+ * @param {string} [options.authorization] A tokenizationKey or clientToken. Can be used in place of `options.client`.
+ * @param {callback} [callback] The second argument, `data`, is the {@link PreferredPaymentMethods} instance.
+ * @example
+ * braintree.preferredPaymentMethods.create({
+ *   client: clientInstance
+ * }).then(function (preferredPaymentMethodsInstance) {
+ *   // preferredPaymentMethodsInstance is ready to be used.
+ * }).catch(function (error) {
+ *   // handle creation error
+ * });
+ * @returns {Promise|void} Returns a Promise with resolves with the PreferredPaymentMethods instance.
+ */
+function create(options) {
+  var name = 'PreferredPaymentMethods';
+
+  return basicComponentVerification.verify({
+    name: name,
+    client: options.client,
+    authorization: options.authorization
+  }).then(function () {
+    var instance = new PreferredPaymentMethods();
+
+    return instance.initialize(options);
+  });
+}
+
+module.exports = {
+  create: wrapPromise(create),
+  /**
+   * @description The current version of the SDK, i.e. `{@pkg version}`.
+   * @type {string}
+   */
+  VERSION: VERSION
+};
+
+
+},{"../lib/basic-component-verification":12,"./preferred-payment-methods":24,"@braintree/wrap-promise":7}],24:[function(_dereq_,module,exports){
+'use strict';
+
+var wrapPromise = _dereq_('@braintree/wrap-promise');
+var analytics = _dereq_('../lib/analytics');
+var createAssetsUrl = _dereq_('../lib/create-assets-url');
+var createDeferredClient = _dereq_('../lib/create-deferred-client');
+var Promise = _dereq_('../lib/promise');
+
+/**
+ * @class
+ * @param {object} options See {@link module:braintree-web/preferred-payment-methods.create|preferred-payment-methods.create}
+ */
+function PreferredPaymentMethods() {
+}
+
+PreferredPaymentMethods.prototype.initialize = function (options) {
+  var self = this;
+
+  this._clientPromise = createDeferredClient.create({
+    authorization: options.authorization,
+    client: options.client,
+    debug: options.debug,
+    assetsUrl: createAssetsUrl.create(options.authorization),
+    name: 'PreferredPaymentMethods'
+  }).catch(function (err) {
+    self._setupError = err;
+
+    return Promise.reject(err);
+  });
+
+  analytics.sendEvent(this._clientPromise, 'preferred-payment-methods.initialized');
+
+  return Promise.resolve(this);
+};
+
+/**
+ * Fetches information about which payment methods are preferred on the device.
+ * Used to determine which payment methods are given preference in your UI,
+ * not whether they are presented entirely.
+ *
+ * This class is currently in beta and may change in future releases.
+ * @public
+ * @returns {Promise|void} Returns a promise if no callback is provided.
+ * @example
+ * <caption>Preferred Payment Methods</caption>
+ * preferredPaymentMethodsInstance.fetchPreferredPaymentMethods().then(function (result) {
+ *   if (result.paypalPreferred) {
+ *     // PayPal preferred
+ *   } else {
+ *     // PayPal not preferred
+ *   }
+ * });
+ */
+PreferredPaymentMethods.prototype.fetchPreferredPaymentMethods = function () {
+  var client;
+  var self = this;
+
+  return this._clientPromise.then(function (clientInstance) {
+    client = clientInstance;
+
+    return client.request({
+      api: 'graphQLApi',
+      data: {
+        query: 'query ClientConfiguration { clientConfiguration { paypal { paymentMethodAvailableOnDevice } } }'
+      }
+    });
+  }).then(function (result) {
+    var paypalPreferred = result.data.clientConfiguration.paypal.paymentMethodAvailableOnDevice;
+
+    analytics.sendEvent(client, 'preferred-payment-methods.paypal.api-detected.' + paypalPreferred);
+
+    return {
+      paypalPreferred: paypalPreferred
+    };
+  }).catch(function () {
+    if (self._setupError) {
+      return Promise.reject(self._setupError);
+    }
+
+    analytics.sendEvent(client, 'preferred-payment-methods.api-error');
+
+    return {
+      paypalPreferred: false
+    };
+  });
+};
+
+module.exports = wrapPromise.wrapPrototype(PreferredPaymentMethods);
+
+},{"../lib/analytics":10,"../lib/create-assets-url":15,"../lib/create-deferred-client":17,"../lib/promise":21,"@braintree/wrap-promise":7}]},{},[23])(23)
 });

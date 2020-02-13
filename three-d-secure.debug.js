@@ -137,6 +137,14 @@ var PROMISE_METHODS = [
   'resolve'
 ];
 
+function shouldCatchExceptions(options) {
+  if (options.hasOwnProperty('suppressUnhandledPromiseMessage')) {
+    return Boolean(options.suppressUnhandledPromiseMessage);
+  }
+
+  return Boolean(ExtendedPromise.suppressUnhandledPromiseMessage);
+}
+
 function ExtendedPromise(options) {
   var self = this;
 
@@ -152,6 +160,14 @@ function ExtendedPromise(options) {
   options = options || {};
   this._onResolve = options.onResolve || ExtendedPromise.defaultOnResolve;
   this._onReject = options.onReject || ExtendedPromise.defaultOnReject;
+
+  if (shouldCatchExceptions(options)) {
+    this._promise.catch(function () {
+      // prevents unhandled promise rejection warning
+      // in the console for extended promises that
+      // that catch the error in an asynchronous manner
+    });
+  }
 
   this._resetState();
 
@@ -1129,7 +1145,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.57.0";
+var VERSION = "3.58.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1431,7 +1447,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":20,"./check-origin":21,"./events":22,"framebus":13}],24:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.57.0";
+var VERSION = "3.58.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1580,7 +1596,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.57.0";
+var VERSION = "3.58.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1777,6 +1793,7 @@ module.exports = function (obj) {
 var Promise = global.Promise || _dereq_('promise-polyfill');
 var ExtendedPromise = _dereq_('@braintree/extended-promise');
 
+ExtendedPromise.suppressUnhandledPromiseMessage = true;
 ExtendedPromise.setPromise(Promise);
 
 module.exports = Promise;
@@ -1864,7 +1881,7 @@ var uuid = _dereq_('../../../lib/vendor/uuid');
 var events = _dereq_('../../shared/events');
 var useMin = _dereq_('../../../lib/use-min');
 
-var VERSION = "3.57.0";
+var VERSION = "3.58.0";
 var IFRAME_HEIGHT = 400;
 var IFRAME_WIDTH = 400;
 
@@ -2528,7 +2545,7 @@ var ExtendedPromise = _dereq_('@braintree/extended-promise');
 
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var PLATFORM = _dereq_('../../../lib/constants').PLATFORM;
-var VERSION = "3.57.0";
+var VERSION = "3.58.0";
 
 function SongbirdFramework(options) {
   BaseFramework.call(this, options);
@@ -2909,8 +2926,12 @@ SongbirdFramework.prototype._createPaymentsValidatedCallback = function () {
       case 'NOACTION':
       case 'FAILURE':
         self._performJWTValidation(validatedJwt)
-          .then(self._verifyCardPromisePlus.resolve)
-          .catch(self._verifyCardPromisePlus.reject);
+          .then(function (result) {
+            self._verifyCardPromisePlus.resolve(result);
+          })
+          .catch(function (err) {
+            self._verifyCardPromisePlus.reject(err);
+          });
         break;
 
       case 'ERROR':
@@ -3819,7 +3840,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.57.0";
+var VERSION = "3.58.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 

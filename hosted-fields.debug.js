@@ -317,6 +317,14 @@ var PROMISE_METHODS = [
   'resolve'
 ];
 
+function shouldCatchExceptions(options) {
+  if (options.hasOwnProperty('suppressUnhandledPromiseMessage')) {
+    return Boolean(options.suppressUnhandledPromiseMessage);
+  }
+
+  return Boolean(ExtendedPromise.suppressUnhandledPromiseMessage);
+}
+
 function ExtendedPromise(options) {
   var self = this;
 
@@ -332,6 +340,14 @@ function ExtendedPromise(options) {
   options = options || {};
   this._onResolve = options.onResolve || ExtendedPromise.defaultOnResolve;
   this._onReject = options.onReject || ExtendedPromise.defaultOnReject;
+
+  if (shouldCatchExceptions(options)) {
+    this._promise.catch(function () {
+      // prevents unhandled promise rejection warning
+      // in the console for extended promises that
+      // that catch the error in an asynchronous manner
+    });
+  }
 
   this._resetState();
 
@@ -1945,7 +1961,6 @@ module.exports = {
 };
 
 },{"../shared/browser-detection":44,"../shared/constants":45,"../shared/find-parent-tags":47,"../shared/focus-intercept":48}],40:[function(_dereq_,module,exports){
-(function (global){
 'use strict';
 
 var allowedStyles = _dereq_('../shared/constants').allowedStyles;
@@ -1964,9 +1979,9 @@ module.exports = function getStylesFromClass(cssClass) {
   element.style.position = 'fixed !important';
   element.style.left = '-99999px !important';
   element.style.top = '-99999px !important';
-  global.document.body.appendChild(element);
+  document.body.appendChild(element);
 
-  computedStyles = global.getComputedStyle(element);
+  computedStyles = window.getComputedStyle(element);
 
   allowedStyles.forEach(function (style) {
     var value = computedStyles[style];
@@ -1976,12 +1991,11 @@ module.exports = function getStylesFromClass(cssClass) {
     }
   });
 
-  global.document.body.removeChild(element);
+  document.body.removeChild(element);
 
   return styles;
 };
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"../shared/constants":45}],41:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
@@ -2596,7 +2610,7 @@ function HostedFields(options) {
     var reply = results[0];
 
     clearTimeout(failureTimeout);
-    reply(self._merchantConfigurationOptions);
+    reply(formatMerchantConfigurationForIframes(self._merchantConfigurationOptions));
 
     self._cleanUpFocusIntercepts();
 
@@ -3313,6 +3327,23 @@ HostedFields.prototype.getState = function () {
   return this._state;
 };
 
+// React adds decorations to DOM nodes that cause
+// circular dependencies, so we remove them from the
+// config before sending it to the iframes. However,
+// we don't want to mutate the original object that
+// was passed in, so we create fresh objects via assign
+function formatMerchantConfigurationForIframes(config) {
+  var formattedConfig = assign({}, config);
+
+  formattedConfig.fields = assign({}, formattedConfig.fields);
+  Object.keys(formattedConfig.fields).forEach(function (field) {
+    formattedConfig.fields[field] = assign({}, formattedConfig.fields[field]);
+    delete formattedConfig.fields[field].container;
+  });
+
+  return formattedConfig;
+}
+
 module.exports = wrapPromise.wrapPrototype(HostedFields);
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
@@ -3352,7 +3383,7 @@ var supportsInputFormatting = _dereq_('restricted-input/supports-input-formattin
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.57.0";
+var VERSION = "3.58.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -3693,7 +3724,7 @@ module.exports = {
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.57.0";
+var VERSION = "3.58.0";
 
 var constants = {
   VERSION: VERSION,
@@ -4197,7 +4228,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.57.0";
+var VERSION = "3.58.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -4545,7 +4576,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":56,"./check-origin":57,"./events":58,"framebus":33}],60:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.57.0";
+var VERSION = "3.58.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -4672,7 +4703,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.57.0";
+var VERSION = "3.58.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -4880,6 +4911,7 @@ arguments[4][23][0].apply(exports,arguments)
 var Promise = global.Promise || _dereq_('promise-polyfill');
 var ExtendedPromise = _dereq_('@braintree/extended-promise');
 
+ExtendedPromise.suppressUnhandledPromiseMessage = true;
 ExtendedPromise.setPromise(Promise);
 
 module.exports = Promise;

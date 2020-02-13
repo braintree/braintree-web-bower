@@ -78,6 +78,14 @@ var PROMISE_METHODS = [
   'resolve'
 ];
 
+function shouldCatchExceptions(options) {
+  if (options.hasOwnProperty('suppressUnhandledPromiseMessage')) {
+    return Boolean(options.suppressUnhandledPromiseMessage);
+  }
+
+  return Boolean(ExtendedPromise.suppressUnhandledPromiseMessage);
+}
+
 function ExtendedPromise(options) {
   var self = this;
 
@@ -93,6 +101,14 @@ function ExtendedPromise(options) {
   options = options || {};
   this._onResolve = options.onResolve || ExtendedPromise.defaultOnResolve;
   this._onReject = options.onReject || ExtendedPromise.defaultOnReject;
+
+  if (shouldCatchExceptions(options)) {
+    this._promise.catch(function () {
+      // prevents unhandled promise rejection warning
+      // in the console for extended promises that
+      // that catch the error in an asynchronous manner
+    });
+  }
 
   this._resetState();
 
@@ -722,7 +738,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var methods = _dereq_('../lib/methods');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
-var VERSION = "3.57.0";
+var VERSION = "3.58.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var errors = _dereq_('./errors');
@@ -770,14 +786,14 @@ var errors = _dereq_('./errors');
 /**
  * @static
  * @function create
- * @description Creates a DataCollector instance.
+ * @description Creates a DataCollector instance and collects device data based on your merchant configuration. We recommend that you call this method as early as possible, e.g. as soon as your website loads. If that's too early, call it at the beginning of customer checkout.
+ * **Note:** To use your own Kount ID, contact our support team ([support@braintreepayments.com](mailto:support@braintreepayments.com) or [877.434.2894](tel:877.434.2894)).
  * @param {object} options Creation options:
  * @param {Client} [options.client] A {@link Client} instance.
  * @param {string} [options.authorization] A tokenizationKey or clientToken. Can be used in place of `options.client`.
- * @param {boolean} [options.kount] If true, Kount fraud data collection is enabled. Before using the `kount` option, make sure you have enabled advanced fraud protection in the Braintree gateway. To use your own Kount ID, contact our support team ([support@braintreepayments.com](mailto:support@braintreepayments.com) or [877.434.2894](tel:877.434.2894)).
- *
+ * @param {boolean} [options.kount] Kount fraud data collection will occur if the merchant configuration has it enabled.
  * **Note:** the data sent to Kount is asynchronous and may not have completed by the time the data collector create call is complete. In most cases, this will not matter, but if you create the data collector instance and immediately navigate away from the page, the device information may fail to be sent to Kount.
- * @param {boolean} [options.paypal] If true, PayPal fraud data collection is enabled.
+ * @param {boolean} [options.paypal] *Deprecated:* PayPal fraud data collection will occur when the DataCollector instance is created.
  * @param {callback} [callback] The second argument, `data`, is the {@link DataCollector} instance.
  * @returns {(Promise|void)} Returns a promise that resolves the {@link DataCollector} instance if no callback is provided.
  */
@@ -803,15 +819,7 @@ function create(options) {
     var kountInstance;
     var config = client.getConfiguration();
 
-    if (!options.kount && !options.paypal) {
-      return Promise.reject(new BraintreeError(errors.DATA_COLLECTOR_REQUIRES_CREATE_OPTIONS));
-    }
-
-    if (options.kount === true) {
-      if (!config.gatewayConfiguration.kount) {
-        return Promise.reject(new BraintreeError(errors.DATA_COLLECTOR_KOUNT_NOT_ENABLED));
-      }
-
+    if (options.kount === true && config.gatewayConfiguration.kount) {
       try {
         kountInstance = kount.setup({
           environment: config.gatewayConfiguration.environment,
@@ -833,10 +841,6 @@ function create(options) {
 
     return Promise.resolve();
   }).then(function () {
-    if (options.paypal !== true) {
-      return Promise.resolve();
-    }
-
     return fraudnet.setup().then(function (fraudnetInstance) {
       if (fraudnetInstance) {
         data.correlation_id = fraudnetInstance.sessionId; // eslint-disable-line camelcase
@@ -982,11 +986,13 @@ Kount.prototype._setupIFrame = function () {
   iframe.style.position = 'fixed';
   iframe.style.left = '-999999px';
   iframe.style.top = '-999999px';
+  iframe.title = 'Braintree-Kount-iframe';
+  iframe.setAttribute('aria-hidden', 'true');
 
   document.body.appendChild(iframe);
   setTimeout(function () {
     iframe.src = self._currentEnvironment.url + '/logo.htm' + params;
-    iframe.innerHTML = '<img src="' + self._currentEnvironment.url + '/logo.gif' + params + '" />';
+    iframe.innerHTML = '<img src="' + self._currentEnvironment.url + '/logo.gif' + params + '" alt="" />';
   }, 10);
 
   return iframe;
@@ -1059,7 +1065,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.57.0";
+var VERSION = "3.58.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1209,7 +1215,7 @@ module.exports = function (obj) {
 },{}],18:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.57.0";
+var VERSION = "3.58.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1290,7 +1296,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.57.0";
+var VERSION = "3.58.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1416,6 +1422,7 @@ module.exports = function (obj) {
 var Promise = global.Promise || _dereq_('promise-polyfill');
 var ExtendedPromise = _dereq_('@braintree/extended-promise');
 
+ExtendedPromise.suppressUnhandledPromiseMessage = true;
 ExtendedPromise.setPromise(Promise);
 
 module.exports = Promise;
