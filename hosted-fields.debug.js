@@ -2736,6 +2736,49 @@ HostedFields.prototype._attachInvalidFieldContainersToError = function (err) {
 };
 
 /**
+ * Get card verification challenges, such as requirements for cvv and postal code.
+ * @public
+ * @param {callback} [callback] Called on completion, containing an error if one occurred. If no callback is provided, `getChallenges` returns a promise.
+ * @example
+ * hostedFieldsInstance.getChallenges().then(function (challenges) {
+ *   challenges // ['cvv', 'postal_code']
+ * });
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
+ */
+HostedFields.prototype.getChallenges = function () {
+  return this._clientPromise.then(function (client) {
+    return client.getConfiguration().gatewayConfiguration.challenges;
+  });
+};
+
+/**
+ * Get supported card types configured in the Braintree Control Panel
+ * @public
+ * @param {callback} [callback] Called on completion, containing an error if one occurred. If no callback is provided, `getSupportedCardTypes` returns a promise.
+ * @example
+ * hostedFieldsInstance.getSupportedCardTypes().then(function (cardTypes) {
+ *   cardTypes // ['Visa', 'American Express', 'Mastercard']
+ * });
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
+ */
+HostedFields.prototype.getSupportedCardTypes = function () {
+  return this._clientPromise.then(function (client) {
+    var cards = client.getConfiguration().gatewayConfiguration.creditCards.supportedCardTypes.map(function (cardType) {
+      if (cardType === 'MasterCard') {
+        // Mastercard changed their branding. We can't update our
+        // config without creating a breaking change, so we just
+        // hard code the change here
+        return 'Mastercard';
+      }
+
+      return cardType;
+    });
+
+    return cards;
+  });
+};
+
+/**
  * Cleanly remove anything set up by {@link module:braintree-web/hosted-fields.create|create}.
  * @public
  * @param {callback} [callback] Called on completion, containing an error if one occurred. No data is returned if teardown completes successfully. If no callback is provided, `teardown` returns a promise.
@@ -3383,7 +3426,7 @@ var supportsInputFormatting = _dereq_('restricted-input/supports-input-formattin
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.58.0";
+var VERSION = "3.59.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -3724,7 +3767,7 @@ module.exports = {
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.58.0";
+var VERSION = "3.59.0";
 
 var constants = {
   VERSION: VERSION,
@@ -4228,7 +4271,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.58.0";
+var VERSION = "3.59.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -4576,7 +4619,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":56,"./check-origin":57,"./events":58,"framebus":33}],60:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.58.0";
+var VERSION = "3.59.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -4703,7 +4746,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.58.0";
+var VERSION = "3.59.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();

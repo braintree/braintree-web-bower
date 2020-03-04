@@ -926,7 +926,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.58.0";
+var VERSION = "3.59.0";
 
 /**
  * @static
@@ -1188,7 +1188,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.58.0";
+var VERSION = "3.59.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1318,7 +1318,7 @@ module.exports = BraintreeError;
 },{"./enumerate":23}],18:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.58.0";
+var VERSION = "3.59.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1445,7 +1445,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.58.0";
+var VERSION = "3.59.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1573,7 +1573,7 @@ module.exports = function (array, key, value) {
 },{}],26:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.58.0";
+var VERSION = "3.59.0";
 var assign = _dereq_('./assign').assign;
 
 function generateTokenizationParameters(configuration, overrides) {

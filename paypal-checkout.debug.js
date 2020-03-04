@@ -7,7 +7,7 @@ var PromisePolyfill = _dereq_('promise-polyfill');
 module.exports = global.Promise || PromisePolyfill;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":8}],2:[function(_dereq_,module,exports){
+},{"promise-polyfill":24}],2:[function(_dereq_,module,exports){
 'use strict';
 
 var Promise = _dereq_('./lib/promise');
@@ -66,6 +66,194 @@ loadScript.clearCache = function () {
 module.exports = loadScript;
 
 },{"./lib/promise":1}],3:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+
+module.exports = function isAndroid(ua) {
+  ua = ua || global.navigator.userAgent;
+
+  return /Android/.test(ua);
+};
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],4:[function(_dereq_,module,exports){
+'use strict';
+
+var isEdge = _dereq_('./is-edge');
+var isSamsung = _dereq_('./is-samsung');
+
+module.exports = function isChrome(ua) {
+  ua = ua || navigator.userAgent;
+
+  return (ua.indexOf('Chrome') !== -1 || ua.indexOf('CriOS') !== -1) && !isEdge(ua) && !isSamsung(ua);
+};
+
+},{"./is-edge":5,"./is-samsung":12}],5:[function(_dereq_,module,exports){
+'use strict';
+
+module.exports = function isEdge(ua) {
+  ua = ua || navigator.userAgent;
+
+  return ua.indexOf('Edge/') !== -1;
+};
+
+},{}],6:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+
+var isIE11 = _dereq_('./is-ie11');
+
+module.exports = function isIE(ua) {
+  ua = ua || global.navigator.userAgent;
+
+  return ua.indexOf('MSIE') !== -1 || isIE11(ua);
+};
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./is-ie11":7}],7:[function(_dereq_,module,exports){
+'use strict';
+
+module.exports = function isIe11(ua) {
+  ua = ua || navigator.userAgent;
+
+  return ua.indexOf('Trident/7') !== -1;
+};
+
+},{}],8:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+
+module.exports = function isIosFirefox(ua) {
+  ua = ua || global.navigator.userAgent;
+
+  return /FxiOS/i.test(ua);
+};
+
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],9:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+
+var isIos = _dereq_('./is-ios');
+
+// The Google Search iOS app is technically a webview and doesn't support popups.
+function isGoogleSearchApp(ua) {
+  return /\bGSA\b/.test(ua);
+}
+
+module.exports = function isIosWebview(ua) {
+  ua = ua || global.navigator.userAgent;
+  if (isIos(ua)) {
+    if (isGoogleSearchApp(ua)) {
+      return true;
+    }
+
+    return /.+AppleWebKit(?!.*Safari)/.test(ua);
+  }
+
+  return false;
+};
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./is-ios":11}],10:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+
+var isIosWebview = _dereq_('./is-ios-webview');
+
+module.exports = function isIosWKWebview(ua, statusBarVisible) {
+  statusBarVisible = typeof statusBarVisible !== 'undefined' ? statusBarVisible : global.statusbar.visible;
+
+  return isIosWebview(ua) && statusBarVisible;
+};
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./is-ios-webview":9}],11:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+
+module.exports = function isIos(ua) {
+  ua = ua || global.navigator.userAgent;
+
+  return /iPhone|iPod|iPad/i.test(ua);
+};
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],12:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+
+module.exports = function isSamsungBrowser(ua) {
+  ua = ua || global.navigator.userAgent;
+
+  return /SamsungBrowser/i.test(ua);
+};
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],13:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+
+var MINIMUM_SUPPORTED_CHROME_IOS_VERSION = 48;
+
+var isAndroid = _dereq_('./is-android');
+var isIosFirefox = _dereq_('./is-ios-firefox');
+var isIosWebview = _dereq_('./is-ios-webview');
+var isChrome = _dereq_('./is-chrome');
+var isSamsungBrowser = _dereq_('./is-samsung');
+
+function isUnsupportedIosChrome(ua) {
+  var match, version;
+
+  ua = ua || global.navigator.userAgent;
+  match = ua.match(/CriOS\/(\d+)\./);
+
+  if (!match) {
+    return false;
+  }
+
+  version = parseInt(match[1], 10);
+
+  return version < MINIMUM_SUPPORTED_CHROME_IOS_VERSION;
+}
+
+function isOperaMini(ua) {
+  ua = ua || global.navigator.userAgent;
+
+  return ua.indexOf('Opera Mini') > -1;
+}
+
+function isAndroidWebview(ua) {
+  var androidWebviewRegExp = /Version\/[\d\.]+/;
+
+  ua = ua || global.navigator.userAgent;
+  if (isAndroid(ua)) {
+    return androidWebviewRegExp.test(ua) && !isOperaMini(ua);
+  }
+
+  return false;
+}
+
+function isOldSamsungBrowserOrSamsungWebview(ua) {
+  return !isChrome(ua) && !isSamsungBrowser(ua) && /samsung/i.test(ua);
+}
+
+module.exports = function supportsPopups(ua) {
+  ua = ua || global.navigator.userAgent;
+
+  return !(
+    isIosWebview(ua) ||
+    isIosFirefox(ua) ||
+    isAndroidWebview(ua) ||
+    isOperaMini(ua) ||
+    isUnsupportedIosChrome(ua) ||
+    isOldSamsungBrowserOrSamsungWebview(ua)
+  );
+};
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./is-android":3,"./is-chrome":4,"./is-ios-firefox":8,"./is-ios-webview":9,"./is-samsung":12}],14:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -200,7 +388,78 @@ ExtendedPromise.prototype._setRejected = function () {
 module.exports = ExtendedPromise;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],4:[function(_dereq_,module,exports){
+},{}],15:[function(_dereq_,module,exports){
+'use strict';
+
+var setAttributes = _dereq_('./lib/set-attributes');
+var defaultAttributes = _dereq_('./lib/default-attributes');
+var assign = _dereq_('./lib/assign');
+
+module.exports = function createFrame(options) {
+  var iframe = document.createElement('iframe');
+  var config = assign({}, defaultAttributes, options);
+
+  if (config.style && typeof config.style !== 'string') {
+    assign(iframe.style, config.style);
+    delete config.style;
+  }
+
+  setAttributes(iframe, config);
+
+  if (!iframe.getAttribute('id')) {
+    iframe.id = iframe.name;
+  }
+
+  return iframe;
+};
+
+},{"./lib/assign":16,"./lib/default-attributes":17,"./lib/set-attributes":18}],16:[function(_dereq_,module,exports){
+'use strict';
+
+module.exports = function assign(target) {
+  var objs = Array.prototype.slice.call(arguments, 1);
+
+  objs.forEach(function (obj) {
+    if (typeof obj !== 'object') { return; }
+
+    Object.keys(obj).forEach(function (key) {
+      target[key] = obj[key];
+    });
+  });
+
+  return target;
+}
+
+},{}],17:[function(_dereq_,module,exports){
+'use strict';
+
+module.exports = {
+  src: 'about:blank',
+  frameBorder: 0,
+  allowtransparency: true,
+  scrolling: 'no'
+};
+
+},{}],18:[function(_dereq_,module,exports){
+'use strict';
+
+module.exports = function setAttributes(element, attributes) {
+  var value;
+
+  for (var key in attributes) {
+    if (attributes.hasOwnProperty(key)) {
+      value = attributes[key];
+
+      if (value == null) {
+        element.removeAttribute(key);
+      } else {
+        element.setAttribute(key, value);
+      }
+    }
+  }
+};
+
+},{}],19:[function(_dereq_,module,exports){
 'use strict';
 
 function deferred(fn) {
@@ -223,7 +482,7 @@ function deferred(fn) {
 
 module.exports = deferred;
 
-},{}],5:[function(_dereq_,module,exports){
+},{}],20:[function(_dereq_,module,exports){
 'use strict';
 
 function once(fn) {
@@ -239,7 +498,7 @@ function once(fn) {
 
 module.exports = once;
 
-},{}],6:[function(_dereq_,module,exports){
+},{}],21:[function(_dereq_,module,exports){
 'use strict';
 
 function promiseOrCallback(promise, callback) { // eslint-disable-line consistent-return
@@ -258,7 +517,7 @@ function promiseOrCallback(promise, callback) { // eslint-disable-line consisten
 
 module.exports = promiseOrCallback;
 
-},{}],7:[function(_dereq_,module,exports){
+},{}],22:[function(_dereq_,module,exports){
 'use strict';
 
 var deferred = _dereq_('./lib/deferred');
@@ -315,7 +574,321 @@ wrapPromise.wrapPrototype = function (target, options) {
 
 module.exports = wrapPromise;
 
-},{"./lib/deferred":4,"./lib/once":5,"./lib/promise-or-callback":6}],8:[function(_dereq_,module,exports){
+},{"./lib/deferred":19,"./lib/once":20,"./lib/promise-or-callback":21}],23:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+
+var win, framebus;
+var popups = [];
+var subscribers = {};
+var prefix = '/*framebus*/';
+
+function include(popup) {
+  if (popup == null) { return false; }
+  if (popup.Window == null) { return false; }
+  if (popup.constructor !== popup.Window) { return false; }
+
+  popups.push(popup);
+  return true;
+}
+
+function target(origin) {
+  var key;
+  var targetedFramebus = {};
+
+  for (key in framebus) {
+    if (!framebus.hasOwnProperty(key)) { continue; }
+
+    targetedFramebus[key] = framebus[key];
+  }
+
+  targetedFramebus._origin = origin || '*';
+
+  return targetedFramebus;
+}
+
+function publish(event) {
+  var payload, args;
+  var origin = _getOrigin(this); // eslint-disable-line no-invalid-this
+
+  if (_isntString(event)) { return false; }
+  if (_isntString(origin)) { return false; }
+
+  args = Array.prototype.slice.call(arguments, 1);
+
+  payload = _packagePayload(event, args, origin);
+  if (payload === false) { return false; }
+
+  _broadcast(win.top || win.self, payload, origin);
+
+  return true;
+}
+
+function subscribe(event, fn) {
+  var origin = _getOrigin(this); // eslint-disable-line no-invalid-this
+
+  if (_subscriptionArgsInvalid(event, fn, origin)) { return false; }
+
+  subscribers[origin] = subscribers[origin] || {};
+  subscribers[origin][event] = subscribers[origin][event] || [];
+  subscribers[origin][event].push(fn);
+
+  return true;
+}
+
+function unsubscribe(event, fn) {
+  var i, subscriberList;
+  var origin = _getOrigin(this); // eslint-disable-line no-invalid-this
+
+  if (_subscriptionArgsInvalid(event, fn, origin)) { return false; }
+
+  subscriberList = subscribers[origin] && subscribers[origin][event];
+  if (!subscriberList) { return false; }
+
+  for (i = 0; i < subscriberList.length; i++) {
+    if (subscriberList[i] === fn) {
+      subscriberList.splice(i, 1);
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function _getOrigin(scope) {
+  return scope && scope._origin || '*';
+}
+
+function _isntString(string) {
+  return typeof string !== 'string';
+}
+
+function _packagePayload(event, args, origin) {
+  var packaged = false;
+  var payload = {
+    event: event,
+    origin: origin
+  };
+  var reply = args[args.length - 1];
+
+  if (typeof reply === 'function') {
+    payload.reply = _subscribeReplier(reply, origin);
+    args = args.slice(0, -1);
+  }
+
+  payload.args = args;
+
+  try {
+    packaged = prefix + JSON.stringify(payload);
+  } catch (e) {
+    throw new Error('Could not stringify event: ' + e.message);
+  }
+  return packaged;
+}
+
+function _unpackPayload(e) {
+  var payload, replyOrigin, replySource, replyEvent;
+
+  if (e.data.slice(0, prefix.length) !== prefix) { return false; }
+
+  try {
+    payload = JSON.parse(e.data.slice(prefix.length));
+  } catch (err) {
+    return false;
+  }
+
+  if (payload.reply != null) {
+    replyOrigin = e.origin;
+    replySource = e.source;
+    replyEvent = payload.reply;
+
+    payload.reply = function reply(data) { // eslint-disable-line consistent-return
+      var replyPayload;
+
+      if (!replySource) { return false; }
+
+      replyPayload = _packagePayload(replyEvent, [data], replyOrigin);
+
+      if (replyPayload === false) { return false; }
+
+      replySource.postMessage(replyPayload, replyOrigin);
+    };
+
+    payload.args.push(payload.reply);
+  }
+
+  return payload;
+}
+
+function _attach(w) {
+  if (win) { return; }
+  win = w || global;
+
+  if (win.addEventListener) {
+    win.addEventListener('message', _onmessage, false);
+  } else if (win.attachEvent) {
+    win.attachEvent('onmessage', _onmessage);
+  } else if (win.onmessage === null) {
+    win.onmessage = _onmessage;
+  } else {
+    win = null;
+  }
+}
+
+// removeIf(production)
+function _detach() {
+  if (win == null) { return; }
+
+  if (win.removeEventListener) {
+    win.removeEventListener('message', _onmessage, false);
+  } else if (win.detachEvent) {
+    win.detachEvent('onmessage', _onmessage);
+  } else if (win.onmessage === _onmessage) {
+    win.onmessage = null;
+  }
+
+  win = null;
+  popups = [];
+  subscribers = {};
+}
+// endRemoveIf(production)
+
+function _uuid() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    var r = Math.random() * 16 | 0;
+    var v = c === 'x' ? r : r & 0x3 | 0x8;
+
+    return v.toString(16);
+  });
+}
+
+function _onmessage(e) {
+  var payload;
+
+  if (_isntString(e.data)) { return; }
+
+  payload = _unpackPayload(e);
+  if (!payload) { return; }
+
+  _dispatch('*', payload.event, payload.args, e);
+  _dispatch(e.origin, payload.event, payload.args, e);
+  _broadcastPopups(e.data, payload.origin, e.source);
+}
+
+function _dispatch(origin, event, args, e) {
+  var i;
+
+  if (!subscribers[origin]) { return; }
+  if (!subscribers[origin][event]) { return; }
+
+  for (i = 0; i < subscribers[origin][event].length; i++) {
+    subscribers[origin][event][i].apply(e, args);
+  }
+}
+
+function _hasOpener(frame) {
+  if (frame.top !== frame) { return false; }
+  if (frame.opener == null) { return false; }
+  if (frame.opener === frame) { return false; }
+  if (frame.opener.closed === true) { return false; }
+
+  return true;
+}
+
+function _broadcast(frame, payload, origin) {
+  var i = 0;
+  var frameToBroadcastTo;
+
+  try {
+    frame.postMessage(payload, origin);
+
+    if (_hasOpener(frame)) {
+      _broadcast(frame.opener.top, payload, origin);
+    }
+
+    // previously, our max value was frame.frames.length
+    // but frames.length inherits from window.length
+    // which can be overwritten if a developer does
+    // `var length = value;` outside of a function
+    // scope, it'll prevent us from looping through
+    // all the frames. With this, we loop through
+    // until there are no longer any frames
+    while (frameToBroadcastTo = frame.frames[i]) { // eslint-disable-line no-cond-assign
+      _broadcast(frameToBroadcastTo, payload, origin);
+      i++;
+    }
+  } catch (_) { /* ignored */ }
+}
+
+function _broadcastPopups(payload, origin, source) {
+  var i, popup;
+
+  for (i = popups.length - 1; i >= 0; i--) {
+    popup = popups[i];
+
+    if (popup.closed === true) {
+      popups = popups.slice(i, 1);
+    } else if (source !== popup) {
+      _broadcast(popup.top, payload, origin);
+    }
+  }
+}
+
+function _subscribeReplier(fn, origin) {
+  var uuid = _uuid();
+
+  function replier(d, o) {
+    fn(d, o);
+    framebus.target(origin).unsubscribe(uuid, replier);
+  }
+
+  framebus.target(origin).subscribe(uuid, replier);
+  return uuid;
+}
+
+function _subscriptionArgsInvalid(event, fn, origin) {
+  if (_isntString(event)) { return true; }
+  if (typeof fn !== 'function') { return true; }
+  if (_isntString(origin)) { return true; }
+
+  return false;
+}
+
+_attach();
+
+framebus = {
+  target: target,
+  // removeIf(production)
+  _packagePayload: _packagePayload,
+  _unpackPayload: _unpackPayload,
+  _attach: _attach,
+  _detach: _detach,
+  _dispatch: _dispatch,
+  _broadcast: _broadcast,
+  _subscribeReplier: _subscribeReplier,
+  _subscriptionArgsInvalid: _subscriptionArgsInvalid,
+  _onmessage: _onmessage,
+  _uuid: _uuid,
+  _getSubscribers: function () { return subscribers; },
+  _win: function () { return win; },
+  // endRemoveIf(production)
+  include: include,
+  publish: publish,
+  pub: publish,
+  trigger: publish,
+  emit: publish,
+  subscribe: subscribe,
+  sub: subscribe,
+  on: subscribe,
+  unsubscribe: unsubscribe,
+  unsub: unsubscribe,
+  off: unsubscribe
+};
+
+module.exports = framebus;
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],24:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -591,7 +1164,7 @@ Promise._unhandledRejectionFn = function _unhandledRejectionFn(err) {
 
 module.exports = Promise;
 
-},{}],9:[function(_dereq_,module,exports){
+},{}],25:[function(_dereq_,module,exports){
 'use strict';
 
 var createAuthorizationData = _dereq_('./create-authorization-data');
@@ -625,7 +1198,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":14,"./create-authorization-data":18,"./json-clone":22}],10:[function(_dereq_,module,exports){
+},{"./constants":34,"./create-authorization-data":38,"./json-clone":55}],26:[function(_dereq_,module,exports){
 'use strict';
 
 var Promise = _dereq_('./promise');
@@ -661,7 +1234,7 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":9,"./constants":14,"./promise":24}],11:[function(_dereq_,module,exports){
+},{"./add-metadata":25,"./constants":34,"./promise":57}],27:[function(_dereq_,module,exports){
 'use strict';
 
 var loadScript = _dereq_('@braintree/asset-loader/load-script');
@@ -670,13 +1243,38 @@ module.exports = {
   loadScript: loadScript
 };
 
-},{"@braintree/asset-loader/load-script":2}],12:[function(_dereq_,module,exports){
+},{"@braintree/asset-loader/load-script":2}],28:[function(_dereq_,module,exports){
+'use strict';
+
+var assignNormalized = typeof Object.assign === 'function' ? Object.assign : assignPolyfill;
+
+function assignPolyfill(destination) {
+  var i, source, key;
+
+  for (i = 1; i < arguments.length; i++) {
+    source = arguments[i];
+    for (key in source) {
+      if (source.hasOwnProperty(key)) {
+        destination[key] = source[key];
+      }
+    }
+  }
+
+  return destination;
+}
+
+module.exports = {
+  assign: assignNormalized,
+  _assign: assignPolyfill
+};
+
+},{}],29:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.58.0";
+var VERSION = "3.59.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -718,7 +1316,7 @@ module.exports = {
   verify: basicComponentVerification
 };
 
-},{"./braintree-error":13,"./errors":21,"./promise":24}],13:[function(_dereq_,module,exports){
+},{"./braintree-error":30,"./errors":41,"./promise":57}],30:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -803,10 +1401,182 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":20}],14:[function(_dereq_,module,exports){
+},{"./enumerate":40}],31:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.58.0";
+var isVerifiedDomain = _dereq_('../is-verified-domain');
+
+function checkOrigin(postMessageOrigin, merchantUrl) {
+  var merchantOrigin, merchantHost;
+  var a = document.createElement('a');
+
+  a.href = merchantUrl;
+
+  if (a.protocol === 'https:') {
+    merchantHost = a.host.replace(/:443$/, '');
+  } else if (a.protocol === 'http:') {
+    merchantHost = a.host.replace(/:80$/, '');
+  } else {
+    merchantHost = a.host;
+  }
+
+  merchantOrigin = a.protocol + '//' + merchantHost;
+
+  if (merchantOrigin === postMessageOrigin) { return true; }
+
+  a.href = postMessageOrigin;
+
+  return isVerifiedDomain(postMessageOrigin);
+}
+
+module.exports = {
+  checkOrigin: checkOrigin
+};
+
+},{"../is-verified-domain":54}],32:[function(_dereq_,module,exports){
+'use strict';
+
+var enumerate = _dereq_('../enumerate');
+
+module.exports = enumerate([
+  'CONFIGURATION_REQUEST'
+], 'bus:');
+
+},{"../enumerate":40}],33:[function(_dereq_,module,exports){
+'use strict';
+
+var bus = _dereq_('framebus');
+var events = _dereq_('./events');
+var checkOrigin = _dereq_('./check-origin').checkOrigin;
+var BraintreeError = _dereq_('../braintree-error');
+
+function BraintreeBus(options) {
+  options = options || {};
+
+  this.channel = options.channel;
+  if (!this.channel) {
+    throw new BraintreeError({
+      type: BraintreeError.types.INTERNAL,
+      code: 'MISSING_CHANNEL_ID',
+      message: 'Channel ID must be specified.'
+    });
+  }
+
+  this.merchantUrl = options.merchantUrl;
+
+  this._isDestroyed = false;
+  this._isVerbose = false;
+
+  this._listeners = [];
+
+  this._log('new bus on channel ' + this.channel, [location.href]);
+}
+
+BraintreeBus.prototype.on = function (eventName, originalHandler) {
+  var namespacedEvent, args;
+  var handler = originalHandler;
+  var self = this;
+
+  if (this._isDestroyed) { return; }
+
+  if (this.merchantUrl) {
+    handler = function () {
+      /* eslint-disable no-invalid-this */
+      if (checkOrigin(this.origin, self.merchantUrl)) {
+        originalHandler.apply(this, arguments);
+      }
+      /* eslint-enable no-invalid-this */
+    };
+  }
+
+  namespacedEvent = this._namespaceEvent(eventName);
+  args = Array.prototype.slice.call(arguments);
+  args[0] = namespacedEvent;
+  args[1] = handler;
+
+  this._log('on', args);
+  bus.on.apply(bus, args);
+
+  this._listeners.push({
+    eventName: eventName,
+    handler: handler,
+    originalHandler: originalHandler
+  });
+};
+
+BraintreeBus.prototype.emit = function (eventName) {
+  var args;
+
+  if (this._isDestroyed) { return; }
+
+  args = Array.prototype.slice.call(arguments);
+  args[0] = this._namespaceEvent(eventName);
+
+  this._log('emit', args);
+  bus.emit.apply(bus, args);
+};
+
+BraintreeBus.prototype._offDirect = function (eventName) {
+  var args = Array.prototype.slice.call(arguments);
+
+  if (this._isDestroyed) { return; }
+
+  args[0] = this._namespaceEvent(eventName);
+
+  this._log('off', args);
+  bus.off.apply(bus, args);
+};
+
+BraintreeBus.prototype.off = function (eventName, originalHandler) {
+  var i, listener;
+  var handler = originalHandler;
+
+  if (this._isDestroyed) { return; }
+
+  if (this.merchantUrl) {
+    for (i = 0; i < this._listeners.length; i++) {
+      listener = this._listeners[i];
+
+      if (listener.originalHandler === originalHandler) {
+        handler = listener.handler;
+      }
+    }
+  }
+
+  this._offDirect(eventName, handler);
+};
+
+BraintreeBus.prototype._namespaceEvent = function (eventName) {
+  return ['braintree', this.channel, eventName].join(':');
+};
+
+BraintreeBus.prototype.teardown = function () {
+  var listener, i;
+
+  for (i = 0; i < this._listeners.length; i++) {
+    listener = this._listeners[i];
+    this._offDirect(listener.eventName, listener.handler);
+  }
+
+  this._listeners.length = 0;
+
+  this._isDestroyed = true;
+};
+
+BraintreeBus.prototype._log = function (functionName, args) {
+  if (this._isVerbose) {
+    console.log(functionName, args); // eslint-disable-line no-console
+  }
+};
+
+BraintreeBus.events = events;
+
+module.exports = BraintreeBus;
+
+},{"../braintree-error":30,"./check-origin":31,"./events":32,"framebus":23}],34:[function(_dereq_,module,exports){
+'use strict';
+
+var VERSION = "3.59.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -843,7 +1613,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],15:[function(_dereq_,module,exports){
+},{}],35:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -861,7 +1631,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"./braintree-error":13,"./errors":21}],16:[function(_dereq_,module,exports){
+},{"./braintree-error":30,"./errors":41}],36:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -883,7 +1653,7 @@ function convertToBraintreeError(originalErr, btErrorObject) {
 
 module.exports = convertToBraintreeError;
 
-},{"./braintree-error":13}],17:[function(_dereq_,module,exports){
+},{"./braintree-error":30}],37:[function(_dereq_,module,exports){
 'use strict';
 
 // endRemoveIf(production)
@@ -900,7 +1670,7 @@ module.exports = {
   create: createAssetsUrl
 };
 
-},{"./constants":14}],18:[function(_dereq_,module,exports){
+},{"./constants":34}],38:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/vendor/polyfill').atob;
@@ -946,7 +1716,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/constants":14,"../lib/vendor/polyfill":25}],19:[function(_dereq_,module,exports){
+},{"../lib/constants":34,"../lib/vendor/polyfill":59}],39:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -955,7 +1725,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.58.0";
+var VERSION = "3.59.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1000,7 +1770,7 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./assets":11,"./braintree-error":13,"./errors":21,"./promise":24}],20:[function(_dereq_,module,exports){
+},{"./assets":27,"./braintree-error":30,"./errors":41,"./promise":57}],40:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -1015,7 +1785,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],21:[function(_dereq_,module,exports){
+},{}],41:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -1065,14 +1835,662 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":13}],22:[function(_dereq_,module,exports){
+},{"./braintree-error":30}],42:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+
+var Popup = _dereq_('./strategies/popup');
+var PopupBridge = _dereq_('./strategies/popup-bridge');
+var Modal = _dereq_('./strategies/modal');
+var Bus = _dereq_('../../bus');
+var events = _dereq_('../shared/events');
+var errors = _dereq_('../shared/errors');
+var constants = _dereq_('../shared/constants');
+var uuid = _dereq_('../../vendor/uuid');
+var iFramer = _dereq_('@braintree/iframer');
+var BraintreeError = _dereq_('../../braintree-error');
+var browserDetection = _dereq_('../shared/browser-detection');
+var isHTTPS = _dereq_('../../is-https');
+var assign = _dereq_('./../../assign').assign;
+
+var REQUIRED_CONFIG_KEYS = [
+  'name',
+  'dispatchFrameUrl',
+  'openFrameUrl'
+];
+
+function noop() {}
+
+function _validateFrameConfiguration(options) {
+  if (!options) {
+    throw new Error('Valid configuration is required');
+  }
+
+  REQUIRED_CONFIG_KEYS.forEach(function (key) {
+    if (!options.hasOwnProperty(key)) {
+      throw new Error('A valid frame ' + key + ' must be provided');
+    }
+  });
+
+  if (!/^[\w_]+$/.test(options.name)) {
+    throw new Error('A valid frame name must be provided');
+  }
+}
+
+function FrameService(options) {
+  _validateFrameConfiguration(options);
+
+  this._serviceId = uuid().replace(/-/g, '');
+
+  this._options = {
+    name: options.name + '_' + this._serviceId,
+    dispatchFrameUrl: options.dispatchFrameUrl,
+    openFrameUrl: options.openFrameUrl,
+    height: options.height,
+    width: options.width,
+    top: options.top,
+    left: options.left
+  };
+  this.state = options.state || {};
+
+  this._bus = new Bus({channel: this._serviceId});
+  this._setBusEvents();
+}
+
+FrameService.prototype.initialize = function (callback) {
+  var dispatchFrameReadyHandler = function () {
+    callback();
+    this._bus.off(events.DISPATCH_FRAME_READY, dispatchFrameReadyHandler);
+  }.bind(this);
+
+  this._bus.on(events.DISPATCH_FRAME_READY, dispatchFrameReadyHandler);
+  this._writeDispatchFrame();
+};
+
+FrameService.prototype._writeDispatchFrame = function () {
+  var frameName = constants.DISPATCH_FRAME_NAME + '_' + this._serviceId;
+  var frameSrc = this._options.dispatchFrameUrl;
+
+  this._dispatchFrame = iFramer({
+    'aria-hidden': true,
+    name: frameName,
+    title: frameName,
+    src: frameSrc,
+    'class': constants.DISPATCH_FRAME_CLASS,
+    height: 0,
+    width: 0,
+    style: {
+      position: 'absolute',
+      left: '-9999px'
+    }
+  });
+
+  document.body.appendChild(this._dispatchFrame);
+};
+
+FrameService.prototype._setBusEvents = function () {
+  this._bus.on(events.DISPATCH_FRAME_REPORT, function (res, reply) {
+    if (this._onCompleteCallback) {
+      this._onCompleteCallback.call(null, res.err, res.payload);
+    }
+    this._frame.close();
+
+    this._onCompleteCallback = null;
+
+    if (reply) {
+      reply();
+    }
+  }.bind(this));
+
+  this._bus.on(Bus.events.CONFIGURATION_REQUEST, function (reply) {
+    reply(this.state);
+  }.bind(this));
+};
+
+FrameService.prototype.open = function (options, callback) {
+  var error;
+
+  options = options || {};
+  this._frame = this._getFrameForEnvironment(options);
+
+  this._frame.initialize(callback);
+
+  if (this._frame instanceof PopupBridge) {
+    return;
+  }
+
+  assign(this.state, options.state);
+
+  this._onCompleteCallback = callback;
+  this._frame.open();
+
+  if (this.isFrameClosed()) {
+    this._cleanupFrame();
+    if (callback) {
+      if (browserDetection.isIE() && !isHTTPS.isHTTPS()) {
+        error = new BraintreeError(errors.FRAME_SERVICE_FRAME_OPEN_FAILED_IE_BUG);
+      } else {
+        error = new BraintreeError(errors.FRAME_SERVICE_FRAME_OPEN_FAILED);
+      }
+      callback(error);
+    }
+
+    return;
+  }
+  this._pollForPopupClose();
+};
+
+FrameService.prototype.redirect = function (url) {
+  if (this._frame && !this.isFrameClosed()) {
+    this._frame.redirect(url);
+  }
+};
+
+FrameService.prototype.close = function () {
+  if (!this.isFrameClosed()) {
+    this._frame.close();
+  }
+};
+
+FrameService.prototype.focus = function () {
+  if (!this.isFrameClosed()) {
+    this._frame.focus();
+  }
+};
+
+FrameService.prototype.createHandler = function (options) {
+  options = options || {};
+
+  return {
+    close: function () {
+      if (options.beforeClose) {
+        options.beforeClose();
+      }
+
+      this.close();
+    }.bind(this),
+    focus: function () {
+      if (options.beforeFocus) {
+        options.beforeFocus();
+      }
+
+      this.focus();
+    }.bind(this)
+  };
+};
+
+FrameService.prototype.createNoopHandler = function () {
+  return {
+    close: noop,
+    focus: noop
+  };
+};
+
+FrameService.prototype.teardown = function () {
+  this.close();
+  this._dispatchFrame.parentNode.removeChild(this._dispatchFrame);
+  this._dispatchFrame = null;
+  this._cleanupFrame();
+};
+
+FrameService.prototype.isFrameClosed = function () {
+  return this._frame == null || this._frame.isClosed();
+};
+
+FrameService.prototype._cleanupFrame = function () {
+  this._frame = null;
+  clearInterval(this._popupInterval);
+  this._popupInterval = null;
+};
+
+FrameService.prototype._pollForPopupClose = function () {
+  this._popupInterval = setInterval(function () {
+    if (this.isFrameClosed()) {
+      this._cleanupFrame();
+      if (this._onCompleteCallback) {
+        this._onCompleteCallback(new BraintreeError(errors.FRAME_SERVICE_FRAME_CLOSED));
+      }
+    }
+  }.bind(this), constants.POPUP_POLL_INTERVAL);
+
+  return this._popupInterval;
+};
+
+FrameService.prototype._getFrameForEnvironment = function (options) {
+  var usePopup = browserDetection.supportsPopups();
+  var popupBridgeExists = Boolean(global.popupBridge);
+
+  var initOptions = assign({}, this._options, options);
+
+  if (popupBridgeExists) {
+    return new PopupBridge(initOptions);
+  } else if (usePopup) {
+    return new Popup(initOptions);
+  }
+
+  return new Modal(initOptions);
+};
+
+module.exports = FrameService;
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"../../braintree-error":30,"../../bus":33,"../../is-https":53,"../../vendor/uuid":60,"../shared/browser-detection":49,"../shared/constants":50,"../shared/errors":51,"../shared/events":52,"./../../assign":28,"./strategies/modal":44,"./strategies/popup":47,"./strategies/popup-bridge":45,"@braintree/iframer":15}],43:[function(_dereq_,module,exports){
+'use strict';
+
+var FrameService = _dereq_('./frame-service');
+
+module.exports = {
+  create: function createFrameService(options, callback) {
+    var frameService = new FrameService(options);
+
+    frameService.initialize(function () {
+      callback(frameService);
+    });
+  }
+};
+
+},{"./frame-service":42}],44:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+
+var iFramer = _dereq_('@braintree/iframer');
+var assign = _dereq_('../../../assign').assign;
+var browserDetection = _dereq_('../../shared/browser-detection');
+
+var ELEMENT_STYLES = {
+  position: 'fixed',
+  top: 0,
+  left: 0,
+  bottom: 0,
+  padding: 0,
+  margin: 0,
+  border: 0,
+  outline: 'none',
+  zIndex: 20001,
+  background: '#FFFFFF'
+};
+
+function noop() {}
+
+function Modal(options) {
+  this._closed = null;
+  this._frame = null;
+  this._options = options || {};
+  this._container = this._options.container || document.body;
+}
+
+Modal.prototype.initialize = noop;
+
+Modal.prototype.open = function () {
+  var iframerConfig = {
+    src: this._options.openFrameUrl,
+    name: this._options.name,
+    scrolling: 'yes',
+    height: '100%',
+    width: '100%',
+    style: assign({}, ELEMENT_STYLES),
+    title: 'Lightbox Frame'
+  };
+
+  if (browserDetection.isIos()) {
+    // WKWebView has buggy behavior when scrolling a fixed position modal. The workaround is to lock scrolling in
+    // the background. When modal is closed, we restore scrolling and return to the previous scroll position.
+    if (browserDetection.isIosWKWebview()) {
+      this._lockScrolling();
+      // Allows WKWebView to scroll all the way down to bottom
+      iframerConfig.style = {};
+    }
+
+    this._el = document.createElement('div');
+
+    assign(this._el.style, ELEMENT_STYLES, {
+      height: '100%',
+      width: '100%',
+      overflow: 'auto',
+      '-webkit-overflow-scrolling': 'touch'
+    });
+
+    this._frame = iFramer(iframerConfig);
+    this._el.appendChild(this._frame);
+  } else {
+    this._el = this._frame = iFramer(iframerConfig);
+  }
+  this._closed = false;
+
+  this._container.appendChild(this._el);
+};
+
+Modal.prototype.focus = noop;
+
+Modal.prototype.close = function () {
+  this._container.removeChild(this._el);
+  this._frame = null;
+  this._closed = true;
+  if (browserDetection.isIosWKWebview()) {
+    this._unlockScrolling();
+  }
+};
+
+Modal.prototype.isClosed = function () {
+  return Boolean(this._closed);
+};
+
+Modal.prototype.redirect = function (redirectUrl) {
+  this._frame.src = redirectUrl;
+};
+
+Modal.prototype._unlockScrolling = function () {
+  document.body.style.overflow = this._savedBodyProperties.overflowStyle;
+  document.body.style.position = this._savedBodyProperties.positionStyle;
+  global.scrollTo(this._savedBodyProperties.left, this._savedBodyProperties.top);
+  delete this._savedBodyProperties;
+};
+
+Modal.prototype._lockScrolling = function () {
+  var doc = document.documentElement;
+
+  // From https://stackoverflow.com/questions/9538868/prevent-body-from-scrolling-when-a-modal-is-opened#comment65626743_24727206
+  this._savedBodyProperties = {
+    left: (global.pageXOffset || doc.scrollLeft) - (doc.clientLeft || 0),
+    top: (global.pageYOffset || doc.scrollTop) - (doc.clientTop || 0),
+    overflowStyle: document.body.style.overflow,
+    positionStyle: document.body.style.position
+  };
+  document.body.style.overflow = 'hidden';
+  document.body.style.position = 'fixed';
+  global.scrollTo(0, 0);
+};
+
+module.exports = Modal;
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"../../../assign":28,"../../shared/browser-detection":49,"@braintree/iframer":15}],45:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+
+var BraintreeError = _dereq_('../../../braintree-error');
+var errors = _dereq_('../../shared/errors');
+
+function noop() {}
+
+function PopupBridge(options) {
+  this._closed = null;
+  this._options = options;
+}
+
+PopupBridge.prototype.initialize = function (callback) {
+  var self = this;
+
+  global.popupBridge.onComplete = function (err, payload) {
+    var popupDismissed = !payload && !err;
+
+    self._closed = true;
+
+    if (err || popupDismissed) {
+      // User clicked "Done" button of browser view
+      callback(new BraintreeError(errors.FRAME_SERVICE_FRAME_CLOSED));
+
+      return;
+    }
+    // User completed popup flow (includes success and cancel cases)
+    callback(null, payload);
+  };
+};
+
+PopupBridge.prototype.open = function (options) {
+  var url;
+
+  options = options || {};
+  url = options.openFrameUrl || this._options.openFrameUrl;
+
+  this._closed = false;
+  global.popupBridge.open(url);
+};
+
+PopupBridge.prototype.focus = noop;
+
+PopupBridge.prototype.close = noop;
+
+PopupBridge.prototype.isClosed = function () {
+  return Boolean(this._closed);
+};
+
+PopupBridge.prototype.redirect = function (redirectUrl) {
+  this.open({openFrameUrl: redirectUrl});
+};
+
+module.exports = PopupBridge;
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"../../../braintree-error":30,"../../shared/errors":51}],46:[function(_dereq_,module,exports){
+'use strict';
+
+var constants = _dereq_('../../../shared/constants');
+var position = _dereq_('./position');
+
+function calculatePosition(type, userDefinedPosition, size) {
+  if (typeof userDefinedPosition !== 'undefined') {
+    return userDefinedPosition;
+  }
+
+  return position[type](size);
+}
+
+module.exports = function composePopupOptions(options) {
+  var height = options.height || constants.DEFAULT_POPUP_HEIGHT;
+  var width = options.width || constants.DEFAULT_POPUP_WIDTH;
+  var top = calculatePosition('top', options.top, height);
+  var left = calculatePosition('left', options.left, width);
+
+  return [
+    constants.POPUP_BASE_OPTIONS,
+    'height=' + height,
+    'width=' + width,
+    'top=' + top,
+    'left=' + left
+  ].join(',');
+};
+
+},{"../../../shared/constants":50,"./position":48}],47:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+
+var composeOptions = _dereq_('./compose-options');
+
+function noop() {}
+
+function Popup(options) {
+  this._frame = null;
+  this._options = options || {};
+
+  this.open();
+}
+
+Popup.prototype.initialize = noop;
+
+Popup.prototype.open = function () {
+  this._frame = global.open(
+    this._options.openFrameUrl,
+    this._options.name,
+    composeOptions(this._options)
+  );
+};
+
+Popup.prototype.focus = function () {
+  this._frame.focus();
+};
+
+Popup.prototype.close = function () {
+  if (this._frame.closed) {
+    return;
+  }
+  this._frame.close();
+};
+
+Popup.prototype.isClosed = function () {
+  return !this._frame || Boolean(this._frame.closed);
+};
+
+Popup.prototype.redirect = function (redirectUrl) {
+  this._frame.location.href = redirectUrl;
+};
+
+module.exports = Popup;
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./compose-options":46}],48:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+
+function top(height) {
+  var windowHeight = global.outerHeight || document.documentElement.clientHeight;
+  var windowTop = global.screenY == null ? global.screenTop : global.screenY;
+
+  return center(windowHeight, height, windowTop);
+}
+
+function left(width) {
+  var windowWidth = global.outerWidth || document.documentElement.clientWidth;
+  var windowLeft = global.screenX == null ? global.screenLeft : global.screenX;
+
+  return center(windowWidth, width, windowLeft);
+}
+
+function center(windowMetric, popupMetric, offset) {
+  return ((windowMetric - popupMetric) / 2) + offset;
+}
+
+module.exports = {
+  top: top,
+  left: left,
+  center: center
+};
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],49:[function(_dereq_,module,exports){
+'use strict';
+
+module.exports = {
+  isIos: _dereq_('@braintree/browser-detection/is-ios'),
+  isIosWKWebview: _dereq_('@braintree/browser-detection/is-ios-wkwebview'),
+  isIE: _dereq_('@braintree/browser-detection/is-ie'),
+  supportsPopups: _dereq_('@braintree/browser-detection/supports-popups')
+};
+
+
+},{"@braintree/browser-detection/is-ie":6,"@braintree/browser-detection/is-ios":11,"@braintree/browser-detection/is-ios-wkwebview":10,"@braintree/browser-detection/supports-popups":13}],50:[function(_dereq_,module,exports){
+'use strict';
+
+module.exports = {
+  DISPATCH_FRAME_NAME: 'dispatch',
+  DISPATCH_FRAME_CLASS: 'braintree-dispatch-frame',
+  POPUP_BASE_OPTIONS: 'resizable,scrollbars',
+  DEFAULT_POPUP_WIDTH: 450,
+  DEFAULT_POPUP_HEIGHT: 535,
+  POPUP_POLL_INTERVAL: 100,
+  POPUP_CLOSE_TIMEOUT: 100
+};
+
+},{}],51:[function(_dereq_,module,exports){
+'use strict';
+
+/**
+ * @name BraintreeError.Popup Related Error Codes
+ * @ignore
+ * @description Errors that occur when using a component that opens a popup window.
+ * @property {INTERNAL} FRAME_SERVICE_FRAME_CLOSED - Occurs when the frame is closed before tokenization can occur.
+ * @property {INTERNAL} FRAME_SERVICE_FRAME_OPEN_FAILED - Occurs when the popup could not be opened.
+ * @property {INTERNAL} FRAME_SERVICE_FRAME_OPEN_FAILED_IE_BUG - Occurs when the frame could not be opened because of a specific bug in Internet Explorer - https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/11324352/.
+ */
+
+var BraintreeError = _dereq_('../../braintree-error');
+
+module.exports = {
+  FRAME_SERVICE_FRAME_CLOSED: {
+    type: BraintreeError.types.INTERNAL,
+    code: 'FRAME_SERVICE_FRAME_CLOSED',
+    message: 'Frame closed before tokenization could occur.'
+  },
+  FRAME_SERVICE_FRAME_OPEN_FAILED: {
+    type: BraintreeError.types.INTERNAL,
+    code: 'FRAME_SERVICE_FRAME_OPEN_FAILED',
+    message: 'Frame failed to open.'
+  },
+  FRAME_SERVICE_FRAME_OPEN_FAILED_IE_BUG: {
+    type: BraintreeError.types.INTERNAL,
+    code: 'FRAME_SERVICE_FRAME_OPEN_FAILED_IE_BUG',
+    message: 'Could not open frame. This may be due to a bug in IE browsers when attempting to open an HTTPS page from a HTTP page. https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/11324352/'
+  }
+};
+
+},{"../../braintree-error":30}],52:[function(_dereq_,module,exports){
+'use strict';
+
+var enumerate = _dereq_('../../enumerate');
+
+module.exports = enumerate([
+  'DISPATCH_FRAME_READY',
+  'DISPATCH_FRAME_REPORT'
+], 'frameService:');
+
+},{"../../enumerate":40}],53:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+
+function isHTTPS(protocol) {
+  protocol = protocol || global.location.protocol;
+
+  return protocol === 'https:';
+}
+
+module.exports = {
+  isHTTPS: isHTTPS
+};
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],54:[function(_dereq_,module,exports){
+'use strict';
+
+var parser;
+var legalHosts = {
+  'paypal.com': 1,
+  'braintreepayments.com': 1,
+  'braintreegateway.com': 1,
+  'braintree-api.com': 1
+};
+
+// endRemoveIf(production)
+
+function stripSubdomains(domain) {
+  return domain.split('.').slice(-2).join('.');
+}
+
+function isVerifiedDomain(url) {
+  var mainDomain;
+
+  url = url.toLowerCase();
+
+  if (!/^https:/.test(url)) {
+    return false;
+  }
+
+  parser = parser || document.createElement('a');
+  parser.href = url;
+  mainDomain = stripSubdomains(parser.hostname);
+
+  return legalHosts.hasOwnProperty(mainDomain);
+}
+
+module.exports = isVerifiedDomain;
+
+},{}],55:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],23:[function(_dereq_,module,exports){
+},{}],56:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -1081,7 +2499,7 @@ module.exports = function (obj) {
   });
 };
 
-},{}],24:[function(_dereq_,module,exports){
+},{}],57:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1094,7 +2512,16 @@ ExtendedPromise.setPromise(Promise);
 module.exports = Promise;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"@braintree/extended-promise":3,"promise-polyfill":8}],25:[function(_dereq_,module,exports){
+},{"@braintree/extended-promise":14,"promise-polyfill":24}],58:[function(_dereq_,module,exports){
+'use strict';
+
+function useMin(isDebug) {
+  return isDebug ? '' : '.min';
+}
+
+module.exports = useMin;
+
+},{}],59:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1135,7 +2562,21 @@ module.exports = {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],26:[function(_dereq_,module,exports){
+},{}],60:[function(_dereq_,module,exports){
+'use strict';
+
+function uuid() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    var r = Math.random() * 16 | 0;
+    var v = c === 'x' ? r : r & 0x3 | 0x8;
+
+    return v.toString(16);
+  });
+}
+
+module.exports = uuid;
+
+},{}],61:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -1151,6 +2592,16 @@ module.exports = {
  * @property {MERCHANT} PAYPAL_FLOW_OPTION_REQUIRED Occurs when a required option is missing.
  * @property {MERCHANT} PAYPAL_INVALID_PAYMENT_OPTION Occurs when an option contains an invalid value.
  * @property {NETWORK} PAYPAL_FLOW_FAILED Occurs when something goes wrong when initializing the flow.
+ */
+
+/**
+ * @name BraintreeError.PayPal Checkout - startVaultInitiatedCheckout Error Codes
+ * @description Errors that occur when using the [`startVaultInitiatedCheckout` method](/current/PayPalCheckout.html#startVaultInitiatedCheckout).
+ * @property {MERCHANT} PAYPAL_START_VAULT_INITIATED_CHECKOUT_PARAM_REQUIRED Occurs when a required param is missing when calling the method.
+ * @property {MERCHANT} PAYPAL_START_VAULT_INITIATED_CHECKOUT_POPUP_OPEN_FAILED Occurs when PayPal window could not be opened. This often occurs because the call to start the vault initiated flow was not triggered from a click event.
+ * @property {CUSTOMER} PAYPAL_START_VAULT_INITIATED_CHECKOUT_CANCELED Occurs when a customer closes the PayPal flow before completion.
+ * @property {MERCHANT} PAYPAL_START_VAULT_INITIATED_CHECKOUT_IN_PROGRESS Occurs when the flow is initialized while an authorization is already in progress.
+ * @property {NETWORK} PAYPAL_START_VAULT_INITIATED_CHECKOUT_SETUP_FAILED Occurs when something went wrong setting up the flow.
  */
 
 /**
@@ -1187,6 +2638,30 @@ module.exports = {
     code: 'PAYPAL_FLOW_OPTION_REQUIRED',
     message: 'PayPal flow property is invalid or missing.'
   },
+  PAYPAL_START_VAULT_INITIATED_CHECKOUT_PARAM_REQUIRED: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'PAYPAL_START_VAULT_INITIATED_CHECKOUT_PARAM_REQUIRED'
+  },
+  PAYPAL_START_VAULT_INITIATED_CHECKOUT_SETUP_FAILED: {
+    type: BraintreeError.types.NETWORK,
+    code: 'PAYPAL_START_VAULT_INITIATED_CHECKOUT_SETUP_FAILED',
+    message: 'Something went wrong when setting up the checkout workflow.'
+  },
+  PAYPAL_START_VAULT_INITIATED_CHECKOUT_POPUP_OPEN_FAILED: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'PAYPAL_START_VAULT_INITIATED_CHECKOUT_POPUP_OPEN_FAILED',
+    message: 'PayPal popup failed to open, make sure to initiate the vault checkout in response to a user action.'
+  },
+  PAYPAL_START_VAULT_INITIATED_CHECKOUT_CANCELED: {
+    type: BraintreeError.types.CUSTOMER,
+    code: 'PAYPAL_START_VAULT_INITIATED_CHECKOUT_CANCELED',
+    message: 'Customer closed PayPal popup before authorizing.'
+  },
+  PAYPAL_START_VAULT_INITIATED_CHECKOUT_IN_PROGRESS: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'PAYPAL_START_VAULT_INITIATED_CHECKOUT_IN_PROGRESS',
+    message: 'Vault initiated checkout already in progress.'
+  },
   PAYPAL_INVALID_PAYMENT_OPTION: {
     type: BraintreeError.types.MERCHANT,
     code: 'PAYPAL_INVALID_PAYMENT_OPTION',
@@ -1194,7 +2669,7 @@ module.exports = {
   }
 };
 
-},{"../lib/braintree-error":13}],27:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":30}],62:[function(_dereq_,module,exports){
 'use strict';
 /**
  * @module braintree-web/paypal-checkout
@@ -1204,7 +2679,7 @@ module.exports = {
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var PayPalCheckout = _dereq_('./paypal-checkout');
-var VERSION = "3.58.0";
+var VERSION = "3.59.0";
 
 /**
  * @static
@@ -1265,20 +2740,32 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/basic-component-verification":12,"./paypal-checkout":28,"@braintree/wrap-promise":7}],28:[function(_dereq_,module,exports){
+},{"../lib/basic-component-verification":29,"./paypal-checkout":63,"@braintree/wrap-promise":22}],63:[function(_dereq_,module,exports){
 'use strict';
 
 var analytics = _dereq_('../lib/analytics');
+var assign = _dereq_('../lib/assign').assign;
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var Promise = _dereq_('../lib/promise');
+var ExtendedPromise = _dereq_('@braintree/extended-promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../lib/convert-to-braintree-error');
 var errors = _dereq_('./errors');
 var constants = _dereq_('../paypal/shared/constants');
+var frameService = _dereq_('../lib/frame-service/external');
 var methods = _dereq_('../lib/methods');
+var useMin = _dereq_('../lib/use-min');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
+var VERSION = "3.59.0";
+var INTEGRATION_TIMEOUT_MS = _dereq_('../lib/constants').INTEGRATION_TIMEOUT_MS;
+
+var REQUIRED_PARAMS_FOR_START_VAULT_INITIATED_CHECKOUT = [
+  'amount',
+  'currency',
+  'vaultInitiatedCheckoutPaymentMethodToken'
+];
 
 /**
  * PayPal Checkout tokenized payload. Returned in {@link PayPalCheckout#tokenizePayment}'s callback as the second argument, `data`.
@@ -1496,6 +2983,7 @@ PayPalCheckout.prototype._initialize = function (options) {
     }
 
     analytics.sendEvent(client, 'paypal-checkout.initialized');
+    this._frameServicePromise = this._setupFrameService(client);
 
     return client;
   }.bind(this));
@@ -1509,6 +2997,33 @@ PayPalCheckout.prototype._initialize = function (options) {
   }
 
   return Promise.resolve(this);
+};
+
+PayPalCheckout.prototype._setupFrameService = function (client) {
+  var frameServicePromise = new ExtendedPromise();
+  var config = client.getConfiguration();
+  var timeoutRef = setTimeout(function () {
+    analytics.sendEvent(client, 'paypal-checkout.frame-service.timed-out');
+    frameServicePromise.reject(new BraintreeError(errors.PAYPAL_START_VAULT_INITIATED_CHECKOUT_SETUP_FAILED));
+  }, INTEGRATION_TIMEOUT_MS);
+
+  this._assetsUrl = config.gatewayConfiguration.paypal.assetsUrl + '/web/' + VERSION;
+  this._isDebug = config.isDebug;
+  // Note: this is using the static landing frame that the deprecated PayPal component builds and uses
+  this._loadingFrameUrl = this._assetsUrl + '/html/paypal-landing-frame' + useMin(this._isDebug) + '.html';
+
+  frameService.create({
+    name: 'braintreepaypallanding',
+    dispatchFrameUrl: this._assetsUrl + '/html/dispatch-frame' + useMin(this._isDebug) + '.html',
+    openFrameUrl: this._loadingFrameUrl
+  }, function (service) {
+    this._frameService = service;
+    clearTimeout(timeoutRef);
+
+    frameServicePromise.resolve();
+  }.bind(this));
+
+  return frameServicePromise;
 };
 
 /**
@@ -1679,27 +3194,13 @@ PayPalCheckout.prototype._initialize = function (options) {
  * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 PayPalCheckout.prototype.createPayment = function (options) {
-  var self = this;
-  var endpoint;
-
   if (!options || !constants.FLOW_ENDPOINTS.hasOwnProperty(options.flow)) {
     return Promise.reject(new BraintreeError(errors.PAYPAL_FLOW_OPTION_REQUIRED));
   }
 
-  endpoint = 'paypal_hermes/' + constants.FLOW_ENDPOINTS[options.flow];
-
   analytics.sendEvent(this._clientPromise, 'paypal-checkout.createPayment');
-  if (options.offerCredit === true) {
-    analytics.sendEvent(this._clientPromise, 'paypal-checkout.credit.offered');
-  }
 
-  return this._clientPromise.then(function (client) {
-    return client.request({
-      endpoint: endpoint,
-      method: 'post',
-      data: self._formatPaymentResourceData(options)
-    });
-  }).then(function (response) {
+  return this._createPaymentResource(options).then(function (response) {
     var flowToken;
 
     if (options.flow === 'checkout') {
@@ -1709,6 +3210,25 @@ PayPalCheckout.prototype.createPayment = function (options) {
     }
 
     return flowToken;
+  });
+};
+
+PayPalCheckout.prototype._createPaymentResource = function (options, config) {
+  var self = this;
+  var endpoint = 'paypal_hermes/' + constants.FLOW_ENDPOINTS[options.flow];
+
+  config = config || {};
+
+  if (options.offerCredit === true) {
+    analytics.sendEvent(this._clientPromise, 'paypal-checkout.credit.offered');
+  }
+
+  return this._clientPromise.then(function (client) {
+    return client.request({
+      endpoint: endpoint,
+      method: 'post',
+      data: self._formatPaymentResourceData(options, config)
+    });
   }).catch(function (err) {
     var status;
 
@@ -1738,6 +3258,221 @@ PayPalCheckout.prototype.createPayment = function (options) {
 };
 
 /**
+ * Initializes the PayPal checkout flow with a payment method nonce that represents a vaulted PayPal account.
+ * When a {@link callback} is defined, the function returns undefined and invokes the callback with the id to be used with the checkout.js library. Otherwise, it returns a Promise that resolves with the id.
+ * @public
+ * @param {object} options All {@link PayPalCheckout#createPayment|options for creating a payment resource}, cannot be set except `flow`(will always be `'checkout'`). `amount`, `currency`, and `vaultInitiatedCheckoutPaymentMethodToken` are required. Additional options listed below.
+ * @param {boolean} [options.optOutOfModalBackdrop=false] By default, the webpage will darken and become unusable while the PayPal window is open. For full control of the UI, pass `true` for this option.
+ * @param {callback} [callback] The second argument, <code>payload</code>, is a {@link PayPalCheckout~tokenizePayload|tokenizePayload}. If no callback is provided, the promise resolves with a {@link PayPalCheckout~tokenizePayload|tokenizePayload}.
+ * @example
+ * paypalCheckoutInstance.startVaultInitiatedCheckout({
+ *   vaultInitiatedCheckoutPaymentMethodToken: 'nonce-that-represents-a-vaulted-paypal-account',
+ *   amount: '10.00',
+ *   currency: 'USD'
+ * }).then(function (payload) {
+ *   // send payload.nonce to your server
+ * }).catch(function (err) {
+ *   if (err.code === 'PAYPAL_POPUP_CLOSED') {
+ *     // indicates that customer canceled by
+ *     // manually closing the PayPal popup
+ *   }
+ *
+ *   // handle other errors
+ * });
+ *
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
+ */
+PayPalCheckout.prototype.startVaultInitiatedCheckout = function (options) {
+  var missingRequiredParam;
+  var self = this;
+
+  if (this._vaultInitiatedCheckoutInProgress) {
+    analytics.sendEvent(this._clientPromise, 'paypal-checkout.startVaultInitiatedCheckout.error.already-in-progress');
+
+    return Promise.reject(new BraintreeError(errors.PAYPAL_START_VAULT_INITIATED_CHECKOUT_IN_PROGRESS));
+  }
+
+  REQUIRED_PARAMS_FOR_START_VAULT_INITIATED_CHECKOUT.forEach(function (param) {
+    if (!options.hasOwnProperty(param)) {
+      missingRequiredParam = param;
+    }
+  });
+
+  if (missingRequiredParam) {
+    return Promise.reject(new BraintreeError({
+      type: errors.PAYPAL_START_VAULT_INITIATED_CHECKOUT_PARAM_REQUIRED.type,
+      code: errors.PAYPAL_START_VAULT_INITIATED_CHECKOUT_PARAM_REQUIRED.code,
+      message: 'Required param ' + missingRequiredParam + ' is missing.'
+    }));
+  }
+
+  this._vaultInitiatedCheckoutInProgress = true;
+  this._addModalBackdrop(options);
+
+  options = assign({}, options, {
+    flow: 'checkout'
+  });
+
+  analytics.sendEvent(this._clientPromise, 'paypal-checkout.startVaultInitiatedCheckout.started');
+
+  return this._waitForVaultInitiatedCheckoutDependencies().then(function () {
+    var frameCommunicationPromise = new ExtendedPromise();
+    var startVaultInitiatedCheckoutPromise = self._createPaymentResource(options, {
+      returnUrl: self._constructVaultCheckutUrl('redirect-frame'),
+      cancelUrl: self._constructVaultCheckutUrl('cancel-frame')
+    }).then(function (response) {
+      var redirectUrl = response.paymentResource.redirectUrl;
+
+      self._frameService.redirect(redirectUrl);
+
+      return frameCommunicationPromise;
+    });
+
+    self._frameService.open({}, self._createFrameServiceCallback(frameCommunicationPromise));
+
+    return startVaultInitiatedCheckoutPromise;
+  }).catch(function (err) {
+    self._vaultInitiatedCheckoutInProgress = false;
+    self._removeModalBackdrop();
+
+    if (err.code === 'FRAME_SERVICE_FRAME_CLOSED') {
+      analytics.sendEvent(self._clientPromise, 'paypal-checkout.startVaultInitiatedCheckout.canceled.by-customer');
+
+      return Promise.reject(new BraintreeError(errors.PAYPAL_START_VAULT_INITIATED_CHECKOUT_CANCELED));
+    }
+
+    if (self._frameService) {
+      self._frameService.close();
+    }
+
+    if (err.code && err.code.indexOf('FRAME_SERVICE_FRAME_OPEN_FAILED') > -1) {
+      analytics.sendEvent(self._clientPromise, 'paypal-checkout.startVaultInitiatedCheckout.failed.popup-not-opened');
+
+      return Promise.reject(new BraintreeError({
+        code: errors.PAYPAL_START_VAULT_INITIATED_CHECKOUT_POPUP_OPEN_FAILED.code,
+        type: errors.PAYPAL_START_VAULT_INITIATED_CHECKOUT_POPUP_OPEN_FAILED.type,
+        message: errors.PAYPAL_START_VAULT_INITIATED_CHECKOUT_POPUP_OPEN_FAILED.message,
+        details: {
+          originalError: err
+        }
+      }));
+    }
+
+    return Promise.reject(err);
+  }).then(function (response) {
+    self._frameService.close();
+    self._vaultInitiatedCheckoutInProgress = false;
+    self._removeModalBackdrop();
+    analytics.sendEvent(self._clientPromise, 'paypal-checkout.startVaultInitiatedCheckout.succeeded');
+
+    return Promise.resolve(response);
+  });
+};
+
+PayPalCheckout.prototype._addModalBackdrop = function (options) {
+  if (options.optOutOfModalBackdrop) {
+    return;
+  }
+
+  if (!this._modalBackdrop) {
+    this._modalBackdrop = document.createElement('div');
+    this._modalBackdrop.setAttribute('data-braintree-paypal-vault-initiated-checkout-modal', true);
+    this._modalBackdrop.style.position = 'fixed';
+    this._modalBackdrop.style.top = 0;
+    this._modalBackdrop.style.bottom = 0;
+    this._modalBackdrop.style.left = 0;
+    this._modalBackdrop.style.right = 0;
+    this._modalBackdrop.style.zIndex = 9999;
+    this._modalBackdrop.style.background = 'black';
+    this._modalBackdrop.style.opacity = '0.7';
+    this._modalBackdrop.addEventListener('click', function () {
+      this.focusVaultInitiatedCheckoutWindow();
+    }.bind(this));
+  }
+
+  document.body.appendChild(this._modalBackdrop);
+};
+
+PayPalCheckout.prototype._removeModalBackdrop = function () {
+  if (!(this._modalBackdrop && this._modalBackdrop.parentNode)) {
+    return;
+  }
+
+  this._modalBackdrop.parentNode.removeChild(this._modalBackdrop);
+};
+
+/**
+ * Closes the PayPal window if it is opened via `startVaultInitiatedCheckout`.
+ * @public
+ * @ignore
+ * @param {callback} [callback] Gets called when window is closed.
+ * @example
+ * paypalCheckoutInstance.closeVaultInitiatedCheckoutWindow();
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
+ */
+PayPalCheckout.prototype.closeVaultInitiatedCheckoutWindow = function () {
+  if (this._vaultInitiatedCheckoutInProgress) {
+    analytics.sendEvent(this._clientPromise, 'paypal-checkout.startVaultInitiatedCheckout.canceled.by-merchant');
+  }
+
+  return this._waitForVaultInitiatedCheckoutDependencies().then(function () {
+    this._frameService.close();
+  }.bind(this));
+};
+
+/**
+ * Focuses the PayPal window if it is opened via `startVaultInitiatedCheckout`.
+ * @public
+ * @param {callback} [callback] Gets called when window is focused.
+ * @example
+ * paypalCheckoutInstance.focusVaultInitiatedCheckoutWindow();
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
+ */
+PayPalCheckout.prototype.focusVaultInitiatedCheckoutWindow = function () {
+  return this._waitForVaultInitiatedCheckoutDependencies().then(function () {
+    this._frameService.focus();
+  }.bind(this));
+};
+
+PayPalCheckout.prototype._createFrameServiceCallback = function (frameCommunicationPromise) {
+  var self = this;
+
+  // TODO when a merchant integrates an iOS or Android integration
+  // with a webview using the web SDK, we will have to add popupbridge
+  // support
+  return function (err, payload) {
+    if (err) {
+      frameCommunicationPromise.reject(err);
+    } else if (payload) {
+      self._frameService.redirect(self._loadingFrameUrl);
+      self.tokenizePayment({
+        paymentToken: payload.token,
+        payerID: payload.PayerID,
+        paymentID: payload.paymentId
+      }).then(function (res) {
+        frameCommunicationPromise.resolve(res);
+      }).catch(function (tokenizationError) {
+        frameCommunicationPromise.reject(tokenizationError);
+      });
+    }
+  };
+};
+
+PayPalCheckout.prototype._waitForVaultInitiatedCheckoutDependencies = function () {
+  var self = this;
+
+  return this._clientPromise.then(function () {
+    return self._frameServicePromise;
+  });
+};
+
+PayPalCheckout.prototype._constructVaultCheckutUrl = function (frameName) {
+  var serviceId = this._frameService._serviceId;
+
+  return this._assetsUrl + '/html/' + frameName + useMin(this._isDebug) + '.html?channel=' + serviceId;
+};
+
+/**
  * Tokenizes the authorize data from PayPal's checkout.js library when completing a buyer approval flow.
  * When a {@link callback} is defined, invokes the callback with {@link PayPalCheckout~tokenizePayload|tokenizePayload} and returns undefined. Otherwise, returns a Promise that resolves with a {@link PayPalCheckout~tokenizePayload|tokenizePayload}.
  * @public
@@ -1745,11 +3480,30 @@ PayPalCheckout.prototype.createPayment = function (options) {
  * @param {string} tokenizeOptions.payerId Payer ID returned by PayPal `onApproved` callback.
  * @param {string} [tokenizeOptions.paymentId] Payment ID returned by PayPal `onApproved` callback.
  * @param {string} [tokenizeOptions.billingToken] Billing Token returned by PayPal `onApproved` callback.
+ * @param {boolean} [tokenizeOptions.vault=true] Whether or not to vault the resulting PayPal account (if using a client token generated with a customer id and the vault flow).
  * @param {callback} [callback] The second argument, <code>payload</code>, is a {@link PayPalCheckout~tokenizePayload|tokenizePayload}. If no callback is provided, the promise resolves with a {@link PayPalCheckout~tokenizePayload|tokenizePayload}.
+ * @example <caption>Opt out of auto-vaulting behavior</caption>
+ * // create the paypalCheckoutInstance with a client token generated with a customer id
+ * paypal.Buttons({
+ *   createBillingAgreement: function () {
+ *     return paypalCheckoutInstance.createPayment({
+ *       flow: 'vault'
+ *       // your other createPayment options here
+ *     });
+ *   },
+ *   onApproved: function (data) {
+ *     data.vault = false;
+ *
+ *     return paypalCheckoutInstance.tokenizePayment(data);
+ *   },
+ *   // Add other options, e.g. onCancel, onError
+ * }).render('#paypal-button');
+ *
  * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 PayPalCheckout.prototype.tokenizePayment = function (tokenizeOptions) {
   var self = this;
+  var shouldVault = true;
   var payload;
   var options = {
     flow: tokenizeOptions.billingToken ? 'vault' : 'checkout',
@@ -1763,6 +3517,12 @@ PayPalCheckout.prototype.tokenizePayment = function (tokenizeOptions) {
     paymentId: tokenizeOptions.paymentID,
     shippingOptionsId: tokenizeOptions.shippingOptionsId
   };
+
+  if (tokenizeOptions.hasOwnProperty('vault')) {
+    shouldVault = tokenizeOptions.vault;
+  }
+
+  options.vault = shouldVault;
 
   analytics.sendEvent(this._clientPromise, 'paypal-checkout.tokenization.started');
 
@@ -1796,7 +3556,30 @@ PayPalCheckout.prototype.tokenizePayment = function (tokenizeOptions) {
   });
 };
 
-PayPalCheckout.prototype._formatPaymentResourceData = function (options) {
+/**
+ * Resolves with the PayPal client id to be used when loading the PayPal SDK.
+ * @public
+ * @param {callback} [callback] The second argument, <code>payload</code>, is a {@link PayPalCheckout~tokenizePayload|tokenizePayload}. If no callback is provided, the promise resolves with a {@link PayPalCheckout~tokenizePayload|tokenizePayload}.
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
+ * @example
+ * paypalCheckoutInstance.getClientId().then(function (id) {
+ *  var script = document.createElement('script');
+ *
+ *  script.src = 'https://www.paypal.com/sdk/js?client-id=' + id;
+ *  script.onload = function () {
+ *    // setup the PayPal SDK
+ *  };
+ *
+ *  document.body.appendChild(script);
+ * });
+ */
+PayPalCheckout.prototype.getClientId = function () {
+  return this._clientPromise.then(function (client) {
+    return client.getConfiguration().gatewayConfiguration.paypal.clientId;
+  });
+};
+
+PayPalCheckout.prototype._formatPaymentResourceData = function (options, config) {
   var key;
   var gatewayConfiguration = this._configuration.gatewayConfiguration;
   // NEXT_MAJOR_VERSION default value for intent in PayPal SDK is capture
@@ -1806,8 +3589,8 @@ PayPalCheckout.prototype._formatPaymentResourceData = function (options) {
   var paymentResource = {
     // returnUrl and cancelUrl are required in hermes create_payment_resource route
     // but are not used by the PayPal sdk, except to redirect to an error page
-    returnUrl: 'https://www.paypal.com/checkoutnow/error',
-    cancelUrl: 'https://www.paypal.com/checkoutnow/error',
+    returnUrl: config.returnUrl || 'https://www.paypal.com/checkoutnow/error',
+    cancelUrl: config.cancelUrl || 'https://www.paypal.com/checkoutnow/error',
     offerPaypalCredit: options.offerCredit === true,
     merchantAccountId: this._merchantAccountId,
     experienceProfile: {
@@ -1870,7 +3653,7 @@ PayPalCheckout.prototype._formatTokenizeData = function (options, params) {
     paypalAccount: {
       correlationId: params.billingToken || params.ecToken,
       options: {
-        validate: options.flow === 'vault' && !isTokenizationKey
+        validate: options.flow === 'vault' && !isTokenizationKey && options.vault
       }
     }
   };
@@ -1943,7 +3726,7 @@ PayPalCheckout.prototype.teardown = function () {
 
 module.exports = wrapPromise.wrapPrototype(PayPalCheckout);
 
-},{"../lib/analytics":10,"../lib/braintree-error":13,"../lib/convert-methods-to-error":15,"../lib/convert-to-braintree-error":16,"../lib/create-assets-url":17,"../lib/create-deferred-client":19,"../lib/methods":23,"../lib/promise":24,"../paypal/shared/constants":29,"./errors":26,"@braintree/wrap-promise":7}],29:[function(_dereq_,module,exports){
+},{"../lib/analytics":26,"../lib/assign":28,"../lib/braintree-error":30,"../lib/constants":34,"../lib/convert-methods-to-error":35,"../lib/convert-to-braintree-error":36,"../lib/create-assets-url":37,"../lib/create-deferred-client":39,"../lib/frame-service/external":43,"../lib/methods":56,"../lib/promise":57,"../lib/use-min":58,"../paypal/shared/constants":64,"./errors":61,"@braintree/extended-promise":14,"@braintree/wrap-promise":22}],64:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -1954,5 +3737,5 @@ module.exports = {
   }
 };
 
-},{}]},{},[27])(27)
+},{}]},{},[62])(62)
 });
