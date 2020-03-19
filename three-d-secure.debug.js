@@ -1145,7 +1145,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.59.0";
+var VERSION = "3.60.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1447,7 +1447,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":20,"./check-origin":21,"./events":22,"framebus":13}],24:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.59.0";
+var VERSION = "3.60.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1596,7 +1596,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.59.0";
+var VERSION = "3.60.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1881,7 +1881,7 @@ var uuid = _dereq_('../../../lib/vendor/uuid');
 var events = _dereq_('../../shared/events');
 var useMin = _dereq_('../../../lib/use-min');
 
-var VERSION = "3.59.0";
+var VERSION = "3.60.0";
 var IFRAME_HEIGHT = 400;
 var IFRAME_WIDTH = 400;
 
@@ -1889,12 +1889,30 @@ function BaseFramework(options) {
   EventEmitter.call(this);
 
   this._client = options.client;
-  this._isDebug = this._client.getConfiguration().isDebug;
-  this._assetsUrl = this._client.getConfiguration().gatewayConfiguration.assetsUrl + '/web/' + VERSION;
+  this._createPromise = options.createPromise;
   this._createOptions = options;
+
+  if (this._client) {
+    this._isDebug = this._client.getConfiguration().isDebug;
+    this._assetsUrl = this._client.getConfiguration().gatewayConfiguration.assetsUrl;
+  } else {
+    this._isDebug = Boolean(options.isDebug);
+    this._assetsUrl = options.assetsUrl;
+  }
+  this._assetsUrl = this._assetsUrl + '/web/' + VERSION;
 }
 
 EventEmitter.createChild(BaseFramework);
+
+BaseFramework.prototype._waitForClient = function () {
+  if (this._client) {
+    return Promise.resolve();
+  }
+
+  return this._createPromise.then(function (client) {
+    this._client = client;
+  }.bind(this));
+};
 
 BaseFramework.prototype.setUpEventListeners = function () {
   throw new BraintreeError(errors.THREEDS_FRAMEWORK_METHOD_NOT_IMPLEMENTED);
@@ -1917,11 +1935,11 @@ BaseFramework.prototype.verifyCard = function (options, privateOptions) {
   formattedOptions = this._formatVerifyCardOptions(options);
 
   return this._formatLookupData(formattedOptions).then(function (data) {
-    analytics.sendEvent(self._client, 'three-d-secure.verification-flow.started');
+    analytics.sendEvent(self._createPromise, 'three-d-secure.verification-flow.started');
 
     return self._performLookup(formattedOptions.nonce, data);
   }).then(function (response) {
-    analytics.sendEvent(self._client, 'three-d-secure.verification-flow.3ds-version.' + response.lookup.threeDSecureVersion);
+    analytics.sendEvent(self._createPromise, 'three-d-secure.verification-flow.3ds-version.' + response.lookup.threeDSecureVersion);
 
     return self._onLookupComplete(response, formattedOptions);
   }).then(function (response) {
@@ -1929,13 +1947,13 @@ BaseFramework.prototype.verifyCard = function (options, privateOptions) {
   }).then(function (payload) {
     self._resetVerificationState();
 
-    analytics.sendEvent(self._client, 'three-d-secure.verification-flow.completed');
+    analytics.sendEvent(self._createPromise, 'three-d-secure.verification-flow.completed');
 
     return payload;
   }).catch(function (err) {
     self._resetVerificationState();
 
-    analytics.sendEvent(self._client, 'three-d-secure.verification-flow.failed');
+    analytics.sendEvent(self._createPromise, 'three-d-secure.verification-flow.failed');
 
     return Promise.reject(err);
   });
@@ -1962,35 +1980,37 @@ BaseFramework.prototype._performLookup = function (nonce, data) {
   var self = this;
   var url = 'payment_methods/' + nonce + '/three_d_secure/lookup';
 
-  return this._client.request({
-    endpoint: url,
-    method: 'post',
-    data: data
-  }).catch(function (err) {
-    var status = err && err.details && err.details.httpStatus;
-    var analyticsMessage = 'three-d-secure.verification-flow.lookup-failed';
-    var lookupError;
+  return this._waitForClient().then(function () {
+    return self._client.request({
+      endpoint: url,
+      method: 'post',
+      data: data
+    }).catch(function (err) {
+      var status = err && err.details && err.details.httpStatus;
+      var analyticsMessage = 'three-d-secure.verification-flow.lookup-failed';
+      var lookupError;
 
-    if (status === 404) {
-      lookupError = errors.THREEDS_LOOKUP_TOKENIZED_CARD_NOT_FOUND_ERROR;
-      analyticsMessage += '.404';
-    } else if (status === 422) {
-      lookupError = errors.THREEDS_LOOKUP_VALIDATION_ERROR;
-      analyticsMessage += '.422';
-    } else {
-      lookupError = errors.THREEDS_LOOKUP_ERROR;
-    }
-
-    analytics.sendEvent(self._client, analyticsMessage);
-
-    return Promise.reject(new BraintreeError({
-      type: lookupError.type,
-      code: lookupError.code,
-      message: lookupError.message,
-      details: {
-        originalError: err
+      if (status === 404) {
+        lookupError = errors.THREEDS_LOOKUP_TOKENIZED_CARD_NOT_FOUND_ERROR;
+        analyticsMessage += '.404';
+      } else if (status === 422) {
+        lookupError = errors.THREEDS_LOOKUP_VALIDATION_ERROR;
+        analyticsMessage += '.422';
+      } else {
+        lookupError = errors.THREEDS_LOOKUP_ERROR;
       }
-    }));
+
+      analytics.sendEvent(self._createPromise, analyticsMessage);
+
+      return Promise.reject(new BraintreeError({
+        type: lookupError.type,
+        code: lookupError.code,
+        message: lookupError.message,
+        details: {
+          originalError: err
+        }
+      }));
+    });
   });
 };
 
@@ -2034,8 +2054,8 @@ BaseFramework.prototype.initializeChallengeWithLookupResponse = function (lookup
   self._handleLookupResponse(lookupResponse, options);
 
   return self._verifyCardPromisePlus.then(function (payload) {
-    analytics.sendEvent(self._client, 'three-d-secure.verification-flow.liability-shifted.' + String(payload.liabilityShifted));
-    analytics.sendEvent(self._client, 'three-d-secure.verification-flow.liability-shift-possible.' + String(payload.liabilityShiftPossible));
+    analytics.sendEvent(self._createPromise, 'three-d-secure.verification-flow.liability-shifted.' + String(payload.liabilityShifted));
+    analytics.sendEvent(self._createPromise, 'three-d-secure.verification-flow.liability-shift-possible.' + String(payload.liabilityShiftPossible));
 
     return payload;
   });
@@ -2045,7 +2065,7 @@ BaseFramework.prototype._handleLookupResponse = function (lookupResponse, option
   var challengeShouldBePresented = Boolean(lookupResponse.lookup && lookupResponse.lookup.acsUrl);
   var details;
 
-  analytics.sendEvent(this._client, 'three-d-secure.verification-flow.challenge-presented.' + String(challengeShouldBePresented));
+  analytics.sendEvent(this._createPromise, 'three-d-secure.verification-flow.challenge-presented.' + String(challengeShouldBePresented));
 
   if (challengeShouldBePresented) {
     this._presentChallenge(lookupResponse, options);
@@ -2184,7 +2204,7 @@ BaseFramework.prototype._teardownV1Elements = function () {
 };
 
 BaseFramework.prototype.teardown = function () {
-  analytics.sendEvent(this._client, 'three-d-secure.teardown-completed');
+  analytics.sendEvent(this._createPromise, 'three-d-secure.teardown-completed');
 
   this._teardownV1Elements();
 
@@ -2545,7 +2565,7 @@ var ExtendedPromise = _dereq_('@braintree/extended-promise');
 
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var PLATFORM = _dereq_('../../../lib/constants').PLATFORM;
-var VERSION = "3.59.0";
+var VERSION = "3.60.0";
 
 function SongbirdFramework(options) {
   BaseFramework.call(this, options);
@@ -2586,6 +2606,8 @@ SongbirdFramework.prototype.prepareLookup = function (options) {
     // catch and ignore errors from looking up
     // df reference and Cardinal bin process
   }).then(function () {
+    return self._waitForClient();
+  }).then(function () {
     data.clientMetadata = self._clientMetadata;
     data.authorizationFingerprint = self._client.getConfiguration().authorizationFingerprint;
     data.braintreeLibraryVersion = 'braintree/web/' + VERSION;
@@ -2602,7 +2624,7 @@ SongbirdFramework.prototype.initializeChallengeWithLookupResponse = function (lo
 
 SongbirdFramework.prototype._initiateV1Fallback = function (errorType) {
   this._useV1Fallback = true;
-  analytics.sendEvent(this._client, 'three-d-secure.v1-fallback.' + errorType);
+  analytics.sendEvent(this._createPromise, 'three-d-secure.v1-fallback.' + errorType);
   this._songbirdPromise.resolve();
 };
 
@@ -2764,7 +2786,7 @@ SongbirdFramework.prototype.setupSongbird = function (setupOptions) {
 SongbirdFramework.prototype._configureCardinalSdk = function (config) {
   var self = this;
 
-  return Promise.resolve().then(function () {
+  return this._waitForClient().then(function () {
     var jwt = self._client.getConfiguration().gatewayConfiguration.threeDSecure.cardinalAuthenticationJWT;
     var setupOptions = config.setupOptions;
     var setupStartTime = config.setupStartTime;
@@ -2824,18 +2846,21 @@ SongbirdFramework.prototype._createCardinalConfigurationOptions = function (setu
 SongbirdFramework.prototype._loadCardinalScript = function (setupOptions) {
   var self = this;
   var scriptSource = constants.CARDINAL_SCRIPT_SOURCE.sandbox;
-  var isProduction = this._client.getConfiguration().gatewayConfiguration.environment === 'production';
 
-  this._songbirdSetupTimeoutReference = global.setTimeout(function () {
-    analytics.sendEvent(self._client, 'three-d-secure.cardinal-sdk.init.setup-timeout');
-    self._initiateV1Fallback('cardinal-sdk-setup-timeout');
-  }, setupOptions.timeout || INTEGRATION_TIMEOUT_MS);
+  return this._waitForClient().then(function () {
+    var isProduction = self._client.getConfiguration().gatewayConfiguration.environment === 'production';
 
-  if (isProduction) {
-    scriptSource = constants.CARDINAL_SCRIPT_SOURCE.production;
-  }
+    self._songbirdSetupTimeoutReference = global.setTimeout(function () {
+      analytics.sendEvent(self._client, 'three-d-secure.cardinal-sdk.init.setup-timeout');
+      self._initiateV1Fallback('cardinal-sdk-setup-timeout');
+    }, setupOptions.timeout || INTEGRATION_TIMEOUT_MS);
 
-  return assets.loadScript({src: scriptSource}).catch(function (err) {
+    if (isProduction) {
+      scriptSource = constants.CARDINAL_SCRIPT_SOURCE.production;
+    }
+
+    return assets.loadScript({src: scriptSource});
+  }).catch(function (err) {
     self._v2SetupFailureReason = 'songbird-js-failed-to-load';
 
     return Promise.reject(convertToBraintreeError(err, errors.THREEDS_CARDINAL_SDK_SCRIPT_LOAD_FAILED));
@@ -2849,7 +2874,7 @@ SongbirdFramework.prototype._createPaymentsSetupCompleteCallback = function () {
     self._getDfReferenceIdPromisePlus.resolve(data.sessionId);
 
     global.clearTimeout(self._songbirdSetupTimeoutReference);
-    analytics.sendEvent(self._client, 'three-d-secure.cardinal-sdk.init.setup-completed');
+    analytics.sendEvent(self._createPromise, 'three-d-secure.cardinal-sdk.init.setup-completed');
 
     self._songbirdPromise.resolve();
   };
@@ -2864,15 +2889,17 @@ SongbirdFramework.prototype._performJWTValidation = function (jwt) {
   var url = 'payment_methods/' + nonce + '/three_d_secure/authenticate_from_jwt';
   var self = this;
 
-  analytics.sendEvent(self._client, 'three-d-secure.verification-flow.upgrade-payment-method.started');
+  analytics.sendEvent(self._createPromise, 'three-d-secure.verification-flow.upgrade-payment-method.started');
 
-  return this._client.request({
-    method: 'post',
-    endpoint: url,
-    data: {
-      jwt: jwt,
-      paymentMethodNonce: nonce
-    }
+  return this._waitForClient().then(function () {
+    return self._client.request({
+      method: 'post',
+      endpoint: url,
+      data: {
+        jwt: jwt,
+        paymentMethodNonce: nonce
+      }
+    });
   }).then(function (response) {
     var paymentMethod = response.paymentMethod || self._lookupPaymentMethod;
     var formattedResponse = self._formatAuthResponse(paymentMethod, response.threeDSecureInfo);
@@ -2912,7 +2939,7 @@ SongbirdFramework.prototype._createPaymentsValidatedCallback = function () {
   return function (data, validatedJwt) {
     var formattedError;
 
-    analytics.sendEvent(self._client, 'three-d-secure.verification-flow.cardinal-sdk.action-code.' + data.ActionCode.toLowerCase());
+    analytics.sendEvent(self._createPromise, 'three-d-secure.verification-flow.cardinal-sdk.action-code.' + data.ActionCode.toLowerCase());
 
     if (!self._verifyCardPromisePlus) {
       self._initiateV1Fallback('cardinal-sdk-setup-error.number-' + data.ErrorNumber);
@@ -2935,7 +2962,7 @@ SongbirdFramework.prototype._createPaymentsValidatedCallback = function () {
         break;
 
       case 'ERROR':
-        analytics.sendEvent(self._client, 'three-d-secure.verification-flow.cardinal-sdk-error.' + data.ErrorNumber);
+        analytics.sendEvent(self._createPromise, 'three-d-secure.verification-flow.cardinal-sdk-error.' + data.ErrorNumber);
 
         switch (data.ErrorNumber) {
           case 10001: // Cardinal Docs: Timeout when sending an /Init message
@@ -2959,7 +2986,7 @@ SongbirdFramework.prototype._createPaymentsValidatedCallback = function () {
             // This may never get called, according to the Cardinal docs:
             // The user has canceled the transaction. This is generally found in alternative
             // payments that supply a cancel button on the payment brand side.
-            analytics.sendEvent(self._client, 'three-d-secure.verification-flow.canceled');
+            analytics.sendEvent(self._createPromise, 'three-d-secure.verification-flow.canceled');
             formattedError = new BraintreeError(errors.THREEDS_CARDINAL_SDK_CANCELED);
             break;
           default:
@@ -3840,7 +3867,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.59.0";
+var VERSION = "3.60.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -3953,52 +3980,62 @@ function create(options) {
     client: options.client,
     authorization: options.authorization
   }).then(function () {
-    return createDeferredClient.create({
+    var assetsUrl = createAssetsUrl.create(options.authorization);
+    var framework = getFramework(options);
+    var createPromise = createDeferredClient.create({
       authorization: options.authorization,
       client: options.client,
       debug: options.debug,
-      assetsUrl: createAssetsUrl.create(options.authorization),
+      assetsUrl: assetsUrl,
       name: name
+    }).then(function (client) {
+      var error, isProduction;
+      var config = client.getConfiguration();
+      var gwConfig = config.gatewayConfiguration;
+
+      options.client = client;
+
+      if (!gwConfig.threeDSecureEnabled) {
+        error = errors.THREEDS_NOT_ENABLED;
+      }
+
+      if (config.authorizationType === 'TOKENIZATION_KEY') {
+        error = errors.THREEDS_CAN_NOT_USE_TOKENIZATION_KEY;
+      }
+
+      isProduction = gwConfig.environment === 'production';
+
+      if (isProduction && !isHTTPS()) {
+        error = errors.THREEDS_HTTPS_REQUIRED;
+      }
+
+      if (framework !== 'legacy' && !(gwConfig.threeDSecure && gwConfig.threeDSecure.cardinalAuthenticationJWT)) {
+        analytics.sendEvent(options.client, 'three-d-secure.initialization.failed.missing-cardinalAuthenticationJWT');
+        error = errors.THREEDS_NOT_ENABLED_FOR_V2;
+      }
+
+      if (error) {
+        return Promise.reject(new BraintreeError(error));
+      }
+
+      analytics.sendEvent(options.client, 'three-d-secure.initialized');
+
+      return client;
     });
-  }).then(function (client) {
-    var error, isProduction, instance;
-    var config = client.getConfiguration();
-    var gwConfig = config.gatewayConfiguration;
-    var framework = getFramework(options);
-
-    options.client = client;
-
-    if (!gwConfig.threeDSecureEnabled) {
-      error = errors.THREEDS_NOT_ENABLED;
-    }
-
-    if (config.authorizationType === 'TOKENIZATION_KEY') {
-      error = errors.THREEDS_CAN_NOT_USE_TOKENIZATION_KEY;
-    }
-
-    isProduction = gwConfig.environment === 'production';
-
-    if (isProduction && !isHTTPS()) {
-      error = errors.THREEDS_HTTPS_REQUIRED;
-    }
-
-    if (framework !== 'legacy' && !(gwConfig.threeDSecure && gwConfig.threeDSecure.cardinalAuthenticationJWT)) {
-      analytics.sendEvent(options.client, 'three-d-secure.initialization.failed.missing-cardinalAuthenticationJWT');
-      error = errors.THREEDS_NOT_ENABLED_FOR_V2;
-    }
-
-    if (error) {
-      return Promise.reject(new BraintreeError(error));
-    }
-
-    analytics.sendEvent(options.client, 'three-d-secure.initialized');
-
-    instance = new ThreeDSecure({
+    var instance = new ThreeDSecure({
       client: options.client,
+      assetsUrl: assetsUrl,
+      createPromise: createPromise,
       loggingEnabled: options.loggingEnabled,
       cardinalSDKConfig: options.cardinalSDKConfig,
       framework: framework
     });
+
+    if (options.client) {
+      return createPromise.then(function () {
+        return instance;
+      });
+    }
 
     return instance;
   });

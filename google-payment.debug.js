@@ -674,21 +674,29 @@ var CREATE_PAYMENT_DATA_REQUEST_METHODS = {
  * @classdesc This class represents a Google Payment component produced by {@link module:braintree-web/google-payment.create|braintree-web/google-payment.create}. Instances of this class have methods for initializing the Google Pay flow.
  */
 function GooglePayment(options) {
+  this._createPromise = options.createPromise;
   this._client = options.client;
+  this._useDeferredClient = options.useDeferredClient;
   this._googlePayVersion = options.googlePayVersion || 1;
   this._googleMerchantId = options.googleMerchantId;
-}
 
-GooglePayment.prototype._initialize = function () {
   if (this._isUnsupportedGooglePayAPIVersion()) {
-    return Promise.reject(new BraintreeError({
+    throw new BraintreeError({
       code: errors.GOOGLE_PAYMENT_UNSUPPORTED_VERSION.code,
       message: 'The Braintree SDK does not support Google Pay version ' + this._googlePayVersion + '. Please upgrade the version of your Braintree SDK and contact support if this error persists.',
       type: errors.GOOGLE_PAYMENT_UNSUPPORTED_VERSION.type
-    }));
+    });
+  }
+}
+
+GooglePayment.prototype._waitForClient = function () {
+  if (this._client) {
+    return Promise.resolve();
   }
 
-  return Promise.resolve(this);
+  return this._createPromise.then(function (client) {
+    this._client = client;
+  }.bind(this));
 };
 
 GooglePayment.prototype._isUnsupportedGooglePayAPIVersion = function () {
@@ -777,14 +785,52 @@ GooglePayment.prototype._createV2PaymentDataRequest = function (paymentDataReque
  *   // handle response with googlePaymentInstance.parseResponse
  *   // (see below)
  * });
- * @returns {object} Returns a configuration object for Google PaymentDataRequest.
+ * @example <caption>With deferred client</caption>
+ * googlePaymentInstance.createPaymentDataRequest({
+ *   merchantInfo: {
+ *     merchantId: 'my-merchant-id-from-google'
+ *   },
+ *   transactionInfo: {
+ *     currencyCode: 'USD',
+ *     totalPriceStatus: 'FINAL',
+ *     totalPrice: '100.00'
+ *   }
+ * }).then(function (paymentDataRequest) {
+ *   // Update card payment methods to require billing address
+ *   var cardPaymentMethod = paymentDataRequest.allowedPaymentMethods;
+ *   cardPaymentMethod.parameters.billingAddressRequired = true;
+ *   cardPaymentMethod.parameters.billingAddressParameters = {
+ *     format: 'FULL',
+ *     phoneNumberRequired: true
+ *   };
+ *
+ *   var paymentsClient = new google.payments.api.PaymentsClient({
+ *     environment: 'TEST' // or 'PRODUCTION'
+ *   })
+ *
+ *   return paymentsClient.loadPaymentData(paymentDataRequest);
+ * }).then(function (response) {
+ *   // handle response with googlePaymentInstance.parseResponse
+ *   // (see below)
+ * });
+ * @returns {object|Promise} Returns a configuration object for Google PaymentDataRequest. If instantiated with `useDeferredClient` and an `authorization` it will return a promise that resolves with the configuration.
  */
 GooglePayment.prototype.createPaymentDataRequest = function (overrides) {
+  if (!this._useDeferredClient) {
+    return this._createPaymentDataRequestSyncronously(overrides);
+  }
+
+  return this._waitForClient().then(function () {
+    return this._createPaymentDataRequestSyncronously(overrides);
+  }.bind(this));
+};
+
+GooglePayment.prototype._createPaymentDataRequestSyncronously = function (overrides) {
   var paymentDataRequest = assign({}, overrides);
   var version = this._googlePayVersion;
   var createPaymentDataRequestMethod = CREATE_PAYMENT_DATA_REQUEST_METHODS[version];
 
-  analytics.sendEvent(this._client, 'google-payment.v' + version + '.createPaymentDataRequest');
+  analytics.sendEvent(this._createPromise, 'google-payment.v' + version + '.createPaymentDataRequest');
 
   return this[createPaymentDataRequestMethod](paymentDataRequest);
 };
@@ -822,7 +868,7 @@ GooglePayment.prototype.createPaymentDataRequest = function (overrides) {
  * @returns {(Promise|void)} Returns a promise that resolves the parsed response if no callback is provided.
  */
 GooglePayment.prototype.parseResponse = function (response) {
-  var client = this._client;
+  var self = this;
 
   return Promise.resolve().then(function () {
     var payload;
@@ -836,11 +882,11 @@ GooglePayment.prototype.parseResponse = function (response) {
       return Promise.reject(error);
     }
 
-    analytics.sendEvent(client, 'google-payment.parseResponse.succeeded');
+    analytics.sendEvent(self._createPromise, 'google-payment.parseResponse.succeeded');
 
     if (parsedResponse.paypalAccounts) {
       payload = parsedResponse.paypalAccounts[0];
-      analytics.sendEvent(client, 'google-payment.parseResponse.succeeded.paypal');
+      analytics.sendEvent(self._createPromise, 'google-payment.parseResponse.succeeded.paypal');
 
       return Promise.resolve({
         nonce: payload.nonce,
@@ -849,7 +895,7 @@ GooglePayment.prototype.parseResponse = function (response) {
       });
     }
     payload = parsedResponse.androidPayCards[0];
-    analytics.sendEvent(client, 'google-payment.parseResponse.succeeded.google-payment');
+    analytics.sendEvent(self._createPromise, 'google-payment.parseResponse.succeeded.google-payment');
 
     return Promise.resolve({
       nonce: payload.nonce,
@@ -864,7 +910,7 @@ GooglePayment.prototype.parseResponse = function (response) {
       binData: payload.binData
     });
   }).catch(function (error) {
-    analytics.sendEvent(client, 'google-payment.parseResponse.failed');
+    analytics.sendEvent(self._createPromise, 'google-payment.parseResponse.failed');
 
     return Promise.reject(new BraintreeError({
       code: errors.GOOGLE_PAYMENT_GATEWAY_ERROR.code,
@@ -918,15 +964,15 @@ module.exports = wrapPromise.wrapPrototype(GooglePayment);
  * @description A component to integrate with Google Pay. The majority of the integration uses [Google's pay.js JavaScript file](https://pay.google.com/gp/p/js/pay.js). The Braintree component generates the configuration object necessary for Google Pay to initiate the Payment Request and parse the returned data to retrieve the payment method nonce which is used to process the transaction on the server.
  */
 
-var basicComponentVerification = _dereq_('../lib/basic-component-verification');
-var BraintreeError = _dereq_('../lib/braintree-error');
-var errors = _dereq_('./errors');
 var GooglePayment = _dereq_('./google-payment');
-var createDeferredClient = _dereq_('../lib/create-deferred-client');
-var createAssetsUrl = _dereq_('../lib/create-assets-url');
+var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
+var createAssetsUrl = _dereq_('../lib/create-assets-url');
+var createDeferredClient = _dereq_('../lib/create-deferred-client');
+var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.59.0";
+var VERSION = "3.60.0";
+var errors = _dereq_('./errors');
 
 /**
  * @static
@@ -934,8 +980,9 @@ var VERSION = "3.59.0";
  * @param {object} options Creation options:
  * @param {Client} [options.client] A {@link Client} instance.
  * @param {string} [options.authorization] A tokenizationKey or clientToken. Can be used in place of `options.client`.
- * @param {Number} [options.googlePayVersion] The version of the Google Pay API to use. Value of 2 is required to accept parameters documented [by Google](https://developers.google.com/pay/api/web/reference/object). Omit this parameter to use the deprecated Google Pay Version 1.
- * @param {String} [options.googleMerchantId] A Google merchant identifier issued after your website is approved by Google. Required when PaymentsClient is initialized with an environment property of PRODUCTION, but may be omitted in TEST environment.
+ * @param {boolean} [options.useDeferredClient] Used in conjunction with `authorization`, allows the Google Payment instance to be available right away by fetching the client configuration in the background. When this option is used, {@link GooglePayment#createPaymentDataRequest} will return a promise that resolves with the configuration instead of returning synchronously.
+ * @param {number} [options.googlePayVersion] The version of the Google Pay API to use. Value of 2 is required to accept parameters documented [by Google](https://developers.google.com/pay/api/web/reference/object). Omit this parameter to use the deprecated Google Pay Version 1.
+ * @param {string} [options.googleMerchantId] A Google merchant identifier issued after your website is approved by Google. Required when PaymentsClient is initialized with an environment property of PRODUCTION, but may be omitted in TEST environment.
  * @param {callback} [callback] The second argument, `data`, is the {@link GooglePayment} instance. If no callback is provided, `create` returns a promise that resolves with the {@link GooglePayment} instance.
  * @example <caption>Simple Example</caption>
  * // include https://pay.google.com/gp/p/js/pay.js in a script tag
@@ -1047,25 +1094,37 @@ function create(options) {
     client: options.client,
     authorization: options.authorization
   }).then(function () {
-    return createDeferredClient.create({
+    var createPromise, instance;
+
+    createPromise = createDeferredClient.create({
       authorization: options.authorization,
       client: options.client,
       debug: options.debug,
       assetsUrl: createAssetsUrl.create(options.authorization),
       name: name
+    }).then(function (client) {
+      var configuration = client.getConfiguration();
+
+      options.client = client;
+      if (!configuration.gatewayConfiguration.androidPay) {
+        return Promise.reject(new BraintreeError(errors.GOOGLE_PAYMENT_NOT_ENABLED));
+      }
+
+      return client;
     });
-  }).then(function (client) {
-    var gp;
 
-    options.client = client;
+    options.createPromise = createPromise;
+    instance = new GooglePayment(options);
 
-    if (!options.client.getConfiguration().gatewayConfiguration.androidPay) {
-      return Promise.reject(new BraintreeError(errors.GOOGLE_PAYMENT_NOT_ENABLED));
+    if (!options.useDeferredClient) {
+      return createPromise.then(function (client) {
+        instance._client = client;
+
+        return instance;
+      });
     }
 
-    gp = new GooglePayment(options);
-
-    return gp._initialize();
+    return instance;
   });
 }
 
@@ -1188,7 +1247,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.59.0";
+var VERSION = "3.60.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1318,7 +1377,7 @@ module.exports = BraintreeError;
 },{"./enumerate":23}],18:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.59.0";
+var VERSION = "3.60.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1445,7 +1504,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.59.0";
+var VERSION = "3.60.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1573,7 +1632,7 @@ module.exports = function (array, key, value) {
 },{}],26:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.59.0";
+var VERSION = "3.60.0";
 var assign = _dereq_('./assign').assign;
 
 function generateTokenizationParameters(configuration, overrides) {

@@ -645,7 +645,33 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
  * @classdesc This class represents an Apple Pay component. Instances of this class have methods for validating the merchant server and tokenizing payments.
  */
 function ApplePay(options) {
+  this._instantiatedWithClient = Boolean(!options.useDeferredClient);
   this._client = options.client;
+  this._createPromise = options.createPromise;
+
+  if (this._client) {
+    this._setMerchantIdentifier();
+  }
+}
+
+ApplePay.prototype._waitForClient = function () {
+  if (this._client) {
+    return Promise.resolve();
+  }
+
+  return this._createPromise.then(function (client) {
+    this._client = client;
+
+    this._setMerchantIdentifier();
+  }.bind(this));
+};
+
+ApplePay.prototype._setMerchantIdentifier = function () {
+  var applePayConfig = this._client.getConfiguration().gatewayConfiguration.applePayWeb;
+
+  if (!applePayConfig) {
+    return;
+  }
   /**
    * @name ApplePay#merchantIdentifier
    * @description A special merchant ID which represents the merchant association with Braintree. Required when using `ApplePaySession.canMakePaymentsWithActiveCard`.
@@ -658,11 +684,11 @@ function ApplePay(options) {
    * });
    */
   Object.defineProperty(this, 'merchantIdentifier', {
-    value: this._client.getConfiguration().gatewayConfiguration.applePayWeb.merchantIdentifier,
+    value: applePayConfig.merchantIdentifier,
     configurable: false,
     writable: false
   });
-}
+};
 
 /**
  * Merges a payment request with Braintree defaults to return an {external:ApplePayPaymentRequest}.
@@ -674,7 +700,7 @@ function ApplePay(options) {
  * - `supportedNetworks`
  * @public
  * @param {external:ApplePayPaymentRequest} paymentRequest The payment request details to apply on top of those from Braintree.
- * @returns {external:ApplePayPaymentRequest} The decorated `paymentRequest` object.
+ * @returns {external:ApplePayPaymentRequest|Promise} The decorated `paymentRequest` object. If `useDeferredClient` is used along with an `authorization`, this method will return a promise that resolves with the `paymentRequest` object.
  * @example
  * var applePay = require('braintree-web/apple-pay');
  *
@@ -694,8 +720,40 @@ function ApplePay(options) {
  *   var session = new ApplePaySession(3, paymentRequest);
  *
  *   // ...
+ * @example <caption>With deferred client</caption>
+ * var applePay = require('braintree-web/apple-pay');
+ *
+ * applePay.create({
+ *   authorization: 'client-token-or-tokenization-key',
+ *   useDeferredClient: true
+ * }, function (applePayErr, applePayInstance) {
+ *   if (applePayErr) {
+ *     // Handle error here
+ *     return;
+ *   }
+ *
+ *   applePayInstance.createPaymentRequest({
+ *     total: {
+ *       label: 'My Company',
+ *       amount: '19.99'
+ *     }
+ *   }).then(function (paymentRequest) {
+ *     var session = new ApplePaySession(3, paymentRequest);
+ *
+ *     // ...
+ *   });
  */
 ApplePay.prototype.createPaymentRequest = function (paymentRequest) {
+  if (this._instantiatedWithClient) {
+    return this._createPaymentRequestSynchronously(paymentRequest);
+  }
+
+  return this._waitForClient().then(function () {
+    return this._createPaymentRequestSynchronously(paymentRequest);
+  }.bind(this));
+};
+
+ApplePay.prototype._createPaymentRequestSynchronously = function (paymentRequest) {
   var applePay = this._client.getConfiguration().gatewayConfiguration.applePayWeb;
   var defaults = {
     countryCode: applePay.countryCode,
@@ -752,30 +810,31 @@ ApplePay.prototype.createPaymentRequest = function (paymentRequest) {
  * });
  */
 ApplePay.prototype.performValidation = function (options) {
-  var applePayWebSession;
   var self = this;
 
   if (!options || !options.validationURL) {
     return Promise.reject(new BraintreeError(errors.APPLE_PAY_VALIDATION_URL_REQUIRED));
   }
 
-  applePayWebSession = {
-    validationUrl: options.validationURL,
-    domainName: options.domainName || global.location.hostname,
-    merchantIdentifier: options.merchantIdentifier || this.merchantIdentifier
-  };
+  return this._waitForClient().then(function () {
+    var applePayWebSession = {
+      validationUrl: options.validationURL,
+      domainName: options.domainName || global.location.hostname,
+      merchantIdentifier: options.merchantIdentifier || self.merchantIdentifier
+    };
 
-  if (options.displayName != null) {
-    applePayWebSession.displayName = options.displayName;
-  }
-
-  return this._client.request({
-    method: 'post',
-    endpoint: 'apple_pay_web/sessions',
-    data: {
-      _meta: {source: 'apple-pay'},
-      applePayWebSession: applePayWebSession
+    if (options.displayName != null) {
+      applePayWebSession.displayName = options.displayName;
     }
+
+    return self._client.request({
+      method: 'post',
+      endpoint: 'apple_pay_web/sessions',
+      data: {
+        _meta: {source: 'apple-pay'},
+        applePayWebSession: applePayWebSession
+      }
+    });
   }).then(function (response) {
     analytics.sendEvent(self._client, 'applepay.performValidation.succeeded');
 
@@ -855,18 +914,20 @@ ApplePay.prototype.tokenize = function (options) {
     return Promise.reject(new BraintreeError(errors.APPLE_PAY_PAYMENT_TOKEN_REQUIRED));
   }
 
-  return this._client.request({
-    method: 'post',
-    endpoint: 'payment_methods/apple_payment_tokens',
-    data: {
-      _meta: {
-        source: 'apple-pay'
-      },
-      applePaymentToken: Object.assign({}, options.token, {
-        // The gateway requires this key to be base64-encoded.
-        paymentData: btoa(JSON.stringify(options.token.paymentData))
-      })
-    }
+  return this._waitForClient().then(function () {
+    return self._client.request({
+      method: 'post',
+      endpoint: 'payment_methods/apple_payment_tokens',
+      data: {
+        _meta: {
+          source: 'apple-pay'
+        },
+        applePaymentToken: Object.assign({}, options.token, {
+          // The gateway requires this key to be base64-encoded.
+          paymentData: btoa(JSON.stringify(options.token.paymentData))
+        })
+      }
+    });
   }).then(function (response) {
     analytics.sendEvent(self._client, 'applepay.tokenize.succeeded');
 
@@ -973,15 +1034,15 @@ module.exports = {
  * @description Accept Apple Pay on the Web. *This component is currently in beta and is subject to change.*
  */
 
-var BraintreeError = _dereq_('../lib/braintree-error');
 var ApplePay = _dereq_('./apple-pay');
 var analytics = _dereq_('../lib/analytics');
+var BraintreeError = _dereq_('../lib/braintree-error');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
-var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
-var errors = _dereq_('./errors');
-var VERSION = "3.59.0";
+var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var Promise = _dereq_('../lib/promise');
+var errors = _dereq_('./errors');
+var VERSION = "3.60.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -990,6 +1051,7 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
  * @param {object} options Creation options:
  * @param {Client} [options.client] A {@link Client} instance.
  * @param {string} [options.authorization] A tokenizationKey or clientToken. Can be used in place of `options.client`.
+ * @param {boolean} [options.useDeferredClient] Used in conjunction with `authorization`, allows the Apple Pay instance to be available right away by fetching the client configuration in the background. When this option is used, {@link ApplePay#createPaymentRequest} will return a promise that resolves with the configuration instead of returning synchronously.
  * @param {callback} [callback] The second argument, `data`, is the {@link ApplePay} instance. If no callback is provided, `create` returns a promise that resolves with the {@link ApplePay} instance.
  * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
@@ -1001,23 +1063,35 @@ function create(options) {
     client: options.client,
     authorization: options.authorization
   }).then(function () {
-    return createDeferredClient.create({
+    var applePayInstance;
+    var createPromise = createDeferredClient.create({
       authorization: options.authorization,
       client: options.client,
       debug: options.debug,
       assetsUrl: createAssetsUrl.create(options.authorization),
       name: name
-    });
-  }).then(function (client) {
-    options.client = client;
+    }).then(function (client) {
+      if (!client.getConfiguration().gatewayConfiguration.applePayWeb) {
+        return Promise.reject(new BraintreeError(errors.APPLE_PAY_NOT_ENABLED));
+      }
 
-    if (!options.client.getConfiguration().gatewayConfiguration.applePayWeb) {
-      return Promise.reject(new BraintreeError(errors.APPLE_PAY_NOT_ENABLED));
+      analytics.sendEvent(client, 'applepay.initialized');
+
+      return client;
+    });
+
+    options.createPromise = createPromise;
+    applePayInstance = new ApplePay(options);
+
+    if (!options.useDeferredClient) {
+      return createPromise.then(function (client) {
+        applePayInstance._client = client;
+
+        return applePayInstance;
+      });
     }
 
-    analytics.sendEvent(options.client, 'applepay.initialized');
-
-    return new ApplePay(options);
+    return applePayInstance;
   });
 }
 
@@ -1115,7 +1189,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.59.0";
+var VERSION = "3.60.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1245,7 +1319,7 @@ module.exports = BraintreeError;
 },{"./enumerate":22}],17:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.59.0";
+var VERSION = "3.60.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1372,7 +1446,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.59.0";
+var VERSION = "3.60.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
