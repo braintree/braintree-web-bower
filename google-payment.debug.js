@@ -653,6 +653,7 @@ var CREATE_PAYMENT_DATA_REQUEST_METHODS = {
  * @property {string} details.lastFour Last four digits of card number.
  * @property {string} details.lastTwo Last two digits of card number.
  * @property {boolean} details.isNetworkTokenized True if the card is network tokenized.
+ * @property {string} details.bin First six digits of card number.
  * @property {string} description A human-readable description.
  * @property {string} type The payment method type, `CreditCard` or `AndroidPayCard`.
  * @property {object} binData Information about the card based on the bin.
@@ -905,7 +906,8 @@ GooglePayment.prototype.parseResponse = function (response) {
         cardType: payload.details.cardType,
         lastFour: payload.details.lastFour,
         lastTwo: payload.details.lastTwo,
-        isNetworkTokenized: payload.details.isNetworkTokenized
+        isNetworkTokenized: payload.details.isNetworkTokenized,
+        bin: payload.details.bin
       },
       binData: payload.binData
     });
@@ -971,7 +973,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.60.0";
+var VERSION = "3.61.0";
 var errors = _dereq_('./errors');
 
 /**
@@ -1247,7 +1249,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.60.0";
+var VERSION = "3.61.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1377,7 +1379,7 @@ module.exports = BraintreeError;
 },{"./enumerate":23}],18:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.60.0";
+var VERSION = "3.61.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1504,7 +1506,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.60.0";
+var VERSION = "3.61.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1632,7 +1634,7 @@ module.exports = function (array, key, value) {
 },{}],26:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.60.0";
+var VERSION = "3.61.0";
 var assign = _dereq_('./assign').assign;
 
 function generateTokenizationParameters(configuration, overrides) {
