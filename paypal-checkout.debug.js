@@ -1274,7 +1274,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.61.0";
+var VERSION = "3.62.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1576,7 +1576,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":30,"./check-origin":31,"./events":32,"framebus":23}],34:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.61.0";
+var VERSION = "3.62.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1725,7 +1725,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.61.0";
+var VERSION = "3.62.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -2679,7 +2679,7 @@ module.exports = {
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var PayPalCheckout = _dereq_('./paypal-checkout');
-var VERSION = "3.61.0";
+var VERSION = "3.62.0";
 
 /**
  * @static
@@ -2758,7 +2758,7 @@ var frameService = _dereq_('../lib/frame-service/external');
 var methods = _dereq_('../lib/methods');
 var useMin = _dereq_('../lib/use-min');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
-var VERSION = "3.61.0";
+var VERSION = "3.62.0";
 var INTEGRATION_TIMEOUT_MS = _dereq_('../lib/constants').INTEGRATION_TIMEOUT_MS;
 
 var REQUIRED_PARAMS_FOR_START_VAULT_INITIATED_CHECKOUT = [

@@ -1,10 +1,16 @@
 CHANGELOG
 =========
 
+## 3.62.0
+* Venmo
+  * Fix issue where a single page app's router may disrupt the Venmo tokenization
+  * Add `ignoreHistoryChanges` to create options
+  * Fix issue where Android webviews could not app switch correctly
+
 ## 3.61.0
 * Update sanitize-url to v4.0.1
 * Google Pay
-  * Add `bin` to GogglePayment `tokenizedPayload`
+  * Add `bin` to GooglePayment `tokenizedPayload`
 
 ## 3.60.0
 * Apple Pay

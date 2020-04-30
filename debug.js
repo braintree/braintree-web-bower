@@ -2090,7 +2090,7 @@ var AmericanExpress = _dereq_('./american-express');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
-var VERSION = "3.61.0";
+var VERSION = "3.62.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -2584,7 +2584,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var Promise = _dereq_('../lib/promise');
 var errors = _dereq_('./errors');
-var VERSION = "3.61.0";
+var VERSION = "3.62.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -3329,7 +3329,7 @@ module.exports = {
 
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Client = _dereq_('./client');
-var VERSION = "3.61.0";
+var VERSION = "3.62.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -4723,7 +4723,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var methods = _dereq_('../lib/methods');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
-var VERSION = "3.61.0";
+var VERSION = "3.62.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var errors = _dereq_('./errors');
@@ -5466,7 +5466,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.61.0";
+var VERSION = "3.62.0";
 var errors = _dereq_('./errors');
 
 /**
@@ -7274,7 +7274,7 @@ var supportsInputFormatting = _dereq_('restricted-input/supports-input-formattin
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.61.0";
+var VERSION = "3.62.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -7615,7 +7615,7 @@ module.exports = {
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.61.0";
+var VERSION = "3.62.0";
 
 var constants = {
   VERSION: VERSION,
@@ -8066,7 +8066,7 @@ var vaultManager = _dereq_('./vault-manager');
 var venmo = _dereq_('./venmo');
 var visaCheckout = _dereq_('./visa-checkout');
 var preferredPaymentMethods = _dereq_('./preferred-payment-methods');
-var VERSION = "3.61.0";
+var VERSION = "3.62.0";
 
 module.exports = {
   /** @type {module:braintree-web/american-express} */
@@ -8222,7 +8222,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.61.0";
+var VERSION = "3.62.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -8590,7 +8590,7 @@ module.exports = function (obj) {
 },{}],103:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.61.0";
+var VERSION = "3.62.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -8739,7 +8739,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.61.0";
+var VERSION = "3.62.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -9517,7 +9517,7 @@ module.exports = enumerate([
 },{"../../enumerate":111}],125:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.61.0";
+var VERSION = "3.62.0";
 var assign = _dereq_('./assign').assign;
 
 function generateTokenizationParameters(configuration, overrides) {
@@ -9900,7 +9900,7 @@ module.exports = {
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var useMin = _dereq_('../../lib/use-min');
-var VERSION = "3.61.0";
+var VERSION = "3.62.0";
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
 var methods = _dereq_('../../lib/methods');
@@ -10328,7 +10328,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var LocalPayment = _dereq_('./external/local-payment');
-var VERSION = "3.61.0";
+var VERSION = "3.62.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -10519,7 +10519,7 @@ var Promise = _dereq_('../../lib/promise');
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var errors = _dereq_('../shared/errors');
-var VERSION = "3.61.0";
+var VERSION = "3.62.0";
 var methods = _dereq_('../../lib/methods');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var analytics = _dereq_('../../lib/analytics');
@@ -10918,7 +10918,7 @@ var browserDetection = _dereq_('./shared/browser-detection');
 var Masterpass = _dereq_('./external/masterpass');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
-var VERSION = "3.61.0";
+var VERSION = "3.62.0";
 var errors = _dereq_('./shared/errors');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -11126,7 +11126,7 @@ var methods = _dereq_('../../lib/methods');
 var Promise = _dereq_('../../lib/promise');
 var EventEmitter = _dereq_('@braintree/event-emitter');
 var BraintreeError = _dereq_('../../lib/braintree-error');
-var VERSION = "3.61.0";
+var VERSION = "3.62.0";
 var constants = _dereq_('../shared/constants');
 var events = constants.events;
 var errors = constants.errors;
@@ -11814,7 +11814,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.61.0";
+var VERSION = "3.62.0";
 
 /**
  * @static
@@ -12114,7 +12114,7 @@ module.exports = {
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var PayPalCheckout = _dereq_('./paypal-checkout');
-var VERSION = "3.61.0";
+var VERSION = "3.62.0";
 
 /**
  * @static
@@ -12193,7 +12193,7 @@ var frameService = _dereq_('../lib/frame-service/external');
 var methods = _dereq_('../lib/methods');
 var useMin = _dereq_('../lib/use-min');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
-var VERSION = "3.61.0";
+var VERSION = "3.62.0";
 var INTEGRATION_TIMEOUT_MS = _dereq_('../lib/constants').INTEGRATION_TIMEOUT_MS;
 
 var REQUIRED_PARAMS_FOR_START_VAULT_INITIATED_CHECKOUT = [
@@ -13179,7 +13179,7 @@ var BraintreeError = _dereq_('../../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../../lib/convert-to-braintree-error');
 var useMin = _dereq_('../../lib/use-min');
 var once = _dereq_('../../lib/once');
-var VERSION = "3.61.0";
+var VERSION = "3.62.0";
 var constants = _dereq_('../shared/constants');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
@@ -13785,7 +13785,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var errors = _dereq_('./shared/errors');
 var PayPal = _dereq_('./external/paypal');
-var VERSION = "3.61.0";
+var VERSION = "3.62.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var Promise = _dereq_('../lib/promise');
 
@@ -13988,7 +13988,7 @@ module.exports = {
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var PreferredPaymentMethods = _dereq_('./preferred-payment-methods');
-var VERSION = "3.61.0";
+var VERSION = "3.62.0";
 
 /**
  * @static
@@ -14139,7 +14139,7 @@ var uuid = _dereq_('../../../lib/vendor/uuid');
 var events = _dereq_('../../shared/events');
 var useMin = _dereq_('../../../lib/use-min');
 
-var VERSION = "3.61.0";
+var VERSION = "3.62.0";
 var IFRAME_HEIGHT = 400;
 var IFRAME_WIDTH = 400;
 
@@ -14823,7 +14823,7 @@ var ExtendedPromise = _dereq_('@braintree/extended-promise');
 
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var PLATFORM = _dereq_('../../../lib/constants').PLATFORM;
-var VERSION = "3.61.0";
+var VERSION = "3.62.0";
 
 function SongbirdFramework(options) {
   BaseFramework.call(this, options);
@@ -16125,7 +16125,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.61.0";
+var VERSION = "3.62.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -16537,7 +16537,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.61.0";
+var VERSION = "3.62.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -16729,7 +16729,7 @@ var errors = _dereq_('./errors');
 var events = constants.events;
 var iFramer = _dereq_('@braintree/iframer');
 var methods = _dereq_('../../lib/methods');
-var VERSION = "3.61.0";
+var VERSION = "3.62.0";
 var uuid = _dereq_('../../lib/vendor/uuid');
 var Promise = _dereq_('../../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -17202,7 +17202,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var errors = _dereq_('./errors');
 var USBankAccount = _dereq_('./us-bank-account');
-var VERSION = "3.61.0";
+var VERSION = "3.62.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -17768,7 +17768,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var VaultManager = _dereq_('./vault-manager');
-var VERSION = "3.61.0";
+var VERSION = "3.62.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -18010,7 +18010,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var Venmo = _dereq_('./venmo');
 var Promise = _dereq_('../lib/promise');
 var supportsVenmo = _dereq_('./shared/supports-venmo');
-var VERSION = "3.61.0";
+var VERSION = "3.62.0";
 
 /**
  * @static
@@ -18019,6 +18019,7 @@ var VERSION = "3.61.0";
  * @param {Client} [options.client] A {@link Client} instance.
  * @param {string} [options.authorization] A tokenizationKey or clientToken. Can be used in place of `options.client`.
  * @param {boolean} [options.allowNewBrowserTab=true] This should be set to false if your payment flow requires returning to the same tab, e.g. single page applications. Doing so causes {@link Venmo#isBrowserSupported|isBrowserSupported} to return true only for mobile web browsers that support returning from the Venmo app to the same tab.
+ * @param {boolean} [options.ignoreHistoryChanges=false] When the Venmo app returns to the website, it will modify the hash of the url to include data about the tokenization. By default, the SDK will put the state of the hash back to where it was before the change was made. Pass `true` to handle the hash change instead of the SDK.
  * @param {string} [options.profileId] The Venmo profile ID to be used during payment authorization. Customers will see the business name and logo associated with this Venmo profile, and it will show up in the Venmo app as a "Connected Merchant". Venmo profile IDs can be found in the Braintree Control Panel. Omitting this value will use the default Venmo profile.
  * @param {string} [options.deepLinkReturnUrl] An override for the URL that the Venmo iOS app opens to return from an app switch.
  * @param {callback} [callback] The second argument, `data`, is the {@link Venmo} instance. If no callback is provided, `create` returns a promise that resolves with the {@link Venmo} instance.
@@ -18265,6 +18266,7 @@ function Venmo(options) {
   this._allowNewBrowserTab = options.allowNewBrowserTab !== false;
   this._profileId = options.profileId;
   this._deepLinkReturnUrl = options.deepLinkReturnUrl;
+  this._ignoreHistoryChanges = options.ignoreHistoryChanges;
 }
 
 Venmo.prototype.getUrl = function () {
@@ -18326,7 +18328,13 @@ Venmo.prototype.isBrowserSupported = function () {
  * @returns {boolean} True if the results of Venmo payment authorization are available and ready to process.
  */
 Venmo.prototype.hasTokenizationResult = function () {
-  var params = getFragmentParameters();
+  return this._hasTokenizationResult();
+};
+
+// a private version that lets us pass in a custom hash
+// when listening on a hashchange event
+Venmo.prototype._hasTokenizationResult = function (hash) {
+  var params = getFragmentParameters(hash);
 
   return typeof (params.venmoSuccess || params.venmoError || params.venmoCancel) !== 'undefined';
 };
@@ -18371,6 +18379,7 @@ Venmo.prototype.hasTokenizationResult = function () {
  */
 Venmo.prototype.tokenize = function (options) {
   var self = this;
+  var resultProcessingInProgress, visibilityChangeListenerTimeout;
 
   options = options || {};
 
@@ -18385,38 +18394,70 @@ Venmo.prototype.tokenize = function (options) {
   this._tokenizationInProgress = true;
   this._tokenizePromise = new ExtendedPromise();
 
-  // Subscribe to document visibility change events to detect when app switch
-  // has returned.
   this._previousHash = global.location.hash;
-  this._visibilityChangeListener = function () {
+
+  function completeFlow(hash) {
     var error;
+
+    self._processResults(hash).catch(function (err) {
+      error = err;
+    }).then(function (res) {
+      if (!self._ignoreHistoryChanges && global.location.hash !== self._previousHash) {
+        global.location.hash = self._previousHash;
+      }
+      self._removeVisibilityEventListener();
+
+      if (error) {
+        self._tokenizePromise.reject(error);
+      } else {
+        self._tokenizePromise.resolve(res);
+      }
+      delete self._tokenizePromise;
+    });
+  }
+
+  // The Venmo SDK app switches back with the results of the
+  // tokenization encoded in the hash
+  this._onHashChangeListener = function (e) {
+    var hash = e.newURL.split('#')[1];
+
+    if (!self._hasTokenizationResult(hash)) {
+      return;
+    }
+
+    resultProcessingInProgress = true;
+    clearTimeout(visibilityChangeListenerTimeout);
+    self._tokenizationInProgress = false;
+    completeFlow(hash);
+  };
+
+  window.addEventListener('hashchange', this._onHashChangeListener, false);
+
+  // Subscribe to document visibility change events to detect when app switch
+  // has returned. Acts as a fallback for the hashchange listener and catches
+  // the cancel case via manual app switch back
+  this._visibilityChangeListener = function () {
+    var delay = options.processResultsDelay || constants.DEFAULT_PROCESS_RESULTS_DELAY;
 
     if (!global.document.hidden) {
       self._tokenizationInProgress = false;
 
-      setTimeout(function () {
-        self._processResults().catch(function (err) {
-          error = err;
-        }).then(function (res) {
-          global.location.hash = self._previousHash;
-          self._removeVisibilityEventListener();
-          delete self._visibilityChangeListener;
-
-          if (error) {
-            self._tokenizePromise.reject(error);
-          } else {
-            self._tokenizePromise.resolve(res);
-          }
-          delete self._tokenizePromise;
-        });
-      }, options.processResultsDelay || constants.DEFAULT_PROCESS_RESULTS_DELAY);
+      if (!resultProcessingInProgress) {
+        visibilityChangeListenerTimeout = setTimeout(completeFlow, delay);
+      }
     }
   };
 
   return this.getUrl().then(function (url) {
-    // Deep link URLs do not launch iOS apps from a webview when using window.open or PopupBridge.open.
     if (self._deepLinkReturnUrl) {
-      global.location = url;
+      if (isIosWebview()) {
+        // Deep link URLs do not launch iOS apps from a webview when using window.open or PopupBridge.open.
+        global.location.href = url;
+      } else if (global.popupBridge && typeof global.popupBridge.open === 'function') {
+        global.popupBridge.open(url);
+      } else {
+        global.open(url);
+      }
     } else {
       global.open(url);
     }
@@ -18450,12 +18491,16 @@ Venmo.prototype.teardown = function () {
 };
 
 Venmo.prototype._removeVisibilityEventListener = function () {
+  global.removeEventListener('hashchange', this._onHashChangeListener);
   global.document.removeEventListener(documentVisibilityChangeEventName(), this._visibilityChangeListener);
+
+  delete this._visibilityChangeListener;
+  delete this._onHashChangeListener;
 };
 
-Venmo.prototype._processResults = function () {
+Venmo.prototype._processResults = function (hash) {
   var self = this;
-  var params = getFragmentParameters();
+  var params = getFragmentParameters(hash);
 
   return new Promise(function (resolve, reject) {
     if (params.venmoSuccess) {
@@ -18483,12 +18528,22 @@ Venmo.prototype._processResults = function () {
       reject(new BraintreeError(errors.VENMO_CANCELED));
     }
 
-    clearFragmentParameters();
+    self._clearFragmentParameters();
   });
 };
 
-function getFragmentParameters() {
-  var keyValuesArray = global.location.hash.substring(1).split('&');
+Venmo.prototype._clearFragmentParameters = function () {
+  if (this._ignoreHistoryChanges) {
+    return;
+  }
+
+  if (typeof global.history.replaceState === 'function' && global.location.hash) {
+    history.pushState({}, '', global.location.href.slice(0, global.location.href.indexOf('#')));
+  }
+};
+
+function getFragmentParameters(hash) {
+  var keyValuesArray = (hash || global.location.hash.substring(1)).split('&');
 
   return keyValuesArray.reduce(function (toReturn, keyValue) {
     var parts = keyValue.split('=');
@@ -18503,12 +18558,6 @@ function getFragmentParameters() {
 
     return toReturn;
   }, {});
-}
-
-function clearFragmentParameters() {
-  if (typeof global.history.replaceState === 'function' && global.location.hash) {
-    history.pushState({}, '', global.location.href.slice(0, global.location.href.indexOf('#')));
-  }
 }
 
 function formatTokenizePayload(fragmentParams) {
@@ -18534,6 +18583,14 @@ function documentVisibilityChangeEventName() {
   }
 
   return visibilityChange;
+}
+
+function isIosWebview() {
+  // we know it's a webview because this flow only gets
+  // used when checking the deep link flow
+  // test the platform here to get around custom useragents
+  return global.navigator.platform &&
+    /iPhone|iPad|iPod/.test(global.navigator.platform);
 }
 
 module.exports = wrapPromise.wrapPrototype(Venmo);
@@ -18601,7 +18658,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var VisaCheckout = _dereq_('./visa-checkout');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./errors');
-var VERSION = "3.61.0";
+var VERSION = "3.62.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
