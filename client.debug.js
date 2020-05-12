@@ -1305,7 +1305,7 @@ module.exports = {
 
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Client = _dereq_('./client');
-var VERSION = "3.62.0";
+var VERSION = "3.62.1";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -1682,6 +1682,7 @@ function adaptConfigurationResponseBody(body, ctx) {
       enabled: true,
       environment: configuration.googlePay.environment.toLowerCase(),
       googleAuthorizationFingerprint: configuration.googlePay.googleAuthorization,
+      paypalClientId: configuration.googlePay.paypalClientId,
       supportedNetworks: mapCardTypes(configuration.googlePay.supportedCardBrands, cardTypeTransforms.googlePay)
     };
   }
@@ -1964,6 +1965,7 @@ var CONFIGURATION_QUERY = 'query ClientConfiguration { ' +
 '      supportedCardBrands ' +
 '      environment ' +
 '      googleAuthorization ' +
+'      paypalClientId ' +
 '    } ' +
 '    ideal { ' +
 '      routeId ' +
@@ -2744,7 +2746,7 @@ module.exports = BraintreeError;
 },{"./enumerate":44}],39:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.62.0";
+var VERSION = "3.62.1";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
