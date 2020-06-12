@@ -676,7 +676,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.62.1";
+var VERSION = "3.62.2";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -806,7 +806,7 @@ module.exports = BraintreeError;
 },{"./enumerate":18}],14:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.62.1";
+var VERSION = "3.62.2";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -915,7 +915,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.62.1";
+var VERSION = "3.62.2";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1093,7 +1093,7 @@ module.exports = {
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var PreferredPaymentMethods = _dereq_('./preferred-payment-methods');
-var VERSION = "3.62.1";
+var VERSION = "3.62.2";
 
 /**
  * @static
@@ -1188,6 +1188,12 @@ PreferredPaymentMethods.prototype.initialize = function (options) {
  *   } else {
  *     // PayPal not preferred
  *   }
+ *
+ *   if (result.venmoPreferred) {
+ *     // Venmo preferred
+ *   } else {
+ *     // Venmo not preferred
+ *   }
  * });
  */
 PreferredPaymentMethods.prototype.fetchPreferredPaymentMethods = function () {
@@ -1200,16 +1206,24 @@ PreferredPaymentMethods.prototype.fetchPreferredPaymentMethods = function () {
     return client.request({
       api: 'graphQLApi',
       data: {
-        query: 'query ClientConfiguration { clientConfiguration { paypal { paymentMethodAvailableOnDevice } } }'
+        query: 'query PreferredPaymentMethods { ' +
+          'preferredPaymentMethods { ' +
+            'paypalPreferred ' +
+            'venmoPreferred ' +
+          '} ' +
+        '}'
       }
     });
   }).then(function (result) {
-    var paypalPreferred = result.data.clientConfiguration.paypal.paymentMethodAvailableOnDevice;
+    var paypalPreferred = result.data.preferredPaymentMethods.paypalPreferred;
+    var venmoPreferred = result.data.preferredPaymentMethods.venmoPreferred;
 
     analytics.sendEvent(client, 'preferred-payment-methods.paypal.api-detected.' + paypalPreferred);
+    analytics.sendEvent(client, 'preferred-payment-methods.venmo.api-detected.' + venmoPreferred);
 
     return {
-      paypalPreferred: paypalPreferred
+      paypalPreferred: paypalPreferred,
+      venmoPreferred: venmoPreferred
     };
   }).catch(function () {
     if (self._setupError) {
@@ -1219,7 +1233,8 @@ PreferredPaymentMethods.prototype.fetchPreferredPaymentMethods = function () {
     analytics.sendEvent(client, 'preferred-payment-methods.api-error');
 
     return {
-      paypalPreferred: false
+      paypalPreferred: false,
+      venmoPreferred: false
     };
   });
 };
