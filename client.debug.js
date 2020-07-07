@@ -97,7 +97,6 @@ module.exports = function isIe9(ua) {
 };
 
 },{}],6:[function(_dereq_,module,exports){
-(function (global){
 'use strict';
 
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise#Methods
@@ -162,7 +161,10 @@ ExtendedPromise.setPromise = function (PromiseClass) {
 };
 
 // default to system level Promise, but allow it to be overwritten
-ExtendedPromise.setPromise(global.Promise);
+if (typeof Promise !== 'undefined') {
+  // eslint-disable-next-line no-undef
+  ExtendedPromise.setPromise(Promise);
+}
 
 ExtendedPromise.defaultOnResolve = function (result) {
   return ExtendedPromise.Promise.resolve(result);
@@ -230,7 +232,6 @@ ExtendedPromise.prototype._setRejected = function () {
 
 module.exports = ExtendedPromise;
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],7:[function(_dereq_,module,exports){
 'use strict';
 
@@ -1196,7 +1197,6 @@ module.exports = {
 };
 
 },{"../lib/braintree-error":38}],16:[function(_dereq_,module,exports){
-(function (global){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -1217,7 +1217,7 @@ function getConfiguration(authData) {
     var configuration, attrs, configUrl, reqOptions;
     var sessionId = uuid();
     var analyticsMetadata = {
-      merchantAppId: global.location.host,
+      merchantAppId: window.location.host,
       platform: constants.PLATFORM,
       sdkVersion: constants.VERSION,
       source: constants.SOURCE,
@@ -1299,13 +1299,12 @@ module.exports = {
   getConfiguration: wrapPromise(getConfiguration)
 };
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"../lib/braintree-error":38,"../lib/constants":39,"../lib/is-date-string-before-or-on":46,"../lib/promise":51,"../lib/vendor/uuid":54,"./constants":14,"./errors":15,"./request":28,"./request/graphql":26,"@braintree/wrap-promise":10}],17:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Client = _dereq_('./client');
-var VERSION = "3.62.2";
+var VERSION = "3.63.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -1544,14 +1543,12 @@ DefaultRequest.prototype.determineStatus = function (status) {
 module.exports = DefaultRequest;
 
 },{}],20:[function(_dereq_,module,exports){
-(function (global){
 'use strict';
 
 module.exports = function getUserAgent() {
-  return global.navigator.userAgent;
+  return window.navigator.userAgent;
 };
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],21:[function(_dereq_,module,exports){
 'use strict';
 
@@ -2392,16 +2389,13 @@ module.exports = function (options, cb) {
 };
 
 },{"../../lib/once":50,"./ajax-driver":18,"./get-user-agent":20,"./is-http":29,"./jsonp-driver":30}],29:[function(_dereq_,module,exports){
-(function (global){
 'use strict';
 
 module.exports = function () {
-  return global.location.protocol === 'http:';
+  return window.location.protocol === 'http:';
 };
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],30:[function(_dereq_,module,exports){
-(function (global){
 'use strict';
 
 var head;
@@ -2422,7 +2416,7 @@ function _createScriptTag(url, callbackName) {
   script.src = url;
   script.async = true;
   script.onerror = function () {
-    global[callbackName]({message: 'error', status: 500});
+    window[callbackName]({message: 'error', status: 500});
   };
 
   script.onload = script.onreadystatechange = function () {
@@ -2439,9 +2433,9 @@ function _createScriptTag(url, callbackName) {
 
 function _cleanupGlobal(callbackName) {
   try {
-    delete global[callbackName];
+    delete window[callbackName];
   } catch (_) {
-    global[callbackName] = null;
+    window[callbackName] = null;
   }
 }
 
@@ -2449,19 +2443,19 @@ function _setupTimeout(timeout, callbackName) {
   timeouts[callbackName] = setTimeout(function () {
     timeouts[callbackName] = null;
 
-    global[callbackName]({
+    window[callbackName]({
       error: 'timeout',
       status: -1
     });
 
-    global[callbackName] = function () {
+    window[callbackName] = function () {
       _cleanupGlobal(callbackName);
     };
   }, timeout);
 }
 
 function _setupGlobalCallback(script, callback, callbackName) {
-  global[callbackName] = function (response) {
+  window[callbackName] = function (response) {
     var status = response.status || 500;
     var err = null;
     var data = null;
@@ -2511,7 +2505,6 @@ module.exports = {
   request: request
 };
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"../../lib/querystring":52,"../../lib/vendor/uuid":54}],31:[function(_dereq_,module,exports){
 'use strict';
 
@@ -2539,13 +2532,12 @@ module.exports = function (method, body) {
 };
 
 },{}],33:[function(_dereq_,module,exports){
-(function (global){
 'use strict';
 
-var isXHRAvailable = global.XMLHttpRequest && 'withCredentials' in new global.XMLHttpRequest();
+var isXHRAvailable = typeof window !== 'undefined' && window.XMLHttpRequest && 'withCredentials' in new window.XMLHttpRequest();
 
 function getRequestObject() {
-  return isXHRAvailable ? new global.XMLHttpRequest() : new global.XDomainRequest();
+  return isXHRAvailable ? new window.XMLHttpRequest() : new window.XDomainRequest();
 }
 
 module.exports = {
@@ -2553,7 +2545,6 @@ module.exports = {
   getRequestObject: getRequestObject
 };
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],34:[function(_dereq_,module,exports){
 'use strict';
 
@@ -2746,7 +2737,7 @@ module.exports = BraintreeError;
 },{"./enumerate":44}],39:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.62.2";
+var VERSION = "3.63.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -3017,20 +3008,20 @@ module.exports = function (obj) {
 },{}],50:[function(_dereq_,module,exports){
 arguments[4][8][0].apply(exports,arguments)
 },{"dup":8}],51:[function(_dereq_,module,exports){
-(function (global){
 'use strict';
 
-var Promise = global.Promise || _dereq_('promise-polyfill');
+var PromisePolyfill = _dereq_('promise-polyfill');
 var ExtendedPromise = _dereq_('@braintree/extended-promise');
 
+// eslint-disable-next-line no-undef
+var PromiseGlobal = typeof Promise !== 'undefined' ? Promise : PromisePolyfill;
+
 ExtendedPromise.suppressUnhandledPromiseMessage = true;
-ExtendedPromise.setPromise(Promise);
+ExtendedPromise.setPromise(PromiseGlobal);
 
-module.exports = Promise;
+module.exports = PromiseGlobal;
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"@braintree/extended-promise":6,"promise-polyfill":11}],52:[function(_dereq_,module,exports){
-(function (global){
 'use strict';
 
 function _notEmpty(obj) {
@@ -3053,7 +3044,7 @@ function _isArray(value) {
 function parse(url) {
   var query, params;
 
-  url = url || global.location.href;
+  url = url || window.location.href;
 
   if (!/\?/.test(url)) {
     return {};
@@ -3122,14 +3113,12 @@ module.exports = {
   queryify: queryify
 };
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],53:[function(_dereq_,module,exports){
-(function (global){
 'use strict';
 
-var atobNormalized = typeof global.atob === 'function' ? global.atob : atob;
+var atobNormalized = typeof atob === 'function' ? window.atob : atobPolyfill;
 
-function atob(base64String) {
+function atobPolyfill(base64String) {
   var a, b, c, b1, b2, b3, b4, i;
   var base64Matcher = new RegExp('^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})([=]{1,2})?$');
   var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
@@ -3158,12 +3147,11 @@ function atob(base64String) {
 
 module.exports = {
   atob: function (base64String) {
-    return atobNormalized.call(global, base64String);
+    return atobNormalized.call(window, base64String);
   },
-  _atob: atob
+  _atob: atobPolyfill
 };
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],54:[function(_dereq_,module,exports){
 'use strict';
 

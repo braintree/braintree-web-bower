@@ -66,7 +66,6 @@ loadScript.clearCache = function () {
 module.exports = loadScript;
 
 },{"./lib/promise":1}],3:[function(_dereq_,module,exports){
-(function (global){
 'use strict';
 
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise#Methods
@@ -131,7 +130,10 @@ ExtendedPromise.setPromise = function (PromiseClass) {
 };
 
 // default to system level Promise, but allow it to be overwritten
-ExtendedPromise.setPromise(global.Promise);
+if (typeof Promise !== 'undefined') {
+  // eslint-disable-next-line no-undef
+  ExtendedPromise.setPromise(Promise);
+}
 
 ExtendedPromise.defaultOnResolve = function (result) {
   return ExtendedPromise.Promise.resolve(result);
@@ -199,7 +201,6 @@ ExtendedPromise.prototype._setRejected = function () {
 
 module.exports = ExtendedPromise;
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],4:[function(_dereq_,module,exports){
 'use strict';
 
@@ -592,7 +593,6 @@ Promise._unhandledRejectionFn = function _unhandledRejectionFn(err) {
 module.exports = Promise;
 
 },{}],9:[function(_dereq_,module,exports){
-(function (global){
 'use strict';
 
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -819,7 +819,7 @@ ApplePay.prototype.performValidation = function (options) {
   return this._waitForClient().then(function () {
     var applePayWebSession = {
       validationUrl: options.validationURL,
-      domainName: options.domainName || global.location.hostname,
+      domainName: options.domainName || window.location.hostname,
       merchantIdentifier: options.merchantIdentifier || self.merchantIdentifier
     };
 
@@ -966,7 +966,6 @@ ApplePay.prototype.teardown = function () {
 
 module.exports = wrapPromise.wrapPrototype(ApplePay);
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"../lib/analytics":13,"../lib/braintree-error":16,"../lib/convert-methods-to-error":18,"../lib/methods":25,"../lib/promise":26,"./errors":10,"@braintree/wrap-promise":7}],10:[function(_dereq_,module,exports){
 'use strict';
 
@@ -1042,7 +1041,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var Promise = _dereq_('../lib/promise');
 var errors = _dereq_('./errors');
-var VERSION = "3.62.2";
+var VERSION = "3.63.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -1189,7 +1188,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.62.2";
+var VERSION = "3.63.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1319,7 +1318,7 @@ module.exports = BraintreeError;
 },{"./enumerate":22}],17:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.62.2";
+var VERSION = "3.63.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1438,7 +1437,6 @@ function createAuthorizationData(authorization) {
 module.exports = createAuthorizationData;
 
 },{"../lib/constants":17,"../lib/vendor/polyfill":27}],21:[function(_dereq_,module,exports){
-(function (global){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -1446,7 +1444,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.62.2";
+var VERSION = "3.63.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1455,7 +1453,7 @@ function createDeferredClient(options) {
     return Promise.resolve(options.client);
   }
 
-  if (!(global.braintree && global.braintree.client)) {
+  if (!(window.braintree && window.braintree.client)) {
     promise = assets.loadScript({
       src: options.assetsUrl + '/web/' + VERSION + '/js/client.min.js'
     }).catch(function (err) {
@@ -1471,15 +1469,15 @@ function createDeferredClient(options) {
   }
 
   return promise.then(function () {
-    if (global.braintree.client.VERSION !== VERSION) {
+    if (window.braintree.client.VERSION !== VERSION) {
       return Promise.reject(new BraintreeError({
         type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
         code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
-        message: 'Client (version ' + global.braintree.client.VERSION + ') and ' + options.name + ' (version ' + VERSION + ') components must be from the same SDK version.'
+        message: 'Client (version ' + window.braintree.client.VERSION + ') and ' + options.name + ' (version ' + VERSION + ') components must be from the same SDK version.'
       }));
     }
 
-    return global.braintree.client.create({
+    return window.braintree.client.create({
       authorization: options.authorization,
       debug: options.debug
     });
@@ -1490,7 +1488,6 @@ module.exports = {
   create: createDeferredClient
 };
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"./assets":14,"./braintree-error":16,"./errors":23,"./promise":26}],22:[function(_dereq_,module,exports){
 'use strict';
 
@@ -1573,25 +1570,25 @@ module.exports = function (obj) {
 };
 
 },{}],26:[function(_dereq_,module,exports){
-(function (global){
 'use strict';
 
-var Promise = global.Promise || _dereq_('promise-polyfill');
+var PromisePolyfill = _dereq_('promise-polyfill');
 var ExtendedPromise = _dereq_('@braintree/extended-promise');
 
+// eslint-disable-next-line no-undef
+var PromiseGlobal = typeof Promise !== 'undefined' ? Promise : PromisePolyfill;
+
 ExtendedPromise.suppressUnhandledPromiseMessage = true;
-ExtendedPromise.setPromise(Promise);
+ExtendedPromise.setPromise(PromiseGlobal);
 
-module.exports = Promise;
+module.exports = PromiseGlobal;
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"@braintree/extended-promise":3,"promise-polyfill":8}],27:[function(_dereq_,module,exports){
-(function (global){
 'use strict';
 
-var atobNormalized = typeof global.atob === 'function' ? global.atob : atob;
+var atobNormalized = typeof atob === 'function' ? window.atob : atobPolyfill;
 
-function atob(base64String) {
+function atobPolyfill(base64String) {
   var a, b, c, b1, b2, b3, b4, i;
   var base64Matcher = new RegExp('^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})([=]{1,2})?$');
   var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
@@ -1620,11 +1617,10 @@ function atob(base64String) {
 
 module.exports = {
   atob: function (base64String) {
-    return atobNormalized.call(global, base64String);
+    return atobNormalized.call(window, base64String);
   },
-  _atob: atob
+  _atob: atobPolyfill
 };
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}]},{},[11])(11)
 });
