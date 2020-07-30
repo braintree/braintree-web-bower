@@ -1,429 +1,396 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}(g.braintree || (g.braintree = {})).venmo = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(_dereq_,module,exports){
-(function (global){
-'use strict';
-
-var PromisePolyfill = _dereq_('promise-polyfill');
-
-module.exports = global.Promise || PromisePolyfill;
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":17}],2:[function(_dereq_,module,exports){
-'use strict';
-
-var Promise = _dereq_('./lib/promise');
-var scriptPromiseCache = {};
-
-function loadScript(options) {
-  var attrs, container, script, scriptLoadPromise;
-  var stringifiedOptions = JSON.stringify(options);
-
-  if (!options.forceScriptReload) {
-    scriptLoadPromise = scriptPromiseCache[stringifiedOptions];
-
-    if (scriptLoadPromise) {
-      return scriptLoadPromise;
-    }
-  }
-
-  script = document.createElement('script');
-  attrs = options.dataAttributes || {};
-  container = options.container || document.head;
-
-  script.src = options.src;
-  script.id = options.id;
-  script.async = true;
-
-  if (options.crossorigin) {
-    script.setAttribute('crossorigin', options.crossorigin);
-  }
-
-  Object.keys(attrs).forEach(function (key) {
-    script.setAttribute('data-' + key, attrs[key]);
-  });
-
-  scriptLoadPromise = new Promise(function (resolve, reject) {
-    script.addEventListener('load', function () {
-      resolve(script);
-    });
-    script.addEventListener('error', function () {
-      reject(new Error(options.src + ' failed to load.'));
-    });
-    script.addEventListener('abort', function () {
-      reject(new Error(options.src + ' has aborted.'));
-    });
-    container.appendChild(script);
-  });
-
-  scriptPromiseCache[stringifiedOptions] = scriptLoadPromise;
-
-  return scriptLoadPromise;
-}
-
-loadScript.clearCache = function () {
-  scriptPromiseCache = {};
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
 };
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.PromiseGlobal = void 0;
+var promise_polyfill_1 = __importDefault(_dereq_("promise-polyfill"));
+var PromiseGlobal = 
+// eslint-disable-next-line no-undef
+typeof Promise !== "undefined" ? Promise : promise_polyfill_1.default;
+exports.PromiseGlobal = PromiseGlobal;
 
+},{"promise-polyfill":24}],2:[function(_dereq_,module,exports){
+"use strict";
+var promise_1 = _dereq_("./lib/promise");
+var scriptPromiseCache = {};
+function loadScript(options) {
+    var scriptLoadPromise;
+    var stringifiedOptions = JSON.stringify(options);
+    if (!options.forceScriptReload) {
+        scriptLoadPromise = scriptPromiseCache[stringifiedOptions];
+        if (scriptLoadPromise) {
+            return scriptLoadPromise;
+        }
+    }
+    var script = document.createElement("script");
+    var attrs = options.dataAttributes || {};
+    var container = options.container || document.head;
+    script.src = options.src;
+    script.id = options.id || "";
+    script.async = true;
+    if (options.crossorigin) {
+        script.setAttribute("crossorigin", "" + options.crossorigin);
+    }
+    Object.keys(attrs).forEach(function (key) {
+        script.setAttribute("data-" + key, "" + attrs[key]);
+    });
+    scriptLoadPromise = new promise_1.PromiseGlobal(function (resolve, reject) {
+        script.addEventListener("load", function () {
+            resolve(script);
+        });
+        script.addEventListener("error", function () {
+            reject(new Error(options.src + " failed to load."));
+        });
+        script.addEventListener("abort", function () {
+            reject(new Error(options.src + " has aborted."));
+        });
+        container.appendChild(script);
+    });
+    scriptPromiseCache[stringifiedOptions] = scriptLoadPromise;
+    return scriptLoadPromise;
+}
+loadScript.clearCache = function () {
+    scriptPromiseCache = {};
+};
 module.exports = loadScript;
 
 },{"./lib/promise":1}],3:[function(_dereq_,module,exports){
-(function (global){
-'use strict';
+module.exports = _dereq_("./dist/load-script");
 
+},{"./dist/load-script":2}],4:[function(_dereq_,module,exports){
+"use strict";
 module.exports = function isAndroid(ua) {
-  ua = ua || global.navigator.userAgent;
-
-  return /Android/.test(ua);
+    ua = ua || window.navigator.userAgent;
+    return /Android/.test(ua);
 };
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],4:[function(_dereq_,module,exports){
-'use strict';
-
-var isEdge = _dereq_('./is-edge');
-var isSamsung = _dereq_('./is-samsung');
-
+},{}],5:[function(_dereq_,module,exports){
+"use strict";
+var isEdge = _dereq_("./is-edge");
+var isSamsung = _dereq_("./is-samsung");
 module.exports = function isChrome(ua) {
-  ua = ua || navigator.userAgent;
-
-  return (ua.indexOf('Chrome') !== -1 || ua.indexOf('CriOS') !== -1) && !isEdge(ua) && !isSamsung(ua);
+    ua = ua || window.navigator.userAgent;
+    return ((ua.indexOf("Chrome") !== -1 || ua.indexOf("CriOS") !== -1) &&
+        !isEdge(ua) &&
+        !isSamsung(ua));
 };
 
-},{"./is-edge":5,"./is-samsung":11}],5:[function(_dereq_,module,exports){
-'use strict';
-
+},{"./is-edge":6,"./is-samsung":12}],6:[function(_dereq_,module,exports){
+"use strict";
 module.exports = function isEdge(ua) {
-  ua = ua || navigator.userAgent;
-
-  return ua.indexOf('Edge/') !== -1;
+    ua = ua || window.navigator.userAgent;
+    return ua.indexOf("Edge/") !== -1;
 };
 
-},{}],6:[function(_dereq_,module,exports){
-(function (global){
-'use strict';
-
-module.exports = function isFirefox(ua) {
-  ua = ua || global.navigator.userAgent;
-
-  return /Firefox/i.test(ua);
-};
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],7:[function(_dereq_,module,exports){
-(function (global){
-'use strict';
-
-module.exports = function isIosFirefox(ua) {
-  ua = ua || global.navigator.userAgent;
-
-  return /FxiOS/i.test(ua);
+"use strict";
+module.exports = function isFirefox(ua) {
+    ua = ua || window.navigator.userAgent;
+    return /Firefox/i.test(ua);
 };
 
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],8:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
+module.exports = function isIosFirefox(ua) {
+    ua = ua || window.navigator.userAgent;
+    return /FxiOS/i.test(ua);
+};
 
-var isIos = _dereq_('./is-ios');
+},{}],9:[function(_dereq_,module,exports){
+"use strict";
+var isIos = _dereq_("./is-ios");
 var webkitRegexp = /webkit/i;
-
 function isWebkit(ua) {
-  return ua.match(webkitRegexp);
+    return webkitRegexp.test(ua);
 }
-
 module.exports = function isIosSafari(ua) {
-  ua = ua || navigator.userAgent;
-
-  return isIos(ua) && isWebkit(ua) && ua.indexOf('CriOS') === -1;
+    ua = ua || window.navigator.userAgent;
+    return isIos(ua) && isWebkit(ua) && ua.indexOf("CriOS") === -1;
 };
 
-},{"./is-ios":9}],9:[function(_dereq_,module,exports){
-(function (global){
-'use strict';
-
+},{"./is-ios":10}],10:[function(_dereq_,module,exports){
+"use strict";
 module.exports = function isIos(ua) {
-  ua = ua || global.navigator.userAgent;
-
-  return /iPhone|iPod|iPad/i.test(ua);
+    ua = ua || window.navigator.userAgent;
+    return /iPhone|iPod|iPad/i.test(ua);
 };
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],10:[function(_dereq_,module,exports){
-(function (global){
-'use strict';
-
-var isIosFirefox = _dereq_('./is-ios-firefox');
-var isFirefox = _dereq_('./is-firefox');
-
+},{}],11:[function(_dereq_,module,exports){
+"use strict";
+var isIosFirefox = _dereq_("./is-ios-firefox");
+var isFirefox = _dereq_("./is-firefox");
 module.exports = function isMobileFirefox(ua) {
-  ua = ua || global.navigator.userAgent;
-
-  return isIosFirefox(ua) || (/iPhone|iPod|iPad|Mobile|Tablet/i.test(ua) && isFirefox(ua));
+    ua = ua || window.navigator.userAgent;
+    return (isIosFirefox(ua) ||
+        (/iPhone|iPod|iPad|Mobile|Tablet/i.test(ua) && isFirefox(ua)));
 };
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./is-firefox":6,"./is-ios-firefox":7}],11:[function(_dereq_,module,exports){
-(function (global){
-'use strict';
-
+},{"./is-firefox":7,"./is-ios-firefox":8}],12:[function(_dereq_,module,exports){
+"use strict";
 module.exports = function isSamsungBrowser(ua) {
-  ua = ua || global.navigator.userAgent;
-
-  return /SamsungBrowser/i.test(ua);
+    ua = ua || window.navigator.userAgent;
+    return /SamsungBrowser/i.test(ua);
 };
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],12:[function(_dereq_,module,exports){
-'use strict';
-
-// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise#Methods
-var PROMISE_METHODS = [
-  'all',
-  'allSettled',
-  'race',
-  'reject',
-  'resolve'
-];
-
-function shouldCatchExceptions(options) {
-  if (options.hasOwnProperty('suppressUnhandledPromiseMessage')) {
-    return Boolean(options.suppressUnhandledPromiseMessage);
-  }
-
-  return Boolean(ExtendedPromise.suppressUnhandledPromiseMessage);
-}
-
-function ExtendedPromise(options) {
-  var self = this;
-
-  if (typeof options === 'function') {
-    return new ExtendedPromise.Promise(options);
-  }
-
-  this._promise = new ExtendedPromise.Promise(function (resolve, reject) {
-    self._resolveFunction = resolve;
-    self._rejectFunction = reject;
-  });
-
-  options = options || {};
-  this._onResolve = options.onResolve || ExtendedPromise.defaultOnResolve;
-  this._onReject = options.onReject || ExtendedPromise.defaultOnReject;
-
-  if (shouldCatchExceptions(options)) {
-    this._promise.catch(function () {
-      // prevents unhandled promise rejection warning
-      // in the console for extended promises that
-      // that catch the error in an asynchronous manner
-    });
-  }
-
-  this._resetState();
-
-  this._promise.resolve = this.resolve.bind(this);
-  this._promise.reject = this.reject.bind(this);
-
-  return this._promise;
-}
-
-PROMISE_METHODS.forEach(function (method) {
-  ExtendedPromise[method] = function () {
-    var args = Array.prototype.slice.call(arguments);
-
-    return ExtendedPromise.Promise[method].apply(ExtendedPromise.Promise, args);
-  };
-});
-
-ExtendedPromise.setPromise = function (PromiseClass) {
-  ExtendedPromise.Promise = PromiseClass;
-};
-
-// default to system level Promise, but allow it to be overwritten
-if (typeof Promise !== 'undefined') {
-  // eslint-disable-next-line no-undef
-  ExtendedPromise.setPromise(Promise);
-}
-
-ExtendedPromise.defaultOnResolve = function (result) {
-  return ExtendedPromise.Promise.resolve(result);
-};
-
-ExtendedPromise.defaultOnReject = function (err) {
-  return ExtendedPromise.Promise.reject(err);
-};
-
-ExtendedPromise.prototype.resolve = function (arg) {
-  var self = this;
-
-  if (this._promise.isFulfilled) {
-    return this._promise;
-  }
-  this._setResolved();
-
-  ExtendedPromise.Promise.resolve().then(function () {
-    return self._onResolve(arg);
-  }).then(this._resolveFunction).catch(function (err) {
-    self._resetState();
-
-    self._promise.reject(err);
-  });
-
-  return this._promise;
-};
-
-ExtendedPromise.prototype.reject = function (arg) {
-  var self = this;
-
-  if (this._promise.isFulfilled) {
-    return this._promise;
-  }
-  this._setRejected();
-
-  ExtendedPromise.Promise.resolve().then(function () {
-    return self._onReject(arg);
-  }).then(function (result) {
-    self._setResolved();
-
-    self._resolveFunction(result);
-  }).catch(this._rejectFunction);
-
-  return this._promise;
-};
-
-ExtendedPromise.prototype._resetState = function () {
-  this._promise.isFulfilled = false;
-  this._promise.isResolved = false;
-  this._promise.isRejected = false;
-};
-
-ExtendedPromise.prototype._setResolved = function () {
-  this._promise.isFulfilled = true;
-  this._promise.isResolved = true;
-  this._promise.isRejected = false;
-};
-
-ExtendedPromise.prototype._setRejected = function () {
-  this._promise.isFulfilled = true;
-  this._promise.isResolved = false;
-  this._promise.isRejected = true;
-};
-
-module.exports = ExtendedPromise;
 
 },{}],13:[function(_dereq_,module,exports){
-'use strict';
+module.exports = _dereq_("./dist/is-android");
 
+},{"./dist/is-android":4}],14:[function(_dereq_,module,exports){
+module.exports = _dereq_("./dist/is-chrome");
+
+},{"./dist/is-chrome":5}],15:[function(_dereq_,module,exports){
+module.exports = _dereq_("./dist/is-ios-safari");
+
+},{"./dist/is-ios-safari":9}],16:[function(_dereq_,module,exports){
+module.exports = _dereq_("./dist/is-ios");
+
+},{"./dist/is-ios":10}],17:[function(_dereq_,module,exports){
+module.exports = _dereq_("./dist/is-mobile-firefox");
+
+},{"./dist/is-mobile-firefox":11}],18:[function(_dereq_,module,exports){
+module.exports = _dereq_("./dist/is-samsung");
+
+},{"./dist/is-samsung":12}],19:[function(_dereq_,module,exports){
+"use strict";
+var GlobalPromise = (typeof Promise !== "undefined"
+    ? Promise // eslint-disable-line no-undef
+    : null);
+var ExtendedPromise = /** @class */ (function () {
+    function ExtendedPromise(options) {
+        var _this = this;
+        if (typeof options === "function") {
+            this._promise = new ExtendedPromise.Promise(options);
+            return;
+        }
+        this._promise = new ExtendedPromise.Promise(function (resolve, reject) {
+            _this._resolveFunction = resolve;
+            _this._rejectFunction = reject;
+        });
+        options = options || {};
+        this._onResolve = options.onResolve || ExtendedPromise.defaultOnResolve;
+        this._onReject = options.onReject || ExtendedPromise.defaultOnReject;
+        if (ExtendedPromise.shouldCatchExceptions(options)) {
+            this._promise.catch(function () {
+                // prevents unhandled promise rejection warning
+                // in the console for extended promises that
+                // that catch the error in an asynchronous manner
+            });
+        }
+        this._resetState();
+    }
+    ExtendedPromise.defaultOnResolve = function (result) {
+        return ExtendedPromise.Promise.resolve(result);
+    };
+    ExtendedPromise.defaultOnReject = function (err) {
+        return ExtendedPromise.Promise.reject(err);
+    };
+    ExtendedPromise.setPromise = function (PromiseClass) {
+        ExtendedPromise.Promise = PromiseClass;
+    };
+    ExtendedPromise.shouldCatchExceptions = function (options) {
+        if (options.hasOwnProperty("suppressUnhandledPromiseMessage")) {
+            return Boolean(options.suppressUnhandledPromiseMessage);
+        }
+        return Boolean(ExtendedPromise.suppressUnhandledPromiseMessage);
+    };
+    // start Promise methods documented in:
+    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise#Methods
+    ExtendedPromise.all = function (arg) {
+        return ExtendedPromise.Promise.all(arg);
+    };
+    ExtendedPromise.allSettled = function (arg) {
+        return ExtendedPromise.Promise.allSettled(arg);
+    };
+    ExtendedPromise.race = function (arg) {
+        return ExtendedPromise.Promise.race(arg);
+    };
+    ExtendedPromise.reject = function (arg) {
+        return ExtendedPromise.Promise.reject(arg);
+    };
+    ExtendedPromise.resolve = function (arg) {
+        return ExtendedPromise.Promise.resolve(arg);
+    };
+    ExtendedPromise.prototype.then = function () {
+        var _a;
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i] = arguments[_i];
+        }
+        return (_a = this._promise).then.apply(_a, args);
+    };
+    ExtendedPromise.prototype.catch = function () {
+        var _a;
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i] = arguments[_i];
+        }
+        return (_a = this._promise).catch.apply(_a, args);
+    };
+    ExtendedPromise.prototype.resolve = function (arg) {
+        var _this = this;
+        if (this.isFulfilled) {
+            return this;
+        }
+        this._setResolved();
+        ExtendedPromise.Promise.resolve()
+            .then(function () {
+            return _this._onResolve(arg);
+        })
+            .then(function (argForResolveFunction) {
+            _this._resolveFunction(argForResolveFunction);
+        })
+            .catch(function (err) {
+            _this._resetState();
+            _this.reject(err);
+        });
+        return this;
+    };
+    ExtendedPromise.prototype.reject = function (arg) {
+        var _this = this;
+        if (this.isFulfilled) {
+            return this;
+        }
+        this._setRejected();
+        ExtendedPromise.Promise.resolve()
+            .then(function () {
+            return _this._onReject(arg);
+        })
+            .then(function (result) {
+            _this._setResolved();
+            _this._resolveFunction(result);
+        })
+            .catch(function (err) {
+            return _this._rejectFunction(err);
+        });
+        return this;
+    };
+    ExtendedPromise.prototype._resetState = function () {
+        this.isFulfilled = false;
+        this.isResolved = false;
+        this.isRejected = false;
+    };
+    ExtendedPromise.prototype._setResolved = function () {
+        this.isFulfilled = true;
+        this.isResolved = true;
+        this.isRejected = false;
+    };
+    ExtendedPromise.prototype._setRejected = function () {
+        this.isFulfilled = true;
+        this.isResolved = false;
+        this.isRejected = true;
+    };
+    ExtendedPromise.Promise = GlobalPromise;
+    return ExtendedPromise;
+}());
+module.exports = ExtendedPromise;
+
+},{}],20:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 function deferred(fn) {
-  return function () {
-    // IE9 doesn't support passing arguments to setTimeout so we have to emulate it.
-    var args = arguments;
-
-    setTimeout(function () {
-      try {
-        fn.apply(null, args);
-      } catch (err) {
-        /* eslint-disable no-console */
-        console.log('Error in callback function');
-        console.log(err);
-        /* eslint-enable no-console */
-      }
-    }, 1);
-  };
+    return function () {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i] = arguments[_i];
+        }
+        setTimeout(function () {
+            try {
+                fn.apply(void 0, args);
+            }
+            catch (err) {
+                /* eslint-disable no-console */
+                console.log("Error in callback function");
+                console.log(err);
+                /* eslint-enable no-console */
+            }
+        }, 1);
+    };
 }
+exports.deferred = deferred;
 
-module.exports = deferred;
-
-},{}],14:[function(_dereq_,module,exports){
-'use strict';
-
+},{}],21:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 function once(fn) {
-  var called = false;
+    var called = false;
+    return function () {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i] = arguments[_i];
+        }
+        if (!called) {
+            called = true;
+            fn.apply(void 0, args);
+        }
+    };
+}
+exports.once = once;
 
-  return function () {
-    if (!called) {
-      called = true;
-      fn.apply(null, arguments);
+},{}],22:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+/* eslint-disable consistent-return */
+function promiseOrCallback(promise, callback) {
+    if (!callback) {
+        return promise;
     }
-  };
+    promise.then(function (data) { return callback(null, data); }).catch(function (err) { return callback(err); });
 }
+exports.promiseOrCallback = promiseOrCallback;
 
-module.exports = once;
-
-},{}],15:[function(_dereq_,module,exports){
-'use strict';
-
-function promiseOrCallback(promise, callback) { // eslint-disable-line consistent-return
-  if (callback) {
-    promise
-      .then(function (data) {
-        callback(null, data);
-      })
-      .catch(function (err) {
-        callback(err);
-      });
-  } else {
-    return promise;
-  }
-}
-
-module.exports = promiseOrCallback;
-
-},{}],16:[function(_dereq_,module,exports){
-'use strict';
-
-var deferred = _dereq_('./lib/deferred');
-var once = _dereq_('./lib/once');
-var promiseOrCallback = _dereq_('./lib/promise-or-callback');
-
+},{}],23:[function(_dereq_,module,exports){
+"use strict";
+var deferred_1 = _dereq_("./lib/deferred");
+var once_1 = _dereq_("./lib/once");
+var promise_or_callback_1 = _dereq_("./lib/promise-or-callback");
 function wrapPromise(fn) {
-  return function () {
-    var callback;
-    var args = Array.prototype.slice.call(arguments);
-    var lastArg = args[args.length - 1];
-
-    if (typeof lastArg === 'function') {
-      callback = args.pop();
-      callback = once(deferred(callback));
-    }
-
-    return promiseOrCallback(fn.apply(this, args), callback); // eslint-disable-line no-invalid-this
-  };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return function () {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i] = arguments[_i];
+        }
+        var callback;
+        var lastArg = args[args.length - 1];
+        if (typeof lastArg === "function") {
+            callback = args.pop();
+            callback = once_1.once(deferred_1.deferred(callback));
+        }
+        // I know, I know, this looks bad. But it's a quirk of the library that
+        // we need to allow passing the this context to the original function
+        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+        // @ts-ignore: this has an implicit any
+        return promise_or_callback_1.promiseOrCallback(fn.apply(this, args), callback); // eslint-disable-line no-invalid-this
+    };
 }
-
 wrapPromise.wrapPrototype = function (target, options) {
-  var methods, ignoreMethods, includePrivateMethods;
-
-  options = options || {};
-  ignoreMethods = options.ignoreMethods || [];
-  includePrivateMethods = options.transformPrivateMethods === true;
-
-  methods = Object.getOwnPropertyNames(target.prototype).filter(function (method) {
-    var isNotPrivateMethod;
-    var isNonConstructorFunction = method !== 'constructor' &&
-      typeof target.prototype[method] === 'function';
-    var isNotAnIgnoredMethod = ignoreMethods.indexOf(method) === -1;
-
-    if (includePrivateMethods) {
-      isNotPrivateMethod = true;
-    } else {
-      isNotPrivateMethod = method.charAt(0) !== '_';
-    }
-
-    return isNonConstructorFunction &&
-      isNotPrivateMethod &&
-      isNotAnIgnoredMethod;
-  });
-
-  methods.forEach(function (method) {
-    var original = target.prototype[method];
-
-    target.prototype[method] = wrapPromise(original);
-  });
-
-  return target;
+    if (options === void 0) { options = {}; }
+    var ignoreMethods = options.ignoreMethods || [];
+    var includePrivateMethods = options.transformPrivateMethods === true;
+    var methods = Object.getOwnPropertyNames(target.prototype).filter(function (method) {
+        var isNotPrivateMethod;
+        var isNonConstructorFunction = method !== "constructor" &&
+            typeof target.prototype[method] === "function";
+        var isNotAnIgnoredMethod = ignoreMethods.indexOf(method) === -1;
+        if (includePrivateMethods) {
+            isNotPrivateMethod = true;
+        }
+        else {
+            isNotPrivateMethod = method.charAt(0) !== "_";
+        }
+        return (isNonConstructorFunction && isNotPrivateMethod && isNotAnIgnoredMethod);
+    });
+    methods.forEach(function (method) {
+        var original = target.prototype[method];
+        target.prototype[method] = wrapPromise(original);
+    });
+    return target;
 };
-
 module.exports = wrapPromise;
 
-},{"./lib/deferred":13,"./lib/once":14,"./lib/promise-or-callback":15}],17:[function(_dereq_,module,exports){
+},{"./lib/deferred":20,"./lib/once":21,"./lib/promise-or-callback":22}],24:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -699,7 +666,7 @@ Promise._unhandledRejectionFn = function _unhandledRejectionFn(err) {
 
 module.exports = Promise;
 
-},{}],18:[function(_dereq_,module,exports){
+},{}],25:[function(_dereq_,module,exports){
 'use strict';
 
 var createAuthorizationData = _dereq_('./create-authorization-data');
@@ -733,7 +700,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":23,"./create-authorization-data":26,"./json-clone":30}],19:[function(_dereq_,module,exports){
+},{"./constants":30,"./create-authorization-data":33,"./json-clone":37}],26:[function(_dereq_,module,exports){
 'use strict';
 
 var Promise = _dereq_('./promise');
@@ -769,7 +736,7 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":18,"./constants":23,"./promise":32}],20:[function(_dereq_,module,exports){
+},{"./add-metadata":25,"./constants":30,"./promise":39}],27:[function(_dereq_,module,exports){
 'use strict';
 
 var loadScript = _dereq_('@braintree/asset-loader/load-script');
@@ -778,13 +745,13 @@ module.exports = {
   loadScript: loadScript
 };
 
-},{"@braintree/asset-loader/load-script":2}],21:[function(_dereq_,module,exports){
+},{"@braintree/asset-loader/load-script":3}],28:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.63.0";
+var VERSION = "3.64.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -826,7 +793,7 @@ module.exports = {
   verify: basicComponentVerification
 };
 
-},{"./braintree-error":22,"./errors":29,"./promise":32}],22:[function(_dereq_,module,exports){
+},{"./braintree-error":29,"./errors":36,"./promise":39}],29:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -911,10 +878,10 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":28}],23:[function(_dereq_,module,exports){
+},{"./enumerate":35}],30:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.63.0";
+var VERSION = "3.64.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -951,7 +918,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],24:[function(_dereq_,module,exports){
+},{}],31:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -969,7 +936,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"./braintree-error":22,"./errors":29}],25:[function(_dereq_,module,exports){
+},{"./braintree-error":29,"./errors":36}],32:[function(_dereq_,module,exports){
 'use strict';
 
 // endRemoveIf(production)
@@ -986,7 +953,7 @@ module.exports = {
   create: createAssetsUrl
 };
 
-},{"./constants":23}],26:[function(_dereq_,module,exports){
+},{"./constants":30}],33:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/vendor/polyfill').atob;
@@ -1032,7 +999,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/constants":23,"../lib/vendor/polyfill":34}],27:[function(_dereq_,module,exports){
+},{"../lib/constants":30,"../lib/vendor/polyfill":41}],34:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -1040,7 +1007,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.63.0";
+var VERSION = "3.64.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1084,7 +1051,7 @@ module.exports = {
   create: createDeferredClient
 };
 
-},{"./assets":20,"./braintree-error":22,"./errors":29,"./promise":32}],28:[function(_dereq_,module,exports){
+},{"./assets":27,"./braintree-error":29,"./errors":36,"./promise":39}],35:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -1099,7 +1066,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],29:[function(_dereq_,module,exports){
+},{}],36:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -1149,14 +1116,14 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":22}],30:[function(_dereq_,module,exports){
+},{"./braintree-error":29}],37:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],31:[function(_dereq_,module,exports){
+},{}],38:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -1165,7 +1132,7 @@ module.exports = function (obj) {
   });
 };
 
-},{}],32:[function(_dereq_,module,exports){
+},{}],39:[function(_dereq_,module,exports){
 'use strict';
 
 var PromisePolyfill = _dereq_('promise-polyfill');
@@ -1179,7 +1146,7 @@ ExtendedPromise.setPromise(PromiseGlobal);
 
 module.exports = PromiseGlobal;
 
-},{"@braintree/extended-promise":12,"promise-polyfill":17}],33:[function(_dereq_,module,exports){
+},{"@braintree/extended-promise":19,"promise-polyfill":24}],40:[function(_dereq_,module,exports){
 'use strict';
 
 function _notEmpty(obj) {
@@ -1271,7 +1238,7 @@ module.exports = {
   queryify: queryify
 };
 
-},{}],34:[function(_dereq_,module,exports){
+},{}],41:[function(_dereq_,module,exports){
 'use strict';
 
 var atobNormalized = typeof atob === 'function' ? window.atob : atobPolyfill;
@@ -1310,7 +1277,7 @@ module.exports = {
   _atob: atobPolyfill
 };
 
-},{}],35:[function(_dereq_,module,exports){
+},{}],42:[function(_dereq_,module,exports){
 'use strict';
 /** @module braintree-web/venmo */
 
@@ -1324,7 +1291,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var Venmo = _dereq_('./venmo');
 var Promise = _dereq_('../lib/promise');
 var supportsVenmo = _dereq_('./shared/supports-venmo');
-var VERSION = "3.63.0";
+var VERSION = "3.64.0";
 
 /**
  * @static
@@ -1429,7 +1396,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/analytics":19,"../lib/basic-component-verification":21,"../lib/braintree-error":22,"../lib/create-assets-url":25,"../lib/create-deferred-client":27,"../lib/promise":32,"./shared/errors":38,"./shared/supports-venmo":39,"./venmo":40,"@braintree/wrap-promise":16}],36:[function(_dereq_,module,exports){
+},{"../lib/analytics":26,"../lib/basic-component-verification":28,"../lib/braintree-error":29,"../lib/create-assets-url":32,"../lib/create-deferred-client":34,"../lib/promise":39,"./shared/errors":45,"./shared/supports-venmo":46,"./venmo":47,"@braintree/wrap-promise":23}],43:[function(_dereq_,module,exports){
 'use strict';
 
 var isAndroid = _dereq_('@braintree/browser-detection/is-android');
@@ -1448,7 +1415,7 @@ module.exports = {
   isMobileFirefox: isMobileFirefox
 };
 
-},{"@braintree/browser-detection/is-android":3,"@braintree/browser-detection/is-chrome":4,"@braintree/browser-detection/is-ios":9,"@braintree/browser-detection/is-ios-safari":8,"@braintree/browser-detection/is-mobile-firefox":10,"@braintree/browser-detection/is-samsung":11}],37:[function(_dereq_,module,exports){
+},{"@braintree/browser-detection/is-android":13,"@braintree/browser-detection/is-chrome":14,"@braintree/browser-detection/is-ios":16,"@braintree/browser-detection/is-ios-safari":15,"@braintree/browser-detection/is-mobile-firefox":17,"@braintree/browser-detection/is-samsung":18}],44:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -1457,7 +1424,7 @@ module.exports = {
   VENMO_OPEN_URL: 'https://venmo.com/braintree/checkout'
 };
 
-},{}],38:[function(_dereq_,module,exports){
+},{}],45:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -1516,7 +1483,7 @@ module.exports = {
   }
 };
 
-},{"../../lib/braintree-error":22}],39:[function(_dereq_,module,exports){
+},{"../../lib/braintree-error":29}],46:[function(_dereq_,module,exports){
 'use strict';
 
 var browserDetection = _dereq_('./browser-detection');
@@ -1544,7 +1511,7 @@ module.exports = {
   isBrowserSupported: isBrowserSupported
 };
 
-},{"./browser-detection":36}],40:[function(_dereq_,module,exports){
+},{"./browser-detection":43}],47:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -1914,5 +1881,5 @@ function isIosWebview() {
 module.exports = wrapPromise.wrapPrototype(Venmo);
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../lib/analytics":19,"../lib/braintree-error":22,"../lib/convert-methods-to-error":24,"../lib/methods":31,"../lib/promise":32,"../lib/querystring":33,"./shared/constants":37,"./shared/errors":38,"./shared/supports-venmo":39,"@braintree/extended-promise":12,"@braintree/wrap-promise":16}]},{},[35])(35)
+},{"../lib/analytics":26,"../lib/braintree-error":29,"../lib/convert-methods-to-error":31,"../lib/methods":38,"../lib/promise":39,"../lib/querystring":40,"./shared/constants":44,"./shared/errors":45,"./shared/supports-venmo":46,"@braintree/extended-promise":19,"@braintree/wrap-promise":23}]},{},[42])(42)
 });

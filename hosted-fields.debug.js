@@ -1,1144 +1,1041 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}(g.braintree || (g.braintree = {})).hostedFields = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(_dereq_,module,exports){
-(function (global){
-'use strict';
-
-var PromisePolyfill = _dereq_('promise-polyfill');
-
-module.exports = global.Promise || PromisePolyfill;
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":48}],2:[function(_dereq_,module,exports){
-'use strict';
-
-var Promise = _dereq_('./lib/promise');
-var scriptPromiseCache = {};
-
-function loadScript(options) {
-  var attrs, container, script, scriptLoadPromise;
-  var stringifiedOptions = JSON.stringify(options);
-
-  if (!options.forceScriptReload) {
-    scriptLoadPromise = scriptPromiseCache[stringifiedOptions];
-
-    if (scriptLoadPromise) {
-      return scriptLoadPromise;
-    }
-  }
-
-  script = document.createElement('script');
-  attrs = options.dataAttributes || {};
-  container = options.container || document.head;
-
-  script.src = options.src;
-  script.id = options.id;
-  script.async = true;
-
-  if (options.crossorigin) {
-    script.setAttribute('crossorigin', options.crossorigin);
-  }
-
-  Object.keys(attrs).forEach(function (key) {
-    script.setAttribute('data-' + key, attrs[key]);
-  });
-
-  scriptLoadPromise = new Promise(function (resolve, reject) {
-    script.addEventListener('load', function () {
-      resolve(script);
-    });
-    script.addEventListener('error', function () {
-      reject(new Error(options.src + ' failed to load.'));
-    });
-    script.addEventListener('abort', function () {
-      reject(new Error(options.src + ' has aborted.'));
-    });
-    container.appendChild(script);
-  });
-
-  scriptPromiseCache[stringifiedOptions] = scriptLoadPromise;
-
-  return scriptLoadPromise;
-}
-
-loadScript.clearCache = function () {
-  scriptPromiseCache = {};
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
 };
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.PromiseGlobal = void 0;
+var promise_polyfill_1 = __importDefault(_dereq_("promise-polyfill"));
+var PromiseGlobal = 
+// eslint-disable-next-line no-undef
+typeof Promise !== "undefined" ? Promise : promise_polyfill_1.default;
+exports.PromiseGlobal = PromiseGlobal;
 
+},{"promise-polyfill":60}],2:[function(_dereq_,module,exports){
+"use strict";
+var promise_1 = _dereq_("./lib/promise");
+var scriptPromiseCache = {};
+function loadScript(options) {
+    var scriptLoadPromise;
+    var stringifiedOptions = JSON.stringify(options);
+    if (!options.forceScriptReload) {
+        scriptLoadPromise = scriptPromiseCache[stringifiedOptions];
+        if (scriptLoadPromise) {
+            return scriptLoadPromise;
+        }
+    }
+    var script = document.createElement("script");
+    var attrs = options.dataAttributes || {};
+    var container = options.container || document.head;
+    script.src = options.src;
+    script.id = options.id || "";
+    script.async = true;
+    if (options.crossorigin) {
+        script.setAttribute("crossorigin", "" + options.crossorigin);
+    }
+    Object.keys(attrs).forEach(function (key) {
+        script.setAttribute("data-" + key, "" + attrs[key]);
+    });
+    scriptLoadPromise = new promise_1.PromiseGlobal(function (resolve, reject) {
+        script.addEventListener("load", function () {
+            resolve(script);
+        });
+        script.addEventListener("error", function () {
+            reject(new Error(options.src + " failed to load."));
+        });
+        script.addEventListener("abort", function () {
+            reject(new Error(options.src + " has aborted."));
+        });
+        container.appendChild(script);
+    });
+    scriptPromiseCache[stringifiedOptions] = scriptLoadPromise;
+    return scriptLoadPromise;
+}
+loadScript.clearCache = function () {
+    scriptPromiseCache = {};
+};
 module.exports = loadScript;
 
 },{"./lib/promise":1}],3:[function(_dereq_,module,exports){
-(function (global){
-'use strict';
+module.exports = _dereq_("./dist/load-script");
 
+},{"./dist/load-script":2}],4:[function(_dereq_,module,exports){
+"use strict";
 module.exports = function isAndroid(ua) {
-  ua = ua || global.navigator.userAgent;
-
-  return /Android/.test(ua);
+    ua = ua || window.navigator.userAgent;
+    return /Android/.test(ua);
 };
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],4:[function(_dereq_,module,exports){
-(function (global){
-'use strict';
-
-module.exports = function isChromeOS(ua) {
-  ua = ua || global.navigator.userAgent;
-
-  return /CrOS/i.test(ua);
-};
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],5:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
+module.exports = function isChromeOS(ua) {
+    ua = ua || window.navigator.userAgent;
+    return /CrOS/i.test(ua);
+};
 
-var isEdge = _dereq_('./is-edge');
-var isSamsung = _dereq_('./is-samsung');
-
+},{}],6:[function(_dereq_,module,exports){
+"use strict";
+var isEdge = _dereq_("./is-edge");
+var isSamsung = _dereq_("./is-samsung");
 module.exports = function isChrome(ua) {
-  ua = ua || navigator.userAgent;
-
-  return (ua.indexOf('Chrome') !== -1 || ua.indexOf('CriOS') !== -1) && !isEdge(ua) && !isSamsung(ua);
+    ua = ua || window.navigator.userAgent;
+    return ((ua.indexOf("Chrome") !== -1 || ua.indexOf("CriOS") !== -1) &&
+        !isEdge(ua) &&
+        !isSamsung(ua));
 };
 
-},{"./is-edge":6,"./is-samsung":14}],6:[function(_dereq_,module,exports){
-'use strict';
-
+},{"./is-edge":7,"./is-samsung":15}],7:[function(_dereq_,module,exports){
+"use strict";
 module.exports = function isEdge(ua) {
-  ua = ua || navigator.userAgent;
-
-  return ua.indexOf('Edge/') !== -1;
+    ua = ua || window.navigator.userAgent;
+    return ua.indexOf("Edge/") !== -1;
 };
 
-},{}],7:[function(_dereq_,module,exports){
-(function (global){
-'use strict';
-
-module.exports = function isFirefox(ua) {
-  ua = ua || global.navigator.userAgent;
-
-  return /Firefox/i.test(ua);
-};
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],8:[function(_dereq_,module,exports){
-(function (global){
-'use strict';
+"use strict";
+module.exports = function isFirefox(ua) {
+    ua = ua || window.navigator.userAgent;
+    return /Firefox/i.test(ua);
+};
 
-var isIE11 = _dereq_('./is-ie11');
-
+},{}],9:[function(_dereq_,module,exports){
+"use strict";
+var isIE11 = _dereq_("./is-ie11");
 module.exports = function isIE(ua) {
-  ua = ua || global.navigator.userAgent;
-
-  return ua.indexOf('MSIE') !== -1 || isIE11(ua);
+    ua = ua || window.navigator.userAgent;
+    return ua.indexOf("MSIE") !== -1 || isIE11(ua);
 };
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./is-ie11":10}],9:[function(_dereq_,module,exports){
-'use strict';
-
+},{"./is-ie11":11}],10:[function(_dereq_,module,exports){
+"use strict";
 module.exports = function isIe10(ua) {
-  ua = ua || navigator.userAgent;
-
-  return ua.indexOf('MSIE 10') !== -1;
-};
-
-},{}],10:[function(_dereq_,module,exports){
-'use strict';
-
-module.exports = function isIe11(ua) {
-  ua = ua || navigator.userAgent;
-
-  return ua.indexOf('Trident/7') !== -1;
+    ua = ua || window.navigator.userAgent;
+    return ua.indexOf("MSIE 10") !== -1;
 };
 
 },{}],11:[function(_dereq_,module,exports){
-'use strict';
-
-module.exports = function isIe9(ua) {
-  ua = ua || navigator.userAgent;
-
-  return ua.indexOf('MSIE 9') !== -1;
+"use strict";
+module.exports = function isIe11(ua) {
+    ua = ua || window.navigator.userAgent;
+    return ua.indexOf("Trident/7") !== -1;
 };
 
 },{}],12:[function(_dereq_,module,exports){
-(function (global){
-'use strict';
+"use strict";
+module.exports = function isIe9(ua) {
+    ua = ua || window.navigator.userAgent;
+    return ua.indexOf("MSIE 9") !== -1;
+};
 
-var isIos = _dereq_('./is-ios');
-
+},{}],13:[function(_dereq_,module,exports){
+"use strict";
+var isIos = _dereq_("./is-ios");
 // The Google Search iOS app is technically a webview and doesn't support popups.
 function isGoogleSearchApp(ua) {
-  return /\bGSA\b/.test(ua);
+    return /\bGSA\b/.test(ua);
 }
-
 module.exports = function isIosWebview(ua) {
-  ua = ua || global.navigator.userAgent;
-  if (isIos(ua)) {
-    if (isGoogleSearchApp(ua)) {
-      return true;
+    ua = ua || window.navigator.userAgent;
+    if (isIos(ua)) {
+        if (isGoogleSearchApp(ua)) {
+            return true;
+        }
+        return /.+AppleWebKit(?!.*Safari)/.test(ua);
     }
-
-    return /.+AppleWebKit(?!.*Safari)/.test(ua);
-  }
-
-  return false;
+    return false;
 };
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./is-ios":13}],13:[function(_dereq_,module,exports){
-(function (global){
-'use strict';
-
+},{"./is-ios":14}],14:[function(_dereq_,module,exports){
+"use strict";
 module.exports = function isIos(ua) {
-  ua = ua || global.navigator.userAgent;
-
-  return /iPhone|iPod|iPad/i.test(ua);
+    ua = ua || window.navigator.userAgent;
+    return /iPhone|iPod|iPad/i.test(ua);
 };
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],14:[function(_dereq_,module,exports){
-(function (global){
-'use strict';
-
-module.exports = function isSamsungBrowser(ua) {
-  ua = ua || global.navigator.userAgent;
-
-  return /SamsungBrowser/i.test(ua);
-};
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],15:[function(_dereq_,module,exports){
-'use strict';
-
-function _classesOf(element) {
-  return element.className.trim().split(/\s+/);
-}
-
-function add(element) {
-  var toAdd = Array.prototype.slice.call(arguments, 1);
-  var className = _classesOf(element).filter(function (classname) {
-    return toAdd.indexOf(classname) === -1;
-  }).concat(toAdd).join(' ');
-
-  element.className = className;
-}
-
-function remove(element) {
-  var toRemove = Array.prototype.slice.call(arguments, 1);
-  var className = _classesOf(element).filter(function (classname) {
-    return toRemove.indexOf(classname) === -1;
-  }).join(' ');
-
-  element.className = className;
-}
-
-function toggle(element, classname, adding) {
-  if (adding) {
-    add(element, classname);
-  } else {
-    remove(element, classname);
-  }
-}
-
-module.exports = {
-  add: add,
-  remove: remove,
-  toggle: toggle
+"use strict";
+module.exports = function isSamsungBrowser(ua) {
+    ua = ua || window.navigator.userAgent;
+    return /SamsungBrowser/i.test(ua);
 };
 
 },{}],16:[function(_dereq_,module,exports){
-'use strict';
+module.exports = _dereq_("./dist/is-android");
 
-function EventEmitter() {
-  this._events = {};
+},{"./dist/is-android":4}],17:[function(_dereq_,module,exports){
+module.exports = _dereq_("./dist/is-chrome-os");
+
+},{"./dist/is-chrome-os":5}],18:[function(_dereq_,module,exports){
+module.exports = _dereq_("./dist/is-chrome");
+
+},{"./dist/is-chrome":6}],19:[function(_dereq_,module,exports){
+module.exports = _dereq_("./dist/is-edge");
+
+},{"./dist/is-edge":7}],20:[function(_dereq_,module,exports){
+module.exports = _dereq_("./dist/is-firefox");
+
+},{"./dist/is-firefox":8}],21:[function(_dereq_,module,exports){
+module.exports = _dereq_("./dist/is-ie");
+
+},{"./dist/is-ie":9}],22:[function(_dereq_,module,exports){
+module.exports = _dereq_("./dist/is-ie10");
+
+},{"./dist/is-ie10":10}],23:[function(_dereq_,module,exports){
+module.exports = _dereq_("./dist/is-ie9");
+
+},{"./dist/is-ie9":12}],24:[function(_dereq_,module,exports){
+module.exports = _dereq_("./dist/is-ios-webview");
+
+},{"./dist/is-ios-webview":13}],25:[function(_dereq_,module,exports){
+module.exports = _dereq_("./dist/is-ios");
+
+},{"./dist/is-ios":14}],26:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.toggle = exports.remove = exports.add = void 0;
+function _classesOf(element) {
+    return element.className.trim().split(/\s+/);
 }
+function add(element) {
+    var toAdd = [];
+    for (var _i = 1; _i < arguments.length; _i++) {
+        toAdd[_i - 1] = arguments[_i];
+    }
+    element.className = _classesOf(element)
+        .filter(function (classname) { return toAdd.indexOf(classname) === -1; })
+        .concat(toAdd)
+        .join(" ");
+}
+exports.add = add;
+function remove(element) {
+    var toRemove = [];
+    for (var _i = 1; _i < arguments.length; _i++) {
+        toRemove[_i - 1] = arguments[_i];
+    }
+    element.className = _classesOf(element)
+        .filter(function (classname) { return toRemove.indexOf(classname) === -1; })
+        .join(" ");
+}
+exports.remove = remove;
+function toggle(element, classname, adding) {
+    if (adding) {
+        add(element, classname);
+    }
+    else {
+        remove(element, classname);
+    }
+}
+exports.toggle = toggle;
 
-EventEmitter.prototype.on = function (event, callback) {
-  if (this._events[event]) {
-    this._events[event].push(callback);
-  } else {
-    this._events[event] = [callback];
-  }
-};
-
-EventEmitter.prototype.off = function (event, callback) {
-  var eventCallbacks = this._events[event];
-  var indexOfCallback;
-
-  if (!eventCallbacks) {
-    return;
-  }
-
-  indexOfCallback = eventCallbacks.indexOf(callback);
-
-  eventCallbacks.splice(indexOfCallback, 1);
-};
-
-EventEmitter.prototype._emit = function (event) {
-  var args;
-  var eventCallbacks = this._events[event];
-
-  if (!eventCallbacks) { return; }
-
-  args = Array.prototype.slice.call(arguments, 1);
-
-  eventCallbacks.forEach(function (callback) {
-    callback.apply(null, args);
-  });
-};
-
-EventEmitter.prototype.hasListener = function (event) {
-  var eventCallbacks = this._events[event];
-
-  if (!eventCallbacks) {
-    return false;
-  }
-
-  return eventCallbacks.length > 0;
-};
-
-EventEmitter.createChild = function (ChildObject) {
-  ChildObject.prototype = Object.create(EventEmitter.prototype, {
-    constructor: ChildObject
-  });
-};
-
+},{}],27:[function(_dereq_,module,exports){
+"use strict";
+var EventEmitter = /** @class */ (function () {
+    function EventEmitter() {
+        this._events = {};
+    }
+    EventEmitter.prototype.on = function (event, callback) {
+        if (this._events[event]) {
+            this._events[event].push(callback);
+        }
+        else {
+            this._events[event] = [callback];
+        }
+    };
+    EventEmitter.prototype.off = function (event, callback) {
+        var eventCallbacks = this._events[event];
+        if (!eventCallbacks) {
+            return;
+        }
+        var indexOfCallback = eventCallbacks.indexOf(callback);
+        eventCallbacks.splice(indexOfCallback, 1);
+    };
+    EventEmitter.prototype._emit = function (event) {
+        var args = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            args[_i - 1] = arguments[_i];
+        }
+        var eventCallbacks = this._events[event];
+        if (!eventCallbacks) {
+            return;
+        }
+        eventCallbacks.forEach(function (callback) {
+            callback.apply(void 0, args);
+        });
+    };
+    EventEmitter.prototype.hasListener = function (event) {
+        var eventCallbacks = this._events[event];
+        if (!eventCallbacks) {
+            return false;
+        }
+        return eventCallbacks.length > 0;
+    };
+    EventEmitter.createChild = function (ChildObject) {
+        ChildObject.prototype = Object.create(EventEmitter.prototype, {
+            constructor: ChildObject,
+        });
+    };
+    return EventEmitter;
+}());
 module.exports = EventEmitter;
 
-},{}],17:[function(_dereq_,module,exports){
-'use strict';
-
-// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise#Methods
-var PROMISE_METHODS = [
-  'all',
-  'allSettled',
-  'race',
-  'reject',
-  'resolve'
-];
-
-function shouldCatchExceptions(options) {
-  if (options.hasOwnProperty('suppressUnhandledPromiseMessage')) {
-    return Boolean(options.suppressUnhandledPromiseMessage);
-  }
-
-  return Boolean(ExtendedPromise.suppressUnhandledPromiseMessage);
-}
-
-function ExtendedPromise(options) {
-  var self = this;
-
-  if (typeof options === 'function') {
-    return new ExtendedPromise.Promise(options);
-  }
-
-  this._promise = new ExtendedPromise.Promise(function (resolve, reject) {
-    self._resolveFunction = resolve;
-    self._rejectFunction = reject;
-  });
-
-  options = options || {};
-  this._onResolve = options.onResolve || ExtendedPromise.defaultOnResolve;
-  this._onReject = options.onReject || ExtendedPromise.defaultOnReject;
-
-  if (shouldCatchExceptions(options)) {
-    this._promise.catch(function () {
-      // prevents unhandled promise rejection warning
-      // in the console for extended promises that
-      // that catch the error in an asynchronous manner
-    });
-  }
-
-  this._resetState();
-
-  this._promise.resolve = this.resolve.bind(this);
-  this._promise.reject = this.reject.bind(this);
-
-  return this._promise;
-}
-
-PROMISE_METHODS.forEach(function (method) {
-  ExtendedPromise[method] = function () {
-    var args = Array.prototype.slice.call(arguments);
-
-    return ExtendedPromise.Promise[method].apply(ExtendedPromise.Promise, args);
-  };
-});
-
-ExtendedPromise.setPromise = function (PromiseClass) {
-  ExtendedPromise.Promise = PromiseClass;
-};
-
-// default to system level Promise, but allow it to be overwritten
-if (typeof Promise !== 'undefined') {
-  // eslint-disable-next-line no-undef
-  ExtendedPromise.setPromise(Promise);
-}
-
-ExtendedPromise.defaultOnResolve = function (result) {
-  return ExtendedPromise.Promise.resolve(result);
-};
-
-ExtendedPromise.defaultOnReject = function (err) {
-  return ExtendedPromise.Promise.reject(err);
-};
-
-ExtendedPromise.prototype.resolve = function (arg) {
-  var self = this;
-
-  if (this._promise.isFulfilled) {
-    return this._promise;
-  }
-  this._setResolved();
-
-  ExtendedPromise.Promise.resolve().then(function () {
-    return self._onResolve(arg);
-  }).then(this._resolveFunction).catch(function (err) {
-    self._resetState();
-
-    self._promise.reject(err);
-  });
-
-  return this._promise;
-};
-
-ExtendedPromise.prototype.reject = function (arg) {
-  var self = this;
-
-  if (this._promise.isFulfilled) {
-    return this._promise;
-  }
-  this._setRejected();
-
-  ExtendedPromise.Promise.resolve().then(function () {
-    return self._onReject(arg);
-  }).then(function (result) {
-    self._setResolved();
-
-    self._resolveFunction(result);
-  }).catch(this._rejectFunction);
-
-  return this._promise;
-};
-
-ExtendedPromise.prototype._resetState = function () {
-  this._promise.isFulfilled = false;
-  this._promise.isResolved = false;
-  this._promise.isRejected = false;
-};
-
-ExtendedPromise.prototype._setResolved = function () {
-  this._promise.isFulfilled = true;
-  this._promise.isResolved = true;
-  this._promise.isRejected = false;
-};
-
-ExtendedPromise.prototype._setRejected = function () {
-  this._promise.isFulfilled = true;
-  this._promise.isResolved = false;
-  this._promise.isRejected = true;
-};
-
+},{}],28:[function(_dereq_,module,exports){
+"use strict";
+var GlobalPromise = (typeof Promise !== "undefined"
+    ? Promise // eslint-disable-line no-undef
+    : null);
+var ExtendedPromise = /** @class */ (function () {
+    function ExtendedPromise(options) {
+        var _this = this;
+        if (typeof options === "function") {
+            this._promise = new ExtendedPromise.Promise(options);
+            return;
+        }
+        this._promise = new ExtendedPromise.Promise(function (resolve, reject) {
+            _this._resolveFunction = resolve;
+            _this._rejectFunction = reject;
+        });
+        options = options || {};
+        this._onResolve = options.onResolve || ExtendedPromise.defaultOnResolve;
+        this._onReject = options.onReject || ExtendedPromise.defaultOnReject;
+        if (ExtendedPromise.shouldCatchExceptions(options)) {
+            this._promise.catch(function () {
+                // prevents unhandled promise rejection warning
+                // in the console for extended promises that
+                // that catch the error in an asynchronous manner
+            });
+        }
+        this._resetState();
+    }
+    ExtendedPromise.defaultOnResolve = function (result) {
+        return ExtendedPromise.Promise.resolve(result);
+    };
+    ExtendedPromise.defaultOnReject = function (err) {
+        return ExtendedPromise.Promise.reject(err);
+    };
+    ExtendedPromise.setPromise = function (PromiseClass) {
+        ExtendedPromise.Promise = PromiseClass;
+    };
+    ExtendedPromise.shouldCatchExceptions = function (options) {
+        if (options.hasOwnProperty("suppressUnhandledPromiseMessage")) {
+            return Boolean(options.suppressUnhandledPromiseMessage);
+        }
+        return Boolean(ExtendedPromise.suppressUnhandledPromiseMessage);
+    };
+    // start Promise methods documented in:
+    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise#Methods
+    ExtendedPromise.all = function (arg) {
+        return ExtendedPromise.Promise.all(arg);
+    };
+    ExtendedPromise.allSettled = function (arg) {
+        return ExtendedPromise.Promise.allSettled(arg);
+    };
+    ExtendedPromise.race = function (arg) {
+        return ExtendedPromise.Promise.race(arg);
+    };
+    ExtendedPromise.reject = function (arg) {
+        return ExtendedPromise.Promise.reject(arg);
+    };
+    ExtendedPromise.resolve = function (arg) {
+        return ExtendedPromise.Promise.resolve(arg);
+    };
+    ExtendedPromise.prototype.then = function () {
+        var _a;
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i] = arguments[_i];
+        }
+        return (_a = this._promise).then.apply(_a, args);
+    };
+    ExtendedPromise.prototype.catch = function () {
+        var _a;
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i] = arguments[_i];
+        }
+        return (_a = this._promise).catch.apply(_a, args);
+    };
+    ExtendedPromise.prototype.resolve = function (arg) {
+        var _this = this;
+        if (this.isFulfilled) {
+            return this;
+        }
+        this._setResolved();
+        ExtendedPromise.Promise.resolve()
+            .then(function () {
+            return _this._onResolve(arg);
+        })
+            .then(function (argForResolveFunction) {
+            _this._resolveFunction(argForResolveFunction);
+        })
+            .catch(function (err) {
+            _this._resetState();
+            _this.reject(err);
+        });
+        return this;
+    };
+    ExtendedPromise.prototype.reject = function (arg) {
+        var _this = this;
+        if (this.isFulfilled) {
+            return this;
+        }
+        this._setRejected();
+        ExtendedPromise.Promise.resolve()
+            .then(function () {
+            return _this._onReject(arg);
+        })
+            .then(function (result) {
+            _this._setResolved();
+            _this._resolveFunction(result);
+        })
+            .catch(function (err) {
+            return _this._rejectFunction(err);
+        });
+        return this;
+    };
+    ExtendedPromise.prototype._resetState = function () {
+        this.isFulfilled = false;
+        this.isResolved = false;
+        this.isRejected = false;
+    };
+    ExtendedPromise.prototype._setResolved = function () {
+        this.isFulfilled = true;
+        this.isResolved = true;
+        this.isRejected = false;
+    };
+    ExtendedPromise.prototype._setRejected = function () {
+        this.isFulfilled = true;
+        this.isResolved = false;
+        this.isRejected = true;
+    };
+    ExtendedPromise.Promise = GlobalPromise;
+    return ExtendedPromise;
+}());
 module.exports = ExtendedPromise;
 
-},{}],18:[function(_dereq_,module,exports){
-'use strict';
-
-var setAttributes = _dereq_('./lib/set-attributes');
-var defaultAttributes = _dereq_('./lib/default-attributes');
-var assign = _dereq_('./lib/assign');
-
-module.exports = function createFrame(options) {
-  var iframe = document.createElement('iframe');
-  var config = assign({}, defaultAttributes, options);
-
-  if (config.style && typeof config.style !== 'string') {
-    assign(iframe.style, config.style);
-    delete config.style;
-  }
-
-  setAttributes(iframe, config);
-
-  if (!iframe.getAttribute('id')) {
-    iframe.id = iframe.name;
-  }
-
-  return iframe;
-};
-
-},{"./lib/assign":19,"./lib/default-attributes":20,"./lib/set-attributes":21}],19:[function(_dereq_,module,exports){
-'use strict';
-
-module.exports = function assign(target) {
-  var objs = Array.prototype.slice.call(arguments, 1);
-
-  objs.forEach(function (obj) {
-    if (typeof obj !== 'object') { return; }
-
-    Object.keys(obj).forEach(function (key) {
-      target[key] = obj[key];
-    });
-  });
-
-  return target;
-}
-
-},{}],20:[function(_dereq_,module,exports){
-'use strict';
-
-module.exports = {
-  src: 'about:blank',
-  frameBorder: 0,
-  allowtransparency: true,
-  scrolling: 'no'
-};
-
-},{}],21:[function(_dereq_,module,exports){
-'use strict';
-
-module.exports = function setAttributes(element, attributes) {
-  var value;
-
-  for (var key in attributes) {
-    if (attributes.hasOwnProperty(key)) {
-      value = attributes[key];
-
-      if (value == null) {
-        element.removeAttribute(key);
-      } else {
-        element.setAttribute(key, value);
-      }
-    }
-  }
-};
-
-},{}],22:[function(_dereq_,module,exports){
-'use strict';
-
-function deferred(fn) {
-  return function () {
-    // IE9 doesn't support passing arguments to setTimeout so we have to emulate it.
-    var args = arguments;
-
-    setTimeout(function () {
-      try {
-        fn.apply(null, args);
-      } catch (err) {
-        /* eslint-disable no-console */
-        console.log('Error in callback function');
-        console.log(err);
-        /* eslint-enable no-console */
-      }
-    }, 1);
-  };
-}
-
-module.exports = deferred;
-
-},{}],23:[function(_dereq_,module,exports){
-'use strict';
-
-function once(fn) {
-  var called = false;
-
-  return function () {
-    if (!called) {
-      called = true;
-      fn.apply(null, arguments);
-    }
-  };
-}
-
-module.exports = once;
-
-},{}],24:[function(_dereq_,module,exports){
-'use strict';
-
-function promiseOrCallback(promise, callback) { // eslint-disable-line consistent-return
-  if (callback) {
-    promise
-      .then(function (data) {
-        callback(null, data);
-      })
-      .catch(function (err) {
-        callback(err);
-      });
-  } else {
-    return promise;
-  }
-}
-
-module.exports = promiseOrCallback;
-
-},{}],25:[function(_dereq_,module,exports){
-'use strict';
-
-var deferred = _dereq_('./lib/deferred');
-var once = _dereq_('./lib/once');
-var promiseOrCallback = _dereq_('./lib/promise-or-callback');
-
-function wrapPromise(fn) {
-  return function () {
-    var callback;
-    var args = Array.prototype.slice.call(arguments);
-    var lastArg = args[args.length - 1];
-
-    if (typeof lastArg === 'function') {
-      callback = args.pop();
-      callback = once(deferred(callback));
-    }
-
-    return promiseOrCallback(fn.apply(this, args), callback); // eslint-disable-line no-invalid-this
-  };
-}
-
-wrapPromise.wrapPrototype = function (target, options) {
-  var methods, ignoreMethods, includePrivateMethods;
-
-  options = options || {};
-  ignoreMethods = options.ignoreMethods || [];
-  includePrivateMethods = options.transformPrivateMethods === true;
-
-  methods = Object.getOwnPropertyNames(target.prototype).filter(function (method) {
-    var isNotPrivateMethod;
-    var isNonConstructorFunction = method !== 'constructor' &&
-      typeof target.prototype[method] === 'function';
-    var isNotAnIgnoredMethod = ignoreMethods.indexOf(method) === -1;
-
-    if (includePrivateMethods) {
-      isNotPrivateMethod = true;
-    } else {
-      isNotPrivateMethod = method.charAt(0) !== '_';
-    }
-
-    return isNonConstructorFunction &&
-      isNotPrivateMethod &&
-      isNotAnIgnoredMethod;
-  });
-
-  methods.forEach(function (method) {
-    var original = target.prototype[method];
-
-    target.prototype[method] = wrapPromise(original);
-  });
-
-  return target;
-};
-
-module.exports = wrapPromise;
-
-},{"./lib/deferred":22,"./lib/once":23,"./lib/promise-or-callback":24}],26:[function(_dereq_,module,exports){
-'use strict';
-
-var types = _dereq_('./lib/card-types');
-var clone = _dereq_('./lib/clone');
-var findBestMatch = _dereq_('./lib/find-best-match');
-var isValidInputType = _dereq_('./lib/is-valid-input-type');
-var addMatchingCardsToResults = _dereq_('./lib/add-matching-cards-to-results');
-
-var testOrder;
-var customCards = {};
-
-var cardNames = {
-  VISA: 'visa',
-  MASTERCARD: 'mastercard',
-  AMERICAN_EXPRESS: 'american-express',
-  DINERS_CLUB: 'diners-club',
-  DISCOVER: 'discover',
-  JCB: 'jcb',
-  UNIONPAY: 'unionpay',
-  MAESTRO: 'maestro',
-  ELO: 'elo',
-  MIR: 'mir',
-  HIPER: 'hiper',
-  HIPERCARD: 'hipercard'
-};
-
-var ORIGINAL_TEST_ORDER = [
-  cardNames.VISA,
-  cardNames.MASTERCARD,
-  cardNames.AMERICAN_EXPRESS,
-  cardNames.DINERS_CLUB,
-  cardNames.DISCOVER,
-  cardNames.JCB,
-  cardNames.UNIONPAY,
-  cardNames.MAESTRO,
-  cardNames.ELO,
-  cardNames.MIR,
-  cardNames.HIPER,
-  cardNames.HIPERCARD
-];
-
-testOrder = clone(ORIGINAL_TEST_ORDER);
-
-function findType(type) {
-  return customCards[type] || types[type];
-}
-
-function getAllCardTypes() {
-  return testOrder.map(function (type) {
-    return clone(findType(type));
-  });
-}
-
-function getCardPosition(name, ignoreErrorForNotExisting) {
-  var position = testOrder.indexOf(name);
-
-  if (!ignoreErrorForNotExisting && position === -1) {
-    throw new Error('"' + name + '" is not a supported card type.');
-  }
-
-  return position;
-}
-
-function creditCardType(cardNumber) {
-  var bestMatch;
-  var results = [];
-
-  if (!isValidInputType(cardNumber)) {
-    return [];
-  }
-
-  if (cardNumber.length === 0) {
-    return getAllCardTypes(testOrder);
-  }
-
-  testOrder.forEach(function (type) {
-    var cardConfiguration = findType(type);
-
-    addMatchingCardsToResults(cardNumber, cardConfiguration, results);
-  });
-
-  bestMatch = findBestMatch(results);
-
-  if (bestMatch) {
-    return [bestMatch];
-  }
-
-  return results;
-}
-
-creditCardType.getTypeInfo = function (type) {
-  return clone(findType(type));
-};
-
-creditCardType.removeCard = function (name) {
-  var position = getCardPosition(name);
-
-  testOrder.splice(position, 1);
-};
-
-creditCardType.addCard = function (config) {
-  var existingCardPosition = getCardPosition(config.type, true);
-
-  customCards[config.type] = config;
-
-  if (existingCardPosition === -1) {
-    testOrder.push(config.type);
-  }
-};
-
-creditCardType.updateCard = function (cardType, updates) {
-  var clonedCard;
-  var originalObject = customCards[cardType] || types[cardType];
-
-  if (!originalObject) {
-    throw new Error('"' + cardType + '" is not a recognized type. Use `addCard` instead.');
-  }
-
-  if (updates.type && originalObject.type !== updates.type) {
-    throw new Error('Cannot overwrite type parameter.');
-  }
-
-  clonedCard = clone(originalObject, true);
-
-  Object.keys(clonedCard).forEach(function (key) {
-    if (updates[key]) {
-      clonedCard[key] = updates[key];
-    }
-  });
-
-  customCards[clonedCard.type] = clonedCard;
-};
-
-creditCardType.changeOrder = function (name, position) {
-  var currentPosition = getCardPosition(name);
-
-  testOrder.splice(currentPosition, 1);
-  testOrder.splice(position, 0, name);
-};
-
-creditCardType.resetModifications = function () {
-  testOrder = clone(ORIGINAL_TEST_ORDER);
-  customCards = {};
-};
-
-creditCardType.types = cardNames;
-
-module.exports = creditCardType;
-
-},{"./lib/add-matching-cards-to-results":27,"./lib/card-types":28,"./lib/clone":29,"./lib/find-best-match":30,"./lib/is-valid-input-type":31}],27:[function(_dereq_,module,exports){
-'use strict';
-
-var clone = _dereq_('./clone');
-var matches = _dereq_('./matches');
-
-function addMatchingCardsToResults(cardNumber, cardConfiguration, results) {
-  var i, pattern, patternLength, clonedCardConfiguration;
-
-  for (i = 0; i < cardConfiguration.patterns.length; i++) {
-    pattern = cardConfiguration.patterns[i];
-
-    if (!matches(cardNumber, pattern)) {
-      continue;
-    }
-
-    clonedCardConfiguration = clone(cardConfiguration);
-
-    if (Array.isArray(pattern)) {
-      patternLength = String(pattern[0]).length;
-    } else {
-      patternLength = String(pattern).length;
-    }
-
-    if (cardNumber.length >= patternLength) {
-      clonedCardConfiguration.matchStrength = patternLength;
-    }
-
-    results.push(clonedCardConfiguration);
-    break;
-  }
-}
-
-module.exports = addMatchingCardsToResults;
-
-},{"./clone":29,"./matches":32}],28:[function(_dereq_,module,exports){
-'use strict';
-
-var cardTypes = {
-  visa: {
-    niceType: 'Visa',
-    type: 'visa',
-    patterns: [
-      4
-    ],
-    gaps: [4, 8, 12],
-    lengths: [16, 18, 19],
-    code: {
-      name: 'CVV',
-      size: 3
-    }
-  },
-  mastercard: {
-    niceType: 'Mastercard',
-    type: 'mastercard',
-    patterns: [
-      [51, 55],
-      [2221, 2229],
-      [223, 229],
-      [23, 26],
-      [270, 271],
-      2720
-    ],
-    gaps: [4, 8, 12],
-    lengths: [16],
-    code: {
-      name: 'CVC',
-      size: 3
-    }
-  },
-  'american-express': {
-    niceType: 'American Express',
-    type: 'american-express',
-    patterns: [
-      34,
-      37
-    ],
-    gaps: [4, 10],
-    lengths: [15],
-    code: {
-      name: 'CID',
-      size: 4
-    }
-  },
-  'diners-club': {
-    niceType: 'Diners Club',
-    type: 'diners-club',
-    patterns: [
-      [300, 305],
-      36,
-      38,
-      39
-    ],
-    gaps: [4, 10],
-    lengths: [14, 16, 19],
-    code: {
-      name: 'CVV',
-      size: 3
-    }
-  },
-  discover: {
-    niceType: 'Discover',
-    type: 'discover',
-    patterns: [
-      6011,
-      [644, 649],
-      65
-    ],
-    gaps: [4, 8, 12],
-    lengths: [16, 19],
-    code: {
-      name: 'CID',
-      size: 3
-    }
-  },
-  jcb: {
-    niceType: 'JCB',
-    type: 'jcb',
-    patterns: [
-      2131,
-      1800,
-      [3528, 3589]
-    ],
-    gaps: [4, 8, 12],
-    lengths: [16, 17, 18, 19],
-    code: {
-      name: 'CVV',
-      size: 3
-    }
-  },
-  unionpay: {
-    niceType: 'UnionPay',
-    type: 'unionpay',
-    patterns: [
-      620,
-      [624, 626],
-      [62100, 62182],
-      [62184, 62187],
-      [62185, 62197],
-      [62200, 62205],
-      [622010, 622999],
-      622018,
-      [622019, 622999],
-      [62207, 62209],
-      [622126, 622925],
-      [623, 626],
-      6270,
-      6272,
-      6276,
-      [627700, 627779],
-      [627781, 627799],
-      [6282, 6289],
-      6291,
-      6292,
-      810,
-      [8110, 8131],
-      [8132, 8151],
-      [8152, 8163],
-      [8164, 8171]
-    ],
-    gaps: [4, 8, 12],
-    lengths: [14, 15, 16, 17, 18, 19],
-    code: {
-      name: 'CVN',
-      size: 3
-    }
-  },
-  maestro: {
-    niceType: 'Maestro',
-    type: 'maestro',
-    patterns: [
-      493698,
-      [500000, 506698],
-      [506779, 508999],
-      [56, 59],
-      63,
-      67,
-      6
-    ],
-    gaps: [4, 8, 12],
-    lengths: [12, 13, 14, 15, 16, 17, 18, 19],
-    code: {
-      name: 'CVC',
-      size: 3
-    }
-  },
-  elo: {
-    niceType: 'Elo',
-    type: 'elo',
-    patterns: [
-      401178,
-      401179,
-      438935,
-      457631,
-      457632,
-      431274,
-      451416,
-      457393,
-      504175,
-      [506699, 506778],
-      [509000, 509999],
-      627780,
-      636297,
-      636368,
-      [650031, 650033],
-      [650035, 650051],
-      [650405, 650439],
-      [650485, 650538],
-      [650541, 650598],
-      [650700, 650718],
-      [650720, 650727],
-      [650901, 650978],
-      [651652, 651679],
-      [655000, 655019],
-      [655021, 655058]
-    ],
-    gaps: [4, 8, 12],
-    lengths: [16],
-    code: {
-      name: 'CVE',
-      size: 3
-    }
-  },
-  mir: {
-    niceType: 'Mir',
-    type: 'mir',
-    patterns: [
-      [2200, 2204]
-    ],
-    gaps: [4, 8, 12],
-    lengths: [16, 17, 18, 19],
-    code: {
-      name: 'CVP2',
-      size: 3
-    }
-  },
-  hiper: {
-    niceType: 'Hiper',
-    type: 'hiper',
-    patterns: [
-      637095,
-      637568,
-      637599,
-      637609,
-      637612
-    ],
-    gaps: [4, 8, 12],
-    lengths: [16],
-    code: {
-      name: 'CVC',
-      size: 3
-    }
-  },
-  hipercard: {
-    niceType: 'Hipercard',
-    type: 'hipercard',
-    patterns: [
-      606282
-    ],
-    gaps: [4, 8, 12],
-    lengths: [16],
-    code: {
-      name: 'CVC',
-      size: 3
-    }
-  }
-};
-
-module.exports = cardTypes;
-
 },{}],29:[function(_dereq_,module,exports){
-'use strict';
-
-function clone(originalObject) {
-  var dupe;
-
-  if (!originalObject) { return null; }
-
-  dupe = JSON.parse(JSON.stringify(originalObject));
-
-  return dupe;
-}
-
-module.exports = clone;
-
-},{}],30:[function(_dereq_,module,exports){
-'use strict';
-
-function hasEnoughResultsToDetermineBestMatch(results) {
-  var numberOfResultsWithMaxStrengthProperty = results.filter(function (result) {
-    return result.matchStrength;
-  }).length;
-
-  // if all possible results have a maxStrength property
-  // that means the card number is sufficiently long
-  // enough to determine conclusively what the type is
-  return numberOfResultsWithMaxStrengthProperty > 0 &&
-    numberOfResultsWithMaxStrengthProperty === results.length;
-}
-
-function findBestMatch(results) {
-  if (!hasEnoughResultsToDetermineBestMatch(results)) {
-    return;
-  }
-
-  return results.reduce(function (bestMatch, result) { // eslint-disable-line consistent-return
-    if (!bestMatch) {
-      return result;
+"use strict";
+var set_attributes_1 = _dereq_("./lib/set-attributes");
+var default_attributes_1 = _dereq_("./lib/default-attributes");
+var assign_1 = _dereq_("./lib/assign");
+module.exports = function createFrame(options) {
+    if (options === void 0) { options = {}; }
+    var iframe = document.createElement("iframe");
+    var config = assign_1.assign({}, default_attributes_1.defaultAttributes, options);
+    if (config.style && typeof config.style !== "string") {
+        assign_1.assign(iframe.style, config.style);
+        delete config.style;
     }
-
-    // if the current best match pattern is less specific
-    // than this result, set the result as the new best match
-    if (bestMatch.matchStrength < result.matchStrength) {
-      return result;
+    set_attributes_1.setAttributes(iframe, config);
+    if (!iframe.getAttribute("id")) {
+        iframe.id = iframe.name;
     }
+    return iframe;
+};
 
-    return bestMatch;
-  });
+},{"./lib/assign":30,"./lib/default-attributes":31,"./lib/set-attributes":32}],30:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.assign = void 0;
+function assign(
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+target) {
+    var objs = [];
+    for (var _i = 1; _i < arguments.length; _i++) {
+        objs[_i - 1] = arguments[_i];
+    }
+    objs.forEach(function (obj) {
+        if (typeof obj !== "object") {
+            return;
+        }
+        Object.keys(obj).forEach(function (key) {
+            target[key] = obj[key];
+        });
+    });
+    return target;
 }
-
-module.exports = findBestMatch;
+exports.assign = assign;
 
 },{}],31:[function(_dereq_,module,exports){
-'use strict';
-
-function isValidInputType(cardNumber) {
-  return typeof cardNumber === 'string' || cardNumber instanceof String;
-}
-
-module.exports = isValidInputType;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.defaultAttributes = void 0;
+exports.defaultAttributes = {
+    src: "about:blank",
+    frameBorder: 0,
+    allowtransparency: true,
+    scrolling: "no",
+};
 
 },{}],32:[function(_dereq_,module,exports){
-'use strict';
-
-// Adapted from https://github.com/polvo-labs/card-type/blob/aaab11f80fa1939bccc8f24905a06ae3cd864356/src/cardType.js#L37-L42
-function matchesRange(cardNumber, min, max) {
-  var maxLengthToCheck = String(min).length;
-  var substr = cardNumber.substr(0, maxLengthToCheck);
-  var integerRepresentationOfCardNumber = parseInt(substr, 10);
-
-  min = parseInt(String(min).substr(0, substr.length), 10);
-  max = parseInt(String(max).substr(0, substr.length), 10);
-
-  return integerRepresentationOfCardNumber >= min && integerRepresentationOfCardNumber <= max;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.setAttributes = void 0;
+function setAttributes(element, 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+attributes) {
+    for (var key in attributes) {
+        if (attributes.hasOwnProperty(key)) {
+            var value = attributes[key];
+            if (value == null) {
+                element.removeAttribute(key);
+            }
+            else {
+                element.setAttribute(key, value);
+            }
+        }
+    }
 }
-
-function matchesPattern(cardNumber, pattern) {
-  pattern = String(pattern);
-
-  return pattern.substring(0, cardNumber.length) === cardNumber.substring(0, pattern.length);
-}
-
-function matches(cardNumber, pattern) {
-  if (Array.isArray(pattern)) {
-    return matchesRange(cardNumber, pattern[0], pattern[1]);
-  }
-
-  return matchesPattern(cardNumber, pattern);
-}
-
-module.exports = matches;
+exports.setAttributes = setAttributes;
 
 },{}],33:[function(_dereq_,module,exports){
+'use strict';
+
+function uuid() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    var r = Math.random() * 16 | 0;
+    var v = c === 'x' ? r : r & 0x3 | 0x8;
+
+    return v.toString(16);
+  });
+}
+
+module.exports = uuid;
+
+},{}],34:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function deferred(fn) {
+    return function () {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i] = arguments[_i];
+        }
+        setTimeout(function () {
+            try {
+                fn.apply(void 0, args);
+            }
+            catch (err) {
+                /* eslint-disable no-console */
+                console.log("Error in callback function");
+                console.log(err);
+                /* eslint-enable no-console */
+            }
+        }, 1);
+    };
+}
+exports.deferred = deferred;
+
+},{}],35:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function once(fn) {
+    var called = false;
+    return function () {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i] = arguments[_i];
+        }
+        if (!called) {
+            called = true;
+            fn.apply(void 0, args);
+        }
+    };
+}
+exports.once = once;
+
+},{}],36:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+/* eslint-disable consistent-return */
+function promiseOrCallback(promise, callback) {
+    if (!callback) {
+        return promise;
+    }
+    promise.then(function (data) { return callback(null, data); }).catch(function (err) { return callback(err); });
+}
+exports.promiseOrCallback = promiseOrCallback;
+
+},{}],37:[function(_dereq_,module,exports){
+"use strict";
+var deferred_1 = _dereq_("./lib/deferred");
+var once_1 = _dereq_("./lib/once");
+var promise_or_callback_1 = _dereq_("./lib/promise-or-callback");
+function wrapPromise(fn) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return function () {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i] = arguments[_i];
+        }
+        var callback;
+        var lastArg = args[args.length - 1];
+        if (typeof lastArg === "function") {
+            callback = args.pop();
+            callback = once_1.once(deferred_1.deferred(callback));
+        }
+        // I know, I know, this looks bad. But it's a quirk of the library that
+        // we need to allow passing the this context to the original function
+        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+        // @ts-ignore: this has an implicit any
+        return promise_or_callback_1.promiseOrCallback(fn.apply(this, args), callback); // eslint-disable-line no-invalid-this
+    };
+}
+wrapPromise.wrapPrototype = function (target, options) {
+    if (options === void 0) { options = {}; }
+    var ignoreMethods = options.ignoreMethods || [];
+    var includePrivateMethods = options.transformPrivateMethods === true;
+    var methods = Object.getOwnPropertyNames(target.prototype).filter(function (method) {
+        var isNotPrivateMethod;
+        var isNonConstructorFunction = method !== "constructor" &&
+            typeof target.prototype[method] === "function";
+        var isNotAnIgnoredMethod = ignoreMethods.indexOf(method) === -1;
+        if (includePrivateMethods) {
+            isNotPrivateMethod = true;
+        }
+        else {
+            isNotPrivateMethod = method.charAt(0) !== "_";
+        }
+        return (isNonConstructorFunction && isNotPrivateMethod && isNotAnIgnoredMethod);
+    });
+    methods.forEach(function (method) {
+        var original = target.prototype[method];
+        target.prototype[method] = wrapPromise(original);
+    });
+    return target;
+};
+module.exports = wrapPromise;
+
+},{"./lib/deferred":34,"./lib/once":35,"./lib/promise-or-callback":36}],38:[function(_dereq_,module,exports){
+"use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+var cardTypes = _dereq_("./lib/card-types");
+var add_matching_cards_to_results_1 = _dereq_("./lib/add-matching-cards-to-results");
+var is_valid_input_type_1 = _dereq_("./lib/is-valid-input-type");
+var find_best_match_1 = _dereq_("./lib/find-best-match");
+var clone_1 = _dereq_("./lib/clone");
+var customCards = {};
+var cardNames = {
+    VISA: "visa",
+    MASTERCARD: "mastercard",
+    AMERICAN_EXPRESS: "american-express",
+    DINERS_CLUB: "diners-club",
+    DISCOVER: "discover",
+    JCB: "jcb",
+    UNIONPAY: "unionpay",
+    MAESTRO: "maestro",
+    ELO: "elo",
+    MIR: "mir",
+    HIPER: "hiper",
+    HIPERCARD: "hipercard",
+};
+var ORIGINAL_TEST_ORDER = [
+    cardNames.VISA,
+    cardNames.MASTERCARD,
+    cardNames.AMERICAN_EXPRESS,
+    cardNames.DINERS_CLUB,
+    cardNames.DISCOVER,
+    cardNames.JCB,
+    cardNames.UNIONPAY,
+    cardNames.MAESTRO,
+    cardNames.ELO,
+    cardNames.MIR,
+    cardNames.HIPER,
+    cardNames.HIPERCARD,
+];
+var testOrder = clone_1.clone(ORIGINAL_TEST_ORDER);
+function findType(cardType) {
+    return customCards[cardType] || cardTypes[cardType];
+}
+function getAllCardTypes() {
+    return testOrder.map(function (cardType) { return clone_1.clone(findType(cardType)); });
+}
+function getCardPosition(name, ignoreErrorForNotExisting) {
+    if (ignoreErrorForNotExisting === void 0) { ignoreErrorForNotExisting = false; }
+    var position = testOrder.indexOf(name);
+    if (!ignoreErrorForNotExisting && position === -1) {
+        throw new Error('"' + name + '" is not a supported card type.');
+    }
+    return position;
+}
+function creditCardType(cardNumber) {
+    var results = [];
+    if (!is_valid_input_type_1.isValidInputType(cardNumber)) {
+        return results;
+    }
+    if (cardNumber.length === 0) {
+        return getAllCardTypes();
+    }
+    testOrder.forEach(function (cardType) {
+        var cardConfiguration = findType(cardType);
+        add_matching_cards_to_results_1.addMatchingCardsToResults(cardNumber, cardConfiguration, results);
+    });
+    var bestMatch = find_best_match_1.findBestMatch(results);
+    if (bestMatch) {
+        return [bestMatch];
+    }
+    return results;
+}
+creditCardType.getTypeInfo = function (cardType) {
+    return clone_1.clone(findType(cardType));
+};
+creditCardType.removeCard = function (name) {
+    var position = getCardPosition(name);
+    testOrder.splice(position, 1);
+};
+creditCardType.addCard = function (config) {
+    var existingCardPosition = getCardPosition(config.type, true);
+    customCards[config.type] = config;
+    if (existingCardPosition === -1) {
+        testOrder.push(config.type);
+    }
+};
+creditCardType.updateCard = function (cardType, updates) {
+    var originalObject = customCards[cardType] || cardTypes[cardType];
+    if (!originalObject) {
+        throw new Error("\"" + cardType + "\" is not a recognized type. Use `addCard` instead.'");
+    }
+    if (updates.type && originalObject.type !== updates.type) {
+        throw new Error("Cannot overwrite type parameter.");
+    }
+    var clonedCard = clone_1.clone(originalObject);
+    clonedCard = __assign(__assign({}, clonedCard), updates);
+    customCards[clonedCard.type] = clonedCard;
+};
+creditCardType.changeOrder = function (name, position) {
+    var currentPosition = getCardPosition(name);
+    testOrder.splice(currentPosition, 1);
+    testOrder.splice(position, 0, name);
+};
+creditCardType.resetModifications = function () {
+    testOrder = clone_1.clone(ORIGINAL_TEST_ORDER);
+    customCards = {};
+};
+creditCardType.types = cardNames;
+module.exports = creditCardType;
+
+},{"./lib/add-matching-cards-to-results":39,"./lib/card-types":40,"./lib/clone":41,"./lib/find-best-match":42,"./lib/is-valid-input-type":43}],39:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.addMatchingCardsToResults = void 0;
+var clone_1 = _dereq_("./clone");
+var matches_1 = _dereq_("./matches");
+function addMatchingCardsToResults(cardNumber, cardConfiguration, results) {
+    var i, patternLength;
+    for (i = 0; i < cardConfiguration.patterns.length; i++) {
+        var pattern = cardConfiguration.patterns[i];
+        if (!matches_1.matches(cardNumber, pattern)) {
+            continue;
+        }
+        var clonedCardConfiguration = clone_1.clone(cardConfiguration);
+        if (Array.isArray(pattern)) {
+            patternLength = String(pattern[0]).length;
+        }
+        else {
+            patternLength = String(pattern).length;
+        }
+        if (cardNumber.length >= patternLength) {
+            clonedCardConfiguration.matchStrength = patternLength;
+        }
+        results.push(clonedCardConfiguration);
+        break;
+    }
+}
+exports.addMatchingCardsToResults = addMatchingCardsToResults;
+
+},{"./clone":41,"./matches":44}],40:[function(_dereq_,module,exports){
+"use strict";
+var cardTypes = {
+    visa: {
+        niceType: "Visa",
+        type: "visa",
+        patterns: [4],
+        gaps: [4, 8, 12],
+        lengths: [16, 18, 19],
+        code: {
+            name: "CVV",
+            size: 3,
+        },
+    },
+    mastercard: {
+        niceType: "Mastercard",
+        type: "mastercard",
+        patterns: [[51, 55], [2221, 2229], [223, 229], [23, 26], [270, 271], 2720],
+        gaps: [4, 8, 12],
+        lengths: [16],
+        code: {
+            name: "CVC",
+            size: 3,
+        },
+    },
+    "american-express": {
+        niceType: "American Express",
+        type: "american-express",
+        patterns: [34, 37],
+        gaps: [4, 10],
+        lengths: [15],
+        code: {
+            name: "CID",
+            size: 4,
+        },
+    },
+    "diners-club": {
+        niceType: "Diners Club",
+        type: "diners-club",
+        patterns: [[300, 305], 36, 38, 39],
+        gaps: [4, 10],
+        lengths: [14, 16, 19],
+        code: {
+            name: "CVV",
+            size: 3,
+        },
+    },
+    discover: {
+        niceType: "Discover",
+        type: "discover",
+        patterns: [6011, [644, 649], 65],
+        gaps: [4, 8, 12],
+        lengths: [16, 19],
+        code: {
+            name: "CID",
+            size: 3,
+        },
+    },
+    jcb: {
+        niceType: "JCB",
+        type: "jcb",
+        patterns: [2131, 1800, [3528, 3589]],
+        gaps: [4, 8, 12],
+        lengths: [16, 17, 18, 19],
+        code: {
+            name: "CVV",
+            size: 3,
+        },
+    },
+    unionpay: {
+        niceType: "UnionPay",
+        type: "unionpay",
+        patterns: [
+            620,
+            [624, 626],
+            [62100, 62182],
+            [62184, 62187],
+            [62185, 62197],
+            [62200, 62205],
+            [622010, 622999],
+            622018,
+            [622019, 622999],
+            [62207, 62209],
+            [622126, 622925],
+            [623, 626],
+            6270,
+            6272,
+            6276,
+            [627700, 627779],
+            [627781, 627799],
+            [6282, 6289],
+            6291,
+            6292,
+            810,
+            [8110, 8131],
+            [8132, 8151],
+            [8152, 8163],
+            [8164, 8171],
+        ],
+        gaps: [4, 8, 12],
+        lengths: [14, 15, 16, 17, 18, 19],
+        code: {
+            name: "CVN",
+            size: 3,
+        },
+    },
+    maestro: {
+        niceType: "Maestro",
+        type: "maestro",
+        patterns: [
+            493698,
+            [500000, 504174],
+            [504176, 506698],
+            [506779, 508999],
+            [56, 59],
+            63,
+            67,
+            6,
+        ],
+        gaps: [4, 8, 12],
+        lengths: [12, 13, 14, 15, 16, 17, 18, 19],
+        code: {
+            name: "CVC",
+            size: 3,
+        },
+    },
+    elo: {
+        niceType: "Elo",
+        type: "elo",
+        patterns: [
+            401178,
+            401179,
+            438935,
+            457631,
+            457632,
+            431274,
+            451416,
+            457393,
+            504175,
+            [506699, 506778],
+            [509000, 509999],
+            627780,
+            636297,
+            636368,
+            [650031, 650033],
+            [650035, 650051],
+            [650405, 650439],
+            [650485, 650538],
+            [650541, 650598],
+            [650700, 650718],
+            [650720, 650727],
+            [650901, 650978],
+            [651652, 651679],
+            [655000, 655019],
+            [655021, 655058],
+        ],
+        gaps: [4, 8, 12],
+        lengths: [16],
+        code: {
+            name: "CVE",
+            size: 3,
+        },
+    },
+    mir: {
+        niceType: "Mir",
+        type: "mir",
+        patterns: [[2200, 2204]],
+        gaps: [4, 8, 12],
+        lengths: [16, 17, 18, 19],
+        code: {
+            name: "CVP2",
+            size: 3,
+        },
+    },
+    hiper: {
+        niceType: "Hiper",
+        type: "hiper",
+        patterns: [637095, 637568, 637599, 637609, 637612],
+        gaps: [4, 8, 12],
+        lengths: [16],
+        code: {
+            name: "CVC",
+            size: 3,
+        },
+    },
+    hipercard: {
+        niceType: "Hipercard",
+        type: "hipercard",
+        patterns: [606282],
+        gaps: [4, 8, 12],
+        lengths: [16],
+        code: {
+            name: "CVC",
+            size: 3,
+        },
+    },
+};
+module.exports = cardTypes;
+
+},{}],41:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.clone = void 0;
+function clone(originalObject) {
+    if (!originalObject) {
+        return null;
+    }
+    return JSON.parse(JSON.stringify(originalObject));
+}
+exports.clone = clone;
+
+},{}],42:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.findBestMatch = void 0;
+function hasEnoughResultsToDetermineBestMatch(results) {
+    var numberOfResultsWithMaxStrengthProperty = results.filter(function (result) { return result.matchStrength; }).length;
+    /*
+     * if all possible results have a maxStrength property that means the card
+     * number is sufficiently long enough to determine conclusively what the card
+     * type is
+     * */
+    return (numberOfResultsWithMaxStrengthProperty > 0 &&
+        numberOfResultsWithMaxStrengthProperty === results.length);
+}
+function findBestMatch(results) {
+    if (!hasEnoughResultsToDetermineBestMatch(results)) {
+        return null;
+    }
+    return results.reduce(function (bestMatch, result) {
+        if (!bestMatch) {
+            return result;
+        }
+        /*
+         * If the current best match pattern is less specific than this result, set
+         * the result as the new best match
+         * */
+        if (Number(bestMatch.matchStrength) < Number(result.matchStrength)) {
+            return result;
+        }
+        return bestMatch;
+    });
+}
+exports.findBestMatch = findBestMatch;
+
+},{}],43:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.isValidInputType = void 0;
+function isValidInputType(cardNumber) {
+    return typeof cardNumber === "string" || cardNumber instanceof String;
+}
+exports.isValidInputType = isValidInputType;
+
+},{}],44:[function(_dereq_,module,exports){
+"use strict";
+/*
+ * Adapted from https://github.com/polvo-labs/card-type/blob/aaab11f80fa1939bccc8f24905a06ae3cd864356/src/cardType.js#L37-L42
+ * */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.matches = void 0;
+function matchesRange(cardNumber, min, max) {
+    var maxLengthToCheck = String(min).length;
+    var substr = cardNumber.substr(0, maxLengthToCheck);
+    var integerRepresentationOfCardNumber = parseInt(substr, 10);
+    min = parseInt(String(min).substr(0, substr.length), 10);
+    max = parseInt(String(max).substr(0, substr.length), 10);
+    return (integerRepresentationOfCardNumber >= min &&
+        integerRepresentationOfCardNumber <= max);
+}
+function matchesPattern(cardNumber, pattern) {
+    pattern = String(pattern);
+    return (pattern.substring(0, cardNumber.length) ===
+        cardNumber.substring(0, pattern.length));
+}
+function matches(cardNumber, pattern) {
+    if (Array.isArray(pattern)) {
+        return matchesRange(cardNumber, pattern[0], pattern[1]);
+    }
+    return matchesPattern(cardNumber, pattern);
+}
+exports.matches = matches;
+
+},{}],45:[function(_dereq_,module,exports){
 "use strict";
 var is_not_string_1 = _dereq_("./lib/is-not-string");
 var subscription_args_invalid_1 = _dereq_("./lib/subscription-args-invalid");
@@ -1216,7 +1113,7 @@ module.exports = /** @class */ (function () {
     return Framebus;
 }());
 
-},{"./lib/broadcast":37,"./lib/constants":38,"./lib/is-not-string":41,"./lib/package-payload":43,"./lib/subscription-args-invalid":45}],34:[function(_dereq_,module,exports){
+},{"./lib/broadcast":49,"./lib/constants":50,"./lib/is-not-string":53,"./lib/package-payload":55,"./lib/subscription-args-invalid":57}],46:[function(_dereq_,module,exports){
 "use strict";
 var attach_1 = _dereq_("./lib/attach");
 var Framebus = _dereq_("./framebus");
@@ -1224,7 +1121,7 @@ var bus = new Framebus();
 attach_1.attach();
 module.exports = bus;
 
-},{"./framebus":33,"./lib/attach":35}],35:[function(_dereq_,module,exports){
+},{"./framebus":45,"./lib/attach":47}],47:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.detach = exports.attach = void 0;
@@ -1246,7 +1143,7 @@ function detach() {
 exports.detach = detach;
 // endRemoveIf(production)
 
-},{"./message":42}],36:[function(_dereq_,module,exports){
+},{"./message":54}],48:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.broadcastToChildWindows = void 0;
@@ -1265,7 +1162,7 @@ function broadcastToChildWindows(payload, origin, source) {
 }
 exports.broadcastToChildWindows = broadcastToChildWindows;
 
-},{"./broadcast":37,"./constants":38}],37:[function(_dereq_,module,exports){
+},{"./broadcast":49,"./constants":50}],49:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.broadcast = void 0;
@@ -1297,7 +1194,7 @@ function broadcast(frame, payload, origin) {
 }
 exports.broadcast = broadcast;
 
-},{"./has-opener":40}],38:[function(_dereq_,module,exports){
+},{"./has-opener":52}],50:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.subscribers = exports.childWindows = exports.prefix = void 0;
@@ -1305,7 +1202,7 @@ exports.prefix = "/*framebus*/";
 exports.childWindows = [];
 exports.subscribers = {};
 
-},{}],39:[function(_dereq_,module,exports){
+},{}],51:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.dispatch = void 0;
@@ -1330,7 +1227,7 @@ function dispatch(origin, event, data, reply, e) {
 }
 exports.dispatch = dispatch;
 
-},{"./constants":38}],40:[function(_dereq_,module,exports){
+},{"./constants":50}],52:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.hasOpener = void 0;
@@ -1351,7 +1248,7 @@ function hasOpener(frame) {
 }
 exports.hasOpener = hasOpener;
 
-},{}],41:[function(_dereq_,module,exports){
+},{}],53:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.isntString = void 0;
@@ -1360,7 +1257,7 @@ function isntString(str) {
 }
 exports.isntString = isntString;
 
-},{}],42:[function(_dereq_,module,exports){
+},{}],54:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.onmessage = void 0;
@@ -1384,7 +1281,7 @@ function onmessage(e) {
 }
 exports.onmessage = onmessage;
 
-},{"./broadcast-to-child-windows":36,"./dispatch":39,"./is-not-string":41,"./unpack-payload":46}],43:[function(_dereq_,module,exports){
+},{"./broadcast-to-child-windows":48,"./dispatch":51,"./is-not-string":53,"./unpack-payload":58}],55:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.packagePayload = void 0;
@@ -1410,7 +1307,7 @@ function packagePayload(event, origin, data, reply) {
 }
 exports.packagePayload = packagePayload;
 
-},{"./constants":38,"./subscribe-replier":44}],44:[function(_dereq_,module,exports){
+},{"./constants":50,"./subscribe-replier":56}],56:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.subscribeReplier = void 0;
@@ -1427,7 +1324,7 @@ function subscribeReplier(fn, origin) {
 }
 exports.subscribeReplier = subscribeReplier;
 
-},{"../framebus":33,"./uuid":47}],45:[function(_dereq_,module,exports){
+},{"../framebus":45,"./uuid":59}],57:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.subscriptionArgsInvalid = void 0;
@@ -1443,7 +1340,7 @@ function subscriptionArgsInvalid(event, fn, origin) {
 }
 exports.subscriptionArgsInvalid = subscriptionArgsInvalid;
 
-},{"./is-not-string":41}],46:[function(_dereq_,module,exports){
+},{"./is-not-string":53}],58:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.unpackPayload = void 0;
@@ -1479,7 +1376,7 @@ function unpackPayload(e) {
 }
 exports.unpackPayload = unpackPayload;
 
-},{"./constants":38,"./package-payload":43}],47:[function(_dereq_,module,exports){
+},{"./constants":50,"./package-payload":55}],59:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.uuid = void 0;
@@ -1493,7 +1390,7 @@ function uuid() {
 }
 exports.uuid = uuid;
 
-},{}],48:[function(_dereq_,module,exports){
+},{}],60:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -1769,62 +1666,60 @@ Promise._unhandledRejectionFn = function _unhandledRejectionFn(err) {
 
 module.exports = Promise;
 
-},{}],49:[function(_dereq_,module,exports){
-'use strict';
-
-var UA = typeof window !== 'undefined' && window.navigator && window.navigator.userAgent;
-
-var isAndroid = _dereq_('@braintree/browser-detection/is-android');
-var isChromeOs = _dereq_('@braintree/browser-detection/is-chrome-os');
-var isChrome = _dereq_('@braintree/browser-detection/is-chrome');
-var isIos = _dereq_('@braintree/browser-detection/is-ios');
-var isIE9 = _dereq_('@braintree/browser-detection/is-ie9');
-
+},{}],61:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.isIos = exports.isIE9 = exports.isSamsungBrowser = exports.isAndroidChrome = exports.isKitKatWebview = void 0;
+var UA = window.navigator && window.navigator.userAgent;
+// TODO remove this when browser detection is converted to typescript
+/* eslint-disable @typescript-eslint/ban-ts-ignore */
+// @ts-ignore
+var isAndroid = _dereq_("@braintree/browser-detection/is-android");
+// @ts-ignore
+var isChromeOs = _dereq_("@braintree/browser-detection/is-chrome-os");
+// @ts-ignore
+var isChrome = _dereq_("@braintree/browser-detection/is-chrome");
+// @ts-ignore
+var isIos = _dereq_("@braintree/browser-detection/is-ios");
+exports.isIos = isIos;
+// @ts-ignore
+var isIE9 = _dereq_("@braintree/browser-detection/is-ie9");
+exports.isIE9 = isIE9;
+/* eslint-enable @typescript-eslint/ban-ts-ignore */
 // Old Android Webviews used specific versions of Chrome with 0.0.0 as their version suffix
 // https://developer.chrome.com/multidevice/user-agent#webview_user_agent
 var KITKAT_WEBVIEW_REGEX = /Version\/\d\.\d* Chrome\/\d*\.0\.0\.0/;
-
-function _isOldSamsungBrowserOrSamsungWebview(ua) {
-  return !isChrome(ua) && ua.indexOf('Samsung') > -1;
+function isOldSamsungBrowserOrSamsungWebview(ua) {
+    return !isChrome(ua) && ua.indexOf("Samsung") > -1;
 }
-
-function isKitKatWebview(uaArg) {
-  var ua = uaArg || UA;
-
-  return isAndroid(ua) && KITKAT_WEBVIEW_REGEX.test(ua);
+function isKitKatWebview(ua) {
+    if (ua === void 0) { ua = UA; }
+    return isAndroid(ua) && KITKAT_WEBVIEW_REGEX.test(ua);
 }
-
-function isAndroidChrome(uaArg) {
-  var ua = uaArg || UA;
-
-  return (isAndroid(ua) || isChromeOs(ua)) && isChrome(ua);
+exports.isKitKatWebview = isKitKatWebview;
+function isAndroidChrome(ua) {
+    if (ua === void 0) { ua = UA; }
+    return (isAndroid(ua) || isChromeOs(ua)) && isChrome(ua);
 }
-
+exports.isAndroidChrome = isAndroidChrome;
 function isSamsungBrowser(ua) {
-  ua = ua || UA;
-
-  return /SamsungBrowser/.test(ua) || _isOldSamsungBrowserOrSamsungWebview(ua);
+    if (ua === void 0) { ua = UA; }
+    return /SamsungBrowser/.test(ua) || isOldSamsungBrowserOrSamsungWebview(ua);
 }
+exports.isSamsungBrowser = isSamsungBrowser;
 
-module.exports = {
-  isIE9: isIE9,
-  isAndroidChrome: isAndroidChrome,
-  isIos: isIos,
-  isKitKatWebview: isKitKatWebview,
-  isSamsungBrowser: isSamsungBrowser
+},{"@braintree/browser-detection/is-android":16,"@braintree/browser-detection/is-chrome":18,"@braintree/browser-detection/is-chrome-os":17,"@braintree/browser-detection/is-ie9":23,"@braintree/browser-detection/is-ios":25}],62:[function(_dereq_,module,exports){
+"use strict";
+var device_1 = _dereq_("./lib/device");
+module.exports = function supportsInputFormatting() {
+    // Digits get dropped in samsung browser
+    return !device_1.isSamsungBrowser();
 };
 
-},{"@braintree/browser-detection/is-android":3,"@braintree/browser-detection/is-chrome":5,"@braintree/browser-detection/is-chrome-os":4,"@braintree/browser-detection/is-ie9":11,"@braintree/browser-detection/is-ios":13}],50:[function(_dereq_,module,exports){
-'use strict';
+},{"./lib/device":61}],63:[function(_dereq_,module,exports){
+module.exports = _dereq_("./dist/supports-input-formatting");
 
-var device = _dereq_('./lib/device');
-
-module.exports = function () {
-  // Digits get dropped in samsung browser
-  return !device.isSamsungBrowser();
-};
-
-},{"./lib/device":49}],51:[function(_dereq_,module,exports){
+},{"./dist/supports-input-formatting":62}],64:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../lib/braintree-error');
@@ -1863,7 +1758,7 @@ function _isValid(attribute, value) {
 
 module.exports = attributeValidationError;
 
-},{"../../lib/braintree-error":70,"../shared/constants":59,"../shared/errors":60}],52:[function(_dereq_,module,exports){
+},{"../../lib/braintree-error":83,"../shared/constants":72,"../shared/errors":73}],65:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('../shared/constants');
@@ -1877,7 +1772,7 @@ module.exports = function composeUrl(assetsUrl, componentId, isDebug) {
     componentId;
 };
 
-},{"../../lib/use-min":87,"../shared/constants":59}],53:[function(_dereq_,module,exports){
+},{"../../lib/use-min":102,"../shared/constants":72}],66:[function(_dereq_,module,exports){
 'use strict';
 
 var directions = _dereq_('../shared/constants').navigationDirections;
@@ -2000,7 +1895,7 @@ module.exports = {
   }
 };
 
-},{"../shared/browser-detection":58,"../shared/constants":59,"../shared/find-parent-tags":61,"../shared/focus-intercept":62}],54:[function(_dereq_,module,exports){
+},{"../shared/browser-detection":71,"../shared/constants":72,"../shared/find-parent-tags":74,"../shared/focus-intercept":75}],67:[function(_dereq_,module,exports){
 'use strict';
 
 var allowedStyles = _dereq_('../shared/constants').allowedStyles;
@@ -2036,7 +1931,7 @@ module.exports = function getStylesFromClass(cssClass) {
   return styles;
 };
 
-},{"../shared/constants":59}],55:[function(_dereq_,module,exports){
+},{"../shared/constants":72}],68:[function(_dereq_,module,exports){
 'use strict';
 
 var assign = _dereq_('../../lib/assign').assign;
@@ -2052,7 +1947,7 @@ var getStylesFromClass = _dereq_('./get-styles-from-class');
 var constants = _dereq_('../shared/constants');
 var errors = _dereq_('../shared/errors');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
-var uuid = _dereq_('../../lib/vendor/uuid');
+var uuid = _dereq_('@braintree/uuid');
 var findParentTags = _dereq_('../shared/find-parent-tags');
 var browserDetection = _dereq_('../shared/browser-detection');
 var events = constants.events;
@@ -2061,6 +1956,8 @@ var injectFrame = _dereq_('./inject-frame');
 var analytics = _dereq_('../../lib/analytics');
 var allowedFields = constants.allowedFields;
 var methods = _dereq_('../../lib/methods');
+var shadow = _dereq_('../../lib/shadow');
+var findRootNode = _dereq_('../../lib/find-root-node');
 var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
 var sharedErrors = _dereq_('../../lib/errors');
 var getCardTypes = _dereq_('../shared/get-card-types');
@@ -2489,7 +2386,7 @@ function HostedFields(options) {
   }
 
   Object.keys(options.fields).forEach(function (key) {
-    var field, container, frame, frameReadyPromise;
+    var field, externalContainer, internalContainer, frame, frameReadyPromise;
 
     if (!constants.allowedFields.hasOwnProperty(key)) {
       throw new BraintreeError({
@@ -2502,13 +2399,13 @@ function HostedFields(options) {
     field = options.fields[key];
     // NEXT_MAJOR_VERSION remove selector as an option
     // and simply make the API take a container
-    container = field.container || field.selector;
+    externalContainer = field.container || field.selector;
 
-    if (typeof container === 'string') {
-      container = document.querySelector(container);
+    if (typeof externalContainer === 'string') {
+      externalContainer = document.querySelector(externalContainer);
     }
 
-    if (!container || container.nodeType !== 1) {
+    if (!externalContainer || externalContainer.nodeType !== 1) {
       throw new BraintreeError({
         type: errors.HOSTED_FIELDS_INVALID_FIELD_SELECTOR.type,
         code: errors.HOSTED_FIELDS_INVALID_FIELD_SELECTOR.code,
@@ -2519,7 +2416,7 @@ function HostedFields(options) {
           fieldKey: key
         }
       });
-    } else if (container.querySelector('iframe[name^="braintree-"]')) {
+    } else if (externalContainer.querySelector('iframe[name^="braintree-"]')) {
       throw new BraintreeError({
         type: errors.HOSTED_FIELDS_FIELD_DUPLICATE_IFRAME.type,
         code: errors.HOSTED_FIELDS_FIELD_DUPLICATE_IFRAME.code,
@@ -2530,6 +2427,12 @@ function HostedFields(options) {
           fieldKey: key
         }
       });
+    }
+
+    internalContainer = externalContainer;
+
+    if (shadow.isShadowElement(internalContainer)) {
+      internalContainer = shadow.transformToSlot(internalContainer);
     }
 
     if (field.maxlength && typeof field.maxlength !== 'number') {
@@ -2561,16 +2464,16 @@ function HostedFields(options) {
       title: 'Secure Credit Card Frame - ' + constants.allowedFields[key].label
     });
 
-    this._injectedNodes.push.apply(this._injectedNodes, injectFrame(frame, container, function () {
+    this._injectedNodes.push.apply(this._injectedNodes, injectFrame(frame, internalContainer, function () {
       self._bus.emit(events.TRIGGER_INPUT_FOCUS, {
         field: key
       });
     }));
 
-    this._setupLabelFocus(key, container);
+    this._setupLabelFocus(key, externalContainer);
     fields[key] = {
       frameElement: frame,
-      containerElement: container
+      containerElement: externalContainer
     };
     frameReadyPromise = new Promise(function (resolve) {
       frameReadyPromiseResolveFunctions[key] = resolve;
@@ -2582,7 +2485,7 @@ function HostedFields(options) {
       isValid: false,
       isPotentiallyValid: true,
       isFocused: false,
-      container: container
+      container: externalContainer
     };
 
     setTimeout(function () {
@@ -2723,6 +2626,7 @@ HostedFields.prototype._setupLabelFocus = function (type, container) {
   var labels, i;
   var shouldSkipLabelFocus = browserDetection.isIos();
   var bus = this._bus;
+  var rootNode = findRootNode(container);
 
   if (shouldSkipLabelFocus) { return; }
   if (container.id == null) { return; }
@@ -2733,8 +2637,18 @@ HostedFields.prototype._setupLabelFocus = function (type, container) {
     });
   }
 
+  // find any labels in the normal DOM
   labels = Array.prototype.slice.call(document.querySelectorAll('label[for="' + container.id + '"]'));
+  if (rootNode !== document) {
+    // find any labels within the shadow dom
+    labels = labels.concat(Array.prototype.slice.call(rootNode.querySelectorAll('label[for="' + container.id + '"]')));
+  }
+  // find any labels surrounding the container that don't also have the `for` attribute
   labels = labels.concat(findParentTags(container, 'label'));
+  // filter out any accidental duplicates
+  labels = labels.filter(function (label, index, arr) {
+    return arr.indexOf(label) === index;
+  });
 
   for (i = 0; i < labels.length; i++) {
     labels[i].addEventListener('click', triggerFocus, false);
@@ -3460,7 +3374,7 @@ function formatMerchantConfigurationForIframes(config) {
 
 module.exports = wrapPromise.wrapPrototype(HostedFields);
 
-},{"../../lib/analytics":65,"../../lib/assign":67,"../../lib/braintree-error":70,"../../lib/bus":73,"../../lib/constants":74,"../../lib/convert-methods-to-error":75,"../../lib/create-assets-url":76,"../../lib/create-deferred-client":78,"../../lib/destructor":79,"../../lib/errors":81,"../../lib/methods":84,"../../lib/promise":86,"../../lib/vendor/uuid":89,"../shared/browser-detection":58,"../shared/constants":59,"../shared/errors":60,"../shared/find-parent-tags":61,"../shared/focus-intercept":62,"../shared/get-card-types":63,"./attribute-validation-error":51,"./compose-url":52,"./focus-change":53,"./get-styles-from-class":54,"./inject-frame":56,"@braintree/class-list":15,"@braintree/event-emitter":16,"@braintree/iframer":18,"@braintree/wrap-promise":25}],56:[function(_dereq_,module,exports){
+},{"../../lib/analytics":78,"../../lib/assign":80,"../../lib/braintree-error":83,"../../lib/bus":86,"../../lib/constants":87,"../../lib/convert-methods-to-error":88,"../../lib/create-assets-url":89,"../../lib/create-deferred-client":91,"../../lib/destructor":92,"../../lib/errors":94,"../../lib/find-root-node":95,"../../lib/methods":98,"../../lib/promise":100,"../../lib/shadow":101,"../shared/browser-detection":71,"../shared/constants":72,"../shared/errors":73,"../shared/find-parent-tags":74,"../shared/focus-intercept":75,"../shared/get-card-types":76,"./attribute-validation-error":64,"./compose-url":65,"./focus-change":66,"./get-styles-from-class":67,"./inject-frame":69,"@braintree/class-list":26,"@braintree/event-emitter":27,"@braintree/iframer":29,"@braintree/uuid":33,"@braintree/wrap-promise":37}],69:[function(_dereq_,module,exports){
 'use strict';
 
 var focusIntercept = _dereq_('../shared/focus-intercept');
@@ -3485,7 +3399,7 @@ module.exports = function injectFrame(frame, container, focusHandler) {
   return [frame, clearboth];
 };
 
-},{"../shared/constants":59,"../shared/focus-intercept":62}],57:[function(_dereq_,module,exports){
+},{"../shared/constants":72,"../shared/focus-intercept":75}],70:[function(_dereq_,module,exports){
 'use strict';
 /** @module braintree-web/hosted-fields */
 
@@ -3496,7 +3410,7 @@ var supportsInputFormatting = _dereq_('restricted-input/supports-input-formattin
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.63.0";
+var VERSION = "3.64.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -3505,6 +3419,13 @@ var VERSION = "3.63.0";
  * @property {(string|HTMLElement)} container A DOM node or CSS selector to find the container where the hosted field will be inserted.
  * @property {string} [placeholder] Will be used as the `placeholder` attribute of the input. If `placeholder` is not natively supported by the browser, it will be polyfilled.
  * @property {string} [type] Will be used as the `type` attribute of the input. To mask `cvv` input, for instance, `type: "password"` can be used.
+ * @property {string} [internalLabel] Each Hosted Field iframe has a hidden label that is used by screen readers to identify the input. The `internalLabel` property can be used to customize the field for localization purposes. The default values are:
+ * * number: Credit Card Number
+ * * cvv: CVV
+ * * expirationDate: Expiration Date
+ * * expirationMonth: Expiration Month
+ * * expirationYear: Expiration Year
+ * * postalCode: Postal Code
  * @property {boolean} [formatInput=true] Enable or disable automatic formatting on this field.
  * @property {(object|boolean)} [maskInput=false] Enable or disable input masking when input is not focused. If set to `true` instead of an object, the defaults for the `maskInput` parameters will be used.
  * @property {string} [maskInput.character=•] The character to use when masking the input. The default character ('•') uses a unicode symbol, so the webpage must support UTF-8 characters when using the default.
@@ -3597,6 +3518,7 @@ var VERSION = "3.63.0";
  * @param {string} [options.authorization] A tokenizationKey or clientToken. Can be used in place of `options.client`.
  * @param {fieldOptions} options.fields A {@link module:braintree-web/hosted-fields~fieldOptions set of options for each field}.
  * @param {styleOptions} [options.styles] {@link module:braintree-web/hosted-fields~styleOptions Styles} applied to each field.
+ * @param {boolean} [options.preventAutofill=false] When true, browsers will not try to prompt the customer to autofill their credit card information.
  * @param {callback} [callback] The second argument, `data`, is the {@link HostedFields} instance. If no callback is provided, `create` returns a promise that resolves with the {@link HostedFields} instance.
  * @returns {void}
  * @example
@@ -3808,15 +3730,20 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/basic-component-verification":68,"../lib/braintree-error":70,"../lib/promise":86,"./external/hosted-fields":55,"./shared/errors":60,"@braintree/wrap-promise":25,"restricted-input/supports-input-formatting":50}],58:[function(_dereq_,module,exports){
+},{"../lib/basic-component-verification":81,"../lib/braintree-error":83,"../lib/promise":100,"./external/hosted-fields":68,"./shared/errors":73,"@braintree/wrap-promise":37,"restricted-input/supports-input-formatting":63}],71:[function(_dereq_,module,exports){
 'use strict';
 
 var isAndroid = _dereq_('@braintree/browser-detection/is-android');
 var isChromeOS = _dereq_('@braintree/browser-detection/is-chrome-os');
 var isIos = _dereq_('@braintree/browser-detection/is-ios');
+var isChrome = _dereq_('@braintree/browser-detection/is-chrome');
 
 function hasSoftwareKeyboard() {
   return isAndroid() || isChromeOS() || isIos();
+}
+
+function isChromeIos() {
+  return isChrome() && isIos();
 }
 
 module.exports = {
@@ -3826,18 +3753,19 @@ module.exports = {
   isIe10: _dereq_('@braintree/browser-detection/is-ie10'),
   isAndroid: isAndroid,
   isChromeOS: isChromeOS,
+  isChromeIos: isChromeIos,
   isFirefox: _dereq_('@braintree/browser-detection/is-firefox'),
   isIos: isIos,
   isIosWebview: _dereq_('@braintree/browser-detection/is-ios-webview'),
   hasSoftwareKeyboard: hasSoftwareKeyboard
 };
 
-},{"@braintree/browser-detection/is-android":3,"@braintree/browser-detection/is-chrome-os":4,"@braintree/browser-detection/is-edge":6,"@braintree/browser-detection/is-firefox":7,"@braintree/browser-detection/is-ie":8,"@braintree/browser-detection/is-ie10":9,"@braintree/browser-detection/is-ie9":11,"@braintree/browser-detection/is-ios":13,"@braintree/browser-detection/is-ios-webview":12}],59:[function(_dereq_,module,exports){
+},{"@braintree/browser-detection/is-android":16,"@braintree/browser-detection/is-chrome":18,"@braintree/browser-detection/is-chrome-os":17,"@braintree/browser-detection/is-edge":19,"@braintree/browser-detection/is-firefox":20,"@braintree/browser-detection/is-ie":21,"@braintree/browser-detection/is-ie10":22,"@braintree/browser-detection/is-ie9":23,"@braintree/browser-detection/is-ios":25,"@braintree/browser-detection/is-ios-webview":24}],72:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.63.0";
+var VERSION = "3.64.0";
 
 var constants = {
   VERSION: VERSION,
@@ -3958,7 +3886,7 @@ var constants = {
 
 constants.events = enumerate([
   'ADD_CLASS',
-  'AUTOFILL_EXPIRATION_DATE',
+  'AUTOFILL_DATA_AVAILABLE',
   'BIN_AVAILABLE',
   'CARD_FORM_ENTRY_HAS_BEGUN',
   'CLEAR_FIELD',
@@ -3980,7 +3908,7 @@ constants.events = enumerate([
 
 module.exports = constants;
 
-},{"../../lib/enumerate":80,"./errors":60}],60:[function(_dereq_,module,exports){
+},{"../../lib/enumerate":93,"./errors":73}],73:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -4093,7 +4021,7 @@ module.exports = {
   }
 };
 
-},{"../../lib/braintree-error":70}],61:[function(_dereq_,module,exports){
+},{"../../lib/braintree-error":83}],74:[function(_dereq_,module,exports){
 'use strict';
 
 function findParentTags(element, tag) {
@@ -4113,7 +4041,7 @@ function findParentTags(element, tag) {
 
 module.exports = findParentTags;
 
-},{}],62:[function(_dereq_,module,exports){
+},{}],75:[function(_dereq_,module,exports){
 'use strict';
 
 var browserDetection = _dereq_('./browser-detection');
@@ -4210,7 +4138,7 @@ var focusIntercept = {
 
 module.exports = focusIntercept;
 
-},{"./browser-detection":58,"./constants":59,"@braintree/class-list":15}],63:[function(_dereq_,module,exports){
+},{"./browser-detection":71,"./constants":72,"@braintree/class-list":26}],76:[function(_dereq_,module,exports){
 'use strict';
 
 var creditCardType = _dereq_('credit-card-type');
@@ -4231,7 +4159,7 @@ module.exports = function (number) {
   return results;
 };
 
-},{"credit-card-type":26}],64:[function(_dereq_,module,exports){
+},{"credit-card-type":38}],77:[function(_dereq_,module,exports){
 'use strict';
 
 var createAuthorizationData = _dereq_('./create-authorization-data');
@@ -4265,7 +4193,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":74,"./create-authorization-data":77,"./json-clone":83}],65:[function(_dereq_,module,exports){
+},{"./constants":87,"./create-authorization-data":90,"./json-clone":97}],78:[function(_dereq_,module,exports){
 'use strict';
 
 var Promise = _dereq_('./promise');
@@ -4301,7 +4229,7 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":64,"./constants":74,"./promise":86}],66:[function(_dereq_,module,exports){
+},{"./add-metadata":77,"./constants":87,"./promise":100}],79:[function(_dereq_,module,exports){
 'use strict';
 
 var loadScript = _dereq_('@braintree/asset-loader/load-script');
@@ -4310,7 +4238,7 @@ module.exports = {
   loadScript: loadScript
 };
 
-},{"@braintree/asset-loader/load-script":2}],67:[function(_dereq_,module,exports){
+},{"@braintree/asset-loader/load-script":3}],80:[function(_dereq_,module,exports){
 'use strict';
 
 var assignNormalized = typeof Object.assign === 'function' ? Object.assign : assignPolyfill;
@@ -4335,13 +4263,13 @@ module.exports = {
   _assign: assignPolyfill
 };
 
-},{}],68:[function(_dereq_,module,exports){
+},{}],81:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.63.0";
+var VERSION = "3.64.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -4383,7 +4311,7 @@ module.exports = {
   verify: basicComponentVerification
 };
 
-},{"./braintree-error":70,"./errors":81,"./promise":86}],69:[function(_dereq_,module,exports){
+},{"./braintree-error":83,"./errors":94,"./promise":100}],82:[function(_dereq_,module,exports){
 'use strict';
 
 var once = _dereq_('./once');
@@ -4429,7 +4357,7 @@ module.exports = function (functions, cb) {
   }
 };
 
-},{"./once":85}],70:[function(_dereq_,module,exports){
+},{"./once":99}],83:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -4514,7 +4442,7 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":80}],71:[function(_dereq_,module,exports){
+},{"./enumerate":93}],84:[function(_dereq_,module,exports){
 'use strict';
 
 var isVerifiedDomain = _dereq_('../is-verified-domain');
@@ -4546,7 +4474,7 @@ module.exports = {
   checkOrigin: checkOrigin
 };
 
-},{"../is-verified-domain":82}],72:[function(_dereq_,module,exports){
+},{"../is-verified-domain":96}],85:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../enumerate');
@@ -4555,7 +4483,7 @@ module.exports = enumerate([
   'CONFIGURATION_REQUEST'
 ], 'bus:');
 
-},{"../enumerate":80}],73:[function(_dereq_,module,exports){
+},{"../enumerate":93}],86:[function(_dereq_,module,exports){
 'use strict';
 
 var bus = _dereq_('framebus');
@@ -4686,10 +4614,10 @@ BraintreeBus.events = events;
 
 module.exports = BraintreeBus;
 
-},{"../braintree-error":70,"./check-origin":71,"./events":72,"framebus":34}],74:[function(_dereq_,module,exports){
+},{"../braintree-error":83,"./check-origin":84,"./events":85,"framebus":46}],87:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.63.0";
+var VERSION = "3.64.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -4726,7 +4654,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],75:[function(_dereq_,module,exports){
+},{}],88:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -4744,7 +4672,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"./braintree-error":70,"./errors":81}],76:[function(_dereq_,module,exports){
+},{"./braintree-error":83,"./errors":94}],89:[function(_dereq_,module,exports){
 'use strict';
 
 // endRemoveIf(production)
@@ -4761,7 +4689,7 @@ module.exports = {
   create: createAssetsUrl
 };
 
-},{"./constants":74}],77:[function(_dereq_,module,exports){
+},{"./constants":87}],90:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/vendor/polyfill').atob;
@@ -4807,7 +4735,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/constants":74,"../lib/vendor/polyfill":88}],78:[function(_dereq_,module,exports){
+},{"../lib/constants":87,"../lib/vendor/polyfill":103}],91:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -4815,7 +4743,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.63.0";
+var VERSION = "3.64.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -4859,7 +4787,7 @@ module.exports = {
   create: createDeferredClient
 };
 
-},{"./assets":66,"./braintree-error":70,"./errors":81,"./promise":86}],79:[function(_dereq_,module,exports){
+},{"./assets":79,"./braintree-error":83,"./errors":94,"./promise":100}],92:[function(_dereq_,module,exports){
 'use strict';
 
 var batchExecuteFunctions = _dereq_('./batch-execute-functions');
@@ -4897,7 +4825,7 @@ Destructor.prototype.teardown = function (callback) {
 
 module.exports = Destructor;
 
-},{"./batch-execute-functions":69}],80:[function(_dereq_,module,exports){
+},{"./batch-execute-functions":82}],93:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -4912,7 +4840,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],81:[function(_dereq_,module,exports){
+},{}],94:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -4962,7 +4890,18 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":70}],82:[function(_dereq_,module,exports){
+},{"./braintree-error":83}],95:[function(_dereq_,module,exports){
+'use strict';
+
+module.exports = function findRootNode(element) {
+  while (element.parentNode) {
+    element = element.parentNode;
+  }
+
+  return element;
+};
+
+},{}],96:[function(_dereq_,module,exports){
 'use strict';
 
 var parser;
@@ -4997,14 +4936,14 @@ function isVerifiedDomain(url) {
 
 module.exports = isVerifiedDomain;
 
-},{}],83:[function(_dereq_,module,exports){
+},{}],97:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],84:[function(_dereq_,module,exports){
+},{}],98:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -5013,9 +4952,23 @@ module.exports = function (obj) {
   });
 };
 
-},{}],85:[function(_dereq_,module,exports){
-arguments[4][23][0].apply(exports,arguments)
-},{"dup":23}],86:[function(_dereq_,module,exports){
+},{}],99:[function(_dereq_,module,exports){
+'use strict';
+
+function once(fn) {
+  var called = false;
+
+  return function () {
+    if (!called) {
+      called = true;
+      fn.apply(null, arguments);
+    }
+  };
+}
+
+module.exports = once;
+
+},{}],100:[function(_dereq_,module,exports){
 'use strict';
 
 var PromisePolyfill = _dereq_('promise-polyfill');
@@ -5029,7 +4982,53 @@ ExtendedPromise.setPromise(PromiseGlobal);
 
 module.exports = PromiseGlobal;
 
-},{"@braintree/extended-promise":17,"promise-polyfill":48}],87:[function(_dereq_,module,exports){
+},{"@braintree/extended-promise":28,"promise-polyfill":60}],101:[function(_dereq_,module,exports){
+'use strict';
+
+var uuid = _dereq_('@braintree/uuid');
+var findRootNode = _dereq_('./find-root-node');
+
+// based on https://github.com/krakenjs/belter/blob/cdddc4f8ddb172d29db9e7e1ad1eeeacfb93e215/src/dom.js#L981-L1031
+// thanks @bluepnume
+
+function isShadowElement(element) {
+  element = findRootNode(element);
+
+  return element.toString() === '[object ShadowRoot]';
+}
+
+function getShadowHost(element) {
+  element = findRootNode(element);
+
+  if (!isShadowElement(element)) {
+    return null;
+  }
+
+  return element.host;
+}
+
+function transformToSlot(element) {
+  var shadowHost = getShadowHost(element);
+  var slotName = 'shadow-slot-' + uuid();
+  var slot = document.createElement('slot');
+  var slotProvider = document.createElement('div');
+
+  slot.setAttribute('name', slotName);
+  element.appendChild(slot);
+
+  slotProvider.setAttribute('slot', slotName);
+  shadowHost.appendChild(slotProvider);
+
+  return slotProvider;
+}
+
+module.exports = {
+  isShadowElement: isShadowElement,
+  getShadowHost: getShadowHost,
+  transformToSlot: transformToSlot
+};
+
+},{"./find-root-node":95,"@braintree/uuid":33}],102:[function(_dereq_,module,exports){
 'use strict';
 
 function useMin(isDebug) {
@@ -5038,7 +5037,7 @@ function useMin(isDebug) {
 
 module.exports = useMin;
 
-},{}],88:[function(_dereq_,module,exports){
+},{}],103:[function(_dereq_,module,exports){
 'use strict';
 
 var atobNormalized = typeof atob === 'function' ? window.atob : atobPolyfill;
@@ -5077,19 +5076,5 @@ module.exports = {
   _atob: atobPolyfill
 };
 
-},{}],89:[function(_dereq_,module,exports){
-'use strict';
-
-function uuid() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-    var r = Math.random() * 16 | 0;
-    var v = c === 'x' ? r : r & 0x3 | 0x8;
-
-    return v.toString(16);
-  });
-}
-
-module.exports = uuid;
-
-},{}]},{},[57])(57)
+},{}]},{},[70])(70)
 });

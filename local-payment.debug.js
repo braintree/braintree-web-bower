@@ -1,581 +1,536 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}(g.braintree || (g.braintree = {})).localPayment = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(_dereq_,module,exports){
-(function (global){
-'use strict';
-
-var PromisePolyfill = _dereq_('promise-polyfill');
-
-module.exports = global.Promise || PromisePolyfill;
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"promise-polyfill":38}],2:[function(_dereq_,module,exports){
-'use strict';
-
-var Promise = _dereq_('./lib/promise');
-var scriptPromiseCache = {};
-
-function loadScript(options) {
-  var attrs, container, script, scriptLoadPromise;
-  var stringifiedOptions = JSON.stringify(options);
-
-  if (!options.forceScriptReload) {
-    scriptLoadPromise = scriptPromiseCache[stringifiedOptions];
-
-    if (scriptLoadPromise) {
-      return scriptLoadPromise;
-    }
-  }
-
-  script = document.createElement('script');
-  attrs = options.dataAttributes || {};
-  container = options.container || document.head;
-
-  script.src = options.src;
-  script.id = options.id;
-  script.async = true;
-
-  if (options.crossorigin) {
-    script.setAttribute('crossorigin', options.crossorigin);
-  }
-
-  Object.keys(attrs).forEach(function (key) {
-    script.setAttribute('data-' + key, attrs[key]);
-  });
-
-  scriptLoadPromise = new Promise(function (resolve, reject) {
-    script.addEventListener('load', function () {
-      resolve(script);
-    });
-    script.addEventListener('error', function () {
-      reject(new Error(options.src + ' failed to load.'));
-    });
-    script.addEventListener('abort', function () {
-      reject(new Error(options.src + ' has aborted.'));
-    });
-    container.appendChild(script);
-  });
-
-  scriptPromiseCache[stringifiedOptions] = scriptLoadPromise;
-
-  return scriptLoadPromise;
-}
-
-loadScript.clearCache = function () {
-  scriptPromiseCache = {};
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
 };
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.PromiseGlobal = void 0;
+var promise_polyfill_1 = __importDefault(_dereq_("promise-polyfill"));
+var PromiseGlobal = 
+// eslint-disable-next-line no-undef
+typeof Promise !== "undefined" ? Promise : promise_polyfill_1.default;
+exports.PromiseGlobal = PromiseGlobal;
 
+},{"promise-polyfill":44}],2:[function(_dereq_,module,exports){
+"use strict";
+var promise_1 = _dereq_("./lib/promise");
+var scriptPromiseCache = {};
+function loadScript(options) {
+    var scriptLoadPromise;
+    var stringifiedOptions = JSON.stringify(options);
+    if (!options.forceScriptReload) {
+        scriptLoadPromise = scriptPromiseCache[stringifiedOptions];
+        if (scriptLoadPromise) {
+            return scriptLoadPromise;
+        }
+    }
+    var script = document.createElement("script");
+    var attrs = options.dataAttributes || {};
+    var container = options.container || document.head;
+    script.src = options.src;
+    script.id = options.id || "";
+    script.async = true;
+    if (options.crossorigin) {
+        script.setAttribute("crossorigin", "" + options.crossorigin);
+    }
+    Object.keys(attrs).forEach(function (key) {
+        script.setAttribute("data-" + key, "" + attrs[key]);
+    });
+    scriptLoadPromise = new promise_1.PromiseGlobal(function (resolve, reject) {
+        script.addEventListener("load", function () {
+            resolve(script);
+        });
+        script.addEventListener("error", function () {
+            reject(new Error(options.src + " failed to load."));
+        });
+        script.addEventListener("abort", function () {
+            reject(new Error(options.src + " has aborted."));
+        });
+        container.appendChild(script);
+    });
+    scriptPromiseCache[stringifiedOptions] = scriptLoadPromise;
+    return scriptLoadPromise;
+}
+loadScript.clearCache = function () {
+    scriptPromiseCache = {};
+};
 module.exports = loadScript;
 
 },{"./lib/promise":1}],3:[function(_dereq_,module,exports){
-(function (global){
-'use strict';
+module.exports = _dereq_("./dist/load-script");
 
+},{"./dist/load-script":2}],4:[function(_dereq_,module,exports){
+"use strict";
 module.exports = function isAndroid(ua) {
-  ua = ua || global.navigator.userAgent;
-
-  return /Android/.test(ua);
+    ua = ua || window.navigator.userAgent;
+    return /Android/.test(ua);
 };
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],4:[function(_dereq_,module,exports){
-'use strict';
-
-var isEdge = _dereq_('./is-edge');
-var isSamsung = _dereq_('./is-samsung');
-
+},{}],5:[function(_dereq_,module,exports){
+"use strict";
+var isEdge = _dereq_("./is-edge");
+var isSamsung = _dereq_("./is-samsung");
 module.exports = function isChrome(ua) {
-  ua = ua || navigator.userAgent;
-
-  return (ua.indexOf('Chrome') !== -1 || ua.indexOf('CriOS') !== -1) && !isEdge(ua) && !isSamsung(ua);
+    ua = ua || window.navigator.userAgent;
+    return ((ua.indexOf("Chrome") !== -1 || ua.indexOf("CriOS") !== -1) &&
+        !isEdge(ua) &&
+        !isSamsung(ua));
 };
 
-},{"./is-edge":5,"./is-samsung":12}],5:[function(_dereq_,module,exports){
-'use strict';
-
+},{"./is-edge":6,"./is-samsung":13}],6:[function(_dereq_,module,exports){
+"use strict";
 module.exports = function isEdge(ua) {
-  ua = ua || navigator.userAgent;
-
-  return ua.indexOf('Edge/') !== -1;
+    ua = ua || window.navigator.userAgent;
+    return ua.indexOf("Edge/") !== -1;
 };
 
-},{}],6:[function(_dereq_,module,exports){
-(function (global){
-'use strict';
-
-var isIE11 = _dereq_('./is-ie11');
-
+},{}],7:[function(_dereq_,module,exports){
+"use strict";
+var isIE11 = _dereq_("./is-ie11");
 module.exports = function isIE(ua) {
-  ua = ua || global.navigator.userAgent;
-
-  return ua.indexOf('MSIE') !== -1 || isIE11(ua);
+    ua = ua || window.navigator.userAgent;
+    return ua.indexOf("MSIE") !== -1 || isIE11(ua);
 };
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./is-ie11":7}],7:[function(_dereq_,module,exports){
-'use strict';
-
+},{"./is-ie11":8}],8:[function(_dereq_,module,exports){
+"use strict";
 module.exports = function isIe11(ua) {
-  ua = ua || navigator.userAgent;
-
-  return ua.indexOf('Trident/7') !== -1;
+    ua = ua || window.navigator.userAgent;
+    return ua.indexOf("Trident/7") !== -1;
 };
 
-},{}],8:[function(_dereq_,module,exports){
-(function (global){
-'use strict';
-
-module.exports = function isIosFirefox(ua) {
-  ua = ua || global.navigator.userAgent;
-
-  return /FxiOS/i.test(ua);
-};
-
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],9:[function(_dereq_,module,exports){
-(function (global){
-'use strict';
+"use strict";
+module.exports = function isIosFirefox(ua) {
+    ua = ua || window.navigator.userAgent;
+    return /FxiOS/i.test(ua);
+};
 
-var isIos = _dereq_('./is-ios');
-
+},{}],10:[function(_dereq_,module,exports){
+"use strict";
+var isIos = _dereq_("./is-ios");
 // The Google Search iOS app is technically a webview and doesn't support popups.
 function isGoogleSearchApp(ua) {
-  return /\bGSA\b/.test(ua);
+    return /\bGSA\b/.test(ua);
 }
-
 module.exports = function isIosWebview(ua) {
-  ua = ua || global.navigator.userAgent;
-  if (isIos(ua)) {
-    if (isGoogleSearchApp(ua)) {
-      return true;
+    ua = ua || window.navigator.userAgent;
+    if (isIos(ua)) {
+        if (isGoogleSearchApp(ua)) {
+            return true;
+        }
+        return /.+AppleWebKit(?!.*Safari)/.test(ua);
     }
-
-    return /.+AppleWebKit(?!.*Safari)/.test(ua);
-  }
-
-  return false;
-};
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./is-ios":11}],10:[function(_dereq_,module,exports){
-(function (global){
-'use strict';
-
-var isIosWebview = _dereq_('./is-ios-webview');
-
-module.exports = function isIosWKWebview(ua, statusBarVisible) {
-  statusBarVisible = typeof statusBarVisible !== 'undefined' ? statusBarVisible : global.statusbar.visible;
-
-  return isIosWebview(ua) && statusBarVisible;
-};
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./is-ios-webview":9}],11:[function(_dereq_,module,exports){
-(function (global){
-'use strict';
-
-module.exports = function isIos(ua) {
-  ua = ua || global.navigator.userAgent;
-
-  return /iPhone|iPod|iPad/i.test(ua);
-};
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],12:[function(_dereq_,module,exports){
-(function (global){
-'use strict';
-
-module.exports = function isSamsungBrowser(ua) {
-  ua = ua || global.navigator.userAgent;
-
-  return /SamsungBrowser/i.test(ua);
-};
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],13:[function(_dereq_,module,exports){
-(function (global){
-'use strict';
-
-var MINIMUM_SUPPORTED_CHROME_IOS_VERSION = 48;
-
-var isAndroid = _dereq_('./is-android');
-var isIosFirefox = _dereq_('./is-ios-firefox');
-var isIosWebview = _dereq_('./is-ios-webview');
-var isChrome = _dereq_('./is-chrome');
-var isSamsungBrowser = _dereq_('./is-samsung');
-
-function isUnsupportedIosChrome(ua) {
-  var match, version;
-
-  ua = ua || global.navigator.userAgent;
-  match = ua.match(/CriOS\/(\d+)\./);
-
-  if (!match) {
     return false;
-  }
+};
 
-  version = parseInt(match[1], 10);
+},{"./is-ios":12}],11:[function(_dereq_,module,exports){
+"use strict";
+var isIosWebview = _dereq_("./is-ios-webview");
+module.exports = function isIosWKWebview(ua, statusBarVisible) {
+    statusBarVisible =
+        typeof statusBarVisible !== "undefined"
+            ? statusBarVisible
+            : window.statusbar.visible;
+    return isIosWebview(ua) && statusBarVisible;
+};
 
-  return version < MINIMUM_SUPPORTED_CHROME_IOS_VERSION;
+},{"./is-ios-webview":10}],12:[function(_dereq_,module,exports){
+"use strict";
+module.exports = function isIos(ua) {
+    ua = ua || window.navigator.userAgent;
+    return /iPhone|iPod|iPad/i.test(ua);
+};
+
+},{}],13:[function(_dereq_,module,exports){
+"use strict";
+module.exports = function isSamsungBrowser(ua) {
+    ua = ua || window.navigator.userAgent;
+    return /SamsungBrowser/i.test(ua);
+};
+
+},{}],14:[function(_dereq_,module,exports){
+"use strict";
+var MINIMUM_SUPPORTED_CHROME_IOS_VERSION = 48;
+var isAndroid = _dereq_("./is-android");
+var isIosFirefox = _dereq_("./is-ios-firefox");
+var isIosWebview = _dereq_("./is-ios-webview");
+var isChrome = _dereq_("./is-chrome");
+var isSamsungBrowser = _dereq_("./is-samsung");
+function isUnsupportedIosChrome(ua) {
+    ua = ua || window.navigator.userAgent;
+    var match = ua.match(/CriOS\/(\d+)\./);
+    if (!match) {
+        return false;
+    }
+    var version = parseInt(match[1], 10);
+    return version < MINIMUM_SUPPORTED_CHROME_IOS_VERSION;
 }
-
 function isOperaMini(ua) {
-  ua = ua || global.navigator.userAgent;
-
-  return ua.indexOf('Opera Mini') > -1;
+    ua = ua || window.navigator.userAgent;
+    return ua.indexOf("Opera Mini") > -1;
 }
-
 function isAndroidWebview(ua) {
-  var androidWebviewRegExp = /Version\/[\d\.]+/;
-
-  ua = ua || global.navigator.userAgent;
-  if (isAndroid(ua)) {
-    return androidWebviewRegExp.test(ua) && !isOperaMini(ua);
-  }
-
-  return false;
+    var androidWebviewRegExp = /Version\/[\d.]+/;
+    ua = ua || window.navigator.userAgent;
+    if (isAndroid(ua)) {
+        return androidWebviewRegExp.test(ua) && !isOperaMini(ua);
+    }
+    return false;
 }
-
 function isOldSamsungBrowserOrSamsungWebview(ua) {
-  return !isChrome(ua) && !isSamsungBrowser(ua) && /samsung/i.test(ua);
+    return !isChrome(ua) && !isSamsungBrowser(ua) && /samsung/i.test(ua);
 }
-
 module.exports = function supportsPopups(ua) {
-  ua = ua || global.navigator.userAgent;
-
-  return !(
-    isIosWebview(ua) ||
-    isIosFirefox(ua) ||
-    isAndroidWebview(ua) ||
-    isOperaMini(ua) ||
-    isUnsupportedIosChrome(ua) ||
-    isOldSamsungBrowserOrSamsungWebview(ua)
-  );
+    ua = ua || window.navigator.userAgent;
+    return !(isIosWebview(ua) ||
+        isIosFirefox(ua) ||
+        isAndroidWebview(ua) ||
+        isOperaMini(ua) ||
+        isUnsupportedIosChrome(ua) ||
+        isOldSamsungBrowserOrSamsungWebview(ua));
 };
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./is-android":3,"./is-chrome":4,"./is-ios-firefox":8,"./is-ios-webview":9,"./is-samsung":12}],14:[function(_dereq_,module,exports){
-'use strict';
+},{"./is-android":4,"./is-chrome":5,"./is-ios-firefox":9,"./is-ios-webview":10,"./is-samsung":13}],15:[function(_dereq_,module,exports){
+module.exports = _dereq_("./dist/is-ie");
 
-// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise#Methods
-var PROMISE_METHODS = [
-  'all',
-  'allSettled',
-  'race',
-  'reject',
-  'resolve'
-];
+},{"./dist/is-ie":7}],16:[function(_dereq_,module,exports){
+module.exports = _dereq_("./dist/is-ios-wkwebview");
 
-function shouldCatchExceptions(options) {
-  if (options.hasOwnProperty('suppressUnhandledPromiseMessage')) {
-    return Boolean(options.suppressUnhandledPromiseMessage);
-  }
+},{"./dist/is-ios-wkwebview":11}],17:[function(_dereq_,module,exports){
+module.exports = _dereq_("./dist/is-ios");
 
-  return Boolean(ExtendedPromise.suppressUnhandledPromiseMessage);
-}
+},{"./dist/is-ios":12}],18:[function(_dereq_,module,exports){
+module.exports = _dereq_("./dist/supports-popups");
 
-function ExtendedPromise(options) {
-  var self = this;
-
-  if (typeof options === 'function') {
-    return new ExtendedPromise.Promise(options);
-  }
-
-  this._promise = new ExtendedPromise.Promise(function (resolve, reject) {
-    self._resolveFunction = resolve;
-    self._rejectFunction = reject;
-  });
-
-  options = options || {};
-  this._onResolve = options.onResolve || ExtendedPromise.defaultOnResolve;
-  this._onReject = options.onReject || ExtendedPromise.defaultOnReject;
-
-  if (shouldCatchExceptions(options)) {
-    this._promise.catch(function () {
-      // prevents unhandled promise rejection warning
-      // in the console for extended promises that
-      // that catch the error in an asynchronous manner
-    });
-  }
-
-  this._resetState();
-
-  this._promise.resolve = this.resolve.bind(this);
-  this._promise.reject = this.reject.bind(this);
-
-  return this._promise;
-}
-
-PROMISE_METHODS.forEach(function (method) {
-  ExtendedPromise[method] = function () {
-    var args = Array.prototype.slice.call(arguments);
-
-    return ExtendedPromise.Promise[method].apply(ExtendedPromise.Promise, args);
-  };
-});
-
-ExtendedPromise.setPromise = function (PromiseClass) {
-  ExtendedPromise.Promise = PromiseClass;
-};
-
-// default to system level Promise, but allow it to be overwritten
-if (typeof Promise !== 'undefined') {
-  // eslint-disable-next-line no-undef
-  ExtendedPromise.setPromise(Promise);
-}
-
-ExtendedPromise.defaultOnResolve = function (result) {
-  return ExtendedPromise.Promise.resolve(result);
-};
-
-ExtendedPromise.defaultOnReject = function (err) {
-  return ExtendedPromise.Promise.reject(err);
-};
-
-ExtendedPromise.prototype.resolve = function (arg) {
-  var self = this;
-
-  if (this._promise.isFulfilled) {
-    return this._promise;
-  }
-  this._setResolved();
-
-  ExtendedPromise.Promise.resolve().then(function () {
-    return self._onResolve(arg);
-  }).then(this._resolveFunction).catch(function (err) {
-    self._resetState();
-
-    self._promise.reject(err);
-  });
-
-  return this._promise;
-};
-
-ExtendedPromise.prototype.reject = function (arg) {
-  var self = this;
-
-  if (this._promise.isFulfilled) {
-    return this._promise;
-  }
-  this._setRejected();
-
-  ExtendedPromise.Promise.resolve().then(function () {
-    return self._onReject(arg);
-  }).then(function (result) {
-    self._setResolved();
-
-    self._resolveFunction(result);
-  }).catch(this._rejectFunction);
-
-  return this._promise;
-};
-
-ExtendedPromise.prototype._resetState = function () {
-  this._promise.isFulfilled = false;
-  this._promise.isResolved = false;
-  this._promise.isRejected = false;
-};
-
-ExtendedPromise.prototype._setResolved = function () {
-  this._promise.isFulfilled = true;
-  this._promise.isResolved = true;
-  this._promise.isRejected = false;
-};
-
-ExtendedPromise.prototype._setRejected = function () {
-  this._promise.isFulfilled = true;
-  this._promise.isResolved = false;
-  this._promise.isRejected = true;
-};
-
+},{"./dist/supports-popups":14}],19:[function(_dereq_,module,exports){
+"use strict";
+var GlobalPromise = (typeof Promise !== "undefined"
+    ? Promise // eslint-disable-line no-undef
+    : null);
+var ExtendedPromise = /** @class */ (function () {
+    function ExtendedPromise(options) {
+        var _this = this;
+        if (typeof options === "function") {
+            this._promise = new ExtendedPromise.Promise(options);
+            return;
+        }
+        this._promise = new ExtendedPromise.Promise(function (resolve, reject) {
+            _this._resolveFunction = resolve;
+            _this._rejectFunction = reject;
+        });
+        options = options || {};
+        this._onResolve = options.onResolve || ExtendedPromise.defaultOnResolve;
+        this._onReject = options.onReject || ExtendedPromise.defaultOnReject;
+        if (ExtendedPromise.shouldCatchExceptions(options)) {
+            this._promise.catch(function () {
+                // prevents unhandled promise rejection warning
+                // in the console for extended promises that
+                // that catch the error in an asynchronous manner
+            });
+        }
+        this._resetState();
+    }
+    ExtendedPromise.defaultOnResolve = function (result) {
+        return ExtendedPromise.Promise.resolve(result);
+    };
+    ExtendedPromise.defaultOnReject = function (err) {
+        return ExtendedPromise.Promise.reject(err);
+    };
+    ExtendedPromise.setPromise = function (PromiseClass) {
+        ExtendedPromise.Promise = PromiseClass;
+    };
+    ExtendedPromise.shouldCatchExceptions = function (options) {
+        if (options.hasOwnProperty("suppressUnhandledPromiseMessage")) {
+            return Boolean(options.suppressUnhandledPromiseMessage);
+        }
+        return Boolean(ExtendedPromise.suppressUnhandledPromiseMessage);
+    };
+    // start Promise methods documented in:
+    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise#Methods
+    ExtendedPromise.all = function (arg) {
+        return ExtendedPromise.Promise.all(arg);
+    };
+    ExtendedPromise.allSettled = function (arg) {
+        return ExtendedPromise.Promise.allSettled(arg);
+    };
+    ExtendedPromise.race = function (arg) {
+        return ExtendedPromise.Promise.race(arg);
+    };
+    ExtendedPromise.reject = function (arg) {
+        return ExtendedPromise.Promise.reject(arg);
+    };
+    ExtendedPromise.resolve = function (arg) {
+        return ExtendedPromise.Promise.resolve(arg);
+    };
+    ExtendedPromise.prototype.then = function () {
+        var _a;
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i] = arguments[_i];
+        }
+        return (_a = this._promise).then.apply(_a, args);
+    };
+    ExtendedPromise.prototype.catch = function () {
+        var _a;
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i] = arguments[_i];
+        }
+        return (_a = this._promise).catch.apply(_a, args);
+    };
+    ExtendedPromise.prototype.resolve = function (arg) {
+        var _this = this;
+        if (this.isFulfilled) {
+            return this;
+        }
+        this._setResolved();
+        ExtendedPromise.Promise.resolve()
+            .then(function () {
+            return _this._onResolve(arg);
+        })
+            .then(function (argForResolveFunction) {
+            _this._resolveFunction(argForResolveFunction);
+        })
+            .catch(function (err) {
+            _this._resetState();
+            _this.reject(err);
+        });
+        return this;
+    };
+    ExtendedPromise.prototype.reject = function (arg) {
+        var _this = this;
+        if (this.isFulfilled) {
+            return this;
+        }
+        this._setRejected();
+        ExtendedPromise.Promise.resolve()
+            .then(function () {
+            return _this._onReject(arg);
+        })
+            .then(function (result) {
+            _this._setResolved();
+            _this._resolveFunction(result);
+        })
+            .catch(function (err) {
+            return _this._rejectFunction(err);
+        });
+        return this;
+    };
+    ExtendedPromise.prototype._resetState = function () {
+        this.isFulfilled = false;
+        this.isResolved = false;
+        this.isRejected = false;
+    };
+    ExtendedPromise.prototype._setResolved = function () {
+        this.isFulfilled = true;
+        this.isResolved = true;
+        this.isRejected = false;
+    };
+    ExtendedPromise.prototype._setRejected = function () {
+        this.isFulfilled = true;
+        this.isResolved = false;
+        this.isRejected = true;
+    };
+    ExtendedPromise.Promise = GlobalPromise;
+    return ExtendedPromise;
+}());
 module.exports = ExtendedPromise;
 
-},{}],15:[function(_dereq_,module,exports){
-'use strict';
-
-var setAttributes = _dereq_('./lib/set-attributes');
-var defaultAttributes = _dereq_('./lib/default-attributes');
-var assign = _dereq_('./lib/assign');
-
-module.exports = function createFrame(options) {
-  var iframe = document.createElement('iframe');
-  var config = assign({}, defaultAttributes, options);
-
-  if (config.style && typeof config.style !== 'string') {
-    assign(iframe.style, config.style);
-    delete config.style;
-  }
-
-  setAttributes(iframe, config);
-
-  if (!iframe.getAttribute('id')) {
-    iframe.id = iframe.name;
-  }
-
-  return iframe;
-};
-
-},{"./lib/assign":16,"./lib/default-attributes":17,"./lib/set-attributes":18}],16:[function(_dereq_,module,exports){
-'use strict';
-
-module.exports = function assign(target) {
-  var objs = Array.prototype.slice.call(arguments, 1);
-
-  objs.forEach(function (obj) {
-    if (typeof obj !== 'object') { return; }
-
-    Object.keys(obj).forEach(function (key) {
-      target[key] = obj[key];
-    });
-  });
-
-  return target;
-}
-
-},{}],17:[function(_dereq_,module,exports){
-'use strict';
-
-module.exports = {
-  src: 'about:blank',
-  frameBorder: 0,
-  allowtransparency: true,
-  scrolling: 'no'
-};
-
-},{}],18:[function(_dereq_,module,exports){
-'use strict';
-
-module.exports = function setAttributes(element, attributes) {
-  var value;
-
-  for (var key in attributes) {
-    if (attributes.hasOwnProperty(key)) {
-      value = attributes[key];
-
-      if (value == null) {
-        element.removeAttribute(key);
-      } else {
-        element.setAttribute(key, value);
-      }
-    }
-  }
-};
-
-},{}],19:[function(_dereq_,module,exports){
-'use strict';
-
-function deferred(fn) {
-  return function () {
-    // IE9 doesn't support passing arguments to setTimeout so we have to emulate it.
-    var args = arguments;
-
-    setTimeout(function () {
-      try {
-        fn.apply(null, args);
-      } catch (err) {
-        /* eslint-disable no-console */
-        console.log('Error in callback function');
-        console.log(err);
-        /* eslint-enable no-console */
-      }
-    }, 1);
-  };
-}
-
-module.exports = deferred;
-
 },{}],20:[function(_dereq_,module,exports){
-'use strict';
-
-function once(fn) {
-  var called = false;
-
-  return function () {
-    if (!called) {
-      called = true;
-      fn.apply(null, arguments);
+"use strict";
+var set_attributes_1 = _dereq_("./lib/set-attributes");
+var default_attributes_1 = _dereq_("./lib/default-attributes");
+var assign_1 = _dereq_("./lib/assign");
+module.exports = function createFrame(options) {
+    if (options === void 0) { options = {}; }
+    var iframe = document.createElement("iframe");
+    var config = assign_1.assign({}, default_attributes_1.defaultAttributes, options);
+    if (config.style && typeof config.style !== "string") {
+        assign_1.assign(iframe.style, config.style);
+        delete config.style;
     }
-  };
+    set_attributes_1.setAttributes(iframe, config);
+    if (!iframe.getAttribute("id")) {
+        iframe.id = iframe.name;
+    }
+    return iframe;
+};
+
+},{"./lib/assign":21,"./lib/default-attributes":22,"./lib/set-attributes":23}],21:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.assign = void 0;
+function assign(
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+target) {
+    var objs = [];
+    for (var _i = 1; _i < arguments.length; _i++) {
+        objs[_i - 1] = arguments[_i];
+    }
+    objs.forEach(function (obj) {
+        if (typeof obj !== "object") {
+            return;
+        }
+        Object.keys(obj).forEach(function (key) {
+            target[key] = obj[key];
+        });
+    });
+    return target;
 }
-
-module.exports = once;
-
-},{}],21:[function(_dereq_,module,exports){
-'use strict';
-
-function promiseOrCallback(promise, callback) { // eslint-disable-line consistent-return
-  if (callback) {
-    promise
-      .then(function (data) {
-        callback(null, data);
-      })
-      .catch(function (err) {
-        callback(err);
-      });
-  } else {
-    return promise;
-  }
-}
-
-module.exports = promiseOrCallback;
+exports.assign = assign;
 
 },{}],22:[function(_dereq_,module,exports){
-'use strict';
-
-var deferred = _dereq_('./lib/deferred');
-var once = _dereq_('./lib/once');
-var promiseOrCallback = _dereq_('./lib/promise-or-callback');
-
-function wrapPromise(fn) {
-  return function () {
-    var callback;
-    var args = Array.prototype.slice.call(arguments);
-    var lastArg = args[args.length - 1];
-
-    if (typeof lastArg === 'function') {
-      callback = args.pop();
-      callback = once(deferred(callback));
-    }
-
-    return promiseOrCallback(fn.apply(this, args), callback); // eslint-disable-line no-invalid-this
-  };
-}
-
-wrapPromise.wrapPrototype = function (target, options) {
-  var methods, ignoreMethods, includePrivateMethods;
-
-  options = options || {};
-  ignoreMethods = options.ignoreMethods || [];
-  includePrivateMethods = options.transformPrivateMethods === true;
-
-  methods = Object.getOwnPropertyNames(target.prototype).filter(function (method) {
-    var isNotPrivateMethod;
-    var isNonConstructorFunction = method !== 'constructor' &&
-      typeof target.prototype[method] === 'function';
-    var isNotAnIgnoredMethod = ignoreMethods.indexOf(method) === -1;
-
-    if (includePrivateMethods) {
-      isNotPrivateMethod = true;
-    } else {
-      isNotPrivateMethod = method.charAt(0) !== '_';
-    }
-
-    return isNonConstructorFunction &&
-      isNotPrivateMethod &&
-      isNotAnIgnoredMethod;
-  });
-
-  methods.forEach(function (method) {
-    var original = target.prototype[method];
-
-    target.prototype[method] = wrapPromise(original);
-  });
-
-  return target;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.defaultAttributes = void 0;
+exports.defaultAttributes = {
+    src: "about:blank",
+    frameBorder: 0,
+    allowtransparency: true,
+    scrolling: "no",
 };
 
+},{}],23:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.setAttributes = void 0;
+function setAttributes(element, 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+attributes) {
+    for (var key in attributes) {
+        if (attributes.hasOwnProperty(key)) {
+            var value = attributes[key];
+            if (value == null) {
+                element.removeAttribute(key);
+            }
+            else {
+                element.setAttribute(key, value);
+            }
+        }
+    }
+}
+exports.setAttributes = setAttributes;
+
+},{}],24:[function(_dereq_,module,exports){
+'use strict';
+
+function uuid() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    var r = Math.random() * 16 | 0;
+    var v = c === 'x' ? r : r & 0x3 | 0x8;
+
+    return v.toString(16);
+  });
+}
+
+module.exports = uuid;
+
+},{}],25:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function deferred(fn) {
+    return function () {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i] = arguments[_i];
+        }
+        setTimeout(function () {
+            try {
+                fn.apply(void 0, args);
+            }
+            catch (err) {
+                /* eslint-disable no-console */
+                console.log("Error in callback function");
+                console.log(err);
+                /* eslint-enable no-console */
+            }
+        }, 1);
+    };
+}
+exports.deferred = deferred;
+
+},{}],26:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function once(fn) {
+    var called = false;
+    return function () {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i] = arguments[_i];
+        }
+        if (!called) {
+            called = true;
+            fn.apply(void 0, args);
+        }
+    };
+}
+exports.once = once;
+
+},{}],27:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+/* eslint-disable consistent-return */
+function promiseOrCallback(promise, callback) {
+    if (!callback) {
+        return promise;
+    }
+    promise.then(function (data) { return callback(null, data); }).catch(function (err) { return callback(err); });
+}
+exports.promiseOrCallback = promiseOrCallback;
+
+},{}],28:[function(_dereq_,module,exports){
+"use strict";
+var deferred_1 = _dereq_("./lib/deferred");
+var once_1 = _dereq_("./lib/once");
+var promise_or_callback_1 = _dereq_("./lib/promise-or-callback");
+function wrapPromise(fn) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return function () {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i] = arguments[_i];
+        }
+        var callback;
+        var lastArg = args[args.length - 1];
+        if (typeof lastArg === "function") {
+            callback = args.pop();
+            callback = once_1.once(deferred_1.deferred(callback));
+        }
+        // I know, I know, this looks bad. But it's a quirk of the library that
+        // we need to allow passing the this context to the original function
+        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+        // @ts-ignore: this has an implicit any
+        return promise_or_callback_1.promiseOrCallback(fn.apply(this, args), callback); // eslint-disable-line no-invalid-this
+    };
+}
+wrapPromise.wrapPrototype = function (target, options) {
+    if (options === void 0) { options = {}; }
+    var ignoreMethods = options.ignoreMethods || [];
+    var includePrivateMethods = options.transformPrivateMethods === true;
+    var methods = Object.getOwnPropertyNames(target.prototype).filter(function (method) {
+        var isNotPrivateMethod;
+        var isNonConstructorFunction = method !== "constructor" &&
+            typeof target.prototype[method] === "function";
+        var isNotAnIgnoredMethod = ignoreMethods.indexOf(method) === -1;
+        if (includePrivateMethods) {
+            isNotPrivateMethod = true;
+        }
+        else {
+            isNotPrivateMethod = method.charAt(0) !== "_";
+        }
+        return (isNonConstructorFunction && isNotPrivateMethod && isNotAnIgnoredMethod);
+    });
+    methods.forEach(function (method) {
+        var original = target.prototype[method];
+        target.prototype[method] = wrapPromise(original);
+    });
+    return target;
+};
 module.exports = wrapPromise;
 
-},{"./lib/deferred":19,"./lib/once":20,"./lib/promise-or-callback":21}],23:[function(_dereq_,module,exports){
+},{"./lib/deferred":25,"./lib/once":26,"./lib/promise-or-callback":27}],29:[function(_dereq_,module,exports){
 "use strict";
 var is_not_string_1 = _dereq_("./lib/is-not-string");
 var subscription_args_invalid_1 = _dereq_("./lib/subscription-args-invalid");
@@ -653,7 +608,7 @@ module.exports = /** @class */ (function () {
     return Framebus;
 }());
 
-},{"./lib/broadcast":27,"./lib/constants":28,"./lib/is-not-string":31,"./lib/package-payload":33,"./lib/subscription-args-invalid":35}],24:[function(_dereq_,module,exports){
+},{"./lib/broadcast":33,"./lib/constants":34,"./lib/is-not-string":37,"./lib/package-payload":39,"./lib/subscription-args-invalid":41}],30:[function(_dereq_,module,exports){
 "use strict";
 var attach_1 = _dereq_("./lib/attach");
 var Framebus = _dereq_("./framebus");
@@ -661,7 +616,7 @@ var bus = new Framebus();
 attach_1.attach();
 module.exports = bus;
 
-},{"./framebus":23,"./lib/attach":25}],25:[function(_dereq_,module,exports){
+},{"./framebus":29,"./lib/attach":31}],31:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.detach = exports.attach = void 0;
@@ -683,7 +638,7 @@ function detach() {
 exports.detach = detach;
 // endRemoveIf(production)
 
-},{"./message":32}],26:[function(_dereq_,module,exports){
+},{"./message":38}],32:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.broadcastToChildWindows = void 0;
@@ -702,7 +657,7 @@ function broadcastToChildWindows(payload, origin, source) {
 }
 exports.broadcastToChildWindows = broadcastToChildWindows;
 
-},{"./broadcast":27,"./constants":28}],27:[function(_dereq_,module,exports){
+},{"./broadcast":33,"./constants":34}],33:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.broadcast = void 0;
@@ -734,7 +689,7 @@ function broadcast(frame, payload, origin) {
 }
 exports.broadcast = broadcast;
 
-},{"./has-opener":30}],28:[function(_dereq_,module,exports){
+},{"./has-opener":36}],34:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.subscribers = exports.childWindows = exports.prefix = void 0;
@@ -742,7 +697,7 @@ exports.prefix = "/*framebus*/";
 exports.childWindows = [];
 exports.subscribers = {};
 
-},{}],29:[function(_dereq_,module,exports){
+},{}],35:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.dispatch = void 0;
@@ -767,7 +722,7 @@ function dispatch(origin, event, data, reply, e) {
 }
 exports.dispatch = dispatch;
 
-},{"./constants":28}],30:[function(_dereq_,module,exports){
+},{"./constants":34}],36:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.hasOpener = void 0;
@@ -788,7 +743,7 @@ function hasOpener(frame) {
 }
 exports.hasOpener = hasOpener;
 
-},{}],31:[function(_dereq_,module,exports){
+},{}],37:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.isntString = void 0;
@@ -797,7 +752,7 @@ function isntString(str) {
 }
 exports.isntString = isntString;
 
-},{}],32:[function(_dereq_,module,exports){
+},{}],38:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.onmessage = void 0;
@@ -821,7 +776,7 @@ function onmessage(e) {
 }
 exports.onmessage = onmessage;
 
-},{"./broadcast-to-child-windows":26,"./dispatch":29,"./is-not-string":31,"./unpack-payload":36}],33:[function(_dereq_,module,exports){
+},{"./broadcast-to-child-windows":32,"./dispatch":35,"./is-not-string":37,"./unpack-payload":42}],39:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.packagePayload = void 0;
@@ -847,7 +802,7 @@ function packagePayload(event, origin, data, reply) {
 }
 exports.packagePayload = packagePayload;
 
-},{"./constants":28,"./subscribe-replier":34}],34:[function(_dereq_,module,exports){
+},{"./constants":34,"./subscribe-replier":40}],40:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.subscribeReplier = void 0;
@@ -864,7 +819,7 @@ function subscribeReplier(fn, origin) {
 }
 exports.subscribeReplier = subscribeReplier;
 
-},{"../framebus":23,"./uuid":37}],35:[function(_dereq_,module,exports){
+},{"../framebus":29,"./uuid":43}],41:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.subscriptionArgsInvalid = void 0;
@@ -880,7 +835,7 @@ function subscriptionArgsInvalid(event, fn, origin) {
 }
 exports.subscriptionArgsInvalid = subscriptionArgsInvalid;
 
-},{"./is-not-string":31}],36:[function(_dereq_,module,exports){
+},{"./is-not-string":37}],42:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.unpackPayload = void 0;
@@ -916,7 +871,7 @@ function unpackPayload(e) {
 }
 exports.unpackPayload = unpackPayload;
 
-},{"./constants":28,"./package-payload":33}],37:[function(_dereq_,module,exports){
+},{"./constants":34,"./package-payload":39}],43:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.uuid = void 0;
@@ -930,7 +885,7 @@ function uuid() {
 }
 exports.uuid = uuid;
 
-},{}],38:[function(_dereq_,module,exports){
+},{}],44:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -1206,7 +1161,7 @@ Promise._unhandledRejectionFn = function _unhandledRejectionFn(err) {
 
 module.exports = Promise;
 
-},{}],39:[function(_dereq_,module,exports){
+},{}],45:[function(_dereq_,module,exports){
 'use strict';
 
 var createAuthorizationData = _dereq_('./create-authorization-data');
@@ -1240,7 +1195,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":48,"./create-authorization-data":52,"./json-clone":69}],40:[function(_dereq_,module,exports){
+},{"./constants":54,"./create-authorization-data":58,"./json-clone":75}],46:[function(_dereq_,module,exports){
 'use strict';
 
 var Promise = _dereq_('./promise');
@@ -1276,7 +1231,7 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":39,"./constants":48,"./promise":71}],41:[function(_dereq_,module,exports){
+},{"./add-metadata":45,"./constants":54,"./promise":77}],47:[function(_dereq_,module,exports){
 'use strict';
 
 var loadScript = _dereq_('@braintree/asset-loader/load-script');
@@ -1285,7 +1240,7 @@ module.exports = {
   loadScript: loadScript
 };
 
-},{"@braintree/asset-loader/load-script":2}],42:[function(_dereq_,module,exports){
+},{"@braintree/asset-loader/load-script":3}],48:[function(_dereq_,module,exports){
 'use strict';
 
 var assignNormalized = typeof Object.assign === 'function' ? Object.assign : assignPolyfill;
@@ -1310,13 +1265,13 @@ module.exports = {
   _assign: assignPolyfill
 };
 
-},{}],43:[function(_dereq_,module,exports){
+},{}],49:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.63.0";
+var VERSION = "3.64.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1358,7 +1313,7 @@ module.exports = {
   verify: basicComponentVerification
 };
 
-},{"./braintree-error":44,"./errors":55,"./promise":71}],44:[function(_dereq_,module,exports){
+},{"./braintree-error":50,"./errors":61,"./promise":77}],50:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -1443,7 +1398,7 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":54}],45:[function(_dereq_,module,exports){
+},{"./enumerate":60}],51:[function(_dereq_,module,exports){
 'use strict';
 
 var isVerifiedDomain = _dereq_('../is-verified-domain');
@@ -1475,7 +1430,7 @@ module.exports = {
   checkOrigin: checkOrigin
 };
 
-},{"../is-verified-domain":68}],46:[function(_dereq_,module,exports){
+},{"../is-verified-domain":74}],52:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../enumerate');
@@ -1484,7 +1439,7 @@ module.exports = enumerate([
   'CONFIGURATION_REQUEST'
 ], 'bus:');
 
-},{"../enumerate":54}],47:[function(_dereq_,module,exports){
+},{"../enumerate":60}],53:[function(_dereq_,module,exports){
 'use strict';
 
 var bus = _dereq_('framebus');
@@ -1615,10 +1570,10 @@ BraintreeBus.events = events;
 
 module.exports = BraintreeBus;
 
-},{"../braintree-error":44,"./check-origin":45,"./events":46,"framebus":24}],48:[function(_dereq_,module,exports){
+},{"../braintree-error":50,"./check-origin":51,"./events":52,"framebus":30}],54:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.63.0";
+var VERSION = "3.64.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1655,7 +1610,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],49:[function(_dereq_,module,exports){
+},{}],55:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -1673,7 +1628,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"./braintree-error":44,"./errors":55}],50:[function(_dereq_,module,exports){
+},{"./braintree-error":50,"./errors":61}],56:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -1695,7 +1650,7 @@ function convertToBraintreeError(originalErr, btErrorObject) {
 
 module.exports = convertToBraintreeError;
 
-},{"./braintree-error":44}],51:[function(_dereq_,module,exports){
+},{"./braintree-error":50}],57:[function(_dereq_,module,exports){
 'use strict';
 
 // endRemoveIf(production)
@@ -1712,7 +1667,7 @@ module.exports = {
   create: createAssetsUrl
 };
 
-},{"./constants":48}],52:[function(_dereq_,module,exports){
+},{"./constants":54}],58:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/vendor/polyfill').atob;
@@ -1758,7 +1713,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/constants":48,"../lib/vendor/polyfill":74}],53:[function(_dereq_,module,exports){
+},{"../lib/constants":54,"../lib/vendor/polyfill":80}],59:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -1766,7 +1721,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.63.0";
+var VERSION = "3.64.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1810,7 +1765,7 @@ module.exports = {
   create: createDeferredClient
 };
 
-},{"./assets":41,"./braintree-error":44,"./errors":55,"./promise":71}],54:[function(_dereq_,module,exports){
+},{"./assets":47,"./braintree-error":50,"./errors":61,"./promise":77}],60:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -1825,7 +1780,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],55:[function(_dereq_,module,exports){
+},{}],61:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -1875,7 +1830,7 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":44}],56:[function(_dereq_,module,exports){
+},{"./braintree-error":50}],62:[function(_dereq_,module,exports){
 'use strict';
 
 var Popup = _dereq_('./strategies/popup');
@@ -1885,7 +1840,7 @@ var Bus = _dereq_('../../bus');
 var events = _dereq_('../shared/events');
 var errors = _dereq_('../shared/errors');
 var constants = _dereq_('../shared/constants');
-var uuid = _dereq_('../../vendor/uuid');
+var uuid = _dereq_('@braintree/uuid');
 var iFramer = _dereq_('@braintree/iframer');
 var BraintreeError = _dereq_('../../braintree-error');
 var browserDetection = _dereq_('../shared/browser-detection');
@@ -2112,7 +2067,7 @@ FrameService.prototype._getFrameForEnvironment = function (options) {
 
 module.exports = FrameService;
 
-},{"../../braintree-error":44,"../../bus":47,"../../is-https":67,"../../vendor/uuid":75,"../shared/browser-detection":63,"../shared/constants":64,"../shared/errors":65,"../shared/events":66,"./../../assign":42,"./strategies/modal":58,"./strategies/popup":61,"./strategies/popup-bridge":59,"@braintree/iframer":15}],57:[function(_dereq_,module,exports){
+},{"../../braintree-error":50,"../../bus":53,"../../is-https":73,"../shared/browser-detection":69,"../shared/constants":70,"../shared/errors":71,"../shared/events":72,"./../../assign":48,"./strategies/modal":64,"./strategies/popup":67,"./strategies/popup-bridge":65,"@braintree/iframer":20,"@braintree/uuid":24}],63:[function(_dereq_,module,exports){
 'use strict';
 
 var FrameService = _dereq_('./frame-service');
@@ -2127,7 +2082,7 @@ module.exports = {
   }
 };
 
-},{"./frame-service":56}],58:[function(_dereq_,module,exports){
+},{"./frame-service":62}],64:[function(_dereq_,module,exports){
 'use strict';
 
 var iFramer = _dereq_('@braintree/iframer');
@@ -2240,7 +2195,7 @@ Modal.prototype._lockScrolling = function () {
 
 module.exports = Modal;
 
-},{"../../../assign":42,"../../shared/browser-detection":63,"@braintree/iframer":15}],59:[function(_dereq_,module,exports){
+},{"../../../assign":48,"../../shared/browser-detection":69,"@braintree/iframer":20}],65:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('../../../braintree-error');
@@ -2296,7 +2251,7 @@ PopupBridge.prototype.redirect = function (redirectUrl) {
 
 module.exports = PopupBridge;
 
-},{"../../../braintree-error":44,"../../shared/errors":65}],60:[function(_dereq_,module,exports){
+},{"../../../braintree-error":50,"../../shared/errors":71}],66:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('../../../shared/constants');
@@ -2325,7 +2280,7 @@ module.exports = function composePopupOptions(options) {
   ].join(',');
 };
 
-},{"../../../shared/constants":64,"./position":62}],61:[function(_dereq_,module,exports){
+},{"../../../shared/constants":70,"./position":68}],67:[function(_dereq_,module,exports){
 'use strict';
 
 var composeOptions = _dereq_('./compose-options');
@@ -2370,7 +2325,7 @@ Popup.prototype.redirect = function (redirectUrl) {
 
 module.exports = Popup;
 
-},{"./compose-options":60}],62:[function(_dereq_,module,exports){
+},{"./compose-options":66}],68:[function(_dereq_,module,exports){
 'use strict';
 
 function top(height) {
@@ -2397,7 +2352,7 @@ module.exports = {
   center: center
 };
 
-},{}],63:[function(_dereq_,module,exports){
+},{}],69:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -2408,7 +2363,7 @@ module.exports = {
 };
 
 
-},{"@braintree/browser-detection/is-ie":6,"@braintree/browser-detection/is-ios":11,"@braintree/browser-detection/is-ios-wkwebview":10,"@braintree/browser-detection/supports-popups":13}],64:[function(_dereq_,module,exports){
+},{"@braintree/browser-detection/is-ie":15,"@braintree/browser-detection/is-ios":17,"@braintree/browser-detection/is-ios-wkwebview":16,"@braintree/browser-detection/supports-popups":18}],70:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -2421,7 +2376,7 @@ module.exports = {
   POPUP_CLOSE_TIMEOUT: 100
 };
 
-},{}],65:[function(_dereq_,module,exports){
+},{}],71:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -2453,7 +2408,7 @@ module.exports = {
   }
 };
 
-},{"../../braintree-error":44}],66:[function(_dereq_,module,exports){
+},{"../../braintree-error":50}],72:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../../enumerate');
@@ -2463,7 +2418,7 @@ module.exports = enumerate([
   'DISPATCH_FRAME_REPORT'
 ], 'frameService:');
 
-},{"../../enumerate":54}],67:[function(_dereq_,module,exports){
+},{"../../enumerate":60}],73:[function(_dereq_,module,exports){
 'use strict';
 
 function isHTTPS(protocol) {
@@ -2476,7 +2431,7 @@ module.exports = {
   isHTTPS: isHTTPS
 };
 
-},{}],68:[function(_dereq_,module,exports){
+},{}],74:[function(_dereq_,module,exports){
 'use strict';
 
 var parser;
@@ -2511,14 +2466,14 @@ function isVerifiedDomain(url) {
 
 module.exports = isVerifiedDomain;
 
-},{}],69:[function(_dereq_,module,exports){
+},{}],75:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],70:[function(_dereq_,module,exports){
+},{}],76:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -2527,7 +2482,7 @@ module.exports = function (obj) {
   });
 };
 
-},{}],71:[function(_dereq_,module,exports){
+},{}],77:[function(_dereq_,module,exports){
 'use strict';
 
 var PromisePolyfill = _dereq_('promise-polyfill');
@@ -2541,7 +2496,7 @@ ExtendedPromise.setPromise(PromiseGlobal);
 
 module.exports = PromiseGlobal;
 
-},{"@braintree/extended-promise":14,"promise-polyfill":38}],72:[function(_dereq_,module,exports){
+},{"@braintree/extended-promise":19,"promise-polyfill":44}],78:[function(_dereq_,module,exports){
 'use strict';
 
 function _notEmpty(obj) {
@@ -2633,7 +2588,7 @@ module.exports = {
   queryify: queryify
 };
 
-},{}],73:[function(_dereq_,module,exports){
+},{}],79:[function(_dereq_,module,exports){
 'use strict';
 
 function useMin(isDebug) {
@@ -2642,7 +2597,7 @@ function useMin(isDebug) {
 
 module.exports = useMin;
 
-},{}],74:[function(_dereq_,module,exports){
+},{}],80:[function(_dereq_,module,exports){
 'use strict';
 
 var atobNormalized = typeof atob === 'function' ? window.atob : atobPolyfill;
@@ -2681,34 +2636,20 @@ module.exports = {
   _atob: atobPolyfill
 };
 
-},{}],75:[function(_dereq_,module,exports){
-'use strict';
-
-function uuid() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-    var r = Math.random() * 16 | 0;
-    var v = c === 'x' ? r : r & 0x3 | 0x8;
-
-    return v.toString(16);
-  });
-}
-
-module.exports = uuid;
-
-},{}],76:[function(_dereq_,module,exports){
+},{}],81:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   REQUIRED_OPTIONS_FOR_START_PAYMENT: ['onPaymentStart', 'paymentType', 'amount', 'fallback']
 };
 
-},{}],77:[function(_dereq_,module,exports){
+},{}],82:[function(_dereq_,module,exports){
 'use strict';
 
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var useMin = _dereq_('../../lib/use-min');
-var VERSION = "3.63.0";
+var VERSION = "3.64.0";
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
 var methods = _dereq_('../../lib/methods');
@@ -3123,7 +3064,7 @@ LocalPayment.prototype.teardown = function () {
 
 module.exports = wrapPromise.wrapPrototype(LocalPayment);
 
-},{"../../lib/analytics":40,"../../lib/braintree-error":44,"../../lib/constants":48,"../../lib/convert-methods-to-error":49,"../../lib/convert-to-braintree-error":50,"../../lib/frame-service/external":57,"../../lib/methods":70,"../../lib/promise":71,"../../lib/querystring":72,"../../lib/use-min":73,"../shared/errors":79,"./constants":76,"@braintree/wrap-promise":22}],78:[function(_dereq_,module,exports){
+},{"../../lib/analytics":46,"../../lib/braintree-error":50,"../../lib/constants":54,"../../lib/convert-methods-to-error":55,"../../lib/convert-to-braintree-error":56,"../../lib/frame-service/external":63,"../../lib/methods":76,"../../lib/promise":77,"../../lib/querystring":78,"../../lib/use-min":79,"../shared/errors":84,"./constants":81,"@braintree/wrap-promise":28}],83:[function(_dereq_,module,exports){
 'use strict';
 /**
  * @module braintree-web/local-payment
@@ -3135,7 +3076,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var LocalPayment = _dereq_('./external/local-payment');
-var VERSION = "3.63.0";
+var VERSION = "3.64.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -3252,7 +3193,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/analytics":40,"../lib/basic-component-verification":43,"../lib/braintree-error":44,"../lib/create-assets-url":51,"../lib/create-deferred-client":53,"../lib/promise":71,"./external/local-payment":77,"./shared/errors":79,"@braintree/wrap-promise":22}],79:[function(_dereq_,module,exports){
+},{"../lib/analytics":46,"../lib/basic-component-verification":49,"../lib/braintree-error":50,"../lib/create-assets-url":57,"../lib/create-deferred-client":59,"../lib/promise":77,"./external/local-payment":82,"./shared/errors":84,"@braintree/wrap-promise":28}],84:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -3318,5 +3259,5 @@ module.exports = {
   }
 };
 
-},{"../../lib/braintree-error":44}]},{},[78])(78)
+},{"../../lib/braintree-error":50}]},{},[83])(83)
 });
