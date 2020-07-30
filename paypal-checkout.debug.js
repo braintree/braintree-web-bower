@@ -1271,7 +1271,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.64.0";
+var VERSION = "3.64.1";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1573,7 +1573,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":50,"./check-origin":51,"./events":52,"framebus":30}],54:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.64.0";
+var VERSION = "3.64.1";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1721,7 +1721,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.64.0";
+var VERSION = "3.64.1";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -2739,7 +2739,7 @@ module.exports = {
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var PayPalCheckout = _dereq_('./paypal-checkout');
-var VERSION = "3.64.0";
+var VERSION = "3.64.1";
 
 /**
  * @static
@@ -2819,7 +2819,7 @@ var methods = _dereq_('../lib/methods');
 var useMin = _dereq_('../lib/use-min');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
 var querystring = _dereq_('../lib/querystring');
-var VERSION = "3.64.0";
+var VERSION = "3.64.1";
 var INTEGRATION_TIMEOUT_MS = _dereq_('../lib/constants').INTEGRATION_TIMEOUT_MS;
 
 var REQUIRED_PARAMS_FOR_START_VAULT_INITIATED_CHECKOUT = [
@@ -3172,7 +3172,7 @@ PayPalCheckout.prototype._setupFrameService = function (client) {
  * @param {string} [options.landingPageType] Use this option to specify the PayPal page to display when a user lands on the PayPal site to complete the payment.
  * * `login` - A PayPal account login page is used.
  * * `billing` - A non-PayPal account landing page is used.
-* @property {lineItem[]} [options.lineItems] The line items for this transaction. It can include up to 249 line items.
+ * @param {lineItem[]} [options.lineItems] The {@link PayPalCheckout~lineItem|line items} for this transaction. It can include up to 249 line items.
  * @param {callback} [callback] The second argument is a PayPal `paymentId` or `billingToken` string, depending on whether `options.flow` is `checkout` or `vault`. This is also what is resolved by the promise if no callback is provided.
  * @example
  * // this paypal object is created by the PayPal JS SDK
