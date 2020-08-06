@@ -660,6 +660,7 @@ function GooglePayment(options) {
   this._createPromise = options.createPromise;
   this._client = options.client;
   this._useDeferredClient = options.useDeferredClient;
+  // NEXT_MAJOR_VERSION this should be updated to 2 (or whatever the current latest version is)
   this._googlePayVersion = options.googlePayVersion || 1;
   this._googleMerchantId = options.googleMerchantId;
 
@@ -955,7 +956,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.64.1";
+var VERSION = "3.64.2";
 var errors = _dereq_('./errors');
 
 /**
@@ -1231,7 +1232,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.64.1";
+var VERSION = "3.64.2";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1361,7 +1362,7 @@ module.exports = BraintreeError;
 },{"./enumerate":24}],19:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.64.1";
+var VERSION = "3.64.2";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1487,7 +1488,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.64.1";
+var VERSION = "3.64.2";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1614,7 +1615,7 @@ module.exports = function (array, key, value) {
 },{}],27:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.64.1";
+var VERSION = "3.64.2";
 var assign = _dereq_('./assign').assign;
 
 function generateTokenizationParameters(configuration, overrides) {

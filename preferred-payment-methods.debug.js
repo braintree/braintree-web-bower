@@ -658,7 +658,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.64.1";
+var VERSION = "3.64.2";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -788,7 +788,7 @@ module.exports = BraintreeError;
 },{"./enumerate":19}],15:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.64.1";
+var VERSION = "3.64.2";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -896,7 +896,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.64.1";
+var VERSION = "3.64.2";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1072,7 +1072,7 @@ module.exports = {
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var PreferredPaymentMethods = _dereq_('./preferred-payment-methods');
-var VERSION = "3.64.1";
+var VERSION = "3.64.2";
 
 /**
  * @static
