@@ -2008,7 +2008,7 @@ var AmericanExpress = _dereq_('./american-express');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
-var VERSION = "3.64.2";
+var VERSION = "3.65.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -2500,7 +2500,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var Promise = _dereq_('../lib/promise');
 var errors = _dereq_('./errors');
-var VERSION = "3.64.2";
+var VERSION = "3.65.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -3243,7 +3243,7 @@ module.exports = {
 
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Client = _dereq_('./client');
-var VERSION = "3.64.2";
+var VERSION = "3.65.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -3758,6 +3758,7 @@ function adaptTokenizeCreditCardResponseBody(body) {
         description: lastTwo ? 'ending in ' + lastTwo : '',
         nonce: data.token,
         details: {
+          cardholderName: creditCard.cardholderName,
           expirationMonth: creditCard.expirationMonth,
           expirationYear: creditCard.expirationYear,
           bin: creditCard.bin || '',
@@ -3983,6 +3984,7 @@ function createMutation(config) {
     '      bin ' +
     '      brandCode ' +
     '      last4 ' +
+    '      cardholderName ' +
     '      expirationMonth' +
     '      expirationYear' +
     '      binData { ' +
@@ -4631,7 +4633,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var methods = _dereq_('../lib/methods');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
-var VERSION = "3.64.2";
+var VERSION = "3.65.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var errors = _dereq_('./errors');
@@ -5375,7 +5377,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.64.2";
+var VERSION = "3.65.0";
 var errors = _dereq_('./errors');
 
 /**
@@ -5801,6 +5803,7 @@ var SAFARI_FOCUS_TIMEOUT = 5;
  * @property {string} details.cardType Type of card, ex: Visa, MasterCard.
  * @property {string} details.expirationMonth The expiration month of the card.
  * @property {string} details.expirationYear The expiration year of the card.
+ * @property {string} details.cardholderName The cardholder name tokenized with the card.
  * @property {string} details.lastFour Last four digits of card number.
  * @property {string} details.lastTwo Last two digits of card number.
  * @property {string} description A human-readable description.
@@ -5832,6 +5835,7 @@ var SAFARI_FOCUS_TIMEOUT = 5;
  * - `"expirationMonth"`
  * - `"expirationYear"`
  * - `"postalCode"`
+ * - `"cardholderName"`
  * @property {object} fields
  * @property {?HostedFields~hostedFieldsFieldData} fields.number {@link HostedFields~hostedFieldsFieldData|hostedFieldsFieldData} for the number field, if it is present.
  * @property {?HostedFields~hostedFieldsFieldData} fields.cvv {@link HostedFields~hostedFieldsFieldData|hostedFieldsFieldData} for the CVV field, if it is present.
@@ -5839,6 +5843,7 @@ var SAFARI_FOCUS_TIMEOUT = 5;
  * @property {?HostedFields~hostedFieldsFieldData} fields.expirationMonth {@link HostedFields~hostedFieldsFieldData|hostedFieldsFieldData} for the expiration month field, if it is present.
  * @property {?HostedFields~hostedFieldsFieldData} fields.expirationYear {@link HostedFields~hostedFieldsFieldData|hostedFieldsFieldData} for the expiration year field, if it is present.
  * @property {?HostedFields~hostedFieldsFieldData} fields.postalCode {@link HostedFields~hostedFieldsFieldData|hostedFieldsFieldData} for the postal code field, if it is present.
+ * @property {?HostedFields~hostedFieldsFieldData} fields.cardholderName {@link HostedFields~hostedFieldsFieldData|hostedFieldsFieldData} for the cardholder name field, if it is present.
  */
 
 /**
@@ -6254,7 +6259,7 @@ function HostedFields(options) {
     internalContainer = externalContainer;
 
     if (shadow.isShadowElement(internalContainer)) {
-      internalContainer = shadow.transformToSlot(internalContainer);
+      internalContainer = shadow.transformToSlot(internalContainer, 'height: 100%');
     }
 
     if (field.maxlength && typeof field.maxlength !== 'number') {
@@ -6602,7 +6607,7 @@ HostedFields.prototype.teardown = function () {
  * @param {boolean} [options.vault=false] When true, will vault the tokenized card. Cards will only be vaulted when using a client created with a client token that includes a customer ID. Note: merchants using Advanced Fraud Tools should not use this option, as device data will not be included.
  * @param {object} [options.authenticationInsight] Options for checking authentication insight - the [regulatory environment](https://developers.braintreepayments.com/guides/3d-secure/advanced-options/javascript/v3#authentication-insight) of the tokenized card.
  * @param {string} options.authenticationInsight.merchantAccountId The Braintree merchant account id to use to look up the authentication insight information.
- * @param {array} [options.fieldsToTokenize] By default, all fields will be tokenized. You may specify which fields specifically you wish to tokenize with this property. Valid options are `'number'`, `'cvv'`, `'expirationDate'`, `'expirationMonth'`, `'expirationYear'`, `'postalCode'`.
+ * @param {array} [options.fieldsToTokenize] By default, all fields will be tokenized. You may specify which fields specifically you wish to tokenize with this property. Valid options are `'number'`, `'cvv'`, `'expirationDate'`, `'expirationMonth'`, `'expirationYear'`, `'postalCode'`, `'cardholderName'`.
  * @param {string} [options.cardholderName] When supplied, the cardholder name to be tokenized with the contents of the fields.
  * @param {string} [options.billingAddress.postalCode] When supplied, this postal code will be tokenized along with the contents of the fields. If a postal code is provided as part of the Hosted Fields configuration, the value of the field will be tokenized and this value will be ignored.
  * @param {string} [options.billingAddress.firstName] When supplied, this customer first name will be tokenized along with the contents of the fields.
@@ -6679,7 +6684,7 @@ HostedFields.prototype.teardown = function () {
  *     console.log('Got nonce:', payload.nonce);
  *   }
  * });
- * @example <caption>Tokenize a card with cardholder name</caption>
+ * @example <caption>Tokenize a card with non-Hosted Fields cardholder name</caption>
  * hostedFieldsInstance.tokenize({
  *   cardholderName: 'First Last'
  * }, function (tokenizeErr, payload) {
@@ -6689,7 +6694,7 @@ HostedFields.prototype.teardown = function () {
  *     console.log('Got nonce:', payload.nonce);
  *   }
  * });
- * @example <caption>Tokenize a card with the postal code option</caption>
+ * @example <caption>Tokenize a card with non-Hosted Fields postal code option</caption>
  * hostedFieldsInstance.tokenize({
  *   billingAddress: {
  *     postalCode: '11111'
@@ -6718,6 +6723,30 @@ HostedFields.prototype.teardown = function () {
  *     countryCodeAlpha3: 'USA',
  *     countryCodeNumeric: '840'
  *   }
+ * }, function (tokenizeErr, payload) {
+ *   if (tokenizeErr) {
+ *     console.error(tokenizeErr);
+ *   } else {
+ *     console.log('Got nonce:', payload.nonce);
+ *   }
+ * });
+ * @example <caption>Allow tokenization with empty cardholder name field</caption>
+ * var state = hostedFieldsInstance.getState();
+ * var fields = Object.keys(state.fields);
+ *
+ * // normally, if you tried to tokenize an empty cardholder name field
+ * // you would get an error, to allow making this field optional,
+ * // tokenize all the fields except for the cardholder name field
+ * // when the cardholder name field is empty. Otherwise, tokenize
+ * // all the fields
+ * if (state.fields.cardholderName.isEmpty) {
+ *  fields = fields.filter(function (field) {
+ *    return field !== 'cardholderName';
+ *  });
+ * }
+ *
+ * hostedFieldsInstance.tokenize({
+ *  fieldsToTokenize: fields
  * }, function (tokenizeErr, payload) {
  *   if (tokenizeErr) {
  *     console.error(tokenizeErr);
@@ -7232,7 +7261,7 @@ var supportsInputFormatting = _dereq_('restricted-input/supports-input-formattin
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.64.2";
+var VERSION = "3.65.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -7248,6 +7277,7 @@ var VERSION = "3.64.2";
  * * expirationMonth: Expiration Month
  * * expirationYear: Expiration Year
  * * postalCode: Postal Code
+ * * cardholderName: Cardholder Name
  * @property {boolean} [formatInput=true] Enable or disable automatic formatting on this field.
  * @property {(object|boolean)} [maskInput=false] Enable or disable input masking when input is not focused. If set to `true` instead of an object, the defaults for the `maskInput` parameters will be used.
  * @property {string} [maskInput.character=•] The character to use when masking the input. The default character ('•') uses a unicode symbol, so the webpage must support UTF-8 characters when using the default.
@@ -7287,6 +7317,7 @@ var VERSION = "3.64.2";
  * @property {field} [expirationYear] A field for expiration year in `YYYY` or `YY` format. This should be used with the `expirationMonth` property.
  * @property {field} [cvv] A field for 3 or 4 digit card verification code (like CVV or CID). If you wish to create a CVV-only payment method nonce to verify a card already stored in your Vault, omit all other fields to only collect CVV.
  * @property {field} [postalCode] A field for postal or region code.
+ * @property {field} [cardholderName] A field for the cardholder name on the customer's credit card.
  */
 
 /**
@@ -7318,7 +7349,15 @@ var VERSION = "3.64.2";
  * `opacity`
  * `outline`
  * `margin`
+ * `margin-top`
+ * `margin-right`
+ * `margin-bottom`
+ * `margin-left`
  * `padding`
+ * `padding-top`
+ * `padding-right`
+ * `padding-bottom`
+ * `padding-left`
  * `text-shadow`
  * `transition`
  * `-moz-appearance`
@@ -7365,6 +7404,24 @@ var VERSION = "3.64.2";
  *     cvv: {
  *       container: '#cvv',
  *       placeholder: '•••'
+ *     },
+ *     expirationDate: {
+ *       container: '#expiration-date'
+ *     }
+ *   }
+ * }, callback);
+ * @example <caption>With cardholder name</caption>
+ * braintree.hostedFields.create({
+ *   client: clientInstance,
+ *   fields: {
+ *     number: {
+ *       container: '#card-number'
+ *     },
+ *     cardholderName: {
+ *       container: '#cardholder-name'
+ *     },
+ *     cvv: {
+ *       container: '#cvv',
  *     },
  *     expirationDate: {
  *       container: '#expiration-date'
@@ -7587,7 +7644,7 @@ module.exports = {
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.64.2";
+var VERSION = "3.65.0";
 
 var constants = {
   VERSION: VERSION,
@@ -7658,13 +7715,25 @@ var constants = {
     'letter-spacing',
     'line-height',
     'margin',
+    'margin-top',
+    'margin-right',
+    'margin-bottom',
+    'margin-left',
     'opacity',
     'outline',
     'padding',
+    'padding-top',
+    'padding-right',
+    'padding-bottom',
+    'padding-left',
     'text-shadow',
     'transition'
   ],
   allowedFields: {
+    cardholderName: {
+      name: 'cardholder-name',
+      label: 'Cardholder Name'
+    },
     number: {
       name: 'credit-card-number',
       label: 'Credit Card Number'
@@ -7697,6 +7766,7 @@ var constants = {
     placeholder: 'string'
   },
   autocompleteMappings: {
+    'cardholder-name': 'cc-name',
     'credit-card-number': 'cc-number',
     expiration: 'cc-exp',
     'expiration-month': 'cc-exp-month',
@@ -8038,7 +8108,7 @@ var vaultManager = _dereq_('./vault-manager');
 var venmo = _dereq_('./venmo');
 var visaCheckout = _dereq_('./visa-checkout');
 var preferredPaymentMethods = _dereq_('./preferred-payment-methods');
-var VERSION = "3.64.2";
+var VERSION = "3.65.0";
 
 module.exports = {
   /** @type {module:braintree-web/american-express} */
@@ -8194,7 +8264,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.64.2";
+var VERSION = "3.65.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -8562,7 +8632,7 @@ module.exports = function (obj) {
 },{}],135:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.64.2";
+var VERSION = "3.65.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -8710,7 +8780,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.64.2";
+var VERSION = "3.65.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -9488,7 +9558,7 @@ module.exports = enumerate([
 },{"../../enumerate":143}],158:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.64.2";
+var VERSION = "3.65.0";
 var assign = _dereq_('./assign').assign;
 
 function generateTokenizationParameters(configuration, overrides) {
@@ -9829,7 +9899,8 @@ function getShadowHost(element) {
   return element.host;
 }
 
-function transformToSlot(element) {
+function transformToSlot(element, styles) {
+  var styleNode = findRootNode(element).querySelector('style');
   var shadowHost = getShadowHost(element);
   var slotName = 'shadow-slot-' + uuid();
   var slot = document.createElement('slot');
@@ -9840,6 +9911,15 @@ function transformToSlot(element) {
 
   slotProvider.setAttribute('slot', slotName);
   shadowHost.appendChild(slotProvider);
+
+  if (styles) {
+    if (!styleNode) {
+      styleNode = document.createElement('style');
+      element.appendChild(styleNode);
+    }
+
+    styleNode.sheet.insertRule('::slotted([slot="' + slotName + '"]) { ' + styles + ' }');
+  }
 
   return slotProvider;
 }
@@ -9911,7 +9991,7 @@ module.exports = {
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var useMin = _dereq_('../../lib/use-min');
-var VERSION = "3.64.2";
+var VERSION = "3.65.0";
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
 var methods = _dereq_('../../lib/methods');
@@ -10338,7 +10418,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var LocalPayment = _dereq_('./external/local-payment');
-var VERSION = "3.64.2";
+var VERSION = "3.65.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -10528,7 +10608,7 @@ var Promise = _dereq_('../../lib/promise');
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var errors = _dereq_('../shared/errors');
-var VERSION = "3.64.2";
+var VERSION = "3.65.0";
 var methods = _dereq_('../../lib/methods');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var analytics = _dereq_('../../lib/analytics');
@@ -10925,7 +11005,7 @@ var browserDetection = _dereq_('./shared/browser-detection');
 var Masterpass = _dereq_('./external/masterpass');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
-var VERSION = "3.64.2";
+var VERSION = "3.65.0";
 var errors = _dereq_('./shared/errors');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -11131,7 +11211,7 @@ var methods = _dereq_('../../lib/methods');
 var Promise = _dereq_('../../lib/promise');
 var EventEmitter = _dereq_('@braintree/event-emitter');
 var BraintreeError = _dereq_('../../lib/braintree-error');
-var VERSION = "3.64.2";
+var VERSION = "3.65.0";
 var constants = _dereq_('../shared/constants');
 var events = constants.events;
 var errors = constants.errors;
@@ -11818,7 +11898,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.64.2";
+var VERSION = "3.65.0";
 
 /**
  * @static
@@ -12118,7 +12198,7 @@ module.exports = {
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var PayPalCheckout = _dereq_('./paypal-checkout');
-var VERSION = "3.64.2";
+var VERSION = "3.65.0";
 
 /**
  * @static
@@ -12198,7 +12278,7 @@ var methods = _dereq_('../lib/methods');
 var useMin = _dereq_('../lib/use-min');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
 var querystring = _dereq_('../lib/querystring');
-var VERSION = "3.64.2";
+var VERSION = "3.65.0";
 var INTEGRATION_TIMEOUT_MS = _dereq_('../lib/constants').INTEGRATION_TIMEOUT_MS;
 
 var REQUIRED_PARAMS_FOR_START_VAULT_INITIATED_CHECKOUT = [
@@ -12508,6 +12588,9 @@ PayPalCheckout.prototype._setupFrameService = function (client) {
  * @param {string} [options.currency] The currency code of the amount, such as 'USD'. Required when using the Checkout flow.
  * @param {string} [options.displayName] The merchant name displayed inside of the PayPal lightbox; defaults to the company name on your Braintree account
  * @param {string} [options.locale=en_US] Use this option to change the language, links, and terminology used in the PayPal flow. This locale will be used unless the buyer has set a preferred locale for their account. If an unsupported locale is supplied, a fallback locale (determined by buyer preference or browser data) will be used and no error will be thrown.
+ * @param {boolean} [options.requestBillingAgreement] If `true` and `flow = checkout`, the customer will be prompted to consent to a billing agreement during the checkout flow. This value is ignored when `flow = vault`.
+ * @param {object} [options.billingAgreementDetails] When `requestBillingAgreement = true`, allows for details to be set for the billing agreement portion of the flow.
+ * @param {string} [options.billingAgreementDetails.description] Description of the billing agreement to display to the customer.
  * @param {string} [options.vaultInitiatedCheckoutPaymentMethodToken] Use the payment method nonce representing a PayPal account with a Billing Agreement ID to create the payment and redirect the customer to select a new financial instrument. This option is only applicable to the `checkout` flow.
  *
  * Supported locales are:
@@ -13128,6 +13211,7 @@ PayPalCheckout.prototype._formatPaymentResourceData = function (options, config)
   if (options.flow === 'checkout') {
     paymentResource.amount = options.amount;
     paymentResource.currencyIsoCode = options.currency;
+    paymentResource.requestBillingAgreement = options.requestBillingAgreement;
 
     if (intent) {
       // 'sale' has been changed to 'capture' in PayPal's backend, but
@@ -13155,6 +13239,10 @@ PayPalCheckout.prototype._formatPaymentResourceData = function (options, config)
       if (options.shippingAddressOverride.hasOwnProperty(key)) {
         paymentResource[key] = options.shippingAddressOverride[key];
       }
+    }
+
+    if (options.hasOwnProperty('billingAgreementDetails')) {
+      paymentResource.billingAgreementDetails = options.billingAgreementDetails;
     }
   } else {
     paymentResource.shippingAddress = options.shippingAddressOverride;
@@ -13264,7 +13352,7 @@ var BraintreeError = _dereq_('../../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../../lib/convert-to-braintree-error');
 var useMin = _dereq_('../../lib/use-min');
 var once = _dereq_('../../lib/once');
-var VERSION = "3.64.2";
+var VERSION = "3.65.0";
 var constants = _dereq_('../shared/constants');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
@@ -13869,7 +13957,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var errors = _dereq_('./shared/errors');
 var PayPal = _dereq_('./external/paypal');
-var VERSION = "3.64.2";
+var VERSION = "3.65.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var Promise = _dereq_('../lib/promise');
 
@@ -14072,7 +14160,7 @@ module.exports = {
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var PreferredPaymentMethods = _dereq_('./preferred-payment-methods');
-var VERSION = "3.64.2";
+var VERSION = "3.65.0";
 
 /**
  * @static
@@ -14237,7 +14325,7 @@ var uuid = _dereq_('@braintree/uuid');
 var events = _dereq_('../../shared/events');
 var useMin = _dereq_('../../../lib/use-min');
 
-var VERSION = "3.64.2";
+var VERSION = "3.65.0";
 var IFRAME_HEIGHT = 400;
 var IFRAME_WIDTH = 400;
 
@@ -14919,7 +15007,8 @@ var ExtendedPromise = _dereq_('@braintree/extended-promise');
 
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var PLATFORM = _dereq_('../../../lib/constants').PLATFORM;
-var VERSION = "3.64.2";
+var VERSION = "3.65.0";
+var CUSTOMER_CANCELED_SONGBIRD_MODAL = '01';
 
 function SongbirdFramework(options) {
   BaseFramework.call(this, options);
@@ -14939,12 +15028,16 @@ SongbirdFramework.prototype = Object.create(BaseFramework.prototype, {
 });
 
 SongbirdFramework.events = enumerate([
-  'ON_LOOKUP_COMPLETE'
+  'LOOKUP_COMPLETE',
+  'CUSTOMER_CANCELED'
 ], 'songbird-framework:');
 
 SongbirdFramework.prototype.setUpEventListeners = function (reply) {
-  this.on(SongbirdFramework.events.ON_LOOKUP_COMPLETE, function (data, next) {
+  this.on(SongbirdFramework.events.LOOKUP_COMPLETE, function (data, next) {
     reply('lookup-complete', data, next);
+  });
+  this.on(SongbirdFramework.events.CUSTOMER_CANCELED, function () {
+    reply('customer-canceled');
   });
 };
 
@@ -15238,12 +15331,26 @@ SongbirdFramework.prototype.getDfReferenceId = function () {
   return this._getDfReferenceIdPromisePlus;
 };
 
-SongbirdFramework.prototype._performJWTValidation = function (jwt) {
+SongbirdFramework.prototype._performJWTValidation = function (rawCardinalSDKVerificationData, jwt) {
+  var self = this;
   var nonce = this._lookupPaymentMethod.nonce;
   var url = 'payment_methods/' + nonce + '/three_d_secure/authenticate_from_jwt';
-  var self = this;
+  var cancelCode = rawCardinalSDKVerificationData &&
+    rawCardinalSDKVerificationData.Payment &&
+    rawCardinalSDKVerificationData.Payment.ExtendedData &&
+    rawCardinalSDKVerificationData.Payment.ExtendedData.ChallengeCancel;
 
-  analytics.sendEvent(self._createPromise, 'three-d-secure.verification-flow.upgrade-payment-method.started');
+  if (cancelCode) {
+    // see ChallengeCancel docs here for different values:
+    // https://cardinaldocs.atlassian.net/wiki/spaces/CC/pages/98315/Response+Objects
+    analytics.sendEvent(this._createPromise, 'three-d-secure.verification-flow.cardinal-sdk.cancel-code.' + cancelCode);
+
+    if (cancelCode === CUSTOMER_CANCELED_SONGBIRD_MODAL) {
+      this._emit(SongbirdFramework.events.CUSTOMER_CANCELED);
+    }
+  }
+
+  analytics.sendEvent(this._createPromise, 'three-d-secure.verification-flow.upgrade-payment-method.started');
 
   return this._waitForClient().then(function () {
     return self._client.request({
@@ -15258,6 +15365,7 @@ SongbirdFramework.prototype._performJWTValidation = function (jwt) {
     var paymentMethod = response.paymentMethod || self._lookupPaymentMethod;
     var formattedResponse = self._formatAuthResponse(paymentMethod, response.threeDSecureInfo);
 
+    formattedResponse.rawCardinalSDKVerificationData = rawCardinalSDKVerificationData;
     analytics.sendEvent(self._client, 'three-d-secure.verification-flow.upgrade-payment-method.succeeded');
 
     return Promise.resolve(formattedResponse);
@@ -15285,6 +15393,7 @@ SongbirdFramework.prototype._createPaymentsValidatedCallback = function () {
    * @see {@link https://cardinaldocs.atlassian.net/wiki/spaces/CC/pages/98315/Response+Objects#ResponseObjects-ObjectDefinition}
    * @param {string} data.ActionCode The resulting state of the transaction.
    * @param {boolean} data.Validated Represents whether transaction was successfully or not.
+   * @param {object} data.Payment Represents additional information about the verification.
    * @param {number} data.ErrorNumber A non-zero value represents the error encountered while attempting the process the message request.
    * @param {string} data.ErrorDescription Application error description for the associated error number.
    * @param {string} validatedJwt Response JWT
@@ -15306,7 +15415,7 @@ SongbirdFramework.prototype._createPaymentsValidatedCallback = function () {
       case 'SUCCESS':
       case 'NOACTION':
       case 'FAILURE':
-        self._performJWTValidation(validatedJwt)
+        self._performJWTValidation(data, validatedJwt)
           .then(function (result) {
             self._verifyCardPromisePlus.resolve(result);
           })
@@ -15417,7 +15526,7 @@ SongbirdFramework.prototype._onLookupComplete = function (lookupResponse, option
       if (options.onLookupComplete) {
         options.onLookupComplete(response, next);
       } else {
-        self._emit(SongbirdFramework.events.ON_LOOKUP_COMPLETE, response, next);
+        self._emit(SongbirdFramework.events.LOOKUP_COMPLETE, response, next);
       }
     });
   });
@@ -15575,6 +15684,7 @@ var FRAMEWORKS = _dereq_('./frameworks');
  * @property {string} threeDSecureInfo.threeDSecureVersion The version of 3D Secure authentication used for the transaction.
  * @property {string} threeDSecureInfo.eciFlag The value of the electronic commerce indicator (ECI) flag, which indicates the outcome of the 3DS authentication. This will be a two-digit value.
  * @property {string} threeDSecureInfo.threeDSecureAuthenticationId ID of the 3D Secure authentication performed for this transaction. Do not provide this field as a transaction sale parameter if you are using the returned payment method nonce from the payload.
+ * @property {object} rawCardinalSDKVerificationData The response back from the Cardinal SDK after verification has completed. See [Cardinal's Documentation](https://cardinaldocs.atlassian.net/wiki/spaces/CC/pages/98315/Response+Objects) for more information. If the customer was not required to do a 3D Secure challenge, this object will not be available.
  */
 
 /**
@@ -15739,8 +15849,11 @@ var FRAMEWORKS = _dereq_('./frameworks');
  * <caption>Listening to a 3D Secure event</caption>
  * braintree.threeDSecure.create({ ... }, function (createErr, threeDSecureInstance) {
  *   threeDSecureInstance.on('lookup-complete', function (data, next) {
- *     console.log(event);
+ *     console.log('data from the lookup', data);
  *     next();
+ *   });
+ *   threeDSecureInstance.on('customer-canceled', function () {
+ *     console.log('log that the customer canceled');
  *   });
  * });
  * @returns {void}
@@ -15755,15 +15868,21 @@ var FRAMEWORKS = _dereq_('./frameworks');
  * @example
  * <caption>Subscribing and then unsubscribing from a 3D Secure eld event</caption>
  * braintree.threeDSecure.create({ ... }, function (createErr, threeDSecureInstance) {
- *   var callback = function (data, next) {
+ *   var lookupCallback = function (data, next) {
  *     console.log(data);
  *     next();
  *   };
+ *   var cancelCallback = function () {
+ *     // log the cancelation
+ *     // or update UI
+ *   };
  *
- *   threeDSecureInstance.on('lookup-complete', callback);
+ *   threeDSecureInstance.on('lookup-complete', lookupCallback);
+ *   threeDSecureInstance.on('customer-canceled', cancelCallback);
  *
  *   // later on
- *   threeDSecureInstance.off('lookup-complete', callback);
+ *   threeDSecureInstance.off('lookup-complete', lookupCallback);
+ *   threeDSecureInstance.off('customer-canceled', cancelCallback);
  * });
  * @returns {void}
  */
@@ -16139,7 +16258,7 @@ ThreeDSecure.prototype.prepareLookup = function (options) {
  * }, function (verifyError, payload) {
  *   if (verifyError) {
  *     if (verifyError.code === 'THREEDS_VERIFY_CARD_CANCELED_BY_MERCHANT ') {
- *       // flow was cancelled by merchant, 3ds info can be found in the payload
+ *       // flow was canceled by merchant, 3ds info can be found in the payload
  *       // for cancelVerifyCard
  *     }
  *   }
@@ -16168,7 +16287,7 @@ ThreeDSecure.prototype.prepareLookup = function (options) {
  * }, function (verifyError, payload) {
  *   if (verifyError) {
  *     if (verifyError.code === 'THREEDS_VERIFY_CARD_CANCELED_BY_MERCHANT ') {
- *       // flow was cancelled by merchant, 3ds info can be found in the payload
+ *       // flow was canceled by merchant, 3ds info can be found in the payload
  *       // for cancelVerifyCard
  *     }
  *   }
@@ -16226,7 +16345,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.64.2";
+var VERSION = "3.65.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -16638,7 +16757,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.64.2";
+var VERSION = "3.65.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -16830,7 +16949,7 @@ var errors = _dereq_('./errors');
 var events = constants.events;
 var iFramer = _dereq_('@braintree/iframer');
 var methods = _dereq_('../../lib/methods');
-var VERSION = "3.64.2";
+var VERSION = "3.65.0";
 var uuid = _dereq_('@braintree/uuid');
 var Promise = _dereq_('../../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -17303,7 +17422,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var errors = _dereq_('./errors');
 var USBankAccount = _dereq_('./us-bank-account');
-var VERSION = "3.64.2";
+var VERSION = "3.65.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -17867,7 +17986,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var VaultManager = _dereq_('./vault-manager');
-var VERSION = "3.64.2";
+var VERSION = "3.65.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -18109,7 +18228,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var Venmo = _dereq_('./venmo');
 var Promise = _dereq_('../lib/promise');
 var supportsVenmo = _dereq_('./shared/supports-venmo');
-var VERSION = "3.64.2";
+var VERSION = "3.65.0";
 
 /**
  * @static
@@ -18761,7 +18880,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var VisaCheckout = _dereq_('./visa-checkout');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./errors');
-var VERSION = "3.64.2";
+var VERSION = "3.65.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 

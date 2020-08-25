@@ -1178,7 +1178,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.64.2";
+var VERSION = "3.65.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1480,7 +1480,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":36,"./check-origin":37,"./events":38,"framebus":16}],40:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.64.2";
+var VERSION = "3.65.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1628,7 +1628,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.64.2";
+var VERSION = "3.65.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1894,7 +1894,7 @@ var uuid = _dereq_('@braintree/uuid');
 var events = _dereq_('../../shared/events');
 var useMin = _dereq_('../../../lib/use-min');
 
-var VERSION = "3.64.2";
+var VERSION = "3.65.0";
 var IFRAME_HEIGHT = 400;
 var IFRAME_WIDTH = 400;
 
@@ -2576,7 +2576,8 @@ var ExtendedPromise = _dereq_('@braintree/extended-promise');
 
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var PLATFORM = _dereq_('../../../lib/constants').PLATFORM;
-var VERSION = "3.64.2";
+var VERSION = "3.65.0";
+var CUSTOMER_CANCELED_SONGBIRD_MODAL = '01';
 
 function SongbirdFramework(options) {
   BaseFramework.call(this, options);
@@ -2596,12 +2597,16 @@ SongbirdFramework.prototype = Object.create(BaseFramework.prototype, {
 });
 
 SongbirdFramework.events = enumerate([
-  'ON_LOOKUP_COMPLETE'
+  'LOOKUP_COMPLETE',
+  'CUSTOMER_CANCELED'
 ], 'songbird-framework:');
 
 SongbirdFramework.prototype.setUpEventListeners = function (reply) {
-  this.on(SongbirdFramework.events.ON_LOOKUP_COMPLETE, function (data, next) {
+  this.on(SongbirdFramework.events.LOOKUP_COMPLETE, function (data, next) {
     reply('lookup-complete', data, next);
+  });
+  this.on(SongbirdFramework.events.CUSTOMER_CANCELED, function () {
+    reply('customer-canceled');
   });
 };
 
@@ -2895,12 +2900,26 @@ SongbirdFramework.prototype.getDfReferenceId = function () {
   return this._getDfReferenceIdPromisePlus;
 };
 
-SongbirdFramework.prototype._performJWTValidation = function (jwt) {
+SongbirdFramework.prototype._performJWTValidation = function (rawCardinalSDKVerificationData, jwt) {
+  var self = this;
   var nonce = this._lookupPaymentMethod.nonce;
   var url = 'payment_methods/' + nonce + '/three_d_secure/authenticate_from_jwt';
-  var self = this;
+  var cancelCode = rawCardinalSDKVerificationData &&
+    rawCardinalSDKVerificationData.Payment &&
+    rawCardinalSDKVerificationData.Payment.ExtendedData &&
+    rawCardinalSDKVerificationData.Payment.ExtendedData.ChallengeCancel;
 
-  analytics.sendEvent(self._createPromise, 'three-d-secure.verification-flow.upgrade-payment-method.started');
+  if (cancelCode) {
+    // see ChallengeCancel docs here for different values:
+    // https://cardinaldocs.atlassian.net/wiki/spaces/CC/pages/98315/Response+Objects
+    analytics.sendEvent(this._createPromise, 'three-d-secure.verification-flow.cardinal-sdk.cancel-code.' + cancelCode);
+
+    if (cancelCode === CUSTOMER_CANCELED_SONGBIRD_MODAL) {
+      this._emit(SongbirdFramework.events.CUSTOMER_CANCELED);
+    }
+  }
+
+  analytics.sendEvent(this._createPromise, 'three-d-secure.verification-flow.upgrade-payment-method.started');
 
   return this._waitForClient().then(function () {
     return self._client.request({
@@ -2915,6 +2934,7 @@ SongbirdFramework.prototype._performJWTValidation = function (jwt) {
     var paymentMethod = response.paymentMethod || self._lookupPaymentMethod;
     var formattedResponse = self._formatAuthResponse(paymentMethod, response.threeDSecureInfo);
 
+    formattedResponse.rawCardinalSDKVerificationData = rawCardinalSDKVerificationData;
     analytics.sendEvent(self._client, 'three-d-secure.verification-flow.upgrade-payment-method.succeeded');
 
     return Promise.resolve(formattedResponse);
@@ -2942,6 +2962,7 @@ SongbirdFramework.prototype._createPaymentsValidatedCallback = function () {
    * @see {@link https://cardinaldocs.atlassian.net/wiki/spaces/CC/pages/98315/Response+Objects#ResponseObjects-ObjectDefinition}
    * @param {string} data.ActionCode The resulting state of the transaction.
    * @param {boolean} data.Validated Represents whether transaction was successfully or not.
+   * @param {object} data.Payment Represents additional information about the verification.
    * @param {number} data.ErrorNumber A non-zero value represents the error encountered while attempting the process the message request.
    * @param {string} data.ErrorDescription Application error description for the associated error number.
    * @param {string} validatedJwt Response JWT
@@ -2963,7 +2984,7 @@ SongbirdFramework.prototype._createPaymentsValidatedCallback = function () {
       case 'SUCCESS':
       case 'NOACTION':
       case 'FAILURE':
-        self._performJWTValidation(validatedJwt)
+        self._performJWTValidation(data, validatedJwt)
           .then(function (result) {
             self._verifyCardPromisePlus.resolve(result);
           })
@@ -3074,7 +3095,7 @@ SongbirdFramework.prototype._onLookupComplete = function (lookupResponse, option
       if (options.onLookupComplete) {
         options.onLookupComplete(response, next);
       } else {
-        self._emit(SongbirdFramework.events.ON_LOOKUP_COMPLETE, response, next);
+        self._emit(SongbirdFramework.events.LOOKUP_COMPLETE, response, next);
       }
     });
   });
@@ -3232,6 +3253,7 @@ var FRAMEWORKS = _dereq_('./frameworks');
  * @property {string} threeDSecureInfo.threeDSecureVersion The version of 3D Secure authentication used for the transaction.
  * @property {string} threeDSecureInfo.eciFlag The value of the electronic commerce indicator (ECI) flag, which indicates the outcome of the 3DS authentication. This will be a two-digit value.
  * @property {string} threeDSecureInfo.threeDSecureAuthenticationId ID of the 3D Secure authentication performed for this transaction. Do not provide this field as a transaction sale parameter if you are using the returned payment method nonce from the payload.
+ * @property {object} rawCardinalSDKVerificationData The response back from the Cardinal SDK after verification has completed. See [Cardinal's Documentation](https://cardinaldocs.atlassian.net/wiki/spaces/CC/pages/98315/Response+Objects) for more information. If the customer was not required to do a 3D Secure challenge, this object will not be available.
  */
 
 /**
@@ -3396,8 +3418,11 @@ var FRAMEWORKS = _dereq_('./frameworks');
  * <caption>Listening to a 3D Secure event</caption>
  * braintree.threeDSecure.create({ ... }, function (createErr, threeDSecureInstance) {
  *   threeDSecureInstance.on('lookup-complete', function (data, next) {
- *     console.log(event);
+ *     console.log('data from the lookup', data);
  *     next();
+ *   });
+ *   threeDSecureInstance.on('customer-canceled', function () {
+ *     console.log('log that the customer canceled');
  *   });
  * });
  * @returns {void}
@@ -3412,15 +3437,21 @@ var FRAMEWORKS = _dereq_('./frameworks');
  * @example
  * <caption>Subscribing and then unsubscribing from a 3D Secure eld event</caption>
  * braintree.threeDSecure.create({ ... }, function (createErr, threeDSecureInstance) {
- *   var callback = function (data, next) {
+ *   var lookupCallback = function (data, next) {
  *     console.log(data);
  *     next();
  *   };
+ *   var cancelCallback = function () {
+ *     // log the cancelation
+ *     // or update UI
+ *   };
  *
- *   threeDSecureInstance.on('lookup-complete', callback);
+ *   threeDSecureInstance.on('lookup-complete', lookupCallback);
+ *   threeDSecureInstance.on('customer-canceled', cancelCallback);
  *
  *   // later on
- *   threeDSecureInstance.off('lookup-complete', callback);
+ *   threeDSecureInstance.off('lookup-complete', lookupCallback);
+ *   threeDSecureInstance.off('customer-canceled', cancelCallback);
  * });
  * @returns {void}
  */
@@ -3796,7 +3827,7 @@ ThreeDSecure.prototype.prepareLookup = function (options) {
  * }, function (verifyError, payload) {
  *   if (verifyError) {
  *     if (verifyError.code === 'THREEDS_VERIFY_CARD_CANCELED_BY_MERCHANT ') {
- *       // flow was cancelled by merchant, 3ds info can be found in the payload
+ *       // flow was canceled by merchant, 3ds info can be found in the payload
  *       // for cancelVerifyCard
  *     }
  *   }
@@ -3825,7 +3856,7 @@ ThreeDSecure.prototype.prepareLookup = function (options) {
  * }, function (verifyError, payload) {
  *   if (verifyError) {
  *     if (verifyError.code === 'THREEDS_VERIFY_CARD_CANCELED_BY_MERCHANT ') {
- *       // flow was cancelled by merchant, 3ds info can be found in the payload
+ *       // flow was canceled by merchant, 3ds info can be found in the payload
  *       // for cancelVerifyCard
  *     }
  *   }
@@ -3883,7 +3914,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.64.2";
+var VERSION = "3.65.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 

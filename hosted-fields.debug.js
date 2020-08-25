@@ -1982,6 +1982,7 @@ var SAFARI_FOCUS_TIMEOUT = 5;
  * @property {string} details.cardType Type of card, ex: Visa, MasterCard.
  * @property {string} details.expirationMonth The expiration month of the card.
  * @property {string} details.expirationYear The expiration year of the card.
+ * @property {string} details.cardholderName The cardholder name tokenized with the card.
  * @property {string} details.lastFour Last four digits of card number.
  * @property {string} details.lastTwo Last two digits of card number.
  * @property {string} description A human-readable description.
@@ -2013,6 +2014,7 @@ var SAFARI_FOCUS_TIMEOUT = 5;
  * - `"expirationMonth"`
  * - `"expirationYear"`
  * - `"postalCode"`
+ * - `"cardholderName"`
  * @property {object} fields
  * @property {?HostedFields~hostedFieldsFieldData} fields.number {@link HostedFields~hostedFieldsFieldData|hostedFieldsFieldData} for the number field, if it is present.
  * @property {?HostedFields~hostedFieldsFieldData} fields.cvv {@link HostedFields~hostedFieldsFieldData|hostedFieldsFieldData} for the CVV field, if it is present.
@@ -2020,6 +2022,7 @@ var SAFARI_FOCUS_TIMEOUT = 5;
  * @property {?HostedFields~hostedFieldsFieldData} fields.expirationMonth {@link HostedFields~hostedFieldsFieldData|hostedFieldsFieldData} for the expiration month field, if it is present.
  * @property {?HostedFields~hostedFieldsFieldData} fields.expirationYear {@link HostedFields~hostedFieldsFieldData|hostedFieldsFieldData} for the expiration year field, if it is present.
  * @property {?HostedFields~hostedFieldsFieldData} fields.postalCode {@link HostedFields~hostedFieldsFieldData|hostedFieldsFieldData} for the postal code field, if it is present.
+ * @property {?HostedFields~hostedFieldsFieldData} fields.cardholderName {@link HostedFields~hostedFieldsFieldData|hostedFieldsFieldData} for the cardholder name field, if it is present.
  */
 
 /**
@@ -2435,7 +2438,7 @@ function HostedFields(options) {
     internalContainer = externalContainer;
 
     if (shadow.isShadowElement(internalContainer)) {
-      internalContainer = shadow.transformToSlot(internalContainer);
+      internalContainer = shadow.transformToSlot(internalContainer, 'height: 100%');
     }
 
     if (field.maxlength && typeof field.maxlength !== 'number') {
@@ -2783,7 +2786,7 @@ HostedFields.prototype.teardown = function () {
  * @param {boolean} [options.vault=false] When true, will vault the tokenized card. Cards will only be vaulted when using a client created with a client token that includes a customer ID. Note: merchants using Advanced Fraud Tools should not use this option, as device data will not be included.
  * @param {object} [options.authenticationInsight] Options for checking authentication insight - the [regulatory environment](https://developers.braintreepayments.com/guides/3d-secure/advanced-options/javascript/v3#authentication-insight) of the tokenized card.
  * @param {string} options.authenticationInsight.merchantAccountId The Braintree merchant account id to use to look up the authentication insight information.
- * @param {array} [options.fieldsToTokenize] By default, all fields will be tokenized. You may specify which fields specifically you wish to tokenize with this property. Valid options are `'number'`, `'cvv'`, `'expirationDate'`, `'expirationMonth'`, `'expirationYear'`, `'postalCode'`.
+ * @param {array} [options.fieldsToTokenize] By default, all fields will be tokenized. You may specify which fields specifically you wish to tokenize with this property. Valid options are `'number'`, `'cvv'`, `'expirationDate'`, `'expirationMonth'`, `'expirationYear'`, `'postalCode'`, `'cardholderName'`.
  * @param {string} [options.cardholderName] When supplied, the cardholder name to be tokenized with the contents of the fields.
  * @param {string} [options.billingAddress.postalCode] When supplied, this postal code will be tokenized along with the contents of the fields. If a postal code is provided as part of the Hosted Fields configuration, the value of the field will be tokenized and this value will be ignored.
  * @param {string} [options.billingAddress.firstName] When supplied, this customer first name will be tokenized along with the contents of the fields.
@@ -2860,7 +2863,7 @@ HostedFields.prototype.teardown = function () {
  *     console.log('Got nonce:', payload.nonce);
  *   }
  * });
- * @example <caption>Tokenize a card with cardholder name</caption>
+ * @example <caption>Tokenize a card with non-Hosted Fields cardholder name</caption>
  * hostedFieldsInstance.tokenize({
  *   cardholderName: 'First Last'
  * }, function (tokenizeErr, payload) {
@@ -2870,7 +2873,7 @@ HostedFields.prototype.teardown = function () {
  *     console.log('Got nonce:', payload.nonce);
  *   }
  * });
- * @example <caption>Tokenize a card with the postal code option</caption>
+ * @example <caption>Tokenize a card with non-Hosted Fields postal code option</caption>
  * hostedFieldsInstance.tokenize({
  *   billingAddress: {
  *     postalCode: '11111'
@@ -2899,6 +2902,30 @@ HostedFields.prototype.teardown = function () {
  *     countryCodeAlpha3: 'USA',
  *     countryCodeNumeric: '840'
  *   }
+ * }, function (tokenizeErr, payload) {
+ *   if (tokenizeErr) {
+ *     console.error(tokenizeErr);
+ *   } else {
+ *     console.log('Got nonce:', payload.nonce);
+ *   }
+ * });
+ * @example <caption>Allow tokenization with empty cardholder name field</caption>
+ * var state = hostedFieldsInstance.getState();
+ * var fields = Object.keys(state.fields);
+ *
+ * // normally, if you tried to tokenize an empty cardholder name field
+ * // you would get an error, to allow making this field optional,
+ * // tokenize all the fields except for the cardholder name field
+ * // when the cardholder name field is empty. Otherwise, tokenize
+ * // all the fields
+ * if (state.fields.cardholderName.isEmpty) {
+ *  fields = fields.filter(function (field) {
+ *    return field !== 'cardholderName';
+ *  });
+ * }
+ *
+ * hostedFieldsInstance.tokenize({
+ *  fieldsToTokenize: fields
  * }, function (tokenizeErr, payload) {
  *   if (tokenizeErr) {
  *     console.error(tokenizeErr);
@@ -3413,7 +3440,7 @@ var supportsInputFormatting = _dereq_('restricted-input/supports-input-formattin
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.64.2";
+var VERSION = "3.65.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -3429,6 +3456,7 @@ var VERSION = "3.64.2";
  * * expirationMonth: Expiration Month
  * * expirationYear: Expiration Year
  * * postalCode: Postal Code
+ * * cardholderName: Cardholder Name
  * @property {boolean} [formatInput=true] Enable or disable automatic formatting on this field.
  * @property {(object|boolean)} [maskInput=false] Enable or disable input masking when input is not focused. If set to `true` instead of an object, the defaults for the `maskInput` parameters will be used.
  * @property {string} [maskInput.character=•] The character to use when masking the input. The default character ('•') uses a unicode symbol, so the webpage must support UTF-8 characters when using the default.
@@ -3468,6 +3496,7 @@ var VERSION = "3.64.2";
  * @property {field} [expirationYear] A field for expiration year in `YYYY` or `YY` format. This should be used with the `expirationMonth` property.
  * @property {field} [cvv] A field for 3 or 4 digit card verification code (like CVV or CID). If you wish to create a CVV-only payment method nonce to verify a card already stored in your Vault, omit all other fields to only collect CVV.
  * @property {field} [postalCode] A field for postal or region code.
+ * @property {field} [cardholderName] A field for the cardholder name on the customer's credit card.
  */
 
 /**
@@ -3499,7 +3528,15 @@ var VERSION = "3.64.2";
  * `opacity`
  * `outline`
  * `margin`
+ * `margin-top`
+ * `margin-right`
+ * `margin-bottom`
+ * `margin-left`
  * `padding`
+ * `padding-top`
+ * `padding-right`
+ * `padding-bottom`
+ * `padding-left`
  * `text-shadow`
  * `transition`
  * `-moz-appearance`
@@ -3546,6 +3583,24 @@ var VERSION = "3.64.2";
  *     cvv: {
  *       container: '#cvv',
  *       placeholder: '•••'
+ *     },
+ *     expirationDate: {
+ *       container: '#expiration-date'
+ *     }
+ *   }
+ * }, callback);
+ * @example <caption>With cardholder name</caption>
+ * braintree.hostedFields.create({
+ *   client: clientInstance,
+ *   fields: {
+ *     number: {
+ *       container: '#card-number'
+ *     },
+ *     cardholderName: {
+ *       container: '#cardholder-name'
+ *     },
+ *     cvv: {
+ *       container: '#cvv',
  *     },
  *     expirationDate: {
  *       container: '#expiration-date'
@@ -3768,7 +3823,7 @@ module.exports = {
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.64.2";
+var VERSION = "3.65.0";
 
 var constants = {
   VERSION: VERSION,
@@ -3839,13 +3894,25 @@ var constants = {
     'letter-spacing',
     'line-height',
     'margin',
+    'margin-top',
+    'margin-right',
+    'margin-bottom',
+    'margin-left',
     'opacity',
     'outline',
     'padding',
+    'padding-top',
+    'padding-right',
+    'padding-bottom',
+    'padding-left',
     'text-shadow',
     'transition'
   ],
   allowedFields: {
+    cardholderName: {
+      name: 'cardholder-name',
+      label: 'Cardholder Name'
+    },
     number: {
       name: 'credit-card-number',
       label: 'Credit Card Number'
@@ -3878,6 +3945,7 @@ var constants = {
     placeholder: 'string'
   },
   autocompleteMappings: {
+    'cardholder-name': 'cc-name',
     'credit-card-number': 'cc-number',
     expiration: 'cc-exp',
     'expiration-month': 'cc-exp-month',
@@ -4272,7 +4340,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.64.2";
+var VERSION = "3.65.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -4620,7 +4688,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":83,"./check-origin":84,"./events":85,"framebus":46}],87:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.64.2";
+var VERSION = "3.65.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -4746,7 +4814,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.64.2";
+var VERSION = "3.65.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -5010,7 +5078,8 @@ function getShadowHost(element) {
   return element.host;
 }
 
-function transformToSlot(element) {
+function transformToSlot(element, styles) {
+  var styleNode = findRootNode(element).querySelector('style');
   var shadowHost = getShadowHost(element);
   var slotName = 'shadow-slot-' + uuid();
   var slot = document.createElement('slot');
@@ -5021,6 +5090,15 @@ function transformToSlot(element) {
 
   slotProvider.setAttribute('slot', slotName);
   shadowHost.appendChild(slotProvider);
+
+  if (styles) {
+    if (!styleNode) {
+      styleNode = document.createElement('style');
+      element.appendChild(styleNode);
+    }
+
+    styleNode.sheet.insertRule('::slotted([slot="' + slotName + '"]) { ' + styles + ' }');
+  }
 
   return slotProvider;
 }
