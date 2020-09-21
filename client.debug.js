@@ -1253,6 +1253,18 @@ function getConfiguration(authData) {
       reqOptions.metadata = analyticsMetadata;
     }
 
+    // NEXT_MAJOR_VERSION
+    // there are various issues with the config endpoint where the values returned
+    // do not match the values from the merchant account id passed into a client token
+    // we need to update the configuration request endpoint to be able to pass the
+    // correct values. The following ones are incorrect
+    // * applePayWeb - definitely supportedNetworks, which compiles all the card
+    //    networks from all the merchant accounts instead of providing just the
+    //    ones from the specified one. The same is probably true for ios apple pay
+    //    Also the merchantidentifier
+    // NEXT_MAJOR_VERSION Allow passing in merchant account id when creating the component
+    // to fetch the config for that merchant account id (particularly helpful when using
+    // a tokenization key for authorization)
     request(reqOptions, function (err, response, status) {
       var errorTemplate;
 
@@ -1296,7 +1308,7 @@ module.exports = {
 
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Client = _dereq_('./client');
-var VERSION = "3.65.0";
+var VERSION = "3.66.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -2731,7 +2743,7 @@ module.exports = BraintreeError;
 },{"./enumerate":48}],43:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.65.0";
+var VERSION = "3.66.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {

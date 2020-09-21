@@ -1178,7 +1178,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.65.0";
+var VERSION = "3.66.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1480,7 +1480,7 @@ module.exports = BraintreeBus;
 },{"../braintree-error":36,"./check-origin":37,"./events":38,"framebus":16}],40:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.65.0";
+var VERSION = "3.66.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1628,7 +1628,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.65.0";
+var VERSION = "3.66.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1894,7 +1894,7 @@ var uuid = _dereq_('@braintree/uuid');
 var events = _dereq_('../../shared/events');
 var useMin = _dereq_('../../../lib/use-min');
 
-var VERSION = "3.65.0";
+var VERSION = "3.66.0";
 var IFRAME_HEIGHT = 400;
 var IFRAME_WIDTH = 400;
 
@@ -2576,8 +2576,19 @@ var ExtendedPromise = _dereq_('@braintree/extended-promise');
 
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var PLATFORM = _dereq_('../../../lib/constants').PLATFORM;
-var VERSION = "3.65.0";
+var VERSION = "3.66.0";
 var CUSTOMER_CANCELED_SONGBIRD_MODAL = '01';
+var SONGBIRD_UI_EVENTS = [
+  'ui.close',
+  'ui.render',
+
+  // TODO these events are not documented in the
+  // client reference because so far we have
+  // not been able to trigger them in our testing
+  'ui.renderHidden',
+  'ui.loading.close',
+  'ui.loading.render'
+];
 
 function SongbirdFramework(options) {
   BaseFramework.call(this, options);
@@ -2598,7 +2609,12 @@ SongbirdFramework.prototype = Object.create(BaseFramework.prototype, {
 
 SongbirdFramework.events = enumerate([
   'LOOKUP_COMPLETE',
-  'CUSTOMER_CANCELED'
+  'CUSTOMER_CANCELED',
+  'UI.CLOSE',
+  'UI.RENDER',
+  'UI.RENDERHIDDEN',
+  'UI.LOADING.CLOSE',
+  'UI.LOADING.RENDER'
 ], 'songbird-framework:');
 
 SongbirdFramework.prototype.setUpEventListeners = function (reply) {
@@ -2607,6 +2623,21 @@ SongbirdFramework.prototype.setUpEventListeners = function (reply) {
   });
   this.on(SongbirdFramework.events.CUSTOMER_CANCELED, function () {
     reply('customer-canceled');
+  });
+  this.on(SongbirdFramework.events['UI.CLOSE'], function () {
+    reply('authentication-modal-close');
+  });
+  this.on(SongbirdFramework.events['UI.RENDER'], function () {
+    reply('authentication-modal-render');
+  });
+  this.on(SongbirdFramework.events['UI.RENDERHIDDEN'], function () {
+    reply('authentication-modal-render-hidden');
+  });
+  this.on(SongbirdFramework.events['UI.LOADING.CLOSE'], function () {
+    reply('authentication-modal-loader-close');
+  });
+  this.on(SongbirdFramework.events['UI.LOADING.RENDER'], function () {
+    reply('authentication-modal-loader-render');
   });
 };
 
@@ -2808,6 +2839,11 @@ SongbirdFramework.prototype._configureCardinalSdk = function (config) {
     var setupStartTime = config.setupStartTime;
     var cardinalConfiguration = self._createCardinalConfigurationOptions(setupOptions);
 
+    SONGBIRD_UI_EVENTS.forEach(function (eventName) {
+      self.setCardinalListener(eventName, function () {
+        self._emit(SongbirdFramework.events[eventName.toUpperCase()]);
+      });
+    });
     self.setCardinalListener('payments.setupComplete', self._createPaymentsSetupCompleteCallback());
 
     self._setupFrameworkSpecificListeners();
@@ -3091,6 +3127,7 @@ SongbirdFramework.prototype._onLookupComplete = function (lookupResponse, option
 
       self._verifyCardPromisePlus.catch(reject);
 
+      // If both event and callback are mistakenly used together,
       // prefer the callback when it is passed into the verifyCard options
       if (options.onLookupComplete) {
         options.onLookupComplete(response, next);
@@ -3413,7 +3450,12 @@ var FRAMEWORKS = _dereq_('./frameworks');
  * @function
  * @param {string} event The name of the event to which you are subscribing.
  * @param {function} handler A callback to handle the event.
- * @description Subscribes a handler function to a named event.
+ * @description Subscribes a handler function to a named event. The following events are available:
+ *   * {@link ThreeDSecure#event:lookup-complete|lookup-complete}
+ *   * {@link ThreeDSecure#event:customer-canceled|customer-canceled}
+ *   * {@link ThreeDSecure#event:authentication-iframe-available|authentication-iframe-available}
+ *   * {@link ThreeDSecure#event:authentication-modal-render|authentication-modal-render}
+ *   * {@link ThreeDSecure#event:authentication-modal-close|authentication-modal-close}
  * @example
  * <caption>Listening to a 3D Secure event</caption>
  * braintree.threeDSecure.create({ ... }, function (createErr, threeDSecureInstance) {
@@ -3459,7 +3501,6 @@ var FRAMEWORKS = _dereq_('./frameworks');
 /**
  * This event is emitted when the `2-inline-iframe` version is specified when creating the 3D Secure instance and the authentication iframe becomes available.
  * @event ThreeDSecure#authentication-iframe-available
- * @type {object}
  * @example
  * <caption>Listening for the authentication iframe to be available</caption>
  *   threeDSecureInstance.on('authentication-iframe-available', function (event, next) {
@@ -3473,18 +3514,60 @@ var FRAMEWORKS = _dereq_('./frameworks');
 /**
  * This event is emitted when using the 3D Secure 2.0 flow and the initial lookup request completes. If this is not used, a `onLookupComplete` callback must be passed into the `verifyCard` method.
  * @event ThreeDSecure#lookup-complete
- * @type {object}
  * @example
  * <caption>Listening for when the lookup request is complete</caption>
  * braintree.threeDSecure.create({
  *   client: clientInstance,
- *   version: '2-inline-iframe'
+ *   version: '2'
  * }, function (createErr, threeDSecureInstance) {
  *   threeDSecureInstance.on('lookup-complete', function (data, next) {
  *     // inspect the data
  *
  *     // call next when ready to proceed with the challenge
  *     next();
+ *   });
+ * });
+ */
+
+/**
+ * This event is emitted when using the 3D Secure 2.0 flow and the customer cancels the 3D Secure challenge.
+ * @event ThreeDSecure#customer-canceled
+ * @example
+ * <caption>Listening for when the customer cancels the 3D Secure challenge</caption>
+ * braintree.threeDSecure.create({
+ *   client: clientInstance,
+ *   version: '2'
+ * }, function (createErr, threeDSecureInstance) {
+ *   threeDSecureInstance.on('customer-canceled', function () {
+ *     // the customer canceled the 3D Secure challenge
+ *   });
+ * });
+ */
+
+/**
+ * This event is emitted when using the 3D Secure 2.0 flow and the authentication modal closes, either because the authentication was completed or because the customer canceled the process.
+ * @event ThreeDSecure#authentication-modal-close
+ * @example
+ * braintree.threeDSecure.create({
+ *   client: clientInstance,
+ *   version: '2'
+ * }, function (createErr, threeDSecureInstance) {
+ *   threeDSecureInstance.on('authentication-modal-close', function () {
+ *     // the modal was closed
+ *   });
+ * });
+ */
+
+/**
+ * This event is emitted when using the 3D Secure 2.0 flow and the authentication modal is rendered.
+ * @event ThreeDSecure#authentication-modal-render
+ * @example
+ * braintree.threeDSecure.create({
+ *   client: clientInstance,
+ *   version: '2'
+ * }, function (createErr, threeDSecureInstance) {
+ *   threeDSecureInstance.on('authentication-modal-render', function () {
+ *     // the modal was rendered, presenting the authentication form to the customer
  *   });
  * });
  */
@@ -3914,7 +3997,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.65.0";
+var VERSION = "3.66.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 

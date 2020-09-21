@@ -2008,7 +2008,7 @@ var AmericanExpress = _dereq_('./american-express');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
-var VERSION = "3.65.0";
+var VERSION = "3.66.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -2500,7 +2500,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var Promise = _dereq_('../lib/promise');
 var errors = _dereq_('./errors');
-var VERSION = "3.65.0";
+var VERSION = "3.66.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -3200,6 +3200,18 @@ function getConfiguration(authData) {
       reqOptions.metadata = analyticsMetadata;
     }
 
+    // NEXT_MAJOR_VERSION
+    // there are various issues with the config endpoint where the values returned
+    // do not match the values from the merchant account id passed into a client token
+    // we need to update the configuration request endpoint to be able to pass the
+    // correct values. The following ones are incorrect
+    // * applePayWeb - definitely supportedNetworks, which compiles all the card
+    //    networks from all the merchant accounts instead of providing just the
+    //    ones from the specified one. The same is probably true for ios apple pay
+    //    Also the merchantidentifier
+    // NEXT_MAJOR_VERSION Allow passing in merchant account id when creating the component
+    // to fetch the config for that merchant account id (particularly helpful when using
+    // a tokenization key for authorization)
     request(reqOptions, function (err, response, status) {
       var errorTemplate;
 
@@ -3243,7 +3255,7 @@ module.exports = {
 
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Client = _dereq_('./client');
-var VERSION = "3.65.0";
+var VERSION = "3.66.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -4633,7 +4645,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var methods = _dereq_('../lib/methods');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
-var VERSION = "3.65.0";
+var VERSION = "3.66.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var errors = _dereq_('./errors');
@@ -5377,7 +5389,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.65.0";
+var VERSION = "3.66.0";
 var errors = _dereq_('./errors');
 
 /**
@@ -7261,7 +7273,7 @@ var supportsInputFormatting = _dereq_('restricted-input/supports-input-formattin
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.65.0";
+var VERSION = "3.66.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -7644,7 +7656,7 @@ module.exports = {
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.65.0";
+var VERSION = "3.66.0";
 
 var constants = {
   VERSION: VERSION,
@@ -8108,7 +8120,7 @@ var vaultManager = _dereq_('./vault-manager');
 var venmo = _dereq_('./venmo');
 var visaCheckout = _dereq_('./visa-checkout');
 var preferredPaymentMethods = _dereq_('./preferred-payment-methods');
-var VERSION = "3.65.0";
+var VERSION = "3.66.0";
 
 module.exports = {
   /** @type {module:braintree-web/american-express} */
@@ -8264,7 +8276,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.65.0";
+var VERSION = "3.66.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -8632,7 +8644,7 @@ module.exports = function (obj) {
 },{}],135:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.65.0";
+var VERSION = "3.66.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -8780,7 +8792,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.65.0";
+var VERSION = "3.66.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -9558,7 +9570,7 @@ module.exports = enumerate([
 },{"../../enumerate":143}],158:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.65.0";
+var VERSION = "3.66.0";
 var assign = _dereq_('./assign').assign;
 
 function generateTokenizationParameters(configuration, overrides) {
@@ -9991,7 +10003,7 @@ module.exports = {
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var useMin = _dereq_('../../lib/use-min');
-var VERSION = "3.65.0";
+var VERSION = "3.66.0";
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
 var methods = _dereq_('../../lib/methods');
@@ -10418,7 +10430,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var LocalPayment = _dereq_('./external/local-payment');
-var VERSION = "3.65.0";
+var VERSION = "3.66.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -10608,7 +10620,7 @@ var Promise = _dereq_('../../lib/promise');
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var errors = _dereq_('../shared/errors');
-var VERSION = "3.65.0";
+var VERSION = "3.66.0";
 var methods = _dereq_('../../lib/methods');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var analytics = _dereq_('../../lib/analytics');
@@ -11005,7 +11017,7 @@ var browserDetection = _dereq_('./shared/browser-detection');
 var Masterpass = _dereq_('./external/masterpass');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
-var VERSION = "3.65.0";
+var VERSION = "3.66.0";
 var errors = _dereq_('./shared/errors');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -11211,7 +11223,7 @@ var methods = _dereq_('../../lib/methods');
 var Promise = _dereq_('../../lib/promise');
 var EventEmitter = _dereq_('@braintree/event-emitter');
 var BraintreeError = _dereq_('../../lib/braintree-error');
-var VERSION = "3.65.0";
+var VERSION = "3.66.0";
 var constants = _dereq_('../shared/constants');
 var events = constants.events;
 var errors = constants.errors;
@@ -11898,7 +11910,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.65.0";
+var VERSION = "3.66.0";
 
 /**
  * @static
@@ -12198,7 +12210,7 @@ module.exports = {
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var PayPalCheckout = _dereq_('./paypal-checkout');
-var VERSION = "3.65.0";
+var VERSION = "3.66.0";
 
 /**
  * @static
@@ -12278,7 +12290,7 @@ var methods = _dereq_('../lib/methods');
 var useMin = _dereq_('../lib/use-min');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
 var querystring = _dereq_('../lib/querystring');
-var VERSION = "3.65.0";
+var VERSION = "3.66.0";
 var INTEGRATION_TIMEOUT_MS = _dereq_('../lib/constants').INTEGRATION_TIMEOUT_MS;
 
 var REQUIRED_PARAMS_FOR_START_VAULT_INITIATED_CHECKOUT = [
@@ -12477,6 +12489,11 @@ var REQUIRED_PARAMS_FOR_START_VAULT_INITIATED_CHECKOUT = [
  */
 function PayPalCheckout(options) {
   this._merchantAccountId = options.merchantAccountId;
+  // TODO remove this requirement for it to be opt in.
+  // This feature is not yet GA, so we're intentionally making
+  // it opt in and not publicly documenting it yet. Once it's
+  // GA, we can remove the requirement to opt in to it
+  this._autoSetDataUserIdToken = Boolean(options.autoSetDataUserIdToken);
 }
 
 PayPalCheckout.prototype._initialize = function (options) {
@@ -12742,6 +12759,8 @@ PayPalCheckout.prototype._createPaymentResource = function (options, config) {
   var self = this;
   var endpoint = 'paypal_hermes/' + constants.FLOW_ENDPOINTS[options.flow];
 
+  delete this.intentFromCreatePayment;
+
   config = config || {};
 
   if (options.offerCredit === true) {
@@ -12753,6 +12772,10 @@ PayPalCheckout.prototype._createPaymentResource = function (options, config) {
       endpoint: endpoint,
       method: 'post',
       data: self._formatPaymentResourceData(options, config)
+    }).then(function (data) {
+      self.intentFromCreatePayment = options.intent;
+
+      return data;
     });
   }).catch(function (err) {
     var status;
@@ -13036,8 +13059,8 @@ PayPalCheckout.prototype.tokenizePayment = function (tokenizeOptions) {
   var shouldVault = true;
   var payload;
   var options = {
-    flow: tokenizeOptions.billingToken ? 'vault' : 'checkout',
-    intent: tokenizeOptions.intent
+    flow: tokenizeOptions.billingToken && !tokenizeOptions.paymentID ? 'vault' : 'checkout',
+    intent: tokenizeOptions.intent || this.intentFromCreatePayment
   };
   var params = {
     // The paymentToken provided by the PayPal JS SDK is the EC Token
@@ -13112,12 +13135,15 @@ PayPalCheckout.prototype.getClientId = function () {
 /**
  * Resolves when the PayPal SDK has been succesfully loaded onto the page.
  * @public
- * @param {object} [options] A configuration object to modify the query params on the PayPal SDK. A subset of the parameters are listed below. For a full list of query params, see the [PayPal docs](https://developer.paypal.com/docs/checkout/reference/customize-sdk/?mark=query#query-parameters).
+ * @param {object} [options] A configuration object to modify the query params and data-attributes on the PayPal SDK. A subset of the parameters are listed below. For a full list of query params, see the [PayPal docs](https://developer.paypal.com/docs/checkout/reference/customize-sdk/?mark=query#query-parameters).
  * @param {string} [options.client-id] By default, this will be the client id associated with the authorization used to create the Braintree component. When used in conjunction with passing `authorization` when creating the PayPal Checkotu componet, you can speed up the loading of the PayPal SDK.
  * @param {string} [options.intent="authorize"] By default, the PayPal SDK defaults to an intent of `capture`. Since the default intent when calling {@link PayPalCheckout#createPayment|`createPayment`} is `authorize`, the PayPal SDK will be loaded with `intent=authorize`. If you wish to use a different intent when calling {@link PayPalCheckout#createPayment|`createPayment`}, make sure it matches here. If `sale` is used, it will be converted to `capture` for the PayPal SDK. If the `vault: true` param is used, no default intent will be passed.
  * @param {string} [options.currency="USD"] If a currency is passed in {@link PayPalCheckout#createPayment|`createPayment`}, it must match the currency passed here.
  * @param {boolean} [options.vault] Must be `true` when using `flow: vault` in {@link PayPalCheckout#createPayment|`createPayment`}.
  * @param {string} [options.components=buttons] By default, the Braintree SDK will only load the PayPal smart buttons component. If you would like to load just the [messages component](https://developer.paypal.com/docs/business/checkout/add-capabilities/credit-messaging/), pass `messages`. If you would like to load both, pass `buttons,messages`
+ * @param {object} [options.dataAttributes] The data attributes to apply to the script. Any data attribute can be passed. A subset of the parameters are listed below. For a full list of data attributes, see the [PayPal docs](https://developer.paypal.com/docs/checkout/reference/customize-sdk/#script-parameters).
+ * @param {string} [options.dataAttributes.data-client-token] The client token to use in the script. (usually not needed)
+ * @param {string} [options.dataAttributes.csp-nonce] See the [PayPal docs about content security nonces](https://developer.paypal.com/docs/checkout/reference/customize-sdk/#csp-nonce).
  * @param {callback} [callback] Called when the PayPal SDK has been loaded onto the page. The second argument is the PayPal Checkout instance. If no callback is provided, the promise resolves with the PayPal Checkout instance when the PayPal SDK has been loaded onto the page.
  * @returns {(Promise|void)} Returns a promise if no callback is provided.
  * @example <caption>Without options</caption>
@@ -13146,6 +13172,13 @@ PayPalCheckout.prototype.loadPayPalSDK = function (options) {
 
   this._paypalScript = document.createElement('script');
 
+  // NEXT_MAJOR_VERSION
+  // this options object should have 2 properties:
+  // * queryParams
+  // * dataAttributes
+  // should make organizing this better than squashing
+  // all the query params at the top level and extracting
+  // the data attributes
   options = assign({}, {
     components: 'buttons'
   }, options);
@@ -13160,16 +13193,22 @@ PayPalCheckout.prototype.loadPayPalSDK = function (options) {
     loadPromise.resolve();
   };
 
+  if (this._autoSetDataUserIdToken && this._configuration.authorizationType === 'CLIENT_TOKEN') {
+    this._paypalScript.setAttribute('data-user-id-token', this._configuration.authorizationFingerprint.split('?')[0]);
+  }
+
+  if (options.dataAttributes) {
+    Object.keys(options.dataAttributes).forEach(function (attribute) {
+      this._paypalScript.setAttribute('data-' + attribute, options.dataAttributes[attribute]);
+    }.bind(this));
+
+    delete options.dataAttributes;
+  }
+
   if (options['client-id']) {
     idPromise = Promise.resolve(options['client-id']);
   } else {
-    idPromise = this.getClientId().then(function (id) {
-      if (this._configuration.gatewayConfiguration.environment !== 'production') {
-        return 'sb';
-      }
-
-      return id;
-    }.bind(this));
+    idPromise = this.getClientId();
   }
 
   idPromise.then(function (id) {
@@ -13259,16 +13298,17 @@ PayPalCheckout.prototype._formatTokenizeData = function (options, params) {
   var clientConfiguration = this._configuration;
   var gatewayConfiguration = clientConfiguration.gatewayConfiguration;
   var isTokenizationKey = clientConfiguration.authorizationType === 'TOKENIZATION_KEY';
+  var isVaultFlow = options.flow === 'vault';
   var data = {
     paypalAccount: {
       correlationId: params.billingToken || params.ecToken,
       options: {
-        validate: options.flow === 'vault' && !isTokenizationKey && options.vault
+        validate: isVaultFlow && !isTokenizationKey && options.vault
       }
     }
   };
 
-  if (params.billingToken) {
+  if (isVaultFlow) {
     data.paypalAccount.billingAgreementToken = params.billingToken;
   } else {
     data.paypalAccount.paymentToken = params.paymentId;
@@ -13352,7 +13392,7 @@ var BraintreeError = _dereq_('../../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../../lib/convert-to-braintree-error');
 var useMin = _dereq_('../../lib/use-min');
 var once = _dereq_('../../lib/once');
-var VERSION = "3.65.0";
+var VERSION = "3.66.0";
 var constants = _dereq_('../shared/constants');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
@@ -13957,7 +13997,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var errors = _dereq_('./shared/errors');
 var PayPal = _dereq_('./external/paypal');
-var VERSION = "3.65.0";
+var VERSION = "3.66.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var Promise = _dereq_('../lib/promise');
 
@@ -14160,7 +14200,7 @@ module.exports = {
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var PreferredPaymentMethods = _dereq_('./preferred-payment-methods');
-var VERSION = "3.65.0";
+var VERSION = "3.66.0";
 
 /**
  * @static
@@ -14325,7 +14365,7 @@ var uuid = _dereq_('@braintree/uuid');
 var events = _dereq_('../../shared/events');
 var useMin = _dereq_('../../../lib/use-min');
 
-var VERSION = "3.65.0";
+var VERSION = "3.66.0";
 var IFRAME_HEIGHT = 400;
 var IFRAME_WIDTH = 400;
 
@@ -15007,8 +15047,19 @@ var ExtendedPromise = _dereq_('@braintree/extended-promise');
 
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var PLATFORM = _dereq_('../../../lib/constants').PLATFORM;
-var VERSION = "3.65.0";
+var VERSION = "3.66.0";
 var CUSTOMER_CANCELED_SONGBIRD_MODAL = '01';
+var SONGBIRD_UI_EVENTS = [
+  'ui.close',
+  'ui.render',
+
+  // TODO these events are not documented in the
+  // client reference because so far we have
+  // not been able to trigger them in our testing
+  'ui.renderHidden',
+  'ui.loading.close',
+  'ui.loading.render'
+];
 
 function SongbirdFramework(options) {
   BaseFramework.call(this, options);
@@ -15029,7 +15080,12 @@ SongbirdFramework.prototype = Object.create(BaseFramework.prototype, {
 
 SongbirdFramework.events = enumerate([
   'LOOKUP_COMPLETE',
-  'CUSTOMER_CANCELED'
+  'CUSTOMER_CANCELED',
+  'UI.CLOSE',
+  'UI.RENDER',
+  'UI.RENDERHIDDEN',
+  'UI.LOADING.CLOSE',
+  'UI.LOADING.RENDER'
 ], 'songbird-framework:');
 
 SongbirdFramework.prototype.setUpEventListeners = function (reply) {
@@ -15038,6 +15094,21 @@ SongbirdFramework.prototype.setUpEventListeners = function (reply) {
   });
   this.on(SongbirdFramework.events.CUSTOMER_CANCELED, function () {
     reply('customer-canceled');
+  });
+  this.on(SongbirdFramework.events['UI.CLOSE'], function () {
+    reply('authentication-modal-close');
+  });
+  this.on(SongbirdFramework.events['UI.RENDER'], function () {
+    reply('authentication-modal-render');
+  });
+  this.on(SongbirdFramework.events['UI.RENDERHIDDEN'], function () {
+    reply('authentication-modal-render-hidden');
+  });
+  this.on(SongbirdFramework.events['UI.LOADING.CLOSE'], function () {
+    reply('authentication-modal-loader-close');
+  });
+  this.on(SongbirdFramework.events['UI.LOADING.RENDER'], function () {
+    reply('authentication-modal-loader-render');
   });
 };
 
@@ -15239,6 +15310,11 @@ SongbirdFramework.prototype._configureCardinalSdk = function (config) {
     var setupStartTime = config.setupStartTime;
     var cardinalConfiguration = self._createCardinalConfigurationOptions(setupOptions);
 
+    SONGBIRD_UI_EVENTS.forEach(function (eventName) {
+      self.setCardinalListener(eventName, function () {
+        self._emit(SongbirdFramework.events[eventName.toUpperCase()]);
+      });
+    });
     self.setCardinalListener('payments.setupComplete', self._createPaymentsSetupCompleteCallback());
 
     self._setupFrameworkSpecificListeners();
@@ -15522,6 +15598,7 @@ SongbirdFramework.prototype._onLookupComplete = function (lookupResponse, option
 
       self._verifyCardPromisePlus.catch(reject);
 
+      // If both event and callback are mistakenly used together,
       // prefer the callback when it is passed into the verifyCard options
       if (options.onLookupComplete) {
         options.onLookupComplete(response, next);
@@ -15844,7 +15921,12 @@ var FRAMEWORKS = _dereq_('./frameworks');
  * @function
  * @param {string} event The name of the event to which you are subscribing.
  * @param {function} handler A callback to handle the event.
- * @description Subscribes a handler function to a named event.
+ * @description Subscribes a handler function to a named event. The following events are available:
+ *   * {@link ThreeDSecure#event:lookup-complete|lookup-complete}
+ *   * {@link ThreeDSecure#event:customer-canceled|customer-canceled}
+ *   * {@link ThreeDSecure#event:authentication-iframe-available|authentication-iframe-available}
+ *   * {@link ThreeDSecure#event:authentication-modal-render|authentication-modal-render}
+ *   * {@link ThreeDSecure#event:authentication-modal-close|authentication-modal-close}
  * @example
  * <caption>Listening to a 3D Secure event</caption>
  * braintree.threeDSecure.create({ ... }, function (createErr, threeDSecureInstance) {
@@ -15890,7 +15972,6 @@ var FRAMEWORKS = _dereq_('./frameworks');
 /**
  * This event is emitted when the `2-inline-iframe` version is specified when creating the 3D Secure instance and the authentication iframe becomes available.
  * @event ThreeDSecure#authentication-iframe-available
- * @type {object}
  * @example
  * <caption>Listening for the authentication iframe to be available</caption>
  *   threeDSecureInstance.on('authentication-iframe-available', function (event, next) {
@@ -15904,18 +15985,60 @@ var FRAMEWORKS = _dereq_('./frameworks');
 /**
  * This event is emitted when using the 3D Secure 2.0 flow and the initial lookup request completes. If this is not used, a `onLookupComplete` callback must be passed into the `verifyCard` method.
  * @event ThreeDSecure#lookup-complete
- * @type {object}
  * @example
  * <caption>Listening for when the lookup request is complete</caption>
  * braintree.threeDSecure.create({
  *   client: clientInstance,
- *   version: '2-inline-iframe'
+ *   version: '2'
  * }, function (createErr, threeDSecureInstance) {
  *   threeDSecureInstance.on('lookup-complete', function (data, next) {
  *     // inspect the data
  *
  *     // call next when ready to proceed with the challenge
  *     next();
+ *   });
+ * });
+ */
+
+/**
+ * This event is emitted when using the 3D Secure 2.0 flow and the customer cancels the 3D Secure challenge.
+ * @event ThreeDSecure#customer-canceled
+ * @example
+ * <caption>Listening for when the customer cancels the 3D Secure challenge</caption>
+ * braintree.threeDSecure.create({
+ *   client: clientInstance,
+ *   version: '2'
+ * }, function (createErr, threeDSecureInstance) {
+ *   threeDSecureInstance.on('customer-canceled', function () {
+ *     // the customer canceled the 3D Secure challenge
+ *   });
+ * });
+ */
+
+/**
+ * This event is emitted when using the 3D Secure 2.0 flow and the authentication modal closes, either because the authentication was completed or because the customer canceled the process.
+ * @event ThreeDSecure#authentication-modal-close
+ * @example
+ * braintree.threeDSecure.create({
+ *   client: clientInstance,
+ *   version: '2'
+ * }, function (createErr, threeDSecureInstance) {
+ *   threeDSecureInstance.on('authentication-modal-close', function () {
+ *     // the modal was closed
+ *   });
+ * });
+ */
+
+/**
+ * This event is emitted when using the 3D Secure 2.0 flow and the authentication modal is rendered.
+ * @event ThreeDSecure#authentication-modal-render
+ * @example
+ * braintree.threeDSecure.create({
+ *   client: clientInstance,
+ *   version: '2'
+ * }, function (createErr, threeDSecureInstance) {
+ *   threeDSecureInstance.on('authentication-modal-render', function () {
+ *     // the modal was rendered, presenting the authentication form to the customer
  *   });
  * });
  */
@@ -16345,7 +16468,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.65.0";
+var VERSION = "3.66.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -16757,7 +16880,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.65.0";
+var VERSION = "3.66.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -16949,7 +17072,7 @@ var errors = _dereq_('./errors');
 var events = constants.events;
 var iFramer = _dereq_('@braintree/iframer');
 var methods = _dereq_('../../lib/methods');
-var VERSION = "3.65.0";
+var VERSION = "3.66.0";
 var uuid = _dereq_('@braintree/uuid');
 var Promise = _dereq_('../../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -17422,7 +17545,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var errors = _dereq_('./errors');
 var USBankAccount = _dereq_('./us-bank-account');
-var VERSION = "3.65.0";
+var VERSION = "3.66.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -17986,7 +18109,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var VaultManager = _dereq_('./vault-manager');
-var VERSION = "3.65.0";
+var VERSION = "3.66.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -18228,7 +18351,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var Venmo = _dereq_('./venmo');
 var Promise = _dereq_('../lib/promise');
 var supportsVenmo = _dereq_('./shared/supports-venmo');
-var VERSION = "3.65.0";
+var VERSION = "3.66.0";
 
 /**
  * @static
@@ -18449,7 +18572,6 @@ module.exports = {
 };
 
 },{"./browser-detection":216}],220:[function(_dereq_,module,exports){
-(function (global){
 'use strict';
 
 var analytics = _dereq_('../lib/analytics');
@@ -18672,7 +18794,7 @@ Venmo.prototype.tokenize = function (options) {
         analytics.sendEvent(self._createPromise, 'venmo.appswitch.start.ios-webview');
         // Deep link URLs do not launch iOS apps from a webview when using window.open or PopupBridge.open.
         window.location.href = url;
-      } else if (global.popupBridge && typeof global.popupBridge.open === 'function') {
+      } else if (window.popupBridge && typeof window.popupBridge.open === 'function') {
         analytics.sendEvent(self._createPromise, 'venmo.appswitch.start.popup-bridge');
         window.popupBridge.open(url);
       } else {
@@ -18817,7 +18939,6 @@ function isIosWebview() {
 
 module.exports = wrapPromise.wrapPrototype(Venmo);
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"../lib/analytics":125,"../lib/braintree-error":130,"../lib/convert-methods-to-error":136,"../lib/methods":163,"../lib/promise":165,"../lib/querystring":166,"./shared/constants":217,"./shared/errors":218,"./shared/supports-venmo":219,"@braintree/extended-promise":38,"@braintree/wrap-promise":47}],221:[function(_dereq_,module,exports){
 'use strict';
 
@@ -18880,7 +19001,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var VisaCheckout = _dereq_('./visa-checkout');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./errors');
-var VERSION = "3.65.0";
+var VERSION = "3.66.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 

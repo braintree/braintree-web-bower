@@ -751,7 +751,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.65.0";
+var VERSION = "3.66.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -881,7 +881,7 @@ module.exports = BraintreeError;
 },{"./enumerate":35}],30:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.65.0";
+var VERSION = "3.66.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1007,7 +1007,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.65.0";
+var VERSION = "3.66.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1291,7 +1291,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var Venmo = _dereq_('./venmo');
 var Promise = _dereq_('../lib/promise');
 var supportsVenmo = _dereq_('./shared/supports-venmo');
-var VERSION = "3.65.0";
+var VERSION = "3.66.0";
 
 /**
  * @static
@@ -1512,7 +1512,6 @@ module.exports = {
 };
 
 },{"./browser-detection":43}],47:[function(_dereq_,module,exports){
-(function (global){
 'use strict';
 
 var analytics = _dereq_('../lib/analytics');
@@ -1735,7 +1734,7 @@ Venmo.prototype.tokenize = function (options) {
         analytics.sendEvent(self._createPromise, 'venmo.appswitch.start.ios-webview');
         // Deep link URLs do not launch iOS apps from a webview when using window.open or PopupBridge.open.
         window.location.href = url;
-      } else if (global.popupBridge && typeof global.popupBridge.open === 'function') {
+      } else if (window.popupBridge && typeof window.popupBridge.open === 'function') {
         analytics.sendEvent(self._createPromise, 'venmo.appswitch.start.popup-bridge');
         window.popupBridge.open(url);
       } else {
@@ -1880,6 +1879,5 @@ function isIosWebview() {
 
 module.exports = wrapPromise.wrapPrototype(Venmo);
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"../lib/analytics":26,"../lib/braintree-error":29,"../lib/convert-methods-to-error":31,"../lib/methods":38,"../lib/promise":39,"../lib/querystring":40,"./shared/constants":44,"./shared/errors":45,"./shared/supports-venmo":46,"@braintree/extended-promise":19,"@braintree/wrap-promise":23}]},{},[42])(42)
 });
