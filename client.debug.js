@@ -1018,6 +1018,8 @@ function formatRequestError(status, err) { // eslint-disable-line consistent-ret
 
   if (status === -1) {
     requestError = new BraintreeError(errors.CLIENT_REQUEST_TIMEOUT);
+  } else if (status === 401) {
+    requestError = new BraintreeError(errors.CLIENT_AUTHORIZATION_INVALID);
   } else if (status === 403) {
     requestError = new BraintreeError(errors.CLIENT_AUTHORIZATION_INSUFFICIENT);
   } else if (status === 429) {
@@ -1129,6 +1131,7 @@ module.exports = {
  * @property {NETWORK} CLIENT_GRAPHQL_REQUEST_ERROR The response from a request to GraphQL contained an error.
  * @property {MERCHANT} CLIENT_RATE_LIMITED The response from a request had a status of 429, indicating rate limiting.
  * @property {MERCHANT} CLIENT_AUTHORIZATION_INSUFFICIENT The user assocaited with the client token or tokenization key does not have permissions to make the request.
+ * @property {MERCHANT} CLIENT_AUTHORIZATION_INVALID The provided authorization could not be found. Either the client token has expired and a new client token must be generated or the tokenization key used is set to be inactive or has been deleted.
  */
 
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -1185,6 +1188,11 @@ module.exports = {
     type: BraintreeError.types.MERCHANT,
     code: 'CLIENT_AUTHORIZATION_INSUFFICIENT',
     message: 'The authorization used has insufficient privileges.'
+  },
+  CLIENT_AUTHORIZATION_INVALID: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'CLIENT_AUTHORIZATION_INVALID',
+    message: 'Either the client token has expired and a new one should be generated or the tokenization key has been deactivated or deleted.'
   }
 };
 
@@ -1271,6 +1279,8 @@ function getConfiguration(authData) {
       if (err) {
         if (status === 403) {
           errorTemplate = errors.CLIENT_AUTHORIZATION_INSUFFICIENT;
+        } else if (status === 401) {
+          errorTemplate = errors.CLIENT_AUTHORIZATION_INVALID;
         } else {
           errorTemplate = errors.CLIENT_GATEWAY_NETWORK;
         }
@@ -1308,7 +1318,7 @@ module.exports = {
 
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Client = _dereq_('./client');
-var VERSION = "3.66.0";
+var VERSION = "3.67.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -1328,7 +1338,17 @@ var sharedErrors = _dereq_('../lib/errors');
  * createClient({
  *   authorization: CLIENT_AUTHORIZATION
  * }, function (createErr, clientInstance) {
- *   // ...
+ *   if (createErr) {
+ *     if (createErr.code === 'CLIENT_AUTHORIZATION_INVALID') {
+ *       // either the client token has expired, and a new one should be generated
+ *       // or the tokenization key was deactivated or deleted
+ *     } else {
+ *       console.log('something went wrong creating the client instance', createErr);
+ *     }
+ *     return;
+ *   }
+ *
+ *  // set up other components
  * });
  * @static
  */
@@ -2743,7 +2763,7 @@ module.exports = BraintreeError;
 },{"./enumerate":48}],43:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.66.0";
+var VERSION = "3.67.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {

@@ -11,7 +11,7 @@ var PromiseGlobal =
 typeof Promise !== "undefined" ? Promise : promise_polyfill_1.default;
 exports.PromiseGlobal = PromiseGlobal;
 
-},{"promise-polyfill":24}],2:[function(_dereq_,module,exports){
+},{"promise-polyfill":26}],2:[function(_dereq_,module,exports){
 "use strict";
 var promise_1 = _dereq_("./lib/promise");
 var scriptPromiseCache = {};
@@ -77,7 +77,7 @@ module.exports = function isChrome(ua) {
         !isSamsung(ua));
 };
 
-},{"./is-edge":6,"./is-samsung":12}],6:[function(_dereq_,module,exports){
+},{"./is-edge":6,"./is-samsung":13}],6:[function(_dereq_,module,exports){
 "use strict";
 module.exports = function isEdge(ua) {
     ua = ua || window.navigator.userAgent;
@@ -110,14 +110,32 @@ module.exports = function isIosSafari(ua) {
     return isIos(ua) && isWebkit(ua) && ua.indexOf("CriOS") === -1;
 };
 
-},{"./is-ios":10}],10:[function(_dereq_,module,exports){
+},{"./is-ios":11}],10:[function(_dereq_,module,exports){
+"use strict";
+var isIos = _dereq_("./is-ios");
+// The Google Search iOS app is technically a webview and doesn't support popups.
+function isGoogleSearchApp(ua) {
+    return /\bGSA\b/.test(ua);
+}
+module.exports = function isIosWebview(ua) {
+    ua = ua || window.navigator.userAgent;
+    if (isIos(ua)) {
+        if (isGoogleSearchApp(ua)) {
+            return true;
+        }
+        return /.+AppleWebKit(?!.*Safari)/.test(ua);
+    }
+    return false;
+};
+
+},{"./is-ios":11}],11:[function(_dereq_,module,exports){
 "use strict";
 module.exports = function isIos(ua) {
     ua = ua || window.navigator.userAgent;
     return /iPhone|iPod|iPad/i.test(ua);
 };
 
-},{}],11:[function(_dereq_,module,exports){
+},{}],12:[function(_dereq_,module,exports){
 "use strict";
 var isIosFirefox = _dereq_("./is-ios-firefox");
 var isFirefox = _dereq_("./is-firefox");
@@ -127,32 +145,35 @@ module.exports = function isMobileFirefox(ua) {
         (/iPhone|iPod|iPad|Mobile|Tablet/i.test(ua) && isFirefox(ua)));
 };
 
-},{"./is-firefox":7,"./is-ios-firefox":8}],12:[function(_dereq_,module,exports){
+},{"./is-firefox":7,"./is-ios-firefox":8}],13:[function(_dereq_,module,exports){
 "use strict";
 module.exports = function isSamsungBrowser(ua) {
     ua = ua || window.navigator.userAgent;
     return /SamsungBrowser/i.test(ua);
 };
 
-},{}],13:[function(_dereq_,module,exports){
+},{}],14:[function(_dereq_,module,exports){
 module.exports = _dereq_("./dist/is-android");
 
-},{"./dist/is-android":4}],14:[function(_dereq_,module,exports){
+},{"./dist/is-android":4}],15:[function(_dereq_,module,exports){
 module.exports = _dereq_("./dist/is-chrome");
 
-},{"./dist/is-chrome":5}],15:[function(_dereq_,module,exports){
+},{"./dist/is-chrome":5}],16:[function(_dereq_,module,exports){
 module.exports = _dereq_("./dist/is-ios-safari");
 
-},{"./dist/is-ios-safari":9}],16:[function(_dereq_,module,exports){
+},{"./dist/is-ios-safari":9}],17:[function(_dereq_,module,exports){
+module.exports = _dereq_("./dist/is-ios-webview");
+
+},{"./dist/is-ios-webview":10}],18:[function(_dereq_,module,exports){
 module.exports = _dereq_("./dist/is-ios");
 
-},{"./dist/is-ios":10}],17:[function(_dereq_,module,exports){
+},{"./dist/is-ios":11}],19:[function(_dereq_,module,exports){
 module.exports = _dereq_("./dist/is-mobile-firefox");
 
-},{"./dist/is-mobile-firefox":11}],18:[function(_dereq_,module,exports){
+},{"./dist/is-mobile-firefox":12}],20:[function(_dereq_,module,exports){
 module.exports = _dereq_("./dist/is-samsung");
 
-},{"./dist/is-samsung":12}],19:[function(_dereq_,module,exports){
+},{"./dist/is-samsung":13}],21:[function(_dereq_,module,exports){
 "use strict";
 var GlobalPromise = (typeof Promise !== "undefined"
     ? Promise // eslint-disable-line no-undef
@@ -286,7 +307,7 @@ var ExtendedPromise = /** @class */ (function () {
 }());
 module.exports = ExtendedPromise;
 
-},{}],20:[function(_dereq_,module,exports){
+},{}],22:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 function deferred(fn) {
@@ -310,7 +331,7 @@ function deferred(fn) {
 }
 exports.deferred = deferred;
 
-},{}],21:[function(_dereq_,module,exports){
+},{}],23:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 function once(fn) {
@@ -328,7 +349,7 @@ function once(fn) {
 }
 exports.once = once;
 
-},{}],22:[function(_dereq_,module,exports){
+},{}],24:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 /* eslint-disable consistent-return */
@@ -340,7 +361,7 @@ function promiseOrCallback(promise, callback) {
 }
 exports.promiseOrCallback = promiseOrCallback;
 
-},{}],23:[function(_dereq_,module,exports){
+},{}],25:[function(_dereq_,module,exports){
 "use strict";
 var deferred_1 = _dereq_("./lib/deferred");
 var once_1 = _dereq_("./lib/once");
@@ -390,7 +411,7 @@ wrapPromise.wrapPrototype = function (target, options) {
 };
 module.exports = wrapPromise;
 
-},{"./lib/deferred":20,"./lib/once":21,"./lib/promise-or-callback":22}],24:[function(_dereq_,module,exports){
+},{"./lib/deferred":22,"./lib/once":23,"./lib/promise-or-callback":24}],26:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -666,7 +687,7 @@ Promise._unhandledRejectionFn = function _unhandledRejectionFn(err) {
 
 module.exports = Promise;
 
-},{}],25:[function(_dereq_,module,exports){
+},{}],27:[function(_dereq_,module,exports){
 'use strict';
 
 var createAuthorizationData = _dereq_('./create-authorization-data');
@@ -700,7 +721,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":30,"./create-authorization-data":33,"./json-clone":37}],26:[function(_dereq_,module,exports){
+},{"./constants":32,"./create-authorization-data":35,"./json-clone":39}],28:[function(_dereq_,module,exports){
 'use strict';
 
 var Promise = _dereq_('./promise');
@@ -736,7 +757,7 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":25,"./constants":30,"./promise":39}],27:[function(_dereq_,module,exports){
+},{"./add-metadata":27,"./constants":32,"./promise":41}],29:[function(_dereq_,module,exports){
 'use strict';
 
 var loadScript = _dereq_('@braintree/asset-loader/load-script');
@@ -745,13 +766,13 @@ module.exports = {
   loadScript: loadScript
 };
 
-},{"@braintree/asset-loader/load-script":3}],28:[function(_dereq_,module,exports){
+},{"@braintree/asset-loader/load-script":3}],30:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.66.0";
+var VERSION = "3.67.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -793,7 +814,7 @@ module.exports = {
   verify: basicComponentVerification
 };
 
-},{"./braintree-error":29,"./errors":36,"./promise":39}],29:[function(_dereq_,module,exports){
+},{"./braintree-error":31,"./errors":38,"./promise":41}],31:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -878,10 +899,10 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":35}],30:[function(_dereq_,module,exports){
+},{"./enumerate":37}],32:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.66.0";
+var VERSION = "3.67.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -918,7 +939,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],31:[function(_dereq_,module,exports){
+},{}],33:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -936,7 +957,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"./braintree-error":29,"./errors":36}],32:[function(_dereq_,module,exports){
+},{"./braintree-error":31,"./errors":38}],34:[function(_dereq_,module,exports){
 'use strict';
 
 // endRemoveIf(production)
@@ -953,7 +974,7 @@ module.exports = {
   create: createAssetsUrl
 };
 
-},{"./constants":30}],33:[function(_dereq_,module,exports){
+},{"./constants":32}],35:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/vendor/polyfill').atob;
@@ -999,7 +1020,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/constants":30,"../lib/vendor/polyfill":41}],34:[function(_dereq_,module,exports){
+},{"../lib/constants":32,"../lib/vendor/polyfill":43}],36:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -1007,7 +1028,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.66.0";
+var VERSION = "3.67.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1051,7 +1072,7 @@ module.exports = {
   create: createDeferredClient
 };
 
-},{"./assets":27,"./braintree-error":29,"./errors":36,"./promise":39}],35:[function(_dereq_,module,exports){
+},{"./assets":29,"./braintree-error":31,"./errors":38,"./promise":41}],37:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -1066,7 +1087,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],36:[function(_dereq_,module,exports){
+},{}],38:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -1116,14 +1137,14 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":29}],37:[function(_dereq_,module,exports){
+},{"./braintree-error":31}],39:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],38:[function(_dereq_,module,exports){
+},{}],40:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -1132,7 +1153,7 @@ module.exports = function (obj) {
   });
 };
 
-},{}],39:[function(_dereq_,module,exports){
+},{}],41:[function(_dereq_,module,exports){
 'use strict';
 
 var PromisePolyfill = _dereq_('promise-polyfill');
@@ -1146,7 +1167,7 @@ ExtendedPromise.setPromise(PromiseGlobal);
 
 module.exports = PromiseGlobal;
 
-},{"@braintree/extended-promise":19,"promise-polyfill":24}],40:[function(_dereq_,module,exports){
+},{"@braintree/extended-promise":21,"promise-polyfill":26}],42:[function(_dereq_,module,exports){
 'use strict';
 
 function _notEmpty(obj) {
@@ -1238,7 +1259,7 @@ module.exports = {
   queryify: queryify
 };
 
-},{}],41:[function(_dereq_,module,exports){
+},{}],43:[function(_dereq_,module,exports){
 'use strict';
 
 var atobNormalized = typeof atob === 'function' ? window.atob : atobPolyfill;
@@ -1277,7 +1298,7 @@ module.exports = {
   _atob: atobPolyfill
 };
 
-},{}],42:[function(_dereq_,module,exports){
+},{}],44:[function(_dereq_,module,exports){
 'use strict';
 /** @module braintree-web/venmo */
 
@@ -1291,7 +1312,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var Venmo = _dereq_('./venmo');
 var Promise = _dereq_('../lib/promise');
 var supportsVenmo = _dereq_('./shared/supports-venmo');
-var VERSION = "3.66.0";
+var VERSION = "3.67.0";
 
 /**
  * @static
@@ -1300,6 +1321,7 @@ var VERSION = "3.66.0";
  * @param {Client} [options.client] A {@link Client} instance.
  * @param {string} [options.authorization] A tokenizationKey or clientToken. Can be used in place of `options.client`.
  * @param {boolean} [options.allowNewBrowserTab=true] This should be set to false if your payment flow requires returning to the same tab, e.g. single page applications. Doing so causes {@link Venmo#isBrowserSupported|isBrowserSupported} to return true only for mobile web browsers that support returning from the Venmo app to the same tab.
+ * @param {boolean} [options.allowWebviews=true] This should be set to false if your payment flow does not occur from within a webview that you control. Doing so causes {@link Venmo#isBrowserSupported|isBrowserSupported} to return true only for mobile web browsers that are not webviews.
  * @param {boolean} [options.ignoreHistoryChanges=false] When the Venmo app returns to the website, it will modify the hash of the url to include data about the tokenization. By default, the SDK will put the state of the hash back to where it was before the change was made. Pass `true` to handle the hash change instead of the SDK.
  * @param {string} [options.profileId] The Venmo profile ID to be used during payment authorization. Customers will see the business name and logo associated with this Venmo profile, and it will show up in the Venmo app as a "Connected Merchant". Venmo profile IDs can be found in the Braintree Control Panel. Omitting this value will use the default Venmo profile.
  * @param {string} [options.deepLinkReturnUrl] An override for the URL that the Venmo iOS app opens to return from an app switch.
@@ -1370,6 +1392,7 @@ function create(options) {
  * @function isBrowserSupported
  * @param {object} [options] browser support options:
  * @param {boolean} [options.allowNewBrowserTab=true] This should be set to false if your payment flow requires returning to the same tab, e.g. single page applications.
+ * @param {boolean} [options.allowWebviews=true] This should be set to false if your payment flow does not occur from within a webview that you control.
  * @example
  * if (braintree.venmo.isBrowserSupported()) {
  *   // set up Venmo
@@ -1377,6 +1400,12 @@ function create(options) {
  * @example <caption>Explicitly require browser support returning to the same tab</caption>
  * if (braintree.venmo.isBrowserSupported({
  *   allowNewBrowserTab: false
+ * })) {
+ *   // set up Venmo
+ * }
+ * @example <caption>Explicitly set webviews as disallowed browsers</caption>
+ * if (braintree.venmo.isBrowserSupported({
+ *   allowWebviews: false
  * })) {
  *   // set up Venmo
  * }
@@ -1396,7 +1425,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/analytics":26,"../lib/basic-component-verification":28,"../lib/braintree-error":29,"../lib/create-assets-url":32,"../lib/create-deferred-client":34,"../lib/promise":39,"./shared/errors":45,"./shared/supports-venmo":46,"./venmo":47,"@braintree/wrap-promise":23}],43:[function(_dereq_,module,exports){
+},{"../lib/analytics":28,"../lib/basic-component-verification":30,"../lib/braintree-error":31,"../lib/create-assets-url":34,"../lib/create-deferred-client":36,"../lib/promise":41,"./shared/errors":47,"./shared/supports-venmo":48,"./venmo":49,"@braintree/wrap-promise":25}],45:[function(_dereq_,module,exports){
 'use strict';
 
 var isAndroid = _dereq_('@braintree/browser-detection/is-android');
@@ -1405,17 +1434,24 @@ var isIos = _dereq_('@braintree/browser-detection/is-ios');
 var isIosSafari = _dereq_('@braintree/browser-detection/is-ios-safari');
 var isSamsungBrowser = _dereq_('@braintree/browser-detection/is-samsung');
 var isMobileFirefox = _dereq_('@braintree/browser-detection/is-mobile-firefox');
+var isIosWebview = _dereq_('@braintree/browser-detection/is-ios-webview');
+
+function isAndroidWebview() {
+  return isAndroid() && window.navigator.userAgent.toLowerCase().indexOf('wv') > -1;
+}
 
 module.exports = {
   isAndroid: isAndroid,
+  isAndroidWebview: isAndroidWebview,
   isChrome: isChrome,
   isIos: isIos,
   isIosSafari: isIosSafari,
+  isIosWebview: isIosWebview,
   isSamsungBrowser: isSamsungBrowser,
   isMobileFirefox: isMobileFirefox
 };
 
-},{"@braintree/browser-detection/is-android":13,"@braintree/browser-detection/is-chrome":14,"@braintree/browser-detection/is-ios":16,"@braintree/browser-detection/is-ios-safari":15,"@braintree/browser-detection/is-mobile-firefox":17,"@braintree/browser-detection/is-samsung":18}],44:[function(_dereq_,module,exports){
+},{"@braintree/browser-detection/is-android":14,"@braintree/browser-detection/is-chrome":15,"@braintree/browser-detection/is-ios":18,"@braintree/browser-detection/is-ios-safari":16,"@braintree/browser-detection/is-ios-webview":17,"@braintree/browser-detection/is-mobile-firefox":19,"@braintree/browser-detection/is-samsung":20}],46:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -1424,7 +1460,7 @@ module.exports = {
   VENMO_OPEN_URL: 'https://venmo.com/braintree/checkout'
 };
 
-},{}],45:[function(_dereq_,module,exports){
+},{}],47:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -1483,35 +1519,45 @@ module.exports = {
   }
 };
 
-},{"../../lib/braintree-error":29}],46:[function(_dereq_,module,exports){
+},{"../../lib/braintree-error":31}],48:[function(_dereq_,module,exports){
 'use strict';
 
 var browserDetection = _dereq_('./browser-detection');
 
-// NEXT_MAJOR_VERSION webviews are not supported, except for the case where
-// the merchant themselves is presenting venmo in a webview on iOS and
-// using the deep link url to get back to their app. For the next major
-// version, we'll need to make that behavior opt in so that this is
-// browser supported logic will reflect the case that webviews are not
-// supported.
 function isBrowserSupported(options) {
-  var isAndroidChrome = browserDetection.isAndroid() && browserDetection.isChrome();
+  var allowNewBrowserTab, allowWebviews;
+  var isAndroid = browserDetection.isAndroid();
+  var isAndroidChrome = isAndroid && browserDetection.isChrome();
   var isIosChrome = browserDetection.isIos() && browserDetection.isChrome();
   var supportsReturnToSameTab = browserDetection.isIosSafari() || isAndroidChrome;
   var supportsReturnToNewTab = isIosChrome || browserDetection.isSamsungBrowser() || browserDetection.isMobileFirefox();
 
-  options = options || {
-    allowNewBrowserTab: true
-  };
+  options = options || {};
+  allowNewBrowserTab = options.hasOwnProperty('allowNewBrowserTab') ? options.allowNewBrowserTab : true;
+  // NEXT_MAJOR_VERSION webviews are not supported, except for the case where
+  // the merchant themselves is presenting venmo in a webview using the deep
+  // link url to get back to their app. For the next major version, we should
+  // just not have this option and instead require the merchant to determine
+  // if the venmo button should be displayed when presenting it in the
+  // merchant's app via a webview.
+  allowWebviews = options.hasOwnProperty('allowWebviews') ? options.allowWebviews : true;
 
-  return supportsReturnToSameTab || (options.allowNewBrowserTab && supportsReturnToNewTab);
+  if (!allowWebviews && (browserDetection.isAndroidWebview() || browserDetection.isIosWebview())) {
+    return false;
+  }
+
+  if (!allowNewBrowserTab) {
+    return supportsReturnToSameTab;
+  }
+
+  return supportsReturnToSameTab || supportsReturnToNewTab;
 }
 
 module.exports = {
   isBrowserSupported: isBrowserSupported
 };
 
-},{"./browser-detection":43}],47:[function(_dereq_,module,exports){
+},{"./browser-detection":45}],49:[function(_dereq_,module,exports){
 'use strict';
 
 var analytics = _dereq_('../lib/analytics');
@@ -1544,6 +1590,7 @@ var ExtendedPromise = _dereq_('@braintree/extended-promise');
 function Venmo(options) {
   this._createPromise = options.createPromise;
   this._allowNewBrowserTab = options.allowNewBrowserTab !== false;
+  this._allowWebviews = options.allowWebviews !== false;
   this._profileId = options.profileId;
   this._deepLinkReturnUrl = options.deepLinkReturnUrl;
   this._ignoreHistoryChanges = options.ignoreHistoryChanges;
@@ -1590,12 +1637,14 @@ Venmo.prototype.getUrl = function () {
  * Returns a boolean indicating whether the current browser supports Venmo as a payment method.
  *
  * If `options.allowNewBrowserTab` is false when calling {@link module:braintree-web/venmo.create|venmo.create}, this method will return true only for browsers known to support returning from the Venmo app to the same browser tab. Currently, this is limited to iOS Safari and Android Chrome.
+ * If `options.allowWebviews` is false when calling {@link module:braintree-web/venmo.create|venmo.create}, this method will return true only for mobile browsers that are not webviews.
  * @public
  * @returns {boolean} True if the current browser is supported, false if not.
  */
 Venmo.prototype.isBrowserSupported = function () {
   return isBrowserSupported.isBrowserSupported({
-    allowNewBrowserTab: this._allowNewBrowserTab
+    allowNewBrowserTab: this._allowNewBrowserTab,
+    allowWebviews: this._allowWebviews
   });
 };
 
@@ -1879,5 +1928,5 @@ function isIosWebview() {
 
 module.exports = wrapPromise.wrapPrototype(Venmo);
 
-},{"../lib/analytics":26,"../lib/braintree-error":29,"../lib/convert-methods-to-error":31,"../lib/methods":38,"../lib/promise":39,"../lib/querystring":40,"./shared/constants":44,"./shared/errors":45,"./shared/supports-venmo":46,"@braintree/extended-promise":19,"@braintree/wrap-promise":23}]},{},[42])(42)
+},{"../lib/analytics":28,"../lib/braintree-error":31,"../lib/convert-methods-to-error":33,"../lib/methods":40,"../lib/promise":41,"../lib/querystring":42,"./shared/constants":46,"./shared/errors":47,"./shared/supports-venmo":48,"@braintree/extended-promise":21,"@braintree/wrap-promise":25}]},{},[44])(44)
 });
