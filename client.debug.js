@@ -1318,7 +1318,7 @@ module.exports = {
 
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Client = _dereq_('./client');
-var VERSION = "3.67.0";
+var VERSION = "3.68.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -1596,7 +1596,8 @@ var cardTypeTransforms = {
     VISA: 'visa',
     MASTERCARD: 'mastercard',
     DISCOVER: 'discover',
-    AMERICAN_EXPRESS: 'amex'
+    AMERICAN_EXPRESS: 'amex',
+    INTERNATIONAL_MAESTRO: 'maestro'
   },
   visaCheckout: {
     VISA: 'Visa',
@@ -2763,7 +2764,7 @@ module.exports = BraintreeError;
 },{"./enumerate":48}],43:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.67.0";
+var VERSION = "3.68.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
