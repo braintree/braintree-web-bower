@@ -104,14 +104,14 @@ var ExtendedPromise = /** @class */ (function () {
     };
     // start Promise methods documented in:
     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise#Methods
-    ExtendedPromise.all = function (arg) {
-        return ExtendedPromise.Promise.all(arg);
+    ExtendedPromise.all = function (args) {
+        return ExtendedPromise.Promise.all(args);
     };
-    ExtendedPromise.allSettled = function (arg) {
-        return ExtendedPromise.Promise.allSettled(arg);
+    ExtendedPromise.allSettled = function (args) {
+        return ExtendedPromise.Promise.allSettled(args);
     };
-    ExtendedPromise.race = function (arg) {
-        return ExtendedPromise.Promise.race(arg);
+    ExtendedPromise.race = function (args) {
+        return ExtendedPromise.Promise.race(args);
     };
     ExtendedPromise.reject = function (arg) {
         return ExtendedPromise.Promise.reject(arg);
@@ -658,7 +658,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.68.0";
+var VERSION = "3.69.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -788,7 +788,7 @@ module.exports = BraintreeError;
 },{"./enumerate":20}],15:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.68.0";
+var VERSION = "3.69.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -816,6 +816,7 @@ module.exports = {
   FRAUDNET_SOURCE: 'BRAINTREE_SIGNIN',
   FRAUDNET_FNCLS: 'fnparams-dede7cc5-15fd-4c75-a9f4-36c430ee3a99',
   FRAUDNET_URL: 'https://c.paypal.com/da/r/fb.js',
+  BUS_CONFIGURATION_REQUEST_EVENT: 'BUS_CONFIGURATION_REQUEST',
   GRAPHQL_URLS: GRAPHQL_URLS,
   INTEGRATION_TIMEOUT_MS: 60000,
   VERSION: VERSION,
@@ -914,7 +915,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.68.0";
+var VERSION = "3.69.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1132,7 +1133,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var VaultManager = _dereq_('./vault-manager');
-var VERSION = "3.68.0";
+var VERSION = "3.69.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**

@@ -155,14 +155,14 @@ var ExtendedPromise = /** @class */ (function () {
     };
     // start Promise methods documented in:
     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise#Methods
-    ExtendedPromise.all = function (arg) {
-        return ExtendedPromise.Promise.all(arg);
+    ExtendedPromise.all = function (args) {
+        return ExtendedPromise.Promise.all(args);
     };
-    ExtendedPromise.allSettled = function (arg) {
-        return ExtendedPromise.Promise.allSettled(arg);
+    ExtendedPromise.allSettled = function (args) {
+        return ExtendedPromise.Promise.allSettled(args);
     };
-    ExtendedPromise.race = function (arg) {
-        return ExtendedPromise.Promise.race(arg);
+    ExtendedPromise.race = function (args) {
+        return ExtendedPromise.Promise.race(args);
     };
     ExtendedPromise.reject = function (arg) {
         return ExtendedPromise.Promise.reject(arg);
@@ -439,19 +439,24 @@ module.exports = wrapPromise;
 
 },{"./lib/deferred":11,"./lib/once":12,"./lib/promise-or-callback":13}],15:[function(_dereq_,module,exports){
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Framebus = void 0;
 var is_not_string_1 = _dereq_("./lib/is-not-string");
 var subscription_args_invalid_1 = _dereq_("./lib/subscription-args-invalid");
 var broadcast_1 = _dereq_("./lib/broadcast");
 var package_payload_1 = _dereq_("./lib/package-payload");
 var constants_1 = _dereq_("./lib/constants");
-module.exports = /** @class */ (function () {
-    function Framebus(origin) {
-        if (origin === void 0) { origin = "*"; }
-        this.origin = origin;
+var Framebus = /** @class */ (function () {
+    function Framebus(options) {
+        if (options === void 0) { options = {}; }
+        this.origin = options.origin || "*";
+        this.channel = options.channel || "";
+        this.verifyDomain = options.verifyDomain;
+        this.isDestroyed = false;
+        this.listeners = [];
     }
-    Framebus.target = function (origin) {
-        if (origin === void 0) { origin = "*"; }
-        return new Framebus(origin);
+    Framebus.target = function (options) {
+        return new Framebus(options);
     };
     Framebus.prototype.include = function (childWindow) {
         if (childWindow == null) {
@@ -466,12 +471,16 @@ module.exports = /** @class */ (function () {
         constants_1.childWindows.push(childWindow);
         return true;
     };
-    Framebus.prototype.target = function (origin) {
-        return Framebus.target(origin);
+    Framebus.prototype.target = function (options) {
+        return Framebus.target(options);
     };
-    Framebus.prototype.emit = function (event, data, reply) {
+    Framebus.prototype.emit = function (eventName, data, reply) {
+        if (this.isDestroyed) {
+            return false;
+        }
         var origin = this.origin;
-        if (is_not_string_1.isntString(event)) {
+        eventName = this.namespaceEvent(eventName);
+        if (is_not_string_1.isntString(eventName)) {
             return false;
         }
         if (is_not_string_1.isntString(origin)) {
@@ -481,50 +490,128 @@ module.exports = /** @class */ (function () {
             reply = data;
             data = undefined; // eslint-disable-line no-undefined
         }
-        var payload = package_payload_1.packagePayload(event, origin, data, reply);
+        var payload = package_payload_1.packagePayload(eventName, origin, data, reply);
         if (!payload) {
             return false;
         }
         broadcast_1.broadcast(window.top || window.self, payload, origin);
         return true;
     };
-    Framebus.prototype.on = function (event, fn) {
-        var origin = this.origin;
-        if (subscription_args_invalid_1.subscriptionArgsInvalid(event, fn, origin)) {
+    Framebus.prototype.on = function (eventName, originalHandler) {
+        if (this.isDestroyed) {
             return false;
         }
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
+        var self = this;
+        var origin = this.origin;
+        var handler = originalHandler;
+        eventName = this.namespaceEvent(eventName);
+        if (subscription_args_invalid_1.subscriptionArgsInvalid(eventName, handler, origin)) {
+            return false;
+        }
+        if (this.verifyDomain) {
+            /* eslint-disable no-invalid-this, @typescript-eslint/ban-ts-comment */
+            handler = function () {
+                var args = [];
+                for (var _i = 0; _i < arguments.length; _i++) {
+                    args[_i] = arguments[_i];
+                }
+                // @ts-ignore
+                if (self.checkOrigin(this && this.origin)) {
+                    originalHandler.apply(void 0, args);
+                }
+            };
+            /* eslint-enable no-invalid-this, @typescript-eslint/ban-ts-comment */
+        }
+        this.listeners.push({
+            eventName: eventName,
+            handler: handler,
+            originalHandler: originalHandler,
+        });
         constants_1.subscribers[origin] = constants_1.subscribers[origin] || {};
-        constants_1.subscribers[origin][event] = constants_1.subscribers[origin][event] || [];
-        constants_1.subscribers[origin][event].push(fn);
+        constants_1.subscribers[origin][eventName] = constants_1.subscribers[origin][eventName] || [];
+        constants_1.subscribers[origin][eventName].push(handler);
         return true;
     };
-    Framebus.prototype.off = function (event, fn) {
-        var origin = this.origin;
-        if (subscription_args_invalid_1.subscriptionArgsInvalid(event, fn, origin)) {
+    Framebus.prototype.off = function (eventName, originalHandler) {
+        var handler = originalHandler;
+        if (this.isDestroyed) {
             return false;
         }
-        var subscriberList = constants_1.subscribers[origin] && constants_1.subscribers[origin][event];
+        if (this.verifyDomain) {
+            for (var i = 0; i < this.listeners.length; i++) {
+                var listener = this.listeners[i];
+                if (listener.originalHandler === originalHandler) {
+                    handler = listener.handler;
+                }
+            }
+        }
+        eventName = this.namespaceEvent(eventName);
+        var origin = this.origin;
+        if (subscription_args_invalid_1.subscriptionArgsInvalid(eventName, handler, origin)) {
+            return false;
+        }
+        var subscriberList = constants_1.subscribers[origin] && constants_1.subscribers[origin][eventName];
         if (!subscriberList) {
             return false;
         }
         for (var i = 0; i < subscriberList.length; i++) {
-            if (subscriberList[i] === fn) {
+            if (subscriberList[i] === handler) {
                 subscriberList.splice(i, 1);
                 return true;
             }
         }
         return false;
     };
+    Framebus.prototype.teardown = function () {
+        if (this.isDestroyed) {
+            return;
+        }
+        this.isDestroyed = true;
+        for (var i = 0; i < this.listeners.length; i++) {
+            var listener = this.listeners[i];
+            this.off(listener.eventName, listener.handler);
+        }
+        this.listeners.length = 0;
+    };
+    Framebus.prototype.checkOrigin = function (postMessageOrigin) {
+        var merchantHost;
+        var a = document.createElement("a");
+        a.href = location.href;
+        if (a.protocol === "https:") {
+            merchantHost = a.host.replace(/:443$/, "");
+        }
+        else if (a.protocol === "http:") {
+            merchantHost = a.host.replace(/:80$/, "");
+        }
+        else {
+            merchantHost = a.host;
+        }
+        var merchantOrigin = a.protocol + "//" + merchantHost;
+        if (merchantOrigin === postMessageOrigin) {
+            return true;
+        }
+        if (this.verifyDomain) {
+            return this.verifyDomain(postMessageOrigin);
+        }
+        return true;
+    };
+    Framebus.prototype.namespaceEvent = function (eventName) {
+        if (!this.channel) {
+            return eventName;
+        }
+        return this.channel + ":" + eventName;
+    };
     return Framebus;
 }());
+exports.Framebus = Framebus;
 
 },{"./lib/broadcast":19,"./lib/constants":20,"./lib/is-not-string":23,"./lib/package-payload":25,"./lib/subscription-args-invalid":27}],16:[function(_dereq_,module,exports){
 "use strict";
 var attach_1 = _dereq_("./lib/attach");
-var Framebus = _dereq_("./framebus");
-var bus = new Framebus();
+var framebus_1 = _dereq_("./framebus");
 attach_1.attach();
-module.exports = bus;
+module.exports = framebus_1.Framebus;
 
 },{"./framebus":15,"./lib/attach":17}],17:[function(_dereq_,module,exports){
 "use strict";
@@ -719,15 +806,19 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.subscribeReplier = void 0;
-var Framebus = _dereq_("../framebus");
+var framebus_1 = _dereq_("../framebus");
 var uuid_1 = __importDefault(_dereq_("@braintree/uuid"));
 function subscribeReplier(fn, origin) {
     var uuid = uuid_1.default();
     function replier(data, replyOriginHandler) {
         fn(data, replyOriginHandler);
-        Framebus.target(origin).off(uuid, replier);
+        framebus_1.Framebus.target({
+            origin: origin,
+        }).off(uuid, replier);
     }
-    Framebus.target(origin).on(uuid, replier);
+    framebus_1.Framebus.target({
+        origin: origin,
+    }).on(uuid, replier);
     return uuid;
 }
 exports.subscribeReplier = subscribeReplier;
@@ -1094,7 +1185,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":39,"./create-authorization-data":42,"./json-clone":48}],31:[function(_dereq_,module,exports){
+},{"./constants":36,"./create-authorization-data":39,"./json-clone":44}],31:[function(_dereq_,module,exports){
 'use strict';
 
 var Promise = _dereq_('./promise');
@@ -1130,7 +1221,7 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":30,"./constants":39,"./promise":50}],32:[function(_dereq_,module,exports){
+},{"./add-metadata":30,"./constants":36,"./promise":46}],32:[function(_dereq_,module,exports){
 'use strict';
 
 var loadScript = _dereq_('@braintree/asset-loader/load-script');
@@ -1170,7 +1261,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.68.0";
+var VERSION = "3.69.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1212,7 +1303,7 @@ module.exports = {
   verify: basicComponentVerification
 };
 
-},{"./braintree-error":35,"./errors":45,"./promise":50}],35:[function(_dereq_,module,exports){
+},{"./braintree-error":35,"./errors":42,"./promise":46}],35:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -1297,182 +1388,10 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":44}],36:[function(_dereq_,module,exports){
+},{"./enumerate":41}],36:[function(_dereq_,module,exports){
 'use strict';
 
-var isVerifiedDomain = _dereq_('../is-verified-domain');
-
-function checkOrigin(postMessageOrigin, merchantUrl) {
-  var merchantOrigin, merchantHost;
-  var a = document.createElement('a');
-
-  a.href = merchantUrl;
-
-  if (a.protocol === 'https:') {
-    merchantHost = a.host.replace(/:443$/, '');
-  } else if (a.protocol === 'http:') {
-    merchantHost = a.host.replace(/:80$/, '');
-  } else {
-    merchantHost = a.host;
-  }
-
-  merchantOrigin = a.protocol + '//' + merchantHost;
-
-  if (merchantOrigin === postMessageOrigin) { return true; }
-
-  a.href = postMessageOrigin;
-
-  return isVerifiedDomain(postMessageOrigin);
-}
-
-module.exports = {
-  checkOrigin: checkOrigin
-};
-
-},{"../is-verified-domain":47}],37:[function(_dereq_,module,exports){
-'use strict';
-
-var enumerate = _dereq_('../enumerate');
-
-module.exports = enumerate([
-  'CONFIGURATION_REQUEST'
-], 'bus:');
-
-},{"../enumerate":44}],38:[function(_dereq_,module,exports){
-'use strict';
-
-var bus = _dereq_('framebus');
-var events = _dereq_('./events');
-var checkOrigin = _dereq_('./check-origin').checkOrigin;
-var BraintreeError = _dereq_('../braintree-error');
-
-function BraintreeBus(options) {
-  options = options || {};
-
-  this.channel = options.channel;
-  if (!this.channel) {
-    throw new BraintreeError({
-      type: BraintreeError.types.INTERNAL,
-      code: 'MISSING_CHANNEL_ID',
-      message: 'Channel ID must be specified.'
-    });
-  }
-
-  this.merchantUrl = options.merchantUrl;
-
-  this._isDestroyed = false;
-  this._isVerbose = false;
-
-  this._listeners = [];
-
-  this._log('new bus on channel ' + this.channel, [location.href]);
-}
-
-BraintreeBus.prototype.on = function (eventName, originalHandler) {
-  var namespacedEvent, args;
-  var handler = originalHandler;
-  var self = this;
-
-  if (this._isDestroyed) { return; }
-
-  if (this.merchantUrl) {
-    handler = function () {
-      /* eslint-disable no-invalid-this */
-      if (checkOrigin(this.origin, self.merchantUrl)) {
-        originalHandler.apply(this, arguments);
-      }
-      /* eslint-enable no-invalid-this */
-    };
-  }
-
-  namespacedEvent = this._namespaceEvent(eventName);
-  args = Array.prototype.slice.call(arguments);
-  args[0] = namespacedEvent;
-  args[1] = handler;
-
-  this._log('on', args);
-  bus.on.apply(bus, args);
-
-  this._listeners.push({
-    eventName: eventName,
-    handler: handler,
-    originalHandler: originalHandler
-  });
-};
-
-BraintreeBus.prototype.emit = function (eventName) {
-  var args;
-
-  if (this._isDestroyed) { return; }
-
-  args = Array.prototype.slice.call(arguments);
-  args[0] = this._namespaceEvent(eventName);
-
-  this._log('emit', args);
-  bus.emit.apply(bus, args);
-};
-
-BraintreeBus.prototype._offDirect = function (eventName) {
-  var args = Array.prototype.slice.call(arguments);
-
-  if (this._isDestroyed) { return; }
-
-  args[0] = this._namespaceEvent(eventName);
-
-  this._log('off', args);
-  bus.off.apply(bus, args);
-};
-
-BraintreeBus.prototype.off = function (eventName, originalHandler) {
-  var i, listener;
-  var handler = originalHandler;
-
-  if (this._isDestroyed) { return; }
-
-  if (this.merchantUrl) {
-    for (i = 0; i < this._listeners.length; i++) {
-      listener = this._listeners[i];
-
-      if (listener.originalHandler === originalHandler) {
-        handler = listener.handler;
-      }
-    }
-  }
-
-  this._offDirect(eventName, handler);
-};
-
-BraintreeBus.prototype._namespaceEvent = function (eventName) {
-  return ['braintree', this.channel, eventName].join(':');
-};
-
-BraintreeBus.prototype.teardown = function () {
-  var listener, i;
-
-  for (i = 0; i < this._listeners.length; i++) {
-    listener = this._listeners[i];
-    this._offDirect(listener.eventName, listener.handler);
-  }
-
-  this._listeners.length = 0;
-
-  this._isDestroyed = true;
-};
-
-BraintreeBus.prototype._log = function (functionName, args) {
-  if (this._isVerbose) {
-    console.log(functionName, args); // eslint-disable-line no-console
-  }
-};
-
-BraintreeBus.events = events;
-
-module.exports = BraintreeBus;
-
-},{"../braintree-error":35,"./check-origin":36,"./events":37,"framebus":16}],39:[function(_dereq_,module,exports){
-'use strict';
-
-var VERSION = "3.68.0";
+var VERSION = "3.69.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1500,6 +1419,7 @@ module.exports = {
   FRAUDNET_SOURCE: 'BRAINTREE_SIGNIN',
   FRAUDNET_FNCLS: 'fnparams-dede7cc5-15fd-4c75-a9f4-36c430ee3a99',
   FRAUDNET_URL: 'https://c.paypal.com/da/r/fb.js',
+  BUS_CONFIGURATION_REQUEST_EVENT: 'BUS_CONFIGURATION_REQUEST',
   GRAPHQL_URLS: GRAPHQL_URLS,
   INTEGRATION_TIMEOUT_MS: 60000,
   VERSION: VERSION,
@@ -1509,7 +1429,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],40:[function(_dereq_,module,exports){
+},{}],37:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -1527,7 +1447,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"./braintree-error":35,"./errors":45}],41:[function(_dereq_,module,exports){
+},{"./braintree-error":35,"./errors":42}],38:[function(_dereq_,module,exports){
 'use strict';
 
 // endRemoveIf(production)
@@ -1544,7 +1464,7 @@ module.exports = {
   create: createAssetsUrl
 };
 
-},{"./constants":39}],42:[function(_dereq_,module,exports){
+},{"./constants":36}],39:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/vendor/polyfill').atob;
@@ -1590,7 +1510,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/constants":39,"../lib/vendor/polyfill":52}],43:[function(_dereq_,module,exports){
+},{"../lib/constants":36,"../lib/vendor/polyfill":48}],40:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -1598,7 +1518,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.68.0";
+var VERSION = "3.69.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1642,7 +1562,7 @@ module.exports = {
   create: createDeferredClient
 };
 
-},{"./assets":32,"./braintree-error":35,"./errors":45,"./promise":50}],44:[function(_dereq_,module,exports){
+},{"./assets":32,"./braintree-error":35,"./errors":42,"./promise":46}],41:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -1657,7 +1577,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],45:[function(_dereq_,module,exports){
+},{}],42:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -1707,10 +1627,10 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":35}],46:[function(_dereq_,module,exports){
+},{"./braintree-error":35}],43:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.68.0";
+var VERSION = "3.69.0";
 var assign = _dereq_('./assign').assign;
 
 function generateTokenizationParameters(configuration, overrides) {
@@ -1825,49 +1745,14 @@ module.exports = function (configuration, googlePayVersion, googleMerchantId) {
   return data;
 };
 
-},{"./assign":33}],47:[function(_dereq_,module,exports){
-'use strict';
-
-var parser;
-var legalHosts = {
-  'paypal.com': 1,
-  'braintreepayments.com': 1,
-  'braintreegateway.com': 1,
-  'braintree-api.com': 1
-};
-
-// endRemoveIf(production)
-
-function stripSubdomains(domain) {
-  return domain.split('.').slice(-2).join('.');
-}
-
-function isVerifiedDomain(url) {
-  var mainDomain;
-
-  url = url.toLowerCase();
-
-  if (!/^https:/.test(url)) {
-    return false;
-  }
-
-  parser = parser || document.createElement('a');
-  parser.href = url;
-  mainDomain = stripSubdomains(parser.hostname);
-
-  return legalHosts.hasOwnProperty(mainDomain);
-}
-
-module.exports = isVerifiedDomain;
-
-},{}],48:[function(_dereq_,module,exports){
+},{"./assign":33}],44:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],49:[function(_dereq_,module,exports){
+},{}],45:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -1876,7 +1761,7 @@ module.exports = function (obj) {
   });
 };
 
-},{}],50:[function(_dereq_,module,exports){
+},{}],46:[function(_dereq_,module,exports){
 'use strict';
 
 var PromisePolyfill = _dereq_('promise-polyfill');
@@ -1890,7 +1775,7 @@ ExtendedPromise.setPromise(PromiseGlobal);
 
 module.exports = PromiseGlobal;
 
-},{"@braintree/extended-promise":5,"promise-polyfill":29}],51:[function(_dereq_,module,exports){
+},{"@braintree/extended-promise":5,"promise-polyfill":29}],47:[function(_dereq_,module,exports){
 'use strict';
 
 function useMin(isDebug) {
@@ -1899,7 +1784,7 @@ function useMin(isDebug) {
 
 module.exports = useMin;
 
-},{}],52:[function(_dereq_,module,exports){
+},{}],48:[function(_dereq_,module,exports){
 'use strict';
 
 var atobNormalized = typeof atob === 'function' ? window.atob : atobPolyfill;
@@ -1938,12 +1823,12 @@ module.exports = {
   _atob: atobPolyfill
 };
 
-},{}],53:[function(_dereq_,module,exports){
+},{}],49:[function(_dereq_,module,exports){
 'use strict';
 
 var analytics = _dereq_('../../lib/analytics');
 var assign = _dereq_('../../lib/assign').assign;
-var Bus = _dereq_('../../lib/bus');
+var Bus = _dereq_('framebus');
 var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
 var generateGooglePayConfiguration = _dereq_('../../lib/generate-google-pay-configuration');
 var iFramer = _dereq_('@braintree/iframer');
@@ -1953,7 +1838,7 @@ var methods = _dereq_('../../lib/methods');
 var Promise = _dereq_('../../lib/promise');
 var EventEmitter = _dereq_('@braintree/event-emitter');
 var BraintreeError = _dereq_('../../lib/braintree-error');
-var VERSION = "3.68.0";
+var VERSION = "3.69.0";
 var constants = _dereq_('../shared/constants');
 var events = constants.events;
 var errors = constants.errors;
@@ -2626,7 +2511,7 @@ PaymentRequestComponent.prototype._formatCanMakePaymentError = function (error) 
 
 module.exports = wrapPromise.wrapPrototype(PaymentRequestComponent);
 
-},{"../../lib/analytics":31,"../../lib/assign":33,"../../lib/braintree-error":35,"../../lib/bus":38,"../../lib/convert-methods-to-error":40,"../../lib/generate-google-pay-configuration":46,"../../lib/methods":49,"../../lib/promise":50,"../../lib/use-min":51,"../shared/constants":55,"@braintree/event-emitter":4,"@braintree/iframer":6,"@braintree/uuid":10,"@braintree/wrap-promise":14}],54:[function(_dereq_,module,exports){
+},{"../../lib/analytics":31,"../../lib/assign":33,"../../lib/braintree-error":35,"../../lib/convert-methods-to-error":37,"../../lib/generate-google-pay-configuration":43,"../../lib/methods":45,"../../lib/promise":46,"../../lib/use-min":47,"../shared/constants":51,"@braintree/event-emitter":4,"@braintree/iframer":6,"@braintree/uuid":10,"@braintree/wrap-promise":14,"framebus":16}],50:[function(_dereq_,module,exports){
 'use strict';
 /**
  * @module braintree-web/payment-request
@@ -2640,7 +2525,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.68.0";
+var VERSION = "3.69.0";
 
 /**
  * @static
@@ -2716,7 +2601,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/basic-component-verification":34,"../lib/create-assets-url":41,"../lib/create-deferred-client":43,"./external/payment-request":53,"@braintree/wrap-promise":14}],55:[function(_dereq_,module,exports){
+},{"../lib/basic-component-verification":34,"../lib/create-assets-url":38,"../lib/create-deferred-client":40,"./external/payment-request":49,"@braintree/wrap-promise":14}],51:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('../../lib/enumerate');
@@ -2744,7 +2629,7 @@ constants.SUPPORTED_METHODS = {
 
 module.exports = constants;
 
-},{"../../lib/enumerate":44,"./errors":56}],56:[function(_dereq_,module,exports){
+},{"../../lib/enumerate":41,"./errors":52}],52:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -2837,5 +2722,5 @@ module.exports = {
   }
 };
 
-},{"../../lib/braintree-error":35}]},{},[54])(54)
+},{"../../lib/braintree-error":35}]},{},[50])(50)
 });
