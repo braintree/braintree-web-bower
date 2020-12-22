@@ -1354,7 +1354,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.69.0";
+var VERSION = "3.70.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1484,7 +1484,7 @@ module.exports = BraintreeError;
 },{"./enumerate":56}],50:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.69.0";
+var VERSION = "3.70.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1633,7 +1633,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.69.0";
+var VERSION = "3.70.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -2527,7 +2527,7 @@ module.exports = {
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var useMin = _dereq_('../../lib/use-min');
-var VERSION = "3.69.0";
+var VERSION = "3.70.0";
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
 var methods = _dereq_('../../lib/methods');
@@ -2588,6 +2588,7 @@ LocalPayment.prototype._initialize = function () {
  * @param {string} options.amount The amount to authorize for the transaction.
  * @param {string} options.currencyCode The currency to process the payment.
  * @param {string} options.paymentType The type of local payment.
+ * @param {string} options.paymentTypeCountryCode The country code of the local payment. This value must be one of the supported country codes for a given local payment type listed {@link https://developers.braintreepayments.com/guides/local-payment-methods/client-side-custom/javascript/v3#render-local-payment-method-buttons|here}. For local payments supported in multiple countries, this value may determine which banks are presented to the customer.
  * @param {string} options.email Payer email of the customer.
  * @param {string} options.givenName First name of the customer.
  * @param {string} options.surname Last name of the customer.
@@ -2610,6 +2611,7 @@ LocalPayment.prototype._initialize = function () {
  *   // as a result of a user action, such as a button click.
  *   localPaymentInstance.startPayment({
  *     paymentType: 'ideal',
+ *     paymentTypeCountryCode: 'NL',
  *     fallback: {
  *       buttonText: 'Return to Merchant',
  *       url: 'https://example.com/my-checkout-page'
@@ -2656,6 +2658,7 @@ LocalPayment.prototype.startPayment = function (options) {
       noShipping: !options.shippingAddressRequired
     },
     fundingSource: options.paymentType,
+    paymentTypeCountryCode: options.paymentTypeCountryCode,
     amount: options.amount,
     currencyIsoCode: options.currencyCode,
     firstName: options.givenName,
@@ -2954,7 +2957,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var LocalPayment = _dereq_('./external/local-payment');
-var VERSION = "3.69.0";
+var VERSION = "3.70.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');

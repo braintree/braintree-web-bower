@@ -1261,7 +1261,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.69.0";
+var VERSION = "3.70.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1391,7 +1391,7 @@ module.exports = BraintreeError;
 },{"./enumerate":43}],36:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.69.0";
+var VERSION = "3.70.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1540,7 +1540,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.69.0";
+var VERSION = "3.70.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1808,7 +1808,7 @@ var events = _dereq_('../../shared/events');
 var useMin = _dereq_('../../../lib/use-min');
 var BUS_CONFIGURATION_REQUEST_EVENT = _dereq_('../../../lib/constants').BUS_CONFIGURATION_REQUEST_EVENT;
 
-var VERSION = "3.69.0";
+var VERSION = "3.70.0";
 var IFRAME_HEIGHT = 400;
 var IFRAME_WIDTH = 400;
 
@@ -2491,7 +2491,7 @@ var ExtendedPromise = _dereq_('@braintree/extended-promise');
 
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var PLATFORM = _dereq_('../../../lib/constants').PLATFORM;
-var VERSION = "3.69.0";
+var VERSION = "3.70.0";
 var CUSTOMER_CANCELED_SONGBIRD_MODAL = '01';
 var SONGBIRD_UI_EVENTS = [
   'ui.close',
@@ -2749,7 +2749,15 @@ SongbirdFramework.prototype._configureCardinalSdk = function (config) {
   var self = this;
 
   return this._waitForClient().then(function () {
-    var jwt = self._client.getConfiguration().gatewayConfiguration.threeDSecure.cardinalAuthenticationJWT;
+    var threeDSConfig = self._client.getConfiguration().gatewayConfiguration.threeDSecure;
+
+    if (threeDSConfig.hasOwnProperty('versionTwo') && threeDSConfig.versionTwo !== 'cardinal') {
+      return Promise.reject(new Error('cardinal-api-not-available-or-configured'));
+    }
+
+    return threeDSConfig;
+  }).then(function (threeDSConfig) {
+    var jwt = threeDSConfig.cardinalAuthenticationJWT;
     var setupOptions = config.setupOptions;
     var setupStartTime = config.setupStartTime;
     var cardinalConfiguration = self._createCardinalConfigurationOptions(setupOptions);
@@ -2773,7 +2781,11 @@ SongbirdFramework.prototype._configureCardinalSdk = function (config) {
 
     self.setCardinalListener('payments.validated', self._createPaymentsValidatedCallback());
   }).catch(function (err) {
-    self._v2SetupFailureReason = 'cardinal-configuration-threw-error';
+    if (err.message === 'cardinal-api-not-available-or-configured') {
+      self._v2SetupFailureReason = 'cardinal-api-not-available-or-configured';
+    } else {
+      self._v2SetupFailureReason = 'cardinal-configuration-threw-error';
+    }
 
     return Promise.reject(err);
   });
@@ -3054,7 +3066,9 @@ SongbirdFramework.prototype._onLookupComplete = function (lookupResponse, option
 };
 
 SongbirdFramework.prototype._presentChallenge = function (lookupResponse) {
-  if (this._useV1Fallback) {
+  // transactionId is required for the Songbird flow, so if it
+  // does not exist, we fallback to the 3ds v1 flow
+  if (this._useV1Fallback || !lookupResponse.lookup.transactionId) {
     this._presentChallengeWithV1Fallback(lookupResponse.lookup);
 
     return;
@@ -3912,7 +3926,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.69.0";
+var VERSION = "3.70.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 

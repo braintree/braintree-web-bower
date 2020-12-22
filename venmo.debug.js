@@ -11,7 +11,7 @@ var PromiseGlobal =
 typeof Promise !== "undefined" ? Promise : promise_polyfill_1.default;
 exports.PromiseGlobal = PromiseGlobal;
 
-},{"promise-polyfill":26}],2:[function(_dereq_,module,exports){
+},{"promise-polyfill":40}],2:[function(_dereq_,module,exports){
 "use strict";
 var promise_1 = _dereq_("./lib/promise");
 var scriptPromiseCache = {};
@@ -77,7 +77,7 @@ module.exports = function isChrome(ua) {
         !isSamsung(ua));
 };
 
-},{"./is-edge":6,"./is-samsung":13}],6:[function(_dereq_,module,exports){
+},{"./is-edge":6,"./is-samsung":10}],6:[function(_dereq_,module,exports){
 "use strict";
 module.exports = function isEdge(ua) {
     ua = ua || window.navigator.userAgent;
@@ -85,20 +85,6 @@ module.exports = function isEdge(ua) {
 };
 
 },{}],7:[function(_dereq_,module,exports){
-"use strict";
-module.exports = function isFirefox(ua) {
-    ua = ua || window.navigator.userAgent;
-    return /Firefox/i.test(ua);
-};
-
-},{}],8:[function(_dereq_,module,exports){
-"use strict";
-module.exports = function isIosFirefox(ua) {
-    ua = ua || window.navigator.userAgent;
-    return /FxiOS/i.test(ua);
-};
-
-},{}],9:[function(_dereq_,module,exports){
 "use strict";
 var isIos = _dereq_("./is-ios");
 var webkitRegexp = /webkit/i;
@@ -110,7 +96,7 @@ module.exports = function isIosSafari(ua) {
     return isIos(ua) && isWebkit(ua) && ua.indexOf("CriOS") === -1;
 };
 
-},{"./is-ios":11}],10:[function(_dereq_,module,exports){
+},{"./is-ios":9}],8:[function(_dereq_,module,exports){
 "use strict";
 var isIos = _dereq_("./is-ios");
 // The Google Search iOS app is technically a webview and doesn't support popups.
@@ -128,52 +114,36 @@ module.exports = function isIosWebview(ua) {
     return false;
 };
 
-},{"./is-ios":11}],11:[function(_dereq_,module,exports){
+},{"./is-ios":9}],9:[function(_dereq_,module,exports){
 "use strict";
 module.exports = function isIos(ua) {
     ua = ua || window.navigator.userAgent;
     return /iPhone|iPod|iPad/i.test(ua);
 };
 
-},{}],12:[function(_dereq_,module,exports){
-"use strict";
-var isIosFirefox = _dereq_("./is-ios-firefox");
-var isFirefox = _dereq_("./is-firefox");
-module.exports = function isMobileFirefox(ua) {
-    ua = ua || window.navigator.userAgent;
-    return (isIosFirefox(ua) ||
-        (/iPhone|iPod|iPad|Mobile|Tablet/i.test(ua) && isFirefox(ua)));
-};
-
-},{"./is-firefox":7,"./is-ios-firefox":8}],13:[function(_dereq_,module,exports){
+},{}],10:[function(_dereq_,module,exports){
 "use strict";
 module.exports = function isSamsungBrowser(ua) {
     ua = ua || window.navigator.userAgent;
     return /SamsungBrowser/i.test(ua);
 };
 
-},{}],14:[function(_dereq_,module,exports){
+},{}],11:[function(_dereq_,module,exports){
 module.exports = _dereq_("./dist/is-android");
 
-},{"./dist/is-android":4}],15:[function(_dereq_,module,exports){
+},{"./dist/is-android":4}],12:[function(_dereq_,module,exports){
 module.exports = _dereq_("./dist/is-chrome");
 
-},{"./dist/is-chrome":5}],16:[function(_dereq_,module,exports){
+},{"./dist/is-chrome":5}],13:[function(_dereq_,module,exports){
 module.exports = _dereq_("./dist/is-ios-safari");
 
-},{"./dist/is-ios-safari":9}],17:[function(_dereq_,module,exports){
+},{"./dist/is-ios-safari":7}],14:[function(_dereq_,module,exports){
 module.exports = _dereq_("./dist/is-ios-webview");
 
-},{"./dist/is-ios-webview":10}],18:[function(_dereq_,module,exports){
+},{"./dist/is-ios-webview":8}],15:[function(_dereq_,module,exports){
 module.exports = _dereq_("./dist/is-ios");
 
-},{"./dist/is-ios":11}],19:[function(_dereq_,module,exports){
-module.exports = _dereq_("./dist/is-mobile-firefox");
-
-},{"./dist/is-mobile-firefox":12}],20:[function(_dereq_,module,exports){
-module.exports = _dereq_("./dist/is-samsung");
-
-},{"./dist/is-samsung":13}],21:[function(_dereq_,module,exports){
+},{"./dist/is-ios":9}],16:[function(_dereq_,module,exports){
 "use strict";
 var GlobalPromise = (typeof Promise !== "undefined"
     ? Promise // eslint-disable-line no-undef
@@ -307,6 +277,95 @@ var ExtendedPromise = /** @class */ (function () {
 }());
 module.exports = ExtendedPromise;
 
+},{}],17:[function(_dereq_,module,exports){
+"use strict";
+var set_attributes_1 = _dereq_("./lib/set-attributes");
+var default_attributes_1 = _dereq_("./lib/default-attributes");
+var assign_1 = _dereq_("./lib/assign");
+module.exports = function createFrame(options) {
+    if (options === void 0) { options = {}; }
+    var iframe = document.createElement("iframe");
+    var config = assign_1.assign({}, default_attributes_1.defaultAttributes, options);
+    if (config.style && typeof config.style !== "string") {
+        assign_1.assign(iframe.style, config.style);
+        delete config.style;
+    }
+    set_attributes_1.setAttributes(iframe, config);
+    if (!iframe.getAttribute("id")) {
+        iframe.id = iframe.name;
+    }
+    return iframe;
+};
+
+},{"./lib/assign":18,"./lib/default-attributes":19,"./lib/set-attributes":20}],18:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.assign = void 0;
+function assign(
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+target) {
+    var objs = [];
+    for (var _i = 1; _i < arguments.length; _i++) {
+        objs[_i - 1] = arguments[_i];
+    }
+    objs.forEach(function (obj) {
+        if (typeof obj !== "object") {
+            return;
+        }
+        Object.keys(obj).forEach(function (key) {
+            target[key] = obj[key];
+        });
+    });
+    return target;
+}
+exports.assign = assign;
+
+},{}],19:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.defaultAttributes = void 0;
+exports.defaultAttributes = {
+    src: "about:blank",
+    frameBorder: 0,
+    allowtransparency: true,
+    scrolling: "no",
+};
+
+},{}],20:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.setAttributes = void 0;
+function setAttributes(element, 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+attributes) {
+    for (var key in attributes) {
+        if (attributes.hasOwnProperty(key)) {
+            var value = attributes[key];
+            if (value == null) {
+                element.removeAttribute(key);
+            }
+            else {
+                element.setAttribute(key, value);
+            }
+        }
+    }
+}
+exports.setAttributes = setAttributes;
+
+},{}],21:[function(_dereq_,module,exports){
+'use strict';
+
+function uuid() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    var r = Math.random() * 16 | 0;
+    var v = c === 'x' ? r : r & 0x3 | 0x8;
+
+    return v.toString(16);
+  });
+}
+
+module.exports = uuid;
+
 },{}],22:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
@@ -412,6 +471,444 @@ wrapPromise.wrapPrototype = function (target, options) {
 module.exports = wrapPromise;
 
 },{"./lib/deferred":22,"./lib/once":23,"./lib/promise-or-callback":24}],26:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Framebus = void 0;
+var is_not_string_1 = _dereq_("./lib/is-not-string");
+var subscription_args_invalid_1 = _dereq_("./lib/subscription-args-invalid");
+var broadcast_1 = _dereq_("./lib/broadcast");
+var package_payload_1 = _dereq_("./lib/package-payload");
+var constants_1 = _dereq_("./lib/constants");
+var Framebus = /** @class */ (function () {
+    function Framebus(options) {
+        if (options === void 0) { options = {}; }
+        this.origin = options.origin || "*";
+        this.channel = options.channel || "";
+        this.verifyDomain = options.verifyDomain;
+        this.isDestroyed = false;
+        this.listeners = [];
+    }
+    Framebus.target = function (options) {
+        return new Framebus(options);
+    };
+    Framebus.prototype.include = function (childWindow) {
+        if (childWindow == null) {
+            return false;
+        }
+        if (childWindow.Window == null) {
+            return false;
+        }
+        if (childWindow.constructor !== childWindow.Window) {
+            return false;
+        }
+        constants_1.childWindows.push(childWindow);
+        return true;
+    };
+    Framebus.prototype.target = function (options) {
+        return Framebus.target(options);
+    };
+    Framebus.prototype.emit = function (eventName, data, reply) {
+        if (this.isDestroyed) {
+            return false;
+        }
+        var origin = this.origin;
+        eventName = this.namespaceEvent(eventName);
+        if (is_not_string_1.isntString(eventName)) {
+            return false;
+        }
+        if (is_not_string_1.isntString(origin)) {
+            return false;
+        }
+        if (typeof data === "function") {
+            reply = data;
+            data = undefined; // eslint-disable-line no-undefined
+        }
+        var payload = package_payload_1.packagePayload(eventName, origin, data, reply);
+        if (!payload) {
+            return false;
+        }
+        broadcast_1.broadcast(window.top || window.self, payload, origin);
+        return true;
+    };
+    Framebus.prototype.on = function (eventName, originalHandler) {
+        if (this.isDestroyed) {
+            return false;
+        }
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
+        var self = this;
+        var origin = this.origin;
+        var handler = originalHandler;
+        eventName = this.namespaceEvent(eventName);
+        if (subscription_args_invalid_1.subscriptionArgsInvalid(eventName, handler, origin)) {
+            return false;
+        }
+        if (this.verifyDomain) {
+            /* eslint-disable no-invalid-this, @typescript-eslint/ban-ts-comment */
+            handler = function () {
+                var args = [];
+                for (var _i = 0; _i < arguments.length; _i++) {
+                    args[_i] = arguments[_i];
+                }
+                // @ts-ignore
+                if (self.checkOrigin(this && this.origin)) {
+                    originalHandler.apply(void 0, args);
+                }
+            };
+            /* eslint-enable no-invalid-this, @typescript-eslint/ban-ts-comment */
+        }
+        this.listeners.push({
+            eventName: eventName,
+            handler: handler,
+            originalHandler: originalHandler,
+        });
+        constants_1.subscribers[origin] = constants_1.subscribers[origin] || {};
+        constants_1.subscribers[origin][eventName] = constants_1.subscribers[origin][eventName] || [];
+        constants_1.subscribers[origin][eventName].push(handler);
+        return true;
+    };
+    Framebus.prototype.off = function (eventName, originalHandler) {
+        var handler = originalHandler;
+        if (this.isDestroyed) {
+            return false;
+        }
+        if (this.verifyDomain) {
+            for (var i = 0; i < this.listeners.length; i++) {
+                var listener = this.listeners[i];
+                if (listener.originalHandler === originalHandler) {
+                    handler = listener.handler;
+                }
+            }
+        }
+        eventName = this.namespaceEvent(eventName);
+        var origin = this.origin;
+        if (subscription_args_invalid_1.subscriptionArgsInvalid(eventName, handler, origin)) {
+            return false;
+        }
+        var subscriberList = constants_1.subscribers[origin] && constants_1.subscribers[origin][eventName];
+        if (!subscriberList) {
+            return false;
+        }
+        for (var i = 0; i < subscriberList.length; i++) {
+            if (subscriberList[i] === handler) {
+                subscriberList.splice(i, 1);
+                return true;
+            }
+        }
+        return false;
+    };
+    Framebus.prototype.teardown = function () {
+        if (this.isDestroyed) {
+            return;
+        }
+        this.isDestroyed = true;
+        for (var i = 0; i < this.listeners.length; i++) {
+            var listener = this.listeners[i];
+            this.off(listener.eventName, listener.handler);
+        }
+        this.listeners.length = 0;
+    };
+    Framebus.prototype.checkOrigin = function (postMessageOrigin) {
+        var merchantHost;
+        var a = document.createElement("a");
+        a.href = location.href;
+        if (a.protocol === "https:") {
+            merchantHost = a.host.replace(/:443$/, "");
+        }
+        else if (a.protocol === "http:") {
+            merchantHost = a.host.replace(/:80$/, "");
+        }
+        else {
+            merchantHost = a.host;
+        }
+        var merchantOrigin = a.protocol + "//" + merchantHost;
+        if (merchantOrigin === postMessageOrigin) {
+            return true;
+        }
+        if (this.verifyDomain) {
+            return this.verifyDomain(postMessageOrigin);
+        }
+        return true;
+    };
+    Framebus.prototype.namespaceEvent = function (eventName) {
+        if (!this.channel) {
+            return eventName;
+        }
+        return this.channel + ":" + eventName;
+    };
+    return Framebus;
+}());
+exports.Framebus = Framebus;
+
+},{"./lib/broadcast":30,"./lib/constants":31,"./lib/is-not-string":34,"./lib/package-payload":36,"./lib/subscription-args-invalid":38}],27:[function(_dereq_,module,exports){
+"use strict";
+var attach_1 = _dereq_("./lib/attach");
+var framebus_1 = _dereq_("./framebus");
+attach_1.attach();
+module.exports = framebus_1.Framebus;
+
+},{"./framebus":26,"./lib/attach":28}],28:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.detach = exports.attach = void 0;
+var message_1 = _dereq_("./message");
+var isAttached = false;
+function attach() {
+    if (isAttached || typeof window === "undefined") {
+        return;
+    }
+    isAttached = true;
+    window.addEventListener("message", message_1.onmessage, false);
+}
+exports.attach = attach;
+// removeIf(production)
+function detach() {
+    isAttached = false;
+    window.removeEventListener("message", message_1.onmessage, false);
+}
+exports.detach = detach;
+// endRemoveIf(production)
+
+},{"./message":35}],29:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.broadcastToChildWindows = void 0;
+var broadcast_1 = _dereq_("./broadcast");
+var constants_1 = _dereq_("./constants");
+function broadcastToChildWindows(payload, origin, source) {
+    for (var i = constants_1.childWindows.length - 1; i >= 0; i--) {
+        var childWindow = constants_1.childWindows[i];
+        if (childWindow.closed) {
+            constants_1.childWindows.splice(i, 1);
+        }
+        else if (source !== childWindow) {
+            broadcast_1.broadcast(childWindow.top, payload, origin);
+        }
+    }
+}
+exports.broadcastToChildWindows = broadcastToChildWindows;
+
+},{"./broadcast":30,"./constants":31}],30:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.broadcast = void 0;
+var has_opener_1 = _dereq_("./has-opener");
+function broadcast(frame, payload, origin) {
+    var i = 0;
+    var frameToBroadcastTo;
+    try {
+        frame.postMessage(payload, origin);
+        if (has_opener_1.hasOpener(frame)) {
+            broadcast(frame.opener.top, payload, origin);
+        }
+        // previously, our max value was frame.frames.length
+        // but frames.length inherits from window.length
+        // which can be overwritten if a developer does
+        // `var length = value;` outside of a function
+        // scope, it'll prevent us from looping through
+        // all the frames. With this, we loop through
+        // until there are no longer any frames
+        // eslint-disable-next-line no-cond-assign
+        while ((frameToBroadcastTo = frame.frames[i])) {
+            broadcast(frameToBroadcastTo, payload, origin);
+            i++;
+        }
+    }
+    catch (_) {
+        /* ignored */
+    }
+}
+exports.broadcast = broadcast;
+
+},{"./has-opener":33}],31:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.subscribers = exports.childWindows = exports.prefix = void 0;
+exports.prefix = "/*framebus*/";
+exports.childWindows = [];
+exports.subscribers = {};
+
+},{}],32:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.dispatch = void 0;
+var constants_1 = _dereq_("./constants");
+function dispatch(origin, event, data, reply, e) {
+    if (!constants_1.subscribers[origin]) {
+        return;
+    }
+    if (!constants_1.subscribers[origin][event]) {
+        return;
+    }
+    var args = [];
+    if (data) {
+        args.push(data);
+    }
+    if (reply) {
+        args.push(reply);
+    }
+    for (var i = 0; i < constants_1.subscribers[origin][event].length; i++) {
+        constants_1.subscribers[origin][event][i].apply(e, args);
+    }
+}
+exports.dispatch = dispatch;
+
+},{"./constants":31}],33:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.hasOpener = void 0;
+function hasOpener(frame) {
+    if (frame.top !== frame) {
+        return false;
+    }
+    if (frame.opener == null) {
+        return false;
+    }
+    if (frame.opener === frame) {
+        return false;
+    }
+    if (frame.opener.closed === true) {
+        return false;
+    }
+    return true;
+}
+exports.hasOpener = hasOpener;
+
+},{}],34:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.isntString = void 0;
+function isntString(str) {
+    return typeof str !== "string";
+}
+exports.isntString = isntString;
+
+},{}],35:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.onmessage = void 0;
+var is_not_string_1 = _dereq_("./is-not-string");
+var unpack_payload_1 = _dereq_("./unpack-payload");
+var dispatch_1 = _dereq_("./dispatch");
+var broadcast_to_child_windows_1 = _dereq_("./broadcast-to-child-windows");
+function onmessage(e) {
+    if (is_not_string_1.isntString(e.data)) {
+        return;
+    }
+    var payload = unpack_payload_1.unpackPayload(e);
+    if (!payload) {
+        return;
+    }
+    var data = payload.eventData;
+    var reply = payload.reply;
+    dispatch_1.dispatch("*", payload.event, data, reply, e);
+    dispatch_1.dispatch(e.origin, payload.event, data, reply, e);
+    broadcast_to_child_windows_1.broadcastToChildWindows(e.data, payload.origin, e.source);
+}
+exports.onmessage = onmessage;
+
+},{"./broadcast-to-child-windows":29,"./dispatch":32,"./is-not-string":34,"./unpack-payload":39}],36:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.packagePayload = void 0;
+var subscribe_replier_1 = _dereq_("./subscribe-replier");
+var constants_1 = _dereq_("./constants");
+function packagePayload(event, origin, data, reply) {
+    var packaged;
+    var payload = {
+        event: event,
+        origin: origin,
+    };
+    if (typeof reply === "function") {
+        payload.reply = subscribe_replier_1.subscribeReplier(reply, origin);
+    }
+    payload.eventData = data;
+    try {
+        packaged = constants_1.prefix + JSON.stringify(payload);
+    }
+    catch (e) {
+        throw new Error("Could not stringify event: " + e.message);
+    }
+    return packaged;
+}
+exports.packagePayload = packagePayload;
+
+},{"./constants":31,"./subscribe-replier":37}],37:[function(_dereq_,module,exports){
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.subscribeReplier = void 0;
+var framebus_1 = _dereq_("../framebus");
+var uuid_1 = __importDefault(_dereq_("@braintree/uuid"));
+function subscribeReplier(fn, origin) {
+    var uuid = uuid_1.default();
+    function replier(data, replyOriginHandler) {
+        fn(data, replyOriginHandler);
+        framebus_1.Framebus.target({
+            origin: origin,
+        }).off(uuid, replier);
+    }
+    framebus_1.Framebus.target({
+        origin: origin,
+    }).on(uuid, replier);
+    return uuid;
+}
+exports.subscribeReplier = subscribeReplier;
+
+},{"../framebus":26,"@braintree/uuid":21}],38:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.subscriptionArgsInvalid = void 0;
+var is_not_string_1 = _dereq_("./is-not-string");
+function subscriptionArgsInvalid(event, fn, origin) {
+    if (is_not_string_1.isntString(event)) {
+        return true;
+    }
+    if (typeof fn !== "function") {
+        return true;
+    }
+    return is_not_string_1.isntString(origin);
+}
+exports.subscriptionArgsInvalid = subscriptionArgsInvalid;
+
+},{"./is-not-string":34}],39:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.unpackPayload = void 0;
+var constants_1 = _dereq_("./constants");
+var package_payload_1 = _dereq_("./package-payload");
+function unpackPayload(e) {
+    var payload;
+    if (e.data.slice(0, constants_1.prefix.length) !== constants_1.prefix) {
+        return false;
+    }
+    try {
+        payload = JSON.parse(e.data.slice(constants_1.prefix.length));
+    }
+    catch (err) {
+        return false;
+    }
+    if (payload.reply) {
+        var replyOrigin_1 = e.origin;
+        var replySource_1 = e.source;
+        var replyEvent_1 = payload.reply;
+        payload.reply = function reply(replyData) {
+            if (!replySource_1) {
+                return;
+            }
+            var replyPayload = package_payload_1.packagePayload(replyEvent_1, replyOrigin_1, replyData);
+            if (!replyPayload) {
+                return;
+            }
+            replySource_1.postMessage(replyPayload, replyOrigin_1);
+        };
+    }
+    return payload;
+}
+exports.unpackPayload = unpackPayload;
+
+},{"./constants":31,"./package-payload":36}],40:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -687,7 +1184,7 @@ Promise._unhandledRejectionFn = function _unhandledRejectionFn(err) {
 
 module.exports = Promise;
 
-},{}],27:[function(_dereq_,module,exports){
+},{}],41:[function(_dereq_,module,exports){
 'use strict';
 
 var createAuthorizationData = _dereq_('./create-authorization-data');
@@ -721,7 +1218,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":32,"./create-authorization-data":35,"./json-clone":39}],28:[function(_dereq_,module,exports){
+},{"./constants":46,"./create-authorization-data":49,"./json-clone":54}],42:[function(_dereq_,module,exports){
 'use strict';
 
 var Promise = _dereq_('./promise');
@@ -757,7 +1254,7 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":27,"./constants":32,"./promise":41}],29:[function(_dereq_,module,exports){
+},{"./add-metadata":41,"./constants":46,"./promise":56}],43:[function(_dereq_,module,exports){
 'use strict';
 
 var loadScript = _dereq_('@braintree/asset-loader/load-script');
@@ -766,13 +1263,13 @@ module.exports = {
   loadScript: loadScript
 };
 
-},{"@braintree/asset-loader/load-script":3}],30:[function(_dereq_,module,exports){
+},{"@braintree/asset-loader/load-script":3}],44:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.69.0";
+var VERSION = "3.70.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -814,7 +1311,7 @@ module.exports = {
   verify: basicComponentVerification
 };
 
-},{"./braintree-error":31,"./errors":38,"./promise":41}],31:[function(_dereq_,module,exports){
+},{"./braintree-error":45,"./errors":52,"./promise":56}],45:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -899,10 +1396,10 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":37}],32:[function(_dereq_,module,exports){
+},{"./enumerate":51}],46:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.69.0";
+var VERSION = "3.70.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -940,7 +1437,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
 };
 
-},{}],33:[function(_dereq_,module,exports){
+},{}],47:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -958,7 +1455,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"./braintree-error":31,"./errors":38}],34:[function(_dereq_,module,exports){
+},{"./braintree-error":45,"./errors":52}],48:[function(_dereq_,module,exports){
 'use strict';
 
 // endRemoveIf(production)
@@ -975,7 +1472,7 @@ module.exports = {
   create: createAssetsUrl
 };
 
-},{"./constants":32}],35:[function(_dereq_,module,exports){
+},{"./constants":46}],49:[function(_dereq_,module,exports){
 'use strict';
 
 var atob = _dereq_('../lib/vendor/polyfill').atob;
@@ -1021,7 +1518,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/constants":32,"../lib/vendor/polyfill":43}],36:[function(_dereq_,module,exports){
+},{"../lib/constants":46,"../lib/vendor/polyfill":58}],50:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -1029,7 +1526,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.69.0";
+var VERSION = "3.70.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1073,7 +1570,7 @@ module.exports = {
   create: createDeferredClient
 };
 
-},{"./assets":29,"./braintree-error":31,"./errors":38,"./promise":41}],37:[function(_dereq_,module,exports){
+},{"./assets":43,"./braintree-error":45,"./errors":52,"./promise":56}],51:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -1088,7 +1585,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],38:[function(_dereq_,module,exports){
+},{}],52:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -1138,14 +1635,49 @@ module.exports = {
   }
 };
 
-},{"./braintree-error":31}],39:[function(_dereq_,module,exports){
+},{"./braintree-error":45}],53:[function(_dereq_,module,exports){
+'use strict';
+
+var parser;
+var legalHosts = {
+  'paypal.com': 1,
+  'braintreepayments.com': 1,
+  'braintreegateway.com': 1,
+  'braintree-api.com': 1
+};
+
+// endRemoveIf(production)
+
+function stripSubdomains(domain) {
+  return domain.split('.').slice(-2).join('.');
+}
+
+function isVerifiedDomain(url) {
+  var mainDomain;
+
+  url = url.toLowerCase();
+
+  if (!/^https:/.test(url)) {
+    return false;
+  }
+
+  parser = parser || document.createElement('a');
+  parser.href = url;
+  mainDomain = stripSubdomains(parser.hostname);
+
+  return legalHosts.hasOwnProperty(mainDomain);
+}
+
+module.exports = isVerifiedDomain;
+
+},{}],54:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],40:[function(_dereq_,module,exports){
+},{}],55:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -1154,7 +1686,7 @@ module.exports = function (obj) {
   });
 };
 
-},{}],41:[function(_dereq_,module,exports){
+},{}],56:[function(_dereq_,module,exports){
 'use strict';
 
 var PromisePolyfill = _dereq_('promise-polyfill');
@@ -1168,7 +1700,7 @@ ExtendedPromise.setPromise(PromiseGlobal);
 
 module.exports = PromiseGlobal;
 
-},{"@braintree/extended-promise":21,"promise-polyfill":26}],42:[function(_dereq_,module,exports){
+},{"@braintree/extended-promise":16,"promise-polyfill":40}],57:[function(_dereq_,module,exports){
 'use strict';
 
 function _notEmpty(obj) {
@@ -1260,7 +1792,7 @@ module.exports = {
   queryify: queryify
 };
 
-},{}],43:[function(_dereq_,module,exports){
+},{}],58:[function(_dereq_,module,exports){
 'use strict';
 
 var atobNormalized = typeof atob === 'function' ? window.atob : atobPolyfill;
@@ -1299,7 +1831,362 @@ module.exports = {
   _atob: atobPolyfill
 };
 
-},{}],44:[function(_dereq_,module,exports){
+},{}],59:[function(_dereq_,module,exports){
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+var venmo_desktop_1 = __importDefault(_dereq_("./venmo-desktop"));
+module.exports = function createVenmoDesktop(options) {
+    var instance = new venmo_desktop_1.default(options);
+    return instance.initialize();
+};
+
+},{"./venmo-desktop":61}],60:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.VENMO_DESKTOP_PAYMENT_RESOURCE_STATUS_QUERY = exports.UPDATE_VENMO_DESKTOP_PAYMENT_RESOURCE_QUERY = exports.CREATE_VENMO_DESKTOP_PAYMENT_RESOURCE_QUERY = void 0;
+exports.CREATE_VENMO_DESKTOP_PAYMENT_RESOURCE_QUERY = "mutation CreateVenmoQRCodePaymentContext($input: CreateVenmoQRCodePaymentContextInput!) {\n  createVenmoQRCodePaymentContext(input: $input) {\n    clientMutationId\n    venmoQRCodePaymentContext {\n      id\n      merchantId\n      createdAt\n      expiresAt\n    }\n  }\n}";
+exports.UPDATE_VENMO_DESKTOP_PAYMENT_RESOURCE_QUERY = "mutation UpdateVenmoQRCodePaymentContext($input: UpdateVenmoQRCodePaymentContextInput!) {\n  updateVenmoQRCodePaymentContext(input: $input) {\n    clientMutationId\n  }\n}";
+exports.VENMO_DESKTOP_PAYMENT_RESOURCE_STATUS_QUERY = "query PaymentContext($id: ID!) {\n  node(id: $id) {\n    ... on VenmoQRCodePaymentContext {\n      status\n      paymentMethodId\n      userName\n    }\n  }\n}";
+
+},{}],61:[function(_dereq_,module,exports){
+"use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+var framebus_1 = __importDefault(_dereq_("framebus"));
+var iframer_1 = __importDefault(_dereq_("@braintree/iframer"));
+var uuid_1 = __importDefault(_dereq_("@braintree/uuid"));
+var events_1 = _dereq_("../shared/events");
+var queries_1 = _dereq_("./queries");
+var VENMO_DESKTOP_POLLING_INTERVAL = 1000; // 1 second
+var VISUAL_DELAY_BEFORE_SIGNALLING_COMPLETION = 2000; // 2 seconds
+var VenmoDesktop = /** @class */ (function () {
+    function VenmoDesktop(options) {
+        this.isHidden = true;
+        this.env = options.environment;
+        this.id = uuid_1.default();
+        var frameUrl = options.url + "#" + this.env + "_" + this.id;
+        this.bus = new framebus_1.default({
+            channel: this.id,
+            verifyDomain: options.verifyDomain,
+        });
+        this.apiRequest = options.apiRequest;
+        this.sendEvent = options.sendEvent;
+        this.Promise = options.Promise;
+        this.alertBox = document.createElement("div");
+        this.alertBox.setAttribute("data-venmo-desktop-id", this.id);
+        this.alertBox.setAttribute("role", "alert");
+        this.alertBox.style.position = "fixed";
+        this.alertBox.style.display = "none";
+        this.alertBox.style.height = "1px";
+        this.alertBox.style.width = "1px";
+        this.alertBox.style.overflow = "hidden";
+        this.alertBox.style.zIndex = "0";
+        this.iframe = iframer_1.default({
+            src: frameUrl,
+            name: "venmo-desktop-iframe",
+            style: {
+                display: "none",
+                position: "fixed",
+                top: "0",
+                bottom: "0",
+                right: "0",
+                left: "0",
+                height: "100%",
+                width: "100%",
+                zIndex: "9999999",
+            },
+            title: "Venmo Desktop",
+        });
+    }
+    VenmoDesktop.prototype.initialize = function () {
+        var _this = this;
+        return new this.Promise(function (resolve) {
+            _this.bus.on(events_1.VENMO_DESKTOP_IFRAME_READY, function () {
+                resolve(_this);
+            });
+            _this.bus.on(events_1.VENMO_DESKTOP_REQUEST_NEW_QR_CODE, function () {
+                _this.sendEvent("venmo.tokenize.desktop.restarted-from-error-view");
+                _this.startPolling();
+            });
+            document.body.appendChild(_this.iframe);
+            document.body.appendChild(_this.alertBox);
+        });
+    };
+    VenmoDesktop.prototype.launchDesktopFlow = function () {
+        var _this = this;
+        this.isHidden = false;
+        var promise = new this.Promise(function (resolve, reject) {
+            _this.launchDesktopPromiseRejectFunction = reject;
+            var removeListeners = function () {
+                /* eslint-disable @typescript-eslint/no-use-before-define */
+                _this.bus.off(events_1.VENMO_DESKTOP_CUSTOMER_CANCELED, customerCancelledHandler);
+                _this.bus.off(events_1.VENMO_DESKTOP_AUTHORIZATION_COMPLETED, completedHandler);
+                _this.bus.off(events_1.VENMO_DESKTOP_UNKNOWN_ERROR, unknownErrorHandler);
+                /* eslint-enable @typescript-eslint/no-use-before-define */
+            };
+            var unknownErrorHandler = function (err) {
+                removeListeners();
+                _this.sendEvent("venmo.tokenize.desktop.unknown-error");
+                reject({
+                    allowUIToHandleError: false,
+                    reason: "UNKNOWN_ERROR",
+                    err: err,
+                });
+            };
+            var customerCancelledHandler = function () {
+                removeListeners();
+                _this.updateVenmoDesktopPaymentContext("CANCELED");
+                _this.sendEvent("venmo.tokenize.desktop.status-change.canceled-from-modal");
+                reject({
+                    allowUIToHandleError: false,
+                    reason: "CUSTOMER_CANCELED",
+                });
+            };
+            var completedHandler = function (payload) {
+                removeListeners();
+                resolve(payload);
+            };
+            _this.bus.on(events_1.VENMO_DESKTOP_CUSTOMER_CANCELED, customerCancelledHandler);
+            _this.bus.on(events_1.VENMO_DESKTOP_AUTHORIZATION_COMPLETED, completedHandler);
+            _this.bus.on(events_1.VENMO_DESKTOP_UNKNOWN_ERROR, unknownErrorHandler);
+        });
+        this.iframe.style.display = "block";
+        this.setAlert("Generating a QR code, get your Venmo app ready");
+        this.iframe.focus();
+        this.startPolling();
+        return promise
+            .then(function (result) {
+            delete _this.venmoContextId;
+            delete _this.launchDesktopPromiseRejectFunction;
+            return result;
+        })
+            .catch(function (err) {
+            delete _this.venmoContextId;
+            delete _this.launchDesktopPromiseRejectFunction;
+            return _this.Promise.reject(err);
+        });
+    };
+    VenmoDesktop.prototype.triggerCompleted = function (result) {
+        var _this = this;
+        if (this.isHidden) {
+            return;
+        }
+        setTimeout(function () {
+            _this.bus.emit(events_1.VENMO_DESKTOP_AUTHORIZATION_COMPLETED, result);
+        }, VISUAL_DELAY_BEFORE_SIGNALLING_COMPLETION);
+    };
+    VenmoDesktop.prototype.triggerRejected = function (err) {
+        if (this.launchDesktopPromiseRejectFunction) {
+            this.launchDesktopPromiseRejectFunction(err);
+        }
+    };
+    VenmoDesktop.prototype.hideDesktopFlow = function () {
+        this.setAlert("");
+        this.iframe.style.display = "none";
+        this.bus.emit(events_1.VENMO_DESKTOP_CLOSED_FROM_PARENT);
+        this.isHidden = true;
+    };
+    VenmoDesktop.prototype.displayError = function (message) {
+        if (this.isHidden) {
+            return;
+        }
+        this.bus.emit(events_1.VENMO_DESKTOP_DISPLAY_ERROR, {
+            message: message,
+        });
+        this.setAlert(message);
+    };
+    VenmoDesktop.prototype.displayQRCode = function (id, merchantId) {
+        if (this.isHidden) {
+            return;
+        }
+        this.bus.emit(events_1.VENMO_DESKTOP_DISPLAY_QR_CODE, {
+            id: id,
+            merchantId: merchantId,
+        });
+        this.setAlert("To scan the QR code, open your Venmo app");
+    };
+    VenmoDesktop.prototype.authorize = function () {
+        if (this.isHidden) {
+            return;
+        }
+        this.bus.emit(events_1.VENMO_DESKTOP_AUTHORIZE);
+        this.setAlert("Venmo account authorized");
+    };
+    VenmoDesktop.prototype.authorizing = function () {
+        if (this.isHidden) {
+            return;
+        }
+        this.bus.emit(events_1.VENMO_DESKTOP_AUTHORIZING);
+        this.setAlert("Authorize on your Venmo app");
+    };
+    VenmoDesktop.prototype.startPolling = function () {
+        var _this = this;
+        return this.createVenmoDesktopPaymentContext()
+            .then(function (result) {
+            var expiresIn = new Date(result.expiresAt).getTime() -
+                new Date(result.createdAt).getTime();
+            var expiredTime = Date.now() + expiresIn;
+            _this.displayQRCode(result.id, result.merchantId);
+            return _this.pollForStatusChange(result.status, expiredTime);
+        })
+            .then(function (result) {
+            if (!result) {
+                return;
+            }
+            // since we are manually adding a prepended @ sign
+            // we want to make sure that the username does not
+            // start giving us the @ sign up front in the future
+            var username = result.userName || "";
+            username = "@" + username.replace("@", "");
+            _this.triggerCompleted({
+                paymentMethodNonce: result.paymentMethodId,
+                username: username,
+            });
+        })
+            .catch(function (err) {
+            if (err.allowUIToHandleError) {
+                // noop here and let the UI handle the customer error
+                return;
+            }
+            _this.sendEvent("venmo.tokenize.desktop.unhandled-error");
+            _this.triggerRejected(err);
+        });
+    };
+    VenmoDesktop.prototype.pollForStatusChange = function (status, expiredTime) {
+        var _this = this;
+        if (!this.venmoContextId) {
+            return this.Promise.resolve();
+        }
+        if (Date.now() > expiredTime) {
+            return this.updateVenmoDesktopPaymentContext("EXPIRED").then(function () {
+                _this.displayError("Something went wrong");
+                _this.sendEvent("venmo.tokenize.desktop.status-change.sdk-timeout");
+                return _this.Promise.reject({
+                    allowUIToHandleError: true,
+                    reason: "TIMEOUT",
+                });
+            });
+        }
+        return this.lookupVenmoDesktopPaymentContext().then(function (response) {
+            if (!_this.venmoContextId || !response) {
+                return _this.Promise.resolve();
+            }
+            var newStatus = response.status;
+            if (newStatus !== status) {
+                status = newStatus;
+                _this.sendEvent("venmo.tokenize.desktop.status-change." + status.toLowerCase());
+                switch (status) {
+                    case "CREATED":
+                        // noop, no need to do anything here
+                        // should never be able to get to this point
+                        // but we'll keep it in to enumerate the statuses
+                        break;
+                    case "EXPIRED":
+                    case "FAILED":
+                    case "CANCELED":
+                        var message = status === "CANCELED"
+                            ? "The authorization was canceled"
+                            : "Something went wrong";
+                        _this.displayError(message);
+                        // these are all terminal states, so we end it here
+                        return _this.Promise.reject({
+                            allowUIToHandleError: true,
+                            reason: status,
+                        });
+                    case "SCANNED":
+                        _this.authorizing();
+                        break;
+                    case "APPROVED":
+                        _this.authorize();
+                        return _this.Promise.resolve(response);
+                    default:
+                    // any other statuses are irrelevant to the polling
+                    // and can just be ignored
+                }
+            }
+            return new _this.Promise(function (resolve, reject) {
+                setTimeout(function () {
+                    _this.pollForStatusChange(status, expiredTime)
+                        .then(resolve)
+                        .catch(reject);
+                }, VENMO_DESKTOP_POLLING_INTERVAL);
+            });
+        });
+    };
+    VenmoDesktop.prototype.teardown = function () {
+        this.bus.teardown();
+        if (this.iframe.parentNode) {
+            this.iframe.parentNode.removeChild(this.iframe);
+        }
+        if (this.alertBox.parentNode) {
+            this.alertBox.parentNode.removeChild(this.alertBox);
+        }
+    };
+    VenmoDesktop.prototype.setAlert = function (message) {
+        this.alertBox.style.display = message ? "block" : "none";
+        this.alertBox.textContent = message;
+    };
+    VenmoDesktop.prototype.createVenmoDesktopPaymentContext = function () {
+        var _this = this;
+        return this.apiRequest(queries_1.CREATE_VENMO_DESKTOP_PAYMENT_RESOURCE_QUERY, {
+            input: {
+                environment: this.env,
+                intent: "PAY_FROM_APP",
+            },
+        }).then(function (response) {
+            var context = response.createVenmoQRCodePaymentContext.venmoQRCodePaymentContext;
+            _this.venmoContextId = context.id;
+            return {
+                id: context.id,
+                status: context.status,
+                merchantId: context.merchantId,
+                createdAt: context.createdAt,
+                expiresAt: context.expiresAt,
+            };
+        });
+    };
+    VenmoDesktop.prototype.updateVenmoDesktopPaymentContext = function (status, additionalOptions) {
+        if (additionalOptions === void 0) { additionalOptions = {}; }
+        if (!this.venmoContextId) {
+            return this.Promise.resolve();
+        }
+        var data = {
+            input: __assign({ id: this.venmoContextId, status: status }, additionalOptions),
+        };
+        return this.apiRequest(queries_1.UPDATE_VENMO_DESKTOP_PAYMENT_RESOURCE_QUERY, data).then(function () {
+            // noop so we can resolve without any data to match the type
+        });
+    };
+    VenmoDesktop.prototype.lookupVenmoDesktopPaymentContext = function () {
+        if (!this.venmoContextId) {
+            return this.Promise.resolve();
+        }
+        return this.apiRequest(queries_1.VENMO_DESKTOP_PAYMENT_RESOURCE_STATUS_QUERY, {
+            id: this.venmoContextId,
+        }).then(function (response) {
+            return response.node;
+        });
+    };
+    return VenmoDesktop;
+}());
+exports.default = VenmoDesktop;
+
+},{"../shared/events":66,"./queries":60,"@braintree/iframer":17,"@braintree/uuid":21,"framebus":27}],62:[function(_dereq_,module,exports){
 'use strict';
 /** @module braintree-web/venmo */
 
@@ -1313,7 +2200,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var Venmo = _dereq_('./venmo');
 var Promise = _dereq_('../lib/promise');
 var supportsVenmo = _dereq_('./shared/supports-venmo');
-var VERSION = "3.69.0";
+var VERSION = "3.70.0";
 
 /**
  * @static
@@ -1330,6 +2217,14 @@ var VERSION = "3.69.0";
  * @example
  * braintree.venmo.create({
  *   client: clientInstance
+ * }).then(function (venmoInstance) {
+ *   // venmoInstance is ready to be used.
+ * }).catch(function (createErr) {
+ *   console.error('Error creating Venmo instance', createErr);
+ * });
+ * @example <caption>Allow desktop flow to be used</caption>
+ * braintree.venmo.create({
+ *   client: clientInstance,
  * }).then(function (venmoInstance) {
  *   // venmoInstance is ready to be used.
  * }).catch(function (createErr) {
@@ -1426,15 +2321,13 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/analytics":28,"../lib/basic-component-verification":30,"../lib/braintree-error":31,"../lib/create-assets-url":34,"../lib/create-deferred-client":36,"../lib/promise":41,"./shared/errors":47,"./shared/supports-venmo":48,"./venmo":49,"@braintree/wrap-promise":25}],45:[function(_dereq_,module,exports){
+},{"../lib/analytics":42,"../lib/basic-component-verification":44,"../lib/braintree-error":45,"../lib/create-assets-url":48,"../lib/create-deferred-client":50,"../lib/promise":56,"./shared/errors":65,"./shared/supports-venmo":67,"./venmo":68,"@braintree/wrap-promise":25}],63:[function(_dereq_,module,exports){
 'use strict';
 
 var isAndroid = _dereq_('@braintree/browser-detection/is-android');
 var isChrome = _dereq_('@braintree/browser-detection/is-chrome');
 var isIos = _dereq_('@braintree/browser-detection/is-ios');
 var isIosSafari = _dereq_('@braintree/browser-detection/is-ios-safari');
-var isSamsungBrowser = _dereq_('@braintree/browser-detection/is-samsung');
-var isMobileFirefox = _dereq_('@braintree/browser-detection/is-mobile-firefox');
 var isIosWebview = _dereq_('@braintree/browser-detection/is-ios-webview');
 
 function isAndroidWebview() {
@@ -1447,12 +2340,10 @@ module.exports = {
   isChrome: isChrome,
   isIos: isIos,
   isIosSafari: isIosSafari,
-  isIosWebview: isIosWebview,
-  isSamsungBrowser: isSamsungBrowser,
-  isMobileFirefox: isMobileFirefox
+  isIosWebview: isIosWebview
 };
 
-},{"@braintree/browser-detection/is-android":14,"@braintree/browser-detection/is-chrome":15,"@braintree/browser-detection/is-ios":18,"@braintree/browser-detection/is-ios-safari":16,"@braintree/browser-detection/is-ios-webview":17,"@braintree/browser-detection/is-mobile-firefox":19,"@braintree/browser-detection/is-samsung":20}],46:[function(_dereq_,module,exports){
+},{"@braintree/browser-detection/is-android":11,"@braintree/browser-detection/is-chrome":12,"@braintree/browser-detection/is-ios":15,"@braintree/browser-detection/is-ios-safari":13,"@braintree/browser-detection/is-ios-webview":14}],64:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -1461,7 +2352,7 @@ module.exports = {
   VENMO_OPEN_URL: 'https://venmo.com/braintree/checkout'
 };
 
-},{}],47:[function(_dereq_,module,exports){
+},{}],65:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -1478,6 +2369,8 @@ module.exports = {
  * @property {UNKNOWN} VENMO_APP_FAILED Occurs when tokenization fails.
  * @property {CUSTOMER} VENMO_APP_CANCELED Occurs when customer cancels flow from the Venmo app.
  * @property {CUSTOMER} VENMO_CANCELED Occurs when customer cancels the flow or Venmo app is not available.
+ * @property {CUSTOMER} VENMO_DESKTOP_CANCELED Occurs when customer cancels the Venmo Desktop flow by closing the modal.
+ * @property {UNKNOWN} VENMO_DESKTOP_UNKNOWN_ERROR Occurs when an unknown error causes the Venmo Desktop flow to fail.
  */
 
 var BraintreeError = _dereq_('../../lib/braintree-error');
@@ -1508,6 +2401,16 @@ module.exports = {
     code: 'VENMO_CANCELED',
     message: 'User canceled Venmo authorization, or Venmo app is not available.'
   },
+  VENMO_DESKTOP_CANCELED: {
+    type: BraintreeError.types.CUSTOMER,
+    code: 'VENMO_DESKTOP_CANCELED',
+    message: 'User canceled Venmo authorization by closing the Venmo Desktop modal.'
+  },
+  VENMO_DESKTOP_UNKNOWN_ERROR: {
+    type: BraintreeError.types.UNKNOWN,
+    code: 'VENMO_DESKTOP_UNKNOWN_ERROR',
+    message: 'Something went wrong with the Venmo Desktop flow.'
+  },
   VENMO_INVALID_PROFILE_ID: {
     type: BraintreeError.types.MERCHANT,
     code: 'VENMO_INVALID_PROFILE_ID',
@@ -1520,58 +2423,92 @@ module.exports = {
   }
 };
 
-},{"../../lib/braintree-error":31}],48:[function(_dereq_,module,exports){
+},{"../../lib/braintree-error":45}],66:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.VENMO_DESKTOP_UNKNOWN_ERROR = exports.VENMO_DESKTOP_REQUEST_NEW_QR_CODE = exports.VENMO_DESKTOP_CLOSED_FROM_PARENT = exports.VENMO_DESKTOP_IFRAME_READY = exports.VENMO_DESKTOP_DISPLAY_QR_CODE = exports.VENMO_DESKTOP_DISPLAY_ERROR = exports.VENMO_DESKTOP_CUSTOMER_CANCELED = exports.VENMO_DESKTOP_AUTHORIZATION_COMPLETED = exports.VENMO_DESKTOP_AUTHORIZING = exports.VENMO_DESKTOP_AUTHORIZE = exports.VENMO_DESKTOP_AUTHORIZATION_TIMED_OUT = void 0;
+exports.VENMO_DESKTOP_AUTHORIZATION_TIMED_OUT = "VENMO_DESKTOP_AUTHORIZATION_TIMED_OUT";
+exports.VENMO_DESKTOP_AUTHORIZE = "VENMO_DESKTOP_AUTHORIZE";
+exports.VENMO_DESKTOP_AUTHORIZING = "VENMO_DESKTOP_AUTHORIZING";
+exports.VENMO_DESKTOP_AUTHORIZATION_COMPLETED = "VENMO_DESKTOP_AUTHORIZATION_COMPLETED";
+exports.VENMO_DESKTOP_CUSTOMER_CANCELED = "VENMO_DESKTOP_CUSTOMER_CANCELED";
+exports.VENMO_DESKTOP_DISPLAY_ERROR = "VENMO_DESKTOP_DISPLAY_ERROR";
+exports.VENMO_DESKTOP_DISPLAY_QR_CODE = "VENMO_DESKTOP_DISPLAY_QR_CODE";
+exports.VENMO_DESKTOP_IFRAME_READY = "VENMO_DESKTOP_IFRAME_READY";
+exports.VENMO_DESKTOP_CLOSED_FROM_PARENT = "VENMO_DESKTOP_CLOSED_FROM_PARENT";
+exports.VENMO_DESKTOP_REQUEST_NEW_QR_CODE = "VENMO_DESKTOP_REQUEST_NEW_QR_CODE";
+exports.VENMO_DESKTOP_UNKNOWN_ERROR = "VENMO_DESKTOP_UNKNOWN_ERROR";
+
+},{}],67:[function(_dereq_,module,exports){
 'use strict';
 
 var browserDetection = _dereq_('./browser-detection');
 
 function isBrowserSupported(options) {
-  var allowNewBrowserTab, allowWebviews;
+  var merchantAllowsReturningToNewBrowserTab, merchantAllowsWebviews, merchantAllowsDesktopBrowsers;
   var isAndroid = browserDetection.isAndroid();
+  var isMobileDevice = isAndroid || browserDetection.isIos();
   var isAndroidChrome = isAndroid && browserDetection.isChrome();
-  var isIosChrome = browserDetection.isIos() && browserDetection.isChrome();
-  var supportsReturnToSameTab = browserDetection.isIosSafari() || isAndroidChrome;
-  var supportsReturnToNewTab = isIosChrome || browserDetection.isSamsungBrowser() || browserDetection.isMobileFirefox();
+  var isMobileDeviceThatSupportsReturnToSameTab = browserDetection.isIosSafari() || isAndroidChrome;
 
   options = options || {};
-  allowNewBrowserTab = options.hasOwnProperty('allowNewBrowserTab') ? options.allowNewBrowserTab : true;
+  // NEXT_MAJOR_VERSION allowDesktop will default to true, but can be opted out
+  merchantAllowsDesktopBrowsers = options.allowDesktop === true;
+  merchantAllowsReturningToNewBrowserTab = options.hasOwnProperty('allowNewBrowserTab') ? options.allowNewBrowserTab : true;
   // NEXT_MAJOR_VERSION webviews are not supported, except for the case where
   // the merchant themselves is presenting venmo in a webview using the deep
   // link url to get back to their app. For the next major version, we should
   // just not have this option and instead require the merchant to determine
   // if the venmo button should be displayed when presenting it in the
   // merchant's app via a webview.
-  allowWebviews = options.hasOwnProperty('allowWebviews') ? options.allowWebviews : true;
+  merchantAllowsWebviews = options.hasOwnProperty('allowWebviews') ? options.allowWebviews : true;
 
-  if (!allowWebviews && (browserDetection.isAndroidWebview() || browserDetection.isIosWebview())) {
+  if (!merchantAllowsWebviews && (browserDetection.isAndroidWebview() || browserDetection.isIosWebview())) {
     return false;
   }
 
-  if (!allowNewBrowserTab) {
-    return supportsReturnToSameTab;
+  if (!merchantAllowsReturningToNewBrowserTab) {
+    if (isMobileDeviceThatSupportsReturnToSameTab) {
+      return true;
+    }
+
+    return merchantAllowsDesktopBrowsers && !isMobileDevice;
   }
 
-  return supportsReturnToSameTab || supportsReturnToNewTab;
+  if (!merchantAllowsDesktopBrowsers) {
+    return isMobileDevice;
+  }
+
+  return true;
 }
 
 module.exports = {
   isBrowserSupported: isBrowserSupported
 };
 
-},{"./browser-detection":45}],49:[function(_dereq_,module,exports){
+},{"./browser-detection":63}],68:[function(_dereq_,module,exports){
 'use strict';
 
 var analytics = _dereq_('../lib/analytics');
 var isBrowserSupported = _dereq_('./shared/supports-venmo');
+var browserDetection = _dereq_('./shared/browser-detection');
 var constants = _dereq_('./shared/constants');
 var errors = _dereq_('./shared/errors');
 var querystring = _dereq_('../lib/querystring');
+var isVerifiedDomain = _dereq_('../lib/is-verified-domain');
 var methods = _dereq_('../lib/methods');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
 var ExtendedPromise = _dereq_('@braintree/extended-promise');
+// NEXT_MAJOR_VERSION the source code for this is actually in a
+// typescript repo called venmo-desktop, once the SDK is migrated
+// to typescript, we can move the TS files out of that separate
+// repo and into the web SDK properly
+var createVenmoDesktop = _dereq_('./external/');
+
+var VERSION = "3.70.0";
 
 /**
  * Venmo tokenize payload.
@@ -1589,12 +2526,55 @@ var ExtendedPromise = _dereq_('@braintree/extended-promise');
  * @classdesc This class represents a Venmo component produced by {@link module:braintree-web/venmo.create|braintree-web/venmo.create}. Instances of this class have methods for tokenizing Venmo payments.
  */
 function Venmo(options) {
+  var self = this;
+
   this._createPromise = options.createPromise;
   this._allowNewBrowserTab = options.allowNewBrowserTab !== false;
   this._allowWebviews = options.allowWebviews !== false;
+  this._allowDesktop = options.allowDesktop === true;
   this._profileId = options.profileId;
   this._deepLinkReturnUrl = options.deepLinkReturnUrl;
   this._ignoreHistoryChanges = options.ignoreHistoryChanges;
+  this._useDesktopFlow = this._allowDesktop && this._isDesktop();
+
+  analytics.sendEvent(this._createPromise, 'venmo.desktop-flow.configured.' + String(Boolean(this._allowDesktop)));
+
+  if (this._useDesktopFlow) {
+    this._createPromise = this._createPromise.then(function (client) {
+      var config = client.getConfiguration().gatewayConfiguration;
+
+      return createVenmoDesktop({
+        url: config.assetsUrl + '/web/' + VERSION + '/html/venmo-desktop-frame.html',
+        environment: config.environment === 'production' ? 'PRODUCTION' : 'SANDBOX',
+        Promise: Promise,
+        apiRequest: function (query, data) {
+          return client.request({
+            api: 'graphQLApi',
+            data: {
+              query: query,
+              variables: data
+            }
+          }).then(function (response) {
+            return response.data;
+          });
+        },
+        sendEvent: function (eventName) {
+          analytics.sendEvent(self._createPromise, eventName);
+        },
+        verifyDomain: isVerifiedDomain
+      }).then(function (venmoDesktopInstance) {
+        self._venmoDesktopInstance = venmoDesktopInstance;
+        analytics.sendEvent(self._createPromise, 'venmo.desktop-flow.presented');
+
+        return client;
+      }).catch(function () {
+        analytics.sendEvent(self._createPromise, 'venmo.desktop-flow.setup-failed');
+        self._useDesktopFlow = false;
+
+        return client;
+      });
+    });
+  }
 }
 
 Venmo.prototype.getUrl = function () {
@@ -1645,7 +2625,8 @@ Venmo.prototype.getUrl = function () {
 Venmo.prototype.isBrowserSupported = function () {
   return isBrowserSupported.isBrowserSupported({
     allowNewBrowserTab: this._allowNewBrowserTab,
-    allowWebviews: this._allowWebviews
+    allowWebviews: this._allowWebviews,
+    allowDesktop: this._allowDesktop
   });
 };
 
@@ -1667,6 +2648,10 @@ Venmo.prototype._hasTokenizationResult = function (hash) {
   var params = getFragmentParameters(hash);
 
   return typeof (params.venmoSuccess || params.venmoError || params.venmoCancel) !== 'undefined';
+};
+
+Venmo.prototype._isDesktop = function () {
+  return !(browserDetection.isIos() || browserDetection.isAndroid());
 };
 
 /**
@@ -1709,7 +2694,7 @@ Venmo.prototype._hasTokenizationResult = function (hash) {
  */
 Venmo.prototype.tokenize = function (options) {
   var self = this;
-  var resultProcessingInProgress, visibilityChangeListenerTimeout;
+  var tokenizationPromise;
 
   options = options || {};
 
@@ -1717,11 +2702,34 @@ Venmo.prototype.tokenize = function (options) {
     return Promise.reject(new BraintreeError(errors.VENMO_TOKENIZATION_REQUEST_ACTIVE));
   }
 
+  this._tokenizationInProgress = true;
+
+  if (this._useDesktopFlow) {
+    tokenizationPromise = this._tokenizeForDesktop(options);
+  } else {
+    tokenizationPromise = this._tokenizeForMobile(options);
+  }
+
+  return tokenizationPromise.then(function (payload) {
+    self._tokenizationInProgress = false;
+
+    return formatTokenizePayload(payload);
+  }).catch(function (err) {
+    self._tokenizationInProgress = false;
+
+    return Promise.reject(err);
+  });
+};
+
+Venmo.prototype._tokenizeForMobile = function (options) {
+  var self = this;
+  var resultProcessingInProgress, visibilityChangeListenerTimeout;
+
   if (this.hasTokenizationResult()) {
     return this._processResults();
   }
 
-  this._tokenizationInProgress = true;
+  analytics.sendEvent(this._createPromise, 'venmo.tokenize.mobile.start');
   this._tokenizePromise = new ExtendedPromise();
 
   this._previousHash = window.location.hash;
@@ -1757,7 +2765,6 @@ Venmo.prototype.tokenize = function (options) {
 
     resultProcessingInProgress = true;
     clearTimeout(visibilityChangeListenerTimeout);
-    self._tokenizationInProgress = false;
     completeFlow(hash);
   };
 
@@ -1770,8 +2777,6 @@ Venmo.prototype.tokenize = function (options) {
     var delay = options.processResultsDelay || constants.DEFAULT_PROCESS_RESULTS_DELAY;
 
     if (!window.document.hidden) {
-      self._tokenizationInProgress = false;
-
       if (!resultProcessingInProgress) {
         visibilityChangeListenerTimeout = setTimeout(completeFlow, delay);
       }
@@ -1805,6 +2810,46 @@ Venmo.prototype.tokenize = function (options) {
   });
 };
 
+Venmo.prototype._tokenizeForDesktop = function () {
+  var self = this;
+
+  analytics.sendEvent(this._createPromise, 'venmo.tokenize.desktop.start');
+
+  return this._createPromise.then(function () {
+    return self._venmoDesktopInstance.launchDesktopFlow();
+  }).then(function (payload) {
+    self._venmoDesktopInstance.hideDesktopFlow();
+
+    analytics.sendEvent(self._createPromise, 'venmo.tokenize.desktop.success');
+
+    return payload;
+  }).catch(function (err) {
+    analytics.sendEvent(self._createPromise, 'venmo.tokenize.desktop.failure');
+
+    if (self._venmoDesktopInstance) {
+      self._venmoDesktopInstance.hideDesktopFlow();
+    }
+
+    if (err && err.reason === 'CUSTOMER_CANCELED') {
+      return Promise.reject(new BraintreeError(errors.VENMO_DESKTOP_CANCELED));
+    }
+
+    return Promise.reject(new BraintreeError({
+      type: errors.VENMO_DESKTOP_UNKNOWN_ERROR.type,
+      code: errors.VENMO_DESKTOP_UNKNOWN_ERROR.code,
+      message: errors.VENMO_DESKTOP_UNKNOWN_ERROR.message,
+      details: {
+        originalError: err
+      }
+    }));
+  });
+};
+
+// TODO remove this once initial testing is done
+Venmo.prototype._updateVenmoDesktopPaymentContext = function (status, options) {
+  return this._venmoDesktopInstance.updateVenmoDesktopPaymentContext(status, options);
+};
+
 /**
  * Cleanly tear down anything set up by {@link module:braintree-web/venmo.create|create}.
  * @public
@@ -1818,10 +2863,17 @@ Venmo.prototype.tokenize = function (options) {
  * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 Venmo.prototype.teardown = function () {
-  this._removeVisibilityEventListener();
-  convertMethodsToError(this, methods(Venmo.prototype));
+  var self = this;
 
-  return Promise.resolve();
+  this._removeVisibilityEventListener();
+
+  return this._createPromise.then(function () {
+    if (self._venmoDesktopInstance) {
+      self._venmoDesktopInstance.teardown();
+    }
+
+    convertMethodsToError(this, methods(Venmo.prototype));
+  }.bind(this));
 };
 
 Venmo.prototype._removeVisibilityEventListener = function () {
@@ -1839,7 +2891,7 @@ Venmo.prototype._processResults = function (hash) {
   return new Promise(function (resolve, reject) {
     if (params.venmoSuccess) {
       analytics.sendEvent(self._createPromise, 'venmo.appswitch.handle.success');
-      resolve(formatTokenizePayload(params));
+      resolve(params);
     } else if (params.venmoError) {
       analytics.sendEvent(self._createPromise, 'venmo.appswitch.handle.error');
       reject(new BraintreeError({
@@ -1894,12 +2946,14 @@ function getFragmentParameters(hash) {
   }, {});
 }
 
-function formatTokenizePayload(fragmentParams) {
+function formatTokenizePayload(payload) {
   return {
-    nonce: fragmentParams.paymentMethodNonce,
+    nonce: payload.paymentMethodNonce,
     type: 'VenmoAccount',
     details: {
-      username: fragmentParams.username
+      // NEXT_MAJOR_VERSION the web sdks have a prepended @ sign
+      // but the ios and android ones do not. This should be standardized
+      username: payload.username
     }
   };
 }
@@ -1929,5 +2983,5 @@ function isIosWebview() {
 
 module.exports = wrapPromise.wrapPrototype(Venmo);
 
-},{"../lib/analytics":28,"../lib/braintree-error":31,"../lib/convert-methods-to-error":33,"../lib/methods":40,"../lib/promise":41,"../lib/querystring":42,"./shared/constants":46,"./shared/errors":47,"./shared/supports-venmo":48,"@braintree/extended-promise":21,"@braintree/wrap-promise":25}]},{},[44])(44)
+},{"../lib/analytics":42,"../lib/braintree-error":45,"../lib/convert-methods-to-error":47,"../lib/is-verified-domain":53,"../lib/methods":55,"../lib/promise":56,"../lib/querystring":57,"./external/":59,"./shared/browser-detection":63,"./shared/constants":64,"./shared/errors":65,"./shared/supports-venmo":67,"@braintree/extended-promise":16,"@braintree/wrap-promise":25}]},{},[62])(62)
 });
