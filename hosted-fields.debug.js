@@ -929,7 +929,7 @@ var cardTypes = {
     hiper: {
         niceType: "Hiper",
         type: "hiper",
-        patterns: [637095, 637568, 637599, 637609, 637612],
+        patterns: [637095, 63737423, 63743358, 637568, 637599, 637609, 637612],
         gaps: [4, 8, 12],
         lengths: [16],
         code: {
@@ -1498,6 +1498,54 @@ function finallyConstructor(callback) {
   );
 }
 
+function allSettled(arr) {
+  var P = this;
+  return new P(function(resolve, reject) {
+    if (!(arr && typeof arr.length !== 'undefined')) {
+      return reject(
+        new TypeError(
+          typeof arr +
+            ' ' +
+            arr +
+            ' is not iterable(cannot read property Symbol(Symbol.iterator))'
+        )
+      );
+    }
+    var args = Array.prototype.slice.call(arr);
+    if (args.length === 0) return resolve([]);
+    var remaining = args.length;
+
+    function res(i, val) {
+      if (val && (typeof val === 'object' || typeof val === 'function')) {
+        var then = val.then;
+        if (typeof then === 'function') {
+          then.call(
+            val,
+            function(val) {
+              res(i, val);
+            },
+            function(e) {
+              args[i] = { status: 'rejected', reason: e };
+              if (--remaining === 0) {
+                resolve(args);
+              }
+            }
+          );
+          return;
+        }
+      }
+      args[i] = { status: 'fulfilled', value: val };
+      if (--remaining === 0) {
+        resolve(args);
+      }
+    }
+
+    for (var i = 0; i < args.length; i++) {
+      res(i, args[i]);
+    }
+  });
+}
+
 // Store setTimeout reference so promise-polyfill will be unaffected by
 // other code modifying setTimeout (like sinon.useFakeTimers())
 var setTimeoutFunc = setTimeout;
@@ -1700,6 +1748,8 @@ Promise.all = function(arr) {
     }
   });
 };
+
+Promise.allSettled = allSettled;
 
 Promise.resolve = function(value) {
   if (value && typeof value === 'object' && value.constructor === Promise) {
@@ -3524,7 +3574,7 @@ var supportsInputFormatting = _dereq_('restricted-input/supports-input-formattin
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.70.0";
+var VERSION = "3.71.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -3548,7 +3598,7 @@ var VERSION = "3.70.0";
  * @property {(object|boolean)} [select] If truthy, this field becomes a `<select>` dropdown list. This can only be used for `expirationMonth` and `expirationYear` fields. If you do not use a `placeholder` property for the field, the current month/year will be the default selected value.
  * @property {string[]} [select.options] An array of 12 strings, one per month. This can only be used for the `expirationMonth` field. For example, the array can look like `['01 - January', '02 - February', ...]`.
  * @property {number} [maxCardLength] This option applies only to the number field. Allows a limit to the length of the card number, even if the card brand may support numbers of a greater length. If the value passed is greater than the max length for a card brand, the smaller number of the 2 values will be used. For example, is `maxCardLength` is set to 16, but an American Express card is entered (which has a max card length of 15), a max card length of 15 will be used.
- * @property {number} [maxlength] This option applies only to the CVV and postal code fields. Will be used as the `maxlength` attribute of the input if it is less than the default. The primary use cases for the `maxlength` option are: limiting the length of the CVV input for CVV-only verifications when the card type is known and limiting the length of the postal code input when cards are coming from a known region.
+ * @property {number} [maxlength] This option applies only to the CVV and postal code fields. Will be used as the `maxlength` attribute of the input. The primary use cases for the `maxlength` option are: limiting the length of the CVV input for CVV-only verifications when the card type is known and setting the length of the postal code input when cards are coming from a known region. The default `maxlength` for the postal code input is `10`.
  * @property {number} [minlength=3] This option applies only to the cvv and postal code fields. Will be used as the `minlength` attribute of the input.
  * For postal code fields, the default value is 3, representing the Icelandic postal code length. This option's primary use case is to increase the `minlength`, e.g. for US customers, the postal code `minlength` can be set to 5.
  * For cvv fields, the default value is 3. The `minlength` attribute only applies to integrations capturing a cvv without a number field.
@@ -3908,7 +3958,7 @@ module.exports = {
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.70.0";
+var VERSION = "3.71.0";
 
 var constants = {
   VERSION: VERSION,
@@ -4426,7 +4476,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.70.0";
+var VERSION = "3.71.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -4602,7 +4652,7 @@ module.exports = BraintreeError;
 },{"./enumerate":89}],83:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.70.0";
+var VERSION = "3.71.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -4729,7 +4779,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.70.0";
+var VERSION = "3.71.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();

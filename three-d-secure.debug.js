@@ -900,6 +900,54 @@ function finallyConstructor(callback) {
   );
 }
 
+function allSettled(arr) {
+  var P = this;
+  return new P(function(resolve, reject) {
+    if (!(arr && typeof arr.length !== 'undefined')) {
+      return reject(
+        new TypeError(
+          typeof arr +
+            ' ' +
+            arr +
+            ' is not iterable(cannot read property Symbol(Symbol.iterator))'
+        )
+      );
+    }
+    var args = Array.prototype.slice.call(arr);
+    if (args.length === 0) return resolve([]);
+    var remaining = args.length;
+
+    function res(i, val) {
+      if (val && (typeof val === 'object' || typeof val === 'function')) {
+        var then = val.then;
+        if (typeof then === 'function') {
+          then.call(
+            val,
+            function(val) {
+              res(i, val);
+            },
+            function(e) {
+              args[i] = { status: 'rejected', reason: e };
+              if (--remaining === 0) {
+                resolve(args);
+              }
+            }
+          );
+          return;
+        }
+      }
+      args[i] = { status: 'fulfilled', value: val };
+      if (--remaining === 0) {
+        resolve(args);
+      }
+    }
+
+    for (var i = 0; i < args.length; i++) {
+      res(i, args[i]);
+    }
+  });
+}
+
 // Store setTimeout reference so promise-polyfill will be unaffected by
 // other code modifying setTimeout (like sinon.useFakeTimers())
 var setTimeoutFunc = setTimeout;
@@ -1103,6 +1151,8 @@ Promise.all = function(arr) {
   });
 };
 
+Promise.allSettled = allSettled;
+
 Promise.resolve = function(value) {
   if (value && typeof value === 'object' && value.constructor === Promise) {
     return value;
@@ -1261,7 +1311,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.70.0";
+var VERSION = "3.71.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1391,7 +1441,7 @@ module.exports = BraintreeError;
 },{"./enumerate":43}],36:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.70.0";
+var VERSION = "3.71.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1540,7 +1590,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.70.0";
+var VERSION = "3.71.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1808,7 +1858,7 @@ var events = _dereq_('../../shared/events');
 var useMin = _dereq_('../../../lib/use-min');
 var BUS_CONFIGURATION_REQUEST_EVENT = _dereq_('../../../lib/constants').BUS_CONFIGURATION_REQUEST_EVENT;
 
-var VERSION = "3.70.0";
+var VERSION = "3.71.0";
 var IFRAME_HEIGHT = 400;
 var IFRAME_WIDTH = 400;
 
@@ -2491,7 +2541,7 @@ var ExtendedPromise = _dereq_('@braintree/extended-promise');
 
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var PLATFORM = _dereq_('../../../lib/constants').PLATFORM;
-var VERSION = "3.70.0";
+var VERSION = "3.71.0";
 var CUSTOMER_CANCELED_SONGBIRD_MODAL = '01';
 var SONGBIRD_UI_EVENTS = [
   'ui.close',
@@ -3183,7 +3233,7 @@ var FRAMEWORKS = _dereq_('./frameworks');
  * @property {string} [customer.billingAddress.streetAddress] Line 1 of the Address (eg. number, street, etc).
  * @property {string} [customer.billingAddress.extendedAddress] Line 2 of the Address (eg. suite, apt #, etc.).
  * @property {string} [customer.billingAddress.locality] The locality (city) name associated with the address.
- * @property {string} [customer.billingAddress.region] The 2 letter code for US states, and the equivalent for other countries.
+ * @property {string} [customer.billingAddress.region] The 2 letter code for US states or an ISO-3166-2 country subdivision code of up to three letters.
  * @property {string} [customer.billingAddress.postalCode] The zip code or equivalent for countries that have them.
  * @property {string} [customer.billingAddress.countryCodeAlpha2] The 2 character country code.
  * @property {string} [customer.billingAddress.phoneNumber] The phone number associated with the address. Only numbers; remove dashes, parenthesis and other characters.
@@ -3246,7 +3296,7 @@ var FRAMEWORKS = _dereq_('./frameworks');
  * @property {string} [extendedAddress] Line 2 of the billing address (eg. suite, apt #, etc.).
  * @property {string} [line3] Line 3 of the billing address if needed (eg. suite, apt #, etc).
  * @property {string} [locality] The locality (city) name associated with the billing address.
- * @property {string} [region] The 2 letter code for US states, and the equivalent for other countries.
+ * @property {string} [region] The 2 letter code for US states or an ISO-3166-2 country subdivision code of up to three letters.
  * @property {string} [postalCode] The zip code or equivalent for countries that have them.
  * @property {string} [countryCodeAlpha2] The 2 character country code.
 */
@@ -3261,7 +3311,7 @@ var FRAMEWORKS = _dereq_('./frameworks');
  * @property {string} [shippingAddress.extendedAddress] The last name associated with the shipping address.
  * @property {string} [shippingAddress.line3] Line 3 of the shipping address if needed (eg. suite, apt #, etc).
  * @property {string} [shippingAddress.locality] The locality (city) name associated with the shipping address.
- * @property {string} [shippingAddress.region] The 2 letter code for US states, and the equivalent for other countries.
+ * @property {string} [shippingAddress.region] The 2 letter code for US states or an ISO-3166-2 country subdivision code of up to three letters.
  * @property {string} [shippingAddress.postalCode] The zip code or equivalent for countries that have them.
  * @property {string} [shippingAddress.countryCodeAlpha2] The 2 character country code.
  * @property {string} [shippingPhone] The phone number associated with the shipping address. Only numbers; remove dashes, parenthesis and other characters.
@@ -3926,7 +3976,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.70.0";
+var VERSION = "3.71.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
