@@ -404,6 +404,9 @@ var Framebus = /** @class */ (function () {
         this.isDestroyed = false;
         this.listeners = [];
     }
+    Framebus.setPromise = function (PromiseGlobal) {
+        Framebus.Promise = PromiseGlobal;
+    };
     Framebus.target = function (options) {
         return new Framebus(options);
     };
@@ -445,6 +448,17 @@ var Framebus = /** @class */ (function () {
         }
         broadcast_1.broadcast(window.top || window.self, payload, origin);
         return true;
+    };
+    Framebus.prototype.emitAsPromise = function (eventName, data) {
+        var _this = this;
+        return new Framebus.Promise(function (resolve, reject) {
+            var didAttachListener = _this.emit(eventName, data, function (payload) {
+                resolve(payload);
+            });
+            if (!didAttachListener) {
+                reject(new Error("Listener not added for \"" + eventName + "\""));
+            }
+        });
     };
     Framebus.prototype.on = function (eventName, originalHandler) {
         if (this.isDestroyed) {
@@ -551,6 +565,7 @@ var Framebus = /** @class */ (function () {
         }
         return this.channel + ":" + eventName;
     };
+    Framebus.Promise = Promise;
     return Framebus;
 }());
 exports.Framebus = Framebus;
@@ -613,7 +628,7 @@ function broadcast(frame, payload, origin) {
     var frameToBroadcastTo;
     try {
         frame.postMessage(payload, origin);
-        if (has_opener_1.hasOpener(frame)) {
+        if (has_opener_1.hasOpener(frame) && frame.opener.top !== window.top) {
             broadcast(frame.opener.top, payload, origin);
         }
         // previously, our max value was frame.frames.length
@@ -1235,7 +1250,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.71.0";
+var VERSION = "3.71.1";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1365,7 +1380,7 @@ module.exports = BraintreeError;
 },{"./enumerate":39}],34:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.71.0";
+var VERSION = "3.71.1";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1492,7 +1507,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.71.0";
+var VERSION = "3.71.1";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1728,7 +1743,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.71.0";
+var VERSION = "3.71.1";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -1921,7 +1936,7 @@ var errors = _dereq_('./errors');
 var events = constants.events;
 var iFramer = _dereq_('@braintree/iframer');
 var methods = _dereq_('../../lib/methods');
-var VERSION = "3.71.0";
+var VERSION = "3.71.1";
 var uuid = _dereq_('@braintree/uuid');
 var Promise = _dereq_('../../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');

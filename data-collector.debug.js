@@ -664,7 +664,7 @@ var Promise = _dereq_('../lib/promise');
 
 var cachedSessionId;
 
-function setup() {
+function setup(environment) {
   var fraudNet = new Fraudnet();
 
   if (cachedSessionId) {
@@ -673,7 +673,7 @@ function setup() {
     return Promise.resolve(fraudNet);
   }
 
-  return fraudNet.initialize();
+  return fraudNet.initialize(environment);
 }
 
 function clearSessionIdCache() {
@@ -683,12 +683,12 @@ function clearSessionIdCache() {
 function Fraudnet() {
 }
 
-Fraudnet.prototype.initialize = function () {
+Fraudnet.prototype.initialize = function (environment) {
   var self = this;
 
   this.sessionId = cachedSessionId = _generateSessionId();
   this._beaconId = _generateBeaconId(this.sessionId);
-  this._parameterBlock = _createParameterBlock(this.sessionId, this._beaconId);
+  this._parameterBlock = _createParameterBlock(this.sessionId, this._beaconId, environment);
 
   return loadScript({
     src: FRAUDNET_URL
@@ -739,16 +739,26 @@ function _generateBeaconId(sessionId) {
     '&a=14';
 }
 
-function _createParameterBlock(sessionId, beaconId) {
+function _createParameterBlock(sessionId, beaconId, environment) {
   var el = document.body.appendChild(document.createElement('script'));
-
-  el.type = 'application/json';
-  el.setAttribute('fncls', FRAUDNET_FNCLS);
-  el.text = JSON.stringify({
+  var config = {
     f: sessionId,
     s: FRAUDNET_SOURCE,
     b: beaconId
-  });
+  };
+
+  // for some reason, the presence of the sandbox
+  // attribute in a production environment causes
+  // some weird behavior with what url paths are
+  // hit, so instead, we only apply this attribute
+  // when it is not a production environment
+  if (environment !== 'production') {
+    config.sandbox = true;
+  }
+
+  el.type = 'application/json';
+  el.setAttribute('fncls', FRAUDNET_FNCLS);
+  el.text = JSON.stringify(config);
 
   return el;
 }
@@ -770,7 +780,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var methods = _dereq_('../lib/methods');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
-var VERSION = "3.71.0";
+var VERSION = "3.71.1";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var errors = _dereq_('./errors');
@@ -899,9 +909,9 @@ function create(options) {
         data = {};
       }
 
-      return Promise.resolve();
-    }).then(function () {
-      return fraudnet.setup().then(function (fraudnetInstance) {
+      return Promise.resolve(client);
+    }).then(function (client) {
+      return fraudnet.setup(client.getConfiguration().gatewayConfiguration.environment).then(function (fraudnetInstance) {
         if (fraudnetInstance) {
           data.correlation_id = fraudnetInstance.sessionId; // eslint-disable-line camelcase
           result._instances.push(fraudnetInstance);
@@ -1146,7 +1156,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.71.0";
+var VERSION = "3.71.1";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1296,7 +1306,7 @@ module.exports = function (obj) {
 },{}],19:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.71.0";
+var VERSION = "3.71.1";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1377,7 +1387,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.71.0";
+var VERSION = "3.71.1";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
