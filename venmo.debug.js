@@ -1283,7 +1283,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":46,"./create-authorization-data":49,"./json-clone":54}],42:[function(_dereq_,module,exports){
+},{"./constants":46,"./create-authorization-data":49,"./json-clone":55}],42:[function(_dereq_,module,exports){
 'use strict';
 
 var Promise = _dereq_('./promise');
@@ -1319,7 +1319,7 @@ module.exports = {
   sendEvent: sendAnalyticsEvent
 };
 
-},{"./add-metadata":41,"./constants":46,"./promise":56}],43:[function(_dereq_,module,exports){
+},{"./add-metadata":41,"./constants":46,"./promise":57}],43:[function(_dereq_,module,exports){
 'use strict';
 
 var loadScript = _dereq_('@braintree/asset-loader/load-script');
@@ -1334,7 +1334,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.72.0";
+var VERSION = "3.73.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1376,7 +1376,7 @@ module.exports = {
   verify: basicComponentVerification
 };
 
-},{"./braintree-error":45,"./errors":52,"./promise":56}],45:[function(_dereq_,module,exports){
+},{"./braintree-error":45,"./errors":52,"./promise":57}],45:[function(_dereq_,module,exports){
 'use strict';
 
 var enumerate = _dereq_('./enumerate');
@@ -1464,7 +1464,7 @@ module.exports = BraintreeError;
 },{"./enumerate":51}],46:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.72.0";
+var VERSION = "3.73.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1583,7 +1583,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/constants":46,"../lib/vendor/polyfill":58}],50:[function(_dereq_,module,exports){
+},{"../lib/constants":46,"../lib/vendor/polyfill":59}],50:[function(_dereq_,module,exports){
 'use strict';
 
 var BraintreeError = _dereq_('./braintree-error');
@@ -1591,7 +1591,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.72.0";
+var VERSION = "3.73.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1635,7 +1635,7 @@ module.exports = {
   create: createDeferredClient
 };
 
-},{"./assets":43,"./braintree-error":45,"./errors":52,"./promise":56}],51:[function(_dereq_,module,exports){
+},{"./assets":43,"./braintree-error":45,"./errors":52,"./promise":57}],51:[function(_dereq_,module,exports){
 'use strict';
 
 function enumerate(values, prefix) {
@@ -1703,6 +1703,19 @@ module.exports = {
 },{"./braintree-error":45}],53:[function(_dereq_,module,exports){
 'use strict';
 
+module.exports = function inIframe(win) {
+  win = win || window;
+
+  try {
+    return win.self !== win.top;
+  } catch (e) {
+    return true;
+  }
+};
+
+},{}],54:[function(_dereq_,module,exports){
+'use strict';
+
 var parser;
 var legalHosts = {
   'paypal.com': 1,
@@ -1735,14 +1748,14 @@ function isVerifiedDomain(url) {
 
 module.exports = isVerifiedDomain;
 
-},{}],54:[function(_dereq_,module,exports){
+},{}],55:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],55:[function(_dereq_,module,exports){
+},{}],56:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (obj) {
@@ -1751,7 +1764,7 @@ module.exports = function (obj) {
   });
 };
 
-},{}],56:[function(_dereq_,module,exports){
+},{}],57:[function(_dereq_,module,exports){
 'use strict';
 
 var PromisePolyfill = _dereq_('promise-polyfill');
@@ -1765,7 +1778,7 @@ ExtendedPromise.setPromise(PromiseGlobal);
 
 module.exports = PromiseGlobal;
 
-},{"@braintree/extended-promise":16,"promise-polyfill":40}],57:[function(_dereq_,module,exports){
+},{"@braintree/extended-promise":16,"promise-polyfill":40}],58:[function(_dereq_,module,exports){
 'use strict';
 
 function _notEmpty(obj) {
@@ -1857,7 +1870,7 @@ module.exports = {
   queryify: queryify
 };
 
-},{}],58:[function(_dereq_,module,exports){
+},{}],59:[function(_dereq_,module,exports){
 'use strict';
 
 var atobNormalized = typeof atob === 'function' ? window.atob : atobPolyfill;
@@ -1896,7 +1909,7 @@ module.exports = {
   _atob: atobPolyfill
 };
 
-},{}],59:[function(_dereq_,module,exports){
+},{}],60:[function(_dereq_,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -1907,7 +1920,7 @@ module.exports = function createVenmoDesktop(options) {
     return instance.initialize();
 };
 
-},{"./venmo-desktop":61}],60:[function(_dereq_,module,exports){
+},{"./venmo-desktop":62}],61:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.VENMO_DESKTOP_PAYMENT_RESOURCE_STATUS_QUERY = exports.UPDATE_VENMO_DESKTOP_PAYMENT_RESOURCE_QUERY = exports.CREATE_VENMO_DESKTOP_PAYMENT_RESOURCE_QUERY = void 0;
@@ -1915,7 +1928,7 @@ exports.CREATE_VENMO_DESKTOP_PAYMENT_RESOURCE_QUERY = "mutation CreateVenmoQRCod
 exports.UPDATE_VENMO_DESKTOP_PAYMENT_RESOURCE_QUERY = "mutation UpdateVenmoQRCodePaymentContext($input: UpdateVenmoQRCodePaymentContextInput!) {\n  updateVenmoQRCodePaymentContext(input: $input) {\n    clientMutationId\n  }\n}";
 exports.VENMO_DESKTOP_PAYMENT_RESOURCE_STATUS_QUERY = "query PaymentContext($id: ID!) {\n  node(id: $id) {\n    ... on VenmoQRCodePaymentContext {\n      status\n      paymentMethodId\n      userName\n    }\n  }\n}";
 
-},{}],61:[function(_dereq_,module,exports){
+},{}],62:[function(_dereq_,module,exports){
 "use strict";
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
@@ -2251,7 +2264,7 @@ var VenmoDesktop = /** @class */ (function () {
 }());
 exports.default = VenmoDesktop;
 
-},{"../shared/events":66,"./queries":60,"@braintree/iframer":17,"@braintree/uuid":21,"framebus":27}],62:[function(_dereq_,module,exports){
+},{"../shared/events":67,"./queries":61,"@braintree/iframer":17,"@braintree/uuid":21,"framebus":27}],63:[function(_dereq_,module,exports){
 'use strict';
 /** @module braintree-web/venmo */
 
@@ -2265,7 +2278,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var Venmo = _dereq_('./venmo');
 var Promise = _dereq_('../lib/promise');
 var supportsVenmo = _dereq_('./shared/supports-venmo');
-var VERSION = "3.72.0";
+var VERSION = "3.73.0";
 
 /**
  * @static
@@ -2278,6 +2291,7 @@ var VERSION = "3.72.0";
  * @param {boolean} [options.ignoreHistoryChanges=false] When the Venmo app returns to the website, it will modify the hash of the url to include data about the tokenization. By default, the SDK will put the state of the hash back to where it was before the change was made. Pass `true` to handle the hash change instead of the SDK.
  * @param {string} [options.profileId] The Venmo profile ID to be used during payment authorization. Customers will see the business name and logo associated with this Venmo profile, and it will show up in the Venmo app as a "Connected Merchant". Venmo profile IDs can be found in the Braintree Control Panel. Omitting this value will use the default Venmo profile.
  * @param {string} [options.deepLinkReturnUrl] An override for the URL that the Venmo iOS app opens to return from an app switch.
+ * @param {boolean} [options.requireManualReturn=false] When `true`, the customer will have to manually switch back to the browser/webview that is presenting Venmo to complete the payment.
  * @param {callback} [callback] The second argument, `data`, is the {@link Venmo} instance. If no callback is provided, `create` returns a promise that resolves with the {@link Venmo} instance.
  * @example
  * braintree.venmo.create({
@@ -2338,13 +2352,9 @@ function create(options) {
 
     analytics.sendEvent(createPromise, 'venmo.initialized');
 
-    if (options.client) {
-      return createPromise.then(function () {
-        return instance;
-      });
-    }
-
-    return instance;
+    return createPromise.then(function () {
+      return instance;
+    });
   });
 }
 
@@ -2386,7 +2396,7 @@ module.exports = {
   VERSION: VERSION
 };
 
-},{"../lib/analytics":42,"../lib/basic-component-verification":44,"../lib/braintree-error":45,"../lib/create-assets-url":48,"../lib/create-deferred-client":50,"../lib/promise":56,"./shared/errors":65,"./shared/supports-venmo":67,"./venmo":68,"@braintree/wrap-promise":25}],63:[function(_dereq_,module,exports){
+},{"../lib/analytics":42,"../lib/basic-component-verification":44,"../lib/braintree-error":45,"../lib/create-assets-url":48,"../lib/create-deferred-client":50,"../lib/promise":57,"./shared/errors":66,"./shared/supports-venmo":68,"./venmo":69,"@braintree/wrap-promise":25}],64:[function(_dereq_,module,exports){
 'use strict';
 
 var isAndroid = _dereq_('@braintree/browser-detection/is-android');
@@ -2408,7 +2418,7 @@ module.exports = {
   isIosWebview: isIosWebview
 };
 
-},{"@braintree/browser-detection/is-android":11,"@braintree/browser-detection/is-chrome":12,"@braintree/browser-detection/is-ios":15,"@braintree/browser-detection/is-ios-safari":13,"@braintree/browser-detection/is-ios-webview":14}],64:[function(_dereq_,module,exports){
+},{"@braintree/browser-detection/is-android":11,"@braintree/browser-detection/is-chrome":12,"@braintree/browser-detection/is-ios":15,"@braintree/browser-detection/is-ios-safari":13,"@braintree/browser-detection/is-ios-webview":14}],65:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -2417,7 +2427,7 @@ module.exports = {
   VENMO_OPEN_URL: 'https://venmo.com/braintree/checkout'
 };
 
-},{}],65:[function(_dereq_,module,exports){
+},{}],66:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -2425,17 +2435,25 @@ module.exports = {
  * @description Errors that occur when [creating the Venmo component](/current/module-braintree-web_venmo.html#.create).
  * @property {MERCHANT} VENMO_NOT_ENABLED Occurs when Venmo is not enabled on the Braintree control panel.
  * @property {MERCHANT} VENMO_INVALID_PROFILE_ID Occurs when Venmo is intilaized with a profile id, but it is invalid.
+ * @property {UNKNOWN} VENMO_MOBILE_POLLING_SETUP_FAILED Occurs when enabling mobile polling alternative for tokenization fails.
  */
 
 /**
  * @name BraintreeError.Venmo - tokenize Error Codes
  * @description Errors that occur when using the [`tokenize` method](/current/Venmo.html#tokenize).
  * @property {MERCHANT} VENMO_TOKENIZATION_REQUEST_ACTIVE Occurs when `tokenize` is called when the flow is already in progress.
+ * @property {MERCHANT} VENMO_TOKENIZATION_REQUEST_NOT_ACTIVE Occurs when `cancelTokenization` is called when the flow is not in progress.
  * @property {UNKNOWN} VENMO_APP_FAILED Occurs when tokenization fails.
  * @property {CUSTOMER} VENMO_APP_CANCELED Occurs when customer cancels flow from the Venmo app.
  * @property {CUSTOMER} VENMO_CANCELED Occurs when customer cancels the flow or Venmo app is not available.
  * @property {CUSTOMER} VENMO_DESKTOP_CANCELED Occurs when customer cancels the Venmo Desktop flow by closing the modal.
+ * @property {MERCHANT} VENMO_TOKENIZATION_CANCELED_BY_MERCHANT Occurs when `cancelTokenization` is called while tokenization is in progress.
  * @property {UNKNOWN} VENMO_DESKTOP_UNKNOWN_ERROR Occurs when an unknown error causes the Venmo Desktop flow to fail.
+ * @property {UNKNOWN} VENMO_MOBILE_POLLING_TOKENIZATION_NETWORK_ERROR Occurs when an unknown network error causes the mobile polling process to fail.
+ * @property {CUSTOMER} VENMO_MOBILE_POLLING_TOKENIZATION_EXPIRED Occurs when the polling has expired and the payment cannot be completed.
+ * @property {CUSTOMER} VENMO_MOBILE_POLLING_TOKENIZATION_CANCELED Occurs when the polling operation is canceled by the customer.
+ * @property {CUSTOMER} VENMO_MOBILE_POLLING_TOKENIZATION_TIMEOUT Occurs when customer takes too long to complete payment.
+ * @property {UNKNOWN} VENMO_MOBILE_POLLING_TOKENIZATION_FAILED Occurs if there is an unknown error during the mobile polling process.
  */
 
 var BraintreeError = _dereq_('../../lib/braintree-error');
@@ -2450,6 +2468,11 @@ module.exports = {
     type: BraintreeError.types.MERCHANT,
     code: 'VENMO_TOKENIZATION_REQUEST_ACTIVE',
     message: 'Another tokenization request is active.'
+  },
+  VENMO_TOKENIZATION_REQUEST_NOT_ACTIVE: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'VENMO_TOKENIZATION_REQUEST_NOT_ACTIVE',
+    message: 'No tokenization in progress.'
   },
   VENMO_APP_FAILED: {
     type: BraintreeError.types.UNKNOWN,
@@ -2471,10 +2494,45 @@ module.exports = {
     code: 'VENMO_DESKTOP_CANCELED',
     message: 'User canceled Venmo authorization by closing the Venmo Desktop modal.'
   },
+  VENMO_TOKENIZATION_CANCELED_BY_MERCHANT: {
+    type: BraintreeError.types.MERCHANT,
+    code: 'VENMO_TOKENIZATION_CANCELED_BY_MERCHANT',
+    message: 'The Venmo tokenization was canceled by the merchant.'
+  },
   VENMO_DESKTOP_UNKNOWN_ERROR: {
     type: BraintreeError.types.UNKNOWN,
     code: 'VENMO_DESKTOP_UNKNOWN_ERROR',
     message: 'Something went wrong with the Venmo Desktop flow.'
+  },
+  VENMO_MOBILE_POLLING_SETUP_FAILED: {
+    type: BraintreeError.types.UNKNOWN,
+    code: 'VENMO_MOBILE_POLLING_SETUP_FAILED',
+    message: 'Something went wrong setting up Venmo for mobile polling.'
+  },
+  VENMO_MOBILE_POLLING_TOKENIZATION_NETWORK_ERROR: {
+    type: BraintreeError.types.UNKNOWN,
+    code: 'VENMO_MOBILE_POLLING_TOKENIZATION_NETWORK_ERROR',
+    message: 'Something went wrong during mobile polling.'
+  },
+  VENMO_MOBILE_POLLING_TOKENIZATION_EXPIRED: {
+    type: BraintreeError.types.CUSTOMER,
+    code: 'VENMO_MOBILE_POLLING_TOKENIZATION_EXPIRED',
+    message: 'The Venmo authorization request is expired.'
+  },
+  VENMO_MOBILE_POLLING_TOKENIZATION_CANCELED: {
+    type: BraintreeError.types.CUSTOMER,
+    code: 'VENMO_MOBILE_POLLING_TOKENIZATION_CANCELED',
+    message: 'The Venmo authorization was canceled'
+  },
+  VENMO_MOBILE_POLLING_TOKENIZATION_TIMEOUT: {
+    type: BraintreeError.types.CUSTOMER,
+    code: 'VENMO_MOBILE_POLLING_TOKENIZATION_TIMEOUT',
+    message: 'Customer took too long to authorize Venmo payment.'
+  },
+  VENMO_MOBILE_POLLING_TOKENIZATION_FAILED: {
+    type: BraintreeError.types.UNKNOWN,
+    code: 'VENMO_MOBILE_POLLING_TOKENIZATION_FAILED',
+    message: 'The Venmo authorization failed.'
   },
   VENMO_INVALID_PROFILE_ID: {
     type: BraintreeError.types.MERCHANT,
@@ -2488,7 +2546,7 @@ module.exports = {
   }
 };
 
-},{"../../lib/braintree-error":45}],66:[function(_dereq_,module,exports){
+},{"../../lib/braintree-error":45}],67:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.VENMO_DESKTOP_UNKNOWN_ERROR = exports.VENMO_DESKTOP_REQUEST_NEW_QR_CODE = exports.VENMO_DESKTOP_CLOSED_FROM_PARENT = exports.VENMO_DESKTOP_IFRAME_READY = exports.VENMO_DESKTOP_DISPLAY_QR_CODE = exports.VENMO_DESKTOP_DISPLAY_ERROR = exports.VENMO_DESKTOP_CUSTOMER_CANCELED = exports.VENMO_DESKTOP_AUTHORIZATION_COMPLETED = exports.VENMO_DESKTOP_AUTHORIZING = exports.VENMO_DESKTOP_AUTHORIZE = exports.VENMO_DESKTOP_AUTHORIZATION_TIMED_OUT = void 0;
@@ -2504,7 +2562,7 @@ exports.VENMO_DESKTOP_CLOSED_FROM_PARENT = "VENMO_DESKTOP_CLOSED_FROM_PARENT";
 exports.VENMO_DESKTOP_REQUEST_NEW_QR_CODE = "VENMO_DESKTOP_REQUEST_NEW_QR_CODE";
 exports.VENMO_DESKTOP_UNKNOWN_ERROR = "VENMO_DESKTOP_UNKNOWN_ERROR";
 
-},{}],67:[function(_dereq_,module,exports){
+},{}],68:[function(_dereq_,module,exports){
 'use strict';
 
 var browserDetection = _dereq_('./browser-detection');
@@ -2551,7 +2609,7 @@ module.exports = {
   isBrowserSupported: isBrowserSupported
 };
 
-},{"./browser-detection":63}],68:[function(_dereq_,module,exports){
+},{"./browser-detection":64}],69:[function(_dereq_,module,exports){
 'use strict';
 
 var analytics = _dereq_('../lib/analytics');
@@ -2565,6 +2623,7 @@ var methods = _dereq_('../lib/methods');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
+var inIframe = _dereq_('../lib/in-iframe');
 var Promise = _dereq_('../lib/promise');
 var ExtendedPromise = _dereq_('@braintree/extended-promise');
 // NEXT_MAJOR_VERSION the source code for this is actually in a
@@ -2572,8 +2631,11 @@ var ExtendedPromise = _dereq_('@braintree/extended-promise');
 // to typescript, we can move the TS files out of that separate
 // repo and into the web SDK properly
 var createVenmoDesktop = _dereq_('./external/');
+var graphqlQueries = _dereq_('./external/queries');
 
-var VERSION = "3.72.0";
+var VERSION = "3.73.0";
+var DEFAULT_MOBILE_POLLING_INTERVAL = 250; // 1/4 second
+var DEFAULT_MOBILE_EXPIRING_THRESHOLD = 300000; // 5 minutes
 
 /**
  * Venmo tokenize payload.
@@ -2597,10 +2659,12 @@ function Venmo(options) {
   this._allowNewBrowserTab = options.allowNewBrowserTab !== false;
   this._allowWebviews = options.allowWebviews !== false;
   this._allowDesktop = options.allowDesktop === true;
+  this._requireManualReturn = options.requireManualReturn === true;
   this._profileId = options.profileId;
   this._deepLinkReturnUrl = options.deepLinkReturnUrl;
   this._ignoreHistoryChanges = options.ignoreHistoryChanges;
   this._useDesktopFlow = this._allowDesktop && this._isDesktop();
+  this._useMobilePollingStrategy = inIframe() || this._requireManualReturn;
 
   analytics.sendEvent(this._createPromise, 'venmo.desktop-flow.configured.' + String(Boolean(this._allowDesktop)));
 
@@ -2639,20 +2703,61 @@ function Venmo(options) {
         return client;
       });
     });
+  } else if (this._useMobilePollingStrategy) {
+    this._mobilePollingInterval = DEFAULT_MOBILE_POLLING_INTERVAL;
+    this._mobilePollingExpiresThreshold = DEFAULT_MOBILE_EXPIRING_THRESHOLD;
+    this._createPromise = this._createPromise.then(function (client) {
+      var config = client.getConfiguration().gatewayConfiguration;
+
+      self._mobilePollingContextEnvironment = config.environment.toUpperCase();
+
+      return client.request({
+        api: 'graphQLApi',
+        data: {
+          query: graphqlQueries.CREATE_VENMO_DESKTOP_PAYMENT_RESOURCE_QUERY,
+          variables: {
+            input: {
+              environment: self._mobilePollingContextEnvironment,
+              intent: 'PAY_FROM_APP'
+            }
+          }
+        }
+      }).then(function (response) {
+        var context = response.data.createVenmoQRCodePaymentContext.venmoQRCodePaymentContext;
+
+        self._mobilePollingContextStatus = context.status;
+        self._mobilePollingContextId = context.id;
+        // TODO should maybe do polling here at the halfway point for expiration
+        // and recreate the payment context id, and abort if at any time before
+        // the payment context switch happens if tokenization is in progress
+
+        analytics.sendEvent(self._createPromise, 'venmo.mobile-polling.presented');
+
+        return client;
+      }).catch(function (err) {
+        analytics.sendEvent(self._createPromise, 'venmo.mobile-polling.setup-failed');
+
+        return Promise.reject(new BraintreeError({
+          type: errors.VENMO_MOBILE_POLLING_SETUP_FAILED.type,
+          code: errors.VENMO_MOBILE_POLLING_SETUP_FAILED.code,
+          message: errors.VENMO_MOBILE_POLLING_SETUP_FAILED.message,
+          details: {
+            originalError: err
+          }
+        }));
+      });
+    });
   }
 }
 
 Venmo.prototype.getUrl = function () {
-  if (this._url) {
-    return Promise.resolve(this._url);
-  }
-
   return this._createPromise.then(function (client) {
     var configuration = client.getConfiguration();
     var params = {};
     var currentUrl = this._deepLinkReturnUrl || window.location.href.replace(window.location.hash, '');
     var venmoConfiguration = configuration.gatewayConfiguration.payWithVenmo;
     var analyticsMetadata = configuration.analyticsMetadata;
+    var accessToken = venmoConfiguration.accessToken;
     var braintreeData = {
       _meta: {
         version: analyticsMetadata.sdkVersion,
@@ -2662,20 +2767,28 @@ Venmo.prototype.getUrl = function () {
       }
     };
 
-    params['x-success'] = currentUrl + '#venmoSuccess=1';
-    params['x-cancel'] = currentUrl + '#venmoCancel=1';
-    params['x-error'] = currentUrl + '#venmoError=1';
+    if (this._mobilePollingContextId) {
+      accessToken += '|pcid:' + this._mobilePollingContextId;
+    }
+
+    if (this._shouldIncludeReturnUrls()) {
+      params['x-success'] = currentUrl + '#venmoSuccess=1';
+      params['x-cancel'] = currentUrl + '#venmoCancel=1';
+      params['x-error'] = currentUrl + '#venmoError=1';
+    } else {
+      params['x-success'] = 'NOOP';
+      params['x-cancel'] = 'NOOP';
+      params['x-error'] = 'NOOP';
+    }
     params.ua = window.navigator.userAgent;
     /* eslint-disable camelcase */
     params.braintree_merchant_id = this._profileId || venmoConfiguration.merchantId;
-    params.braintree_access_token = venmoConfiguration.accessToken;
+    params.braintree_access_token = accessToken;
     params.braintree_environment = venmoConfiguration.environment;
     params.braintree_sdk_data = btoa(JSON.stringify(braintreeData));
     /* eslint-enable camelcase */
 
-    this._url = constants.VENMO_OPEN_URL + '?' + querystring.stringify(params);
-
-    return this._url;
+    return constants.VENMO_OPEN_URL + '?' + querystring.stringify(params);
   }.bind(this));
 };
 
@@ -2713,6 +2826,22 @@ Venmo.prototype._hasTokenizationResult = function (hash) {
   var params = getFragmentParameters(hash);
 
   return typeof (params.venmoSuccess || params.venmoError || params.venmoCancel) !== 'undefined';
+};
+
+Venmo.prototype._shouldIncludeReturnUrls = function () {
+  // when a deep link return url is passed, we should always
+  // respect it and include the return urls so the venmo app
+  // can app switch back to it
+  if (this._deepLinkReturnUrl) {
+    return true;
+  }
+
+  // when the sdk is initialized within an iframe, it's
+  // impossible to return back to the correct place automatically
+  // without also setting a deepLinkReturnUrl. When the return
+  // urls are omitted, the Venmo app prompts the user to return
+  // manually.
+  return !this._useMobilePollingStrategy;
 };
 
 Venmo.prototype._isDesktop = function () {
@@ -2770,9 +2899,31 @@ Venmo.prototype.tokenize = function (options) {
   this._tokenizationInProgress = true;
 
   if (this._useDesktopFlow) {
+    // for the desktop flow, we create a venmo payment
+    // context and then present a qr code modal to the
+    // customer and they will open up their venmo app
+    // and scan it and approve the purchase on their
+    // mobile device. The sdk will start polling
+    // in order to determine when the status of the
+    // payment context has updated and then pass the
+    // resulting nonce back to the merchant.
     tokenizationPromise = this._tokenizeForDesktop(options);
+  } else if (this._useMobilePollingStrategy) {
+    // when the sdk is in an iframe, venmo cannot app
+    // switch back with the nonce params encoded in
+    // the hash like the normal mobile flow, so instead
+    // we create a venmo payment context and instruct
+    // the venmo app to update it with a nonce. We then
+    // do polling on the sdk to get updates on the
+    // payment context status, and return back the
+    // nonce when we receive it.
+    tokenizationPromise = this._tokenizeForMobileWithPolling();
   } else {
-    tokenizationPromise = this._tokenizeForMobile(options);
+    // the normal mobile flow is to app switch to the
+    // venmo app, and then have the venmo app switch
+    // back to the page with the venmo nonce details
+    // encoded into the hash portion of the url
+    tokenizationPromise = this._tokenizeForMobileWithHashChangeListeners(options);
   }
 
   return tokenizationPromise.then(function (payload) {
@@ -2786,7 +2937,146 @@ Venmo.prototype.tokenize = function (options) {
   });
 };
 
-Venmo.prototype._tokenizeForMobile = function (options) {
+/**
+ * Cancels the venmo tokenization process
+ *
+ * @public
+ * @returns {(Promise|void)} Returns a promise if no callback is provided.
+ * @example
+ * venmoTokenizeButton.addEventListener('click', function () {
+ *   venmoInstance.tokenize().then(function (payload) {
+ *     // handle payload
+ *   }).catch(function (err) {
+ *     if (err.code === 'VENMO_TOKENIZATION_CANCELED_BY_MERCHANT') {
+ *       // tokenization was canceled by calling cancelTokenization
+ *     }
+ *   });
+ * });
+ *
+ * venmoCancelButton.addEventListener('click', function () {
+ *   // Hide the button when the venmo flow is not in progress
+ *   venmoCancelButton.style.display = "none";
+ *
+ *   venmoInstance.cancelTokenization().then(function () {
+ *     // done canceling the flow
+ *   }).catch(function (err) {
+ *     // should only get here if there is no tokenization in progress
+ *   });
+ * });
+ */
+Venmo.prototype.cancelTokenization = function () {
+  if (!this._tokenizationInProgress) {
+    return Promise.reject(new BraintreeError(errors.VENMO_TOKENIZATION_REQUEST_NOT_ACTIVE));
+  }
+
+  this._removeVisibilityEventListener();
+
+  // important to reject the tokenization promise first
+  // so the tokenize method rejects with this error
+  // rather than a customer canceled error in the mobile
+  // polling and desktop flows
+  if (this._tokenizePromise) {
+    this._tokenizePromise.reject(new BraintreeError(errors.VENMO_TOKENIZATION_CANCELED_BY_MERCHANT));
+  }
+
+  return Promise.all([
+    this._cancelMobilePollingContext(),
+    this._cancelVenmoDesktopContext()
+  ]);
+};
+
+Venmo.prototype._pollForStatusChange = function () {
+  var self = this;
+
+  if (Date.now() > self._mobilePollingContextExpiresIn) {
+    return Promise.reject(new BraintreeError(errors.VENMO_MOBILE_POLLING_TOKENIZATION_TIMEOUT));
+  }
+
+  return this._createPromise.then(function (client) {
+    return client.request({
+      api: 'graphQLApi',
+      data: {
+        query: graphqlQueries.VENMO_DESKTOP_PAYMENT_RESOURCE_STATUS_QUERY,
+        variables: {
+          id: self._mobilePollingContextId
+        }
+      }
+    });
+  }).catch(function (networkError) {
+    return Promise.reject(new BraintreeError({
+      type: errors.VENMO_MOBILE_POLLING_TOKENIZATION_NETWORK_ERROR.type,
+      code: errors.VENMO_MOBILE_POLLING_TOKENIZATION_NETWORK_ERROR.code,
+      message: errors.VENMO_MOBILE_POLLING_TOKENIZATION_NETWORK_ERROR.message,
+      details: {
+        originalError: networkError
+      }
+    }));
+  }).then(function (response) {
+    var node = response.data.node;
+    var newStatus = node.status;
+
+    if (newStatus !== self._mobilePollingContextStatus) {
+      self._mobilePollingContextStatus = newStatus;
+
+      analytics.sendEvent(self._createPromise, 'venmo.tokenize.mobile-polling.status-change.' + newStatus.toLowerCase());
+
+      switch (newStatus) {
+        case 'EXPIRED':
+        case 'FAILED':
+        case 'CANCELED':
+          return Promise.reject(new BraintreeError(errors['VENMO_MOBILE_POLLING_TOKENIZATION_' + newStatus]));
+        case 'APPROVED':
+          return Promise.resolve(node);
+        case 'CREATED':
+        case 'SCANNED':
+        default:
+          // any other statuses are irrelevant to the polling
+          // and can just be ignored
+      }
+    }
+
+    return new Promise(function (resolve, reject) {
+      setTimeout(function () {
+        self._pollForStatusChange()
+          .then(resolve)
+          .catch(reject);
+      }, self._mobilePollingInterval);
+    });
+  });
+};
+
+Venmo.prototype._tokenizeForMobileWithPolling = function () {
+  var self = this;
+
+  analytics.sendEvent(this._createPromise, 'venmo.tokenize.mobile-polling.start');
+
+  this._mobilePollingContextExpiresIn = Date.now() + this._mobilePollingExpiresThreshold;
+  this._tokenizePromise = new ExtendedPromise();
+
+  this._pollForStatusChange().then(function (payload) {
+    analytics.sendEvent(self._createPromise, 'venmo.tokenize.mobile-polling.success');
+
+    self._tokenizePromise.resolve({
+      paymentMethodNonce: payload.paymentMethodId,
+      username: '@' + (payload.userName || '').replace('@', '')
+    });
+
+    // TODO should create a new payment context in case the customer authorizes again
+  }).catch(function (err) {
+    analytics.sendEvent(self._createPromise, 'venmo.tokenize.mobile-polling.failure');
+
+    self._tokenizePromise.reject(err);
+  });
+
+  return this.getUrl().then(function (url) {
+    analytics.sendEvent(self._createPromise, 'venmo.appswitch.start.browser');
+    window.open(url);
+
+    return self._tokenizePromise;
+  });
+};
+
+Venmo.prototype._tokenizeForMobileWithHashChangeListeners = function (options) {
   var self = this;
   var resultProcessingInProgress, visibilityChangeListenerTimeout;
 
@@ -2880,14 +3170,16 @@ Venmo.prototype._tokenizeForDesktop = function () {
 
   analytics.sendEvent(this._createPromise, 'venmo.tokenize.desktop.start');
 
-  return this._createPromise.then(function () {
+  this._tokenizePromise = new ExtendedPromise();
+
+  this._createPromise.then(function () {
     return self._venmoDesktopInstance.launchDesktopFlow();
   }).then(function (payload) {
     self._venmoDesktopInstance.hideDesktopFlow();
 
     analytics.sendEvent(self._createPromise, 'venmo.tokenize.desktop.success');
 
-    return payload;
+    self._tokenizePromise.resolve(payload);
   }).catch(function (err) {
     analytics.sendEvent(self._createPromise, 'venmo.tokenize.desktop.failure');
 
@@ -2896,10 +3188,12 @@ Venmo.prototype._tokenizeForDesktop = function () {
     }
 
     if (err && err.reason === 'CUSTOMER_CANCELED') {
-      return Promise.reject(new BraintreeError(errors.VENMO_DESKTOP_CANCELED));
+      self._tokenizePromise.reject(new BraintreeError(errors.VENMO_DESKTOP_CANCELED));
+
+      return;
     }
 
-    return Promise.reject(new BraintreeError({
+    self._tokenizePromise.reject(new BraintreeError({
       type: errors.VENMO_DESKTOP_UNKNOWN_ERROR.type,
       code: errors.VENMO_DESKTOP_UNKNOWN_ERROR.code,
       message: errors.VENMO_DESKTOP_UNKNOWN_ERROR.message,
@@ -2908,11 +3202,48 @@ Venmo.prototype._tokenizeForDesktop = function () {
       }
     }));
   });
+
+  return this._tokenizePromise;
 };
 
 // TODO remove this once initial testing is done
 Venmo.prototype._updateVenmoDesktopPaymentContext = function (status, options) {
   return this._venmoDesktopInstance.updateVenmoDesktopPaymentContext(status, options);
+};
+
+Venmo.prototype._cancelMobilePollingContext = function () {
+  var self = this;
+
+  return this._createPromise.then(function (client) {
+    if (self._mobilePollingContextId) {
+      return client.request({
+        api: 'graphQLApi',
+        data: {
+          query: graphqlQueries.UPDATE_VENMO_DESKTOP_PAYMENT_RESOURCE_QUERY,
+          variables: {
+            input: {
+              id: self._mobilePollingContextId,
+              status: 'CANCELED'
+            }
+          }
+        }
+      });
+    }
+
+    return Promise.resolve();
+  });
+};
+
+Venmo.prototype._cancelVenmoDesktopContext = function () {
+  var self = this;
+
+  return this._createPromise.then(function () {
+    if (self._venmoDesktopInstance) {
+      self._venmoDesktopInstance.updateVenmoDesktopPaymentContext('CANCELED');
+    }
+
+    return Promise.resolve();
+  });
 };
 
 /**
@@ -2936,6 +3267,8 @@ Venmo.prototype.teardown = function () {
     if (self._venmoDesktopInstance) {
       self._venmoDesktopInstance.teardown();
     }
+
+    self._cancelMobilePollingContext();
 
     convertMethodsToError(this, methods(Venmo.prototype));
   }.bind(this));
@@ -3048,5 +3381,5 @@ function isIosWebview() {
 
 module.exports = wrapPromise.wrapPrototype(Venmo);
 
-},{"../lib/analytics":42,"../lib/braintree-error":45,"../lib/convert-methods-to-error":47,"../lib/is-verified-domain":53,"../lib/methods":55,"../lib/promise":56,"../lib/querystring":57,"./external/":59,"./shared/browser-detection":63,"./shared/constants":64,"./shared/errors":65,"./shared/supports-venmo":67,"@braintree/extended-promise":16,"@braintree/wrap-promise":25}]},{},[62])(62)
+},{"../lib/analytics":42,"../lib/braintree-error":45,"../lib/convert-methods-to-error":47,"../lib/in-iframe":53,"../lib/is-verified-domain":54,"../lib/methods":56,"../lib/promise":57,"../lib/querystring":58,"./external/":60,"./external/queries":61,"./shared/browser-detection":64,"./shared/constants":65,"./shared/errors":66,"./shared/supports-venmo":68,"@braintree/extended-promise":16,"@braintree/wrap-promise":25}]},{},[63])(63)
 });
