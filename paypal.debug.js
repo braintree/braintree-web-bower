@@ -539,6 +539,8 @@ var subscription_args_invalid_1 = _dereq_("./lib/subscription-args-invalid");
 var broadcast_1 = _dereq_("./lib/broadcast");
 var package_payload_1 = _dereq_("./lib/package-payload");
 var constants_1 = _dereq_("./lib/constants");
+var DefaultPromise = (typeof window !== "undefined" &&
+    window.Promise);
 var Framebus = /** @class */ (function () {
     function Framebus(options) {
         if (options === void 0) { options = {}; }
@@ -709,7 +711,7 @@ var Framebus = /** @class */ (function () {
         }
         return this.channel + ":" + eventName;
     };
-    Framebus.Promise = Promise;
+    Framebus.Promise = DefaultPromise;
     return Framebus;
 }());
 exports.Framebus = Framebus;
@@ -1419,7 +1421,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.73.0";
+var VERSION = "3.73.1";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1549,7 +1551,7 @@ module.exports = BraintreeError;
 },{"./enumerate":57}],50:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.73.0";
+var VERSION = "3.73.1";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1698,7 +1700,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.73.0";
+var VERSION = "3.73.1";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -2617,7 +2619,7 @@ var BraintreeError = _dereq_('../../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../../lib/convert-to-braintree-error');
 var useMin = _dereq_('../../lib/use-min');
 var once = _dereq_('../../lib/once');
-var VERSION = "3.73.0";
+var VERSION = "3.73.1";
 var constants = _dereq_('../shared/constants');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
@@ -3222,7 +3224,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var errors = _dereq_('./shared/errors');
 var PayPal = _dereq_('./external/paypal');
-var VERSION = "3.73.0";
+var VERSION = "3.73.1";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var Promise = _dereq_('../lib/promise');
 

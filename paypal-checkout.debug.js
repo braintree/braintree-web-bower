@@ -539,6 +539,8 @@ var subscription_args_invalid_1 = _dereq_("./lib/subscription-args-invalid");
 var broadcast_1 = _dereq_("./lib/broadcast");
 var package_payload_1 = _dereq_("./lib/package-payload");
 var constants_1 = _dereq_("./lib/constants");
+var DefaultPromise = (typeof window !== "undefined" &&
+    window.Promise);
 var Framebus = /** @class */ (function () {
     function Framebus(options) {
         if (options === void 0) { options = {}; }
@@ -709,7 +711,7 @@ var Framebus = /** @class */ (function () {
         }
         return this.channel + ":" + eventName;
     };
-    Framebus.Promise = Promise;
+    Framebus.Promise = DefaultPromise;
     return Framebus;
 }());
 exports.Framebus = Framebus;
@@ -1419,7 +1421,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.73.0";
+var VERSION = "3.73.1";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1549,7 +1551,7 @@ module.exports = BraintreeError;
 },{"./enumerate":56}],50:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.73.0";
+var VERSION = "3.73.1";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1698,7 +1700,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.73.0";
+var VERSION = "3.73.1";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -2682,7 +2684,7 @@ module.exports = {
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var PayPalCheckout = _dereq_('./paypal-checkout');
-var VERSION = "3.73.0";
+var VERSION = "3.73.1";
 
 /**
  * @static
@@ -2764,7 +2766,7 @@ var methods = _dereq_('../lib/methods');
 var useMin = _dereq_('../lib/use-min');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
 var querystring = _dereq_('../lib/querystring');
-var VERSION = "3.73.0";
+var VERSION = "3.73.1";
 var INTEGRATION_TIMEOUT_MS = _dereq_('../lib/constants').INTEGRATION_TIMEOUT_MS;
 
 var REQUIRED_PARAMS_FOR_START_VAULT_INITIATED_CHECKOUT = [
