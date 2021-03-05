@@ -1421,7 +1421,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1551,7 +1551,7 @@ module.exports = BraintreeError;
 },{"./enumerate":57}],50:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1700,7 +1700,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1777,9 +1777,9 @@ module.exports = enumerate;
 'use strict';
 
 /**
- * @name BraintreeError.Shared Interal Error Codes
+ * @name BraintreeError.Shared Internal Error Codes
  * @ignore
- * @description These codes should never be experienced by the mechant directly.
+ * @description These codes should never be experienced by the merchant directly.
  * @property {INTERNAL} INVALID_USE_OF_INTERNAL_FUNCTION Occurs when the client is created without a gateway configuration. Should never happen.
  */
 
@@ -2619,7 +2619,7 @@ var BraintreeError = _dereq_('../../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../../lib/convert-to-braintree-error');
 var useMin = _dereq_('../../lib/use-min');
 var once = _dereq_('../../lib/once');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 var constants = _dereq_('../shared/constants');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
@@ -3224,7 +3224,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var errors = _dereq_('./shared/errors');
 var PayPal = _dereq_('./external/paypal');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var Promise = _dereq_('../lib/promise');
 
@@ -3236,7 +3236,7 @@ var Promise = _dereq_('../lib/promise');
  * @param {string} [options.authorization] A tokenizationKey or clientToken. Can be used in place of `options.client`.
  * @param {callback} callback The second argument, `data`, is the {@link PayPal} instance.
  * @example
- * // We recomend creating your PayPal button with button.js
+ * // We recommend creating your PayPal button with button.js
  * // For an example, see https://codepen.io/braintree/pen/LNKJWa
  * var paypalButton = document.querySelector('.paypal-button');
  *
@@ -3359,15 +3359,15 @@ module.exports = {
 
 /**
  * @name BraintreeError.PayPal - Creation Error Codes
- * @description Errors that occur when [creating the PayPal component](/current/module-braintree-web_paypal.html#.create).
+ * @description Errors that occur when [creating the PayPal component](./module-braintree-web_paypal.html#.create).
  * @property {MERCHANT} PAYPAL_NOT_ENABLED Occurs when PayPal is not enabled on the Braintree control panel.
  */
 
 /**
  * @name BraintreeError.PayPal - tokenize Error Codes
- * @description Errors that occur when using the [`tokenize` method](/current/PayPal.html#tokenize).
+ * @description Errors that occur when using the [`tokenize` method](./PayPal.html#tokenize).
  * @property {MERCHANT} PAYPAL_TOKENIZATION_REQUEST_ACTIVE Occurs when a tokenization request is already in progress.
- * @property {MERCHANT} PAYPAL_FLOW_OPTION_REQUIRED Occurs when flow option is not provdided.
+ * @property {MERCHANT} PAYPAL_FLOW_OPTION_REQUIRED Occurs when flow option is not provided.
  * @property {NETWORK} PAYPAL_ACCOUNT_TOKENIZATION_FAILED Occurs when PayPal account could not be tokenized.
  * @property {NETWORK} PAYPAL_FLOW_FAILED Occurs when PayPal flow could not be initiated.
  * @property {MERCHANT} PAYPAL_POPUP_OPEN_FAILED Occurs when PayPal window could not be opened.

@@ -1421,7 +1421,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1551,7 +1551,7 @@ module.exports = BraintreeError;
 },{"./enumerate":56}],50:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1700,7 +1700,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1763,9 +1763,9 @@ module.exports = enumerate;
 'use strict';
 
 /**
- * @name BraintreeError.Shared Interal Error Codes
+ * @name BraintreeError.Shared Internal Error Codes
  * @ignore
- * @description These codes should never be experienced by the mechant directly.
+ * @description These codes should never be experienced by the merchant directly.
  * @property {INTERNAL} INVALID_USE_OF_INTERNAL_FUNCTION Occurs when the client is created without a gateway configuration. Should never happen.
  */
 
@@ -2487,7 +2487,7 @@ var Promise = _dereq_('../../lib/promise');
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var errors = _dereq_('../shared/errors');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 var methods = _dereq_('../../lib/methods');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var analytics = _dereq_('../../lib/analytics');
@@ -2599,7 +2599,7 @@ Masterpass.prototype._initialize = function () {
  * @param {number} [options.frameOptions.width] Popup width to be used instead of default value (450px).
  * @param {number} [options.frameOptions.height] Popup height to be used instead of default value (660px).
  * @param {number} [options.frameOptions.top] The top position of the popup window to be used instead of default value, that is calculated based on provided height, and parent window size.
- * @param {number} [options.frameOptions.left] The left position to the popup window to be used instead of default value, that is calculated baed on provided width, and parent window size.
+ * @param {number} [options.frameOptions.left] The left position to the popup window to be used instead of default value, that is calculated based on provided width, and parent window size.
  * @param {callback} [callback] The second argument, <code>data</code>, is a {@link Masterpass~tokenizePayload|tokenizePayload}. If no callback is provided, the method will return a Promise that resolves with a {@link Masterpass~tokenizePayload|tokenizePayload}.
  * @returns {(Promise|void)} Returns a promise if no callback is provided.
  * @example
@@ -2884,7 +2884,7 @@ var browserDetection = _dereq_('./shared/browser-detection');
 var Masterpass = _dereq_('./external/masterpass');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 var errors = _dereq_('./shared/errors');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -3001,16 +3001,16 @@ module.exports = {
 
 /**
  * @name BraintreeError.Masterpass - Creation Error Codes
- * @description Errors that occur when [creating the Masterpass component](/current/module-braintree-web_masterpass#.create).
+ * @description Errors that occur when [creating the Masterpass component](./module-braintree-web_masterpass#.create).
  * @property {CUSTOMER} MASTERPASS_BROWSER_NOT_SUPPORTED Occurs when browser is not a supported browser for Masterpass.
- * @property {MERCHANT} MASTERPASS_NOT_ENABLED Occurs when Masterpass is not enabled in the Braintree contorl panel.
+ * @property {MERCHANT} MASTERPASS_NOT_ENABLED Occurs when Masterpass is not enabled in the Braintree control panel.
  */
 
 /**
  * @name BraintreeError.Masterpass - Tokenize Error Codes
- * @description Errors that occur when [tokenizing](/current/Masterpass.html#tokenize).
+ * @description Errors that occur when [tokenizing](./Masterpass.html#tokenize).
  * @property {MERCHANT} MASTERPASS_TOKENIZE_MISSING_REQUIRED_OPTION Occurs when tokenize is called without a required option.
- * @property {MERCHANT} MASTERPASS_TOKENIZATION_ALREADY_IN_PROGRESS Occurs if tokenization flow is intialized while another flow is already in progress.
+ * @property {MERCHANT} MASTERPASS_TOKENIZATION_ALREADY_IN_PROGRESS Occurs if tokenization flow is initialized while another flow is already in progress.
  * @property {NETWORK} MASTERPASS_ACCOUNT_TOKENIZATION_FAILED Occurs when tokenization of Masterpass details fails.
  * @property {MERCHANT} MASTERPASS_POPUP_OPEN_FAILED Occurs when the popup fails to open.
  * @property {MERCHANT} MASTERPASS_POPUP_MISSING_REQUIRED_PARAMETERS Occurs when Masterpass is missing required parameters for tokenization.

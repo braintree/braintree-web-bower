@@ -708,7 +708,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -838,7 +838,7 @@ module.exports = BraintreeError;
 },{"./enumerate":20}],15:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -965,7 +965,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1028,9 +1028,9 @@ module.exports = enumerate;
 'use strict';
 
 /**
- * @name BraintreeError.Shared Interal Error Codes
+ * @name BraintreeError.Shared Internal Error Codes
  * @ignore
- * @description These codes should never be experienced by the mechant directly.
+ * @description These codes should never be experienced by the merchant directly.
  * @property {INTERNAL} INVALID_USE_OF_INTERNAL_FUNCTION Occurs when the client is created without a gateway configuration. Should never happen.
  */
 
@@ -1148,8 +1148,8 @@ module.exports = {
 
 /**
  * @name BraintreeError.Vault Manager - deletePaymentMethod Error Codes
- * @description Errors that occur when using the [`deletePaymentMethod` method](/current/VaultManager.html#deletePaymentMethod).
- * @property {MERCHANT} VAULT_MANAGER_DELETE_PAYMENT_METHOD_NONCE_REQUIRES_CLIENT_TOKEN Occurs when vault manager is initalized with a tokenization key instead of a Client Token.
+ * @description Errors that occur when using the [`deletePaymentMethod` method](./VaultManager.html#deletePaymentMethod).
+ * @property {MERCHANT} VAULT_MANAGER_DELETE_PAYMENT_METHOD_NONCE_REQUIRES_CLIENT_TOKEN Occurs when vault manager is initialized with a tokenization key instead of a Client Token.
  * @property {MERCHANT} VAULT_MANAGER_PAYMENT_METHOD_NONCE_NOT_FOUND Occurs when the specified payment method can not be found.
  * @property {UNKNOWN} VAULT_MANAGER_DELETE_PAYMENT_METHOD_UNKNOWN_ERROR Occurs when there is an error attempting to delete the payment method.
  */
@@ -1183,7 +1183,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var VaultManager = _dereq_('./vault-manager');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -1268,7 +1268,7 @@ function VaultManager(options) {
  * @public
  * @param {object} [options] Options for fetching payment methods.
  * @param {boolean} [options.defaultFirst = false] If `true`, the payment methods will be returned with the default payment method for the customer first. Otherwise, the payment methods will be returned with the most recently used payment method first.
- * @param {callback} [callback] The second argument is a {@link VaultManager~fetchPaymentMethodsPayload|fetchPaymentMehodsPayload}. This is also what is resolved by the promise if no callback is provided.
+ * @param {callback} [callback] The second argument is a {@link VaultManager~fetchPaymentMethodsPayload|fetchPaymentMethodsPayload}. This is also what is resolved by the promise if no callback is provided.
  * @returns {(Promise|void)} Returns a promise if no callback is provided.
  * @example
  * vaultManagerInstance.fetchPaymentMethods(function (err, paymentMethods) {

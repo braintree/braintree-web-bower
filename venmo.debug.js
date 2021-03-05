@@ -1336,7 +1336,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1466,7 +1466,7 @@ module.exports = BraintreeError;
 },{"./enumerate":51}],46:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1593,7 +1593,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1656,9 +1656,9 @@ module.exports = enumerate;
 'use strict';
 
 /**
- * @name BraintreeError.Shared Interal Error Codes
+ * @name BraintreeError.Shared Internal Error Codes
  * @ignore
- * @description These codes should never be experienced by the mechant directly.
+ * @description These codes should never be experienced by the merchant directly.
  * @property {INTERNAL} INVALID_USE_OF_INTERNAL_FUNCTION Occurs when the client is created without a gateway configuration. Should never happen.
  */
 
@@ -2280,7 +2280,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var Venmo = _dereq_('./venmo');
 var Promise = _dereq_('../lib/promise');
 var supportsVenmo = _dereq_('./shared/supports-venmo');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 
 /**
  * @static
@@ -2434,15 +2434,15 @@ module.exports = {
 
 /**
  * @name BraintreeError.Venmo - Creation Error Codes
- * @description Errors that occur when [creating the Venmo component](/current/module-braintree-web_venmo.html#.create).
+ * @description Errors that occur when [creating the Venmo component](./module-braintree-web_venmo.html#.create).
  * @property {MERCHANT} VENMO_NOT_ENABLED Occurs when Venmo is not enabled on the Braintree control panel.
- * @property {MERCHANT} VENMO_INVALID_PROFILE_ID Occurs when Venmo is intilaized with a profile id, but it is invalid.
+ * @property {MERCHANT} VENMO_INVALID_PROFILE_ID Occurs when Venmo is initialized with a profile id, but it is invalid.
  * @property {UNKNOWN} VENMO_MOBILE_POLLING_SETUP_FAILED Occurs when enabling mobile polling alternative for tokenization fails.
  */
 
 /**
  * @name BraintreeError.Venmo - tokenize Error Codes
- * @description Errors that occur when using the [`tokenize` method](/current/Venmo.html#tokenize).
+ * @description Errors that occur when using the [`tokenize` method](./Venmo.html#tokenize).
  * @property {MERCHANT} VENMO_TOKENIZATION_REQUEST_ACTIVE Occurs when `tokenize` is called when the flow is already in progress.
  * @property {MERCHANT} VENMO_TOKENIZATION_REQUEST_NOT_ACTIVE Occurs when `cancelTokenization` is called when the flow is not in progress.
  * @property {UNKNOWN} VENMO_APP_FAILED Occurs when tokenization fails.
@@ -2635,7 +2635,7 @@ var ExtendedPromise = _dereq_('@braintree/extended-promise');
 var createVenmoDesktop = _dereq_('./external/');
 var graphqlQueries = _dereq_('./external/queries');
 
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 var DEFAULT_MOBILE_POLLING_INTERVAL = 250; // 1/4 second
 var DEFAULT_MOBILE_EXPIRING_THRESHOLD = 300000; // 5 minutes
 
@@ -2858,7 +2858,7 @@ Venmo.prototype._isDesktop = function () {
  * Only one Venmo flow can be active at a time. One way to achieve this is to disable your Venmo button while the flow is open.
  * @public
  * @param {object} [options] Options for tokenization.
- * @param {number} [options.processResultsDelay=500] The amount of time in milliseeconds to delay processing the results. In most cases, this value should be left as the default.
+ * @param {number} [options.processResultsDelay=500] The amount of time in milliseconds to delay processing the results. In most cases, this value should be left as the default.
  * @param {callback} [callback] The second argument, <code>data</code>, is a {@link Venmo~tokenizePayload|tokenizePayload}. If no callback is provided, the method will return a Promise that resolves with a {@link Venmo~tokenizePayload|tokenizePayload}.
  * @returns {(Promise|void)} Returns a promise if no callback is provided.
  * @example

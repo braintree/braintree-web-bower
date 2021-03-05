@@ -1328,7 +1328,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1458,7 +1458,7 @@ module.exports = BraintreeError;
 },{"./enumerate":41}],36:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1585,7 +1585,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1648,9 +1648,9 @@ module.exports = enumerate;
 'use strict';
 
 /**
- * @name BraintreeError.Shared Interal Error Codes
+ * @name BraintreeError.Shared Internal Error Codes
  * @ignore
- * @description These codes should never be experienced by the mechant directly.
+ * @description These codes should never be experienced by the merchant directly.
  * @property {INTERNAL} INVALID_USE_OF_INTERNAL_FUNCTION Occurs when the client is created without a gateway configuration. Should never happen.
  */
 
@@ -1697,7 +1697,7 @@ module.exports = {
 },{"./braintree-error":35}],43:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 var assign = _dereq_('./assign').assign;
 
 function generateTokenizationParameters(configuration, overrides) {
@@ -1905,7 +1905,7 @@ var methods = _dereq_('../../lib/methods');
 var Promise = _dereq_('../../lib/promise');
 var EventEmitter = _dereq_('@braintree/event-emitter');
 var BraintreeError = _dereq_('../../lib/braintree-error');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 var constants = _dereq_('../shared/constants');
 var events = constants.events;
 var errors = constants.errors;
@@ -2171,8 +2171,8 @@ PaymentRequestComponent.prototype.initialize = function () {
  * Create an object to pass into tokenize to specify a custom configuration. If no overrides are provided, the default configuration will be provided.
  * @public
  * @param {string} type The supported payment method type. Possible values are `basicCard` and `googlePay`.
- * If no type is provided, the function will throw an error. If the type provided is not an enabled payemnt method for the merchant account , the function will throw an error.
- * @param {object} [overrides] The configuration overrides for the [data property on the supported payment methods objects](https://developers.google.com/web/fundamentals/payments/deep-dive-into-payment-request). If not passed in, the default configuration for the specified type will be provided. If a property is not provided, the value from the default configruation will be used.
+ * If no type is provided, the function will throw an error. If the type provided is not an enabled payment method for the merchant account , the function will throw an error.
+ * @param {object} [overrides] The configuration overrides for the [data property on the supported payment methods objects](https://developers.google.com/web/fundamentals/payments/deep-dive-into-payment-request). If not passed in, the default configuration for the specified type will be provided. If a property is not provided, the value from the default configuration will be used.
  * @example <caption>Getting the default configuration for a specified type</caption>
  * var configuration = paymentRequestInstance.createSupportedPaymentMethodsConfiguration('basicCard');
  *
@@ -2592,7 +2592,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 
 /**
  * @static
@@ -2701,20 +2701,20 @@ module.exports = constants;
 
 /**
  * @name BraintreeError.Payment Request - Creation Error Codes
- * @description Errors that occur when [creating the Payment Request component](/current/module-braintree-web_payment-request.html#.create).
+ * @description Errors that occur when [creating the Payment Request component](./module-braintree-web_payment-request.html#.create).
  * @property {MERCHANT} PAYMENT_REQUEST_NO_VALID_SUPPORTED_PAYMENT_METHODS Occurs when there are no valid payment methods configured.
  */
 
 /**
  * @name BraintreeError.Payment Request - createSupportedPaymentMethodsConfiguration  Error Codes
- * @description Errors that occur when using the [`createSupportedPaymentMethodsConfiguration` method](/current/PaymentRequestComponent.html#createSupportedPaymentMethodsConfiguration)
+ * @description Errors that occur when using the [`createSupportedPaymentMethodsConfiguration` method](./PaymentRequestComponent.html#createSupportedPaymentMethodsConfiguration)
  * @property {MERCHANT} PAYMENT_REQUEST_CREATE_SUPPORTED_PAYMENT_METHODS_CONFIGURATION_MUST_INCLUDE_TYPE Occurs when no type is supplied for method.
  * @property {MERCHANT} PAYMENT_REQUEST_CREATE_SUPPORTED_PAYMENT_METHODS_CONFIGURATION_TYPE_NOT_ENABLED Occurs when configured type is not enabled.
  */
 
 /**
  * @name BraintreeError.Payment Request - tokenize  Error Codes
- * @description Errors that occur when using the [`tokenize` method](/current/PaymentRequestComponent.html#tokenize)
+ * @description Errors that occur when using the [`tokenize` method](./PaymentRequestComponent.html#tokenize)
  * @property {CUSTOMER} PAYMENT_REQUEST_CANCELED Occurs when customer cancels the Payment Request.
  * @property {MERCHANT} PAYMENT_REQUEST_INITIALIZATION_MISCONFIGURED Occurs when the Payment Request is closed do to the options being misconfigured.
  * @property {MERCHANT} PAYMENT_REQUEST_GOOGLE_PAYMENT_FAILED_TO_TOKENIZE Occurs when a Google Payment payment method is unable to be tokenized.
@@ -2724,8 +2724,8 @@ module.exports = constants;
 
 /**
  * @name BraintreeError.Payment Request - canMakePayment  Error Codes
- * @description Errors that occur when using the [`canMakePayment` method](/current/PaymentRequestComponent.html#canMakePayment)
- * @property {MERCHANT} PAYMENT_REQUEST_INITIALIZATION_MISCONFIGURED Occurs when the Payment Request is intatiated with misconfigured options.
+ * @description Errors that occur when using the [`canMakePayment` method](./PaymentRequestComponent.html#canMakePayment)
+ * @property {MERCHANT} PAYMENT_REQUEST_INITIALIZATION_MISCONFIGURED Occurs when the Payment Request is instantiated with misconfigured options.
  * @property {MERCHANT} PAYMENT_REQUEST_CAN_MAKE_PAYMENT_NOT_ALLOWED Occurs when `canMakePayment` results in a `DomException` with a `NotAllowedError`. This usually occurs when `canMakePayment` is called multiple times with different supported payment options.
  * @property {MERCHANT} PAYMENT_REQUEST_UNSUPPORTED_PAYMENT_METHOD Occurs when `canMakePayment` is called with a `supportedPaymentMethods` array that contains a payment method that is not supported by the Braintree SDK.
  * @property {UNKNOWN} PAYMENT_REQUEST_CAN_MAKE_PAYMENT_FAILED Occurs when `canMakePayment` fails for any reason other than a misconfigured Payment Request object.

@@ -802,7 +802,7 @@ ApplePay.prototype._createPaymentRequestSynchronously = function (paymentRequest
  * Validates your merchant website, as required by `ApplePaySession` before payment can be authorized.
  * @public
  * @param {object} options Options
- * @param {string} options.validationURL The validationURL fram an `ApplePayValidateMerchantEvent`.
+ * @param {string} options.validationURL The validationURL from an `ApplePayValidateMerchantEvent`.
  * @param {string} options.displayName The canonical name for your store. Use a non-localized name. This parameter should be a UTF-8 string that is a maximum of 128 characters. The system may display this name to the user.
  * @param {callback} [callback] The second argument, <code>data</code>, is the Apple Pay merchant session object. If no callback is provided, `performValidation` returns a promise.
  * Pass the merchant session to your Apple Pay session's `completeMerchantValidation` method.
@@ -1002,13 +1002,13 @@ module.exports = wrapPromise.wrapPrototype(ApplePay);
 
 /**
  * @name BraintreeError.Apple Pay - Creation Error Codes
- * @description Errors that occur when [creating the Apple Pay component](/current/module-braintree-web_apple-pay.html#.create).
+ * @description Errors that occur when [creating the Apple Pay component](./module-braintree-web_apple-pay.html#.create).
  * @property {MERCHANT} APPLE_PAY_NOT_ENABLED Occurs when the authorization used is not authorized to process Apple Pay.
  */
 
 /**
  * @name BraintreeError.Apple Pay - performValidation Error Codes
- * @description Errors that occur when [validating](/current/ApplePay.html#performValidation).
+ * @description Errors that occur when [validating](./ApplePay.html#performValidation).
  * @property {MERCHANT} APPLE_PAY_VALIDATION_URL_REQUIRED Occurs when the `validationURL` option is not passed in.
  * @property {MERCHANT} APPLE_PAY_MERCHANT_VALIDATION_FAILED Occurs when the website domain has not been registered in the Braintree control panel.
  * @property {NETWORK} APPLE_PAY_MERCHANT_VALIDATION_NETWORK Occurs when an unknown network error occurs.
@@ -1016,7 +1016,7 @@ module.exports = wrapPromise.wrapPrototype(ApplePay);
 
 /**
  * @name BraintreeError.Apple Pay - tokenize Error Codes
- * @description Errors that occur when [tokenizing](/current/ApplePay.html#tokenize).
+ * @description Errors that occur when [tokenizing](./ApplePay.html#tokenize).
  * @property {MERCHANT} APPLE_PAY_PAYMENT_TOKEN_REQUIRED Occurs when the `token` option is not passed in.
  * @property {NETWORK} APPLE_PAY_TOKENIZATION Occurs when an unknown network error occurs.
  */
@@ -1072,7 +1072,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var Promise = _dereq_('../lib/promise');
 var errors = _dereq_('./errors');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -1219,7 +1219,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1349,7 +1349,7 @@ module.exports = BraintreeError;
 },{"./enumerate":23}],18:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1476,7 +1476,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1539,9 +1539,9 @@ module.exports = enumerate;
 'use strict';
 
 /**
- * @name BraintreeError.Shared Interal Error Codes
+ * @name BraintreeError.Shared Internal Error Codes
  * @ignore
- * @description These codes should never be experienced by the mechant directly.
+ * @description These codes should never be experienced by the merchant directly.
  * @property {INTERNAL} INVALID_USE_OF_INTERNAL_FUNCTION Occurs when the client is created without a gateway configuration. Should never happen.
  */
 

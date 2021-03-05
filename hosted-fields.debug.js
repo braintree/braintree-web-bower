@@ -2965,7 +2965,7 @@ HostedFields.prototype.teardown = function () {
  *         // occurs when certain fields do not pass client side validation
  *         console.error('Some fields are invalid:', tokenizeErr.details.invalidFieldKeys);
  *
- *         // you can also programtically access the field containers for the invalid fields
+ *         // you can also programmatically access the field containers for the invalid fields
  *         tokenizeErr.details.invalidFields.forEach(function (fieldContainer) {
  *           fieldContainer.className = 'invalid';
  *         });
@@ -2985,7 +2985,7 @@ HostedFields.prototype.teardown = function () {
  *         //     with a customer ID and the verify card option is set to true
  *         //     and you have credit card verification turned on in the Braintree
  *         //     control panel
- *         //   * the cvv does not pass verfication (https://developers.braintreepayments.com/reference/general/testing/#avs-and-cvv/cid-responses)
+ *         //   * the cvv does not pass verification (https://developers.braintreepayments.com/reference/general/testing/#avs-and-cvv/cid-responses)
  *         // See: https://developers.braintreepayments.com/reference/request/client-token/generate/#options.verify_card
  *         console.error('CVV did not pass verification');
  *         break;
@@ -3276,7 +3276,7 @@ HostedFields.prototype.setAttribute = function (options) {
  *
  * @public
  * @param {array} options An array of 12 entries corresponding to the 12 months.
- * @param {callback} [callback] Callback executed on completion, containing an error if one occurred. No data is returned if the options are updated succesfully. Errors if expirationMonth is not configured on the Hosted Fields instance or if the expirationMonth field is not configured to be a select input.
+ * @param {callback} [callback] Callback executed on completion, containing an error if one occurred. No data is returned if the options are updated successfully. Errors if expirationMonth is not configured on the Hosted Fields instance or if the expirationMonth field is not configured to be a select input.
  *
  * @example <caption>Update the month options to spanish</caption>
  * hostedFieldsInstance.setMonthOptions([
@@ -3321,7 +3321,7 @@ HostedFields.prototype.setMonthOptions = function (options) {
 };
 
 /**
- * Sets a visually hidden message (for screenreaders) on a {@link module:braintree-web/hosted-fields~field field}.
+ * Sets a visually hidden message (for screen readers) on a {@link module:braintree-web/hosted-fields~field field}.
  *
  * @public
  * @param {object} options The options for the attribute you wish to set.
@@ -3487,7 +3487,7 @@ HostedFields.prototype.clear = function (field) {
  *   //   if the element has a tabindex property or the element
  *   //   is an anchor link with an href property.
  *   // In Mobile Safari, the focus method is unable to
- *   //   programatically open the keyboard, as only
+ *   //   programmatically open the keyboard, as only
  *   //   touch events are allowed to do so.
  *   e.preventDefault();
  *   hostedFieldsInstance.focus('number');
@@ -3591,7 +3591,7 @@ var supportsInputFormatting = _dereq_('restricted-input/supports-input-formattin
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -3653,7 +3653,7 @@ var VERSION = "3.73.1";
 /**
  * An object that represents CSS that will be applied in each hosted field. This object looks similar to CSS. Typically, these styles involve fonts (such as `font-family` or `color`).
  *
- * You may also pass the name of a class on your site that contains the styles you would like to apply. The style properties will be automatically pulled off the class and applied to the Hosted Fields inputs. Note: this is recomended for `input` elements only. If using a `select` for the expiration date, unexpected styling may occur.
+ * You may also pass the name of a class on your site that contains the styles you would like to apply. The style properties will be automatically pulled off the class and applied to the Hosted Fields inputs. Note: this is recommended for `input` elements only. If using a `select` for the expiration date, unexpected styling may occur.
  *
  * These are the CSS properties that Hosted Fields supports. Any other CSS should be specified on your page and outside of any Braintree configuration. Trying to set unsupported properties will fail and put a warning in the console.
  *
@@ -3975,7 +3975,7 @@ module.exports = {
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 
 var constants = {
   VERSION: VERSION,
@@ -4137,9 +4137,9 @@ module.exports = constants;
 
 /**
  * @name BraintreeError.Hosted Fields - Creation Error Codes
- * @description Errors that occur when [creating the Hosted Fields component](/current/module-braintree-web_hosted-fields.html#.create).
+ * @description Errors that occur when [creating the Hosted Fields component](./module-braintree-web_hosted-fields.html#.create).
  * @property {UNKNOWN} HOSTED_FIELDS_TIMEOUT Occurs when Hosted Fields does not finish setting up within 60 seconds.
- * @property {MERCHANT} HOSTED_FIELDS_INVALID_FIELD_KEY Occurs when Hosted Fields is instantated with an invalid Field option.
+ * @property {MERCHANT} HOSTED_FIELDS_INVALID_FIELD_KEY Occurs when Hosted Fields is instantiated with an invalid Field option.
  * @property {MERCHANT} HOSTED_FIELDS_INVALID_FIELD_SELECTOR Occurs when Hosted Fields given a field selector that is not valid.
  * @property {MERCHANT} HOSTED_FIELDS_FIELD_DUPLICATE_IFRAME Occurs when Hosted Fields given a field selector that already contains an iframe.
  * @property {MERCHANT} HOSTED_FIELDS_FIELD_PROPERTY_INVALID Occurs when a field configuration option is not valid.
@@ -4147,22 +4147,22 @@ module.exports = constants;
 
 /**
  * @name BraintreeError.Hosted Fields - Field Manipulation Error Codes
- * @description Errors that occur when modifying fields through [`addClass`](/current/HostedFields.html#addClass), [`removeClass`](/current/HostedFields.html#removeClass), [`setAttribute`](/current/HostedFields.html#setAttribute), [`removeAttribute`](/current/HostedFields.html#removeAttribute), [`clear`](/current/HostedFields.html#clear), [`focus`](/current/HostedFields.html#focus), and [`setMonthOptions`](/current/HostedFields.html#setMonthOptions).
+ * @description Errors that occur when modifying fields through [`addClass`](./HostedFields.html#addClass), [`removeClass`](./HostedFields.html#removeClass), [`setAttribute`](./HostedFields.html#setAttribute), [`removeAttribute`](./HostedFields.html#removeAttribute), [`clear`](./HostedFields.html#clear), [`focus`](./HostedFields.html#focus), and [`setMonthOptions`](./HostedFields.html#setMonthOptions).
  * @property {MERCHANT} HOSTED_FIELDS_FIELD_INVALID Occurs when attempting to modify a field that is not a valid Hosted Fields option.
  * @property {MERCHANT} HOSTED_FIELDS_FIELD_NOT_PRESENT Occurs when attempting to modify a field that is not configured with Hosted Fields.
  * @property {MERCHANT} HOSTED_FIELDS_FIELD_PROPERTY_INVALID Occurs when a field configuration option is not valid.
  */
 
 /**
- * @name BraintreeError.Hosted Fields - Set Attribtue Error Codes
- * @description Errors that occur when using the [`setAttribtue` method](/current/HostedFields.html#setAttribute)
- * @property {MERCHANT} HOSTED_FIELDS_ATTRIBUTE_NOT_SUPPORTED Occurs when trying to set an attribtue that is not supported to be set.
- * @property {MERCHANT} HOSTED_FIELDS_ATTRIBUTE_VALUE_NOT_ALLOWED Occurs when the type of value for an attribue is not allowed to be set.
+ * @name BraintreeError.Hosted Fields - Set Attribute Error Codes
+ * @description Errors that occur when using the [`setAttribute` method](./HostedFields.html#setAttribute)
+ * @property {MERCHANT} HOSTED_FIELDS_ATTRIBUTE_NOT_SUPPORTED Occurs when trying to set an attribute that is not supported to be set.
+ * @property {MERCHANT} HOSTED_FIELDS_ATTRIBUTE_VALUE_NOT_ALLOWED Occurs when the type of value for an attribute is not allowed to be set.
  */
 
 /**
  * @name BraintreeError.Hosted Fields - Tokenize Error Codes
- * @description Errors that occur when [tokenizing the card details with Hosted Fields](/current/HostedFields.html#tokenize).
+ * @description Errors that occur when [tokenizing the card details with Hosted Fields](./HostedFields.html#tokenize).
  * @property {NETWORK} HOSTED_FIELDS_TOKENIZATION_NETWORK_ERROR Occurs when the Braintree gateway cannot be contacted.
  * @property {CUSTOMER} HOSTED_FIELDS_TOKENIZATION_FAIL_ON_DUPLICATE Occurs when attempting to vault a card, but the client token being used is configured to fail if the card already exists in the vault.
  * @property {CUSTOMER} HOSTED_FIELDS_TOKENIZATION_CVV_VERIFICATION_FAILED Occurs when cvv verification is turned on in the Braintree control panel.
@@ -4493,7 +4493,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -4669,7 +4669,7 @@ module.exports = BraintreeError;
 },{"./enumerate":89}],83:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -4796,7 +4796,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -4897,9 +4897,9 @@ module.exports = enumerate;
 'use strict';
 
 /**
- * @name BraintreeError.Shared Interal Error Codes
+ * @name BraintreeError.Shared Internal Error Codes
  * @ignore
- * @description These codes should never be experienced by the mechant directly.
+ * @description These codes should never be experienced by the merchant directly.
  * @property {INTERNAL} INVALID_USE_OF_INTERNAL_FUNCTION Occurs when the client is created without a gateway configuration. Should never happen.
  */
 

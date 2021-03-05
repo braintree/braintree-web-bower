@@ -1421,7 +1421,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1551,7 +1551,7 @@ module.exports = BraintreeError;
 },{"./enumerate":56}],50:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1700,7 +1700,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1763,9 +1763,9 @@ module.exports = enumerate;
 'use strict';
 
 /**
- * @name BraintreeError.Shared Interal Error Codes
+ * @name BraintreeError.Shared Internal Error Codes
  * @ignore
- * @description These codes should never be experienced by the mechant directly.
+ * @description These codes should never be experienced by the merchant directly.
  * @property {INTERNAL} INVALID_USE_OF_INTERNAL_FUNCTION Occurs when the client is created without a gateway configuration. Should never happen.
  */
 
@@ -2586,14 +2586,14 @@ module.exports = {
 
 /**
  * @name BraintreeError.PayPal Checkout - Creation Error Codes
- * @description Errors that occur when [creating the PayPal Checkout component](/current/module-braintree-web_paypal-checkout.html#.create).
+ * @description Errors that occur when [creating the PayPal Checkout component](./module-braintree-web_paypal-checkout.html#.create).
  * @property {MERCHANT} PAYPAL_NOT_ENABLED Occurs when PayPal is not enabled on the Braintree control panel.
  * @property {MERCHANT} PAYPAL_SANDBOX_ACCOUNT_NOT_LINKED Occurs only when testing in Sandbox, when a PayPal sandbox account is not linked to the merchant account in the Braintree control panel.
  */
 
 /**
  * @name BraintreeError.PayPal Checkout - createPayment Error Codes
- * @description Errors that occur when using the [`createPayment` method](/current/PayPalCheckout.html#createPayment).
+ * @description Errors that occur when using the [`createPayment` method](./PayPalCheckout.html#createPayment).
  * @property {MERCHANT} PAYPAL_FLOW_OPTION_REQUIRED Occurs when a required option is missing.
  * @property {MERCHANT} PAYPAL_INVALID_PAYMENT_OPTION Occurs when an option contains an invalid value.
  * @property {NETWORK} PAYPAL_FLOW_FAILED Occurs when something goes wrong when initializing the flow.
@@ -2601,7 +2601,7 @@ module.exports = {
 
 /**
  * @name BraintreeError.PayPal Checkout - startVaultInitiatedCheckout Error Codes
- * @description Errors that occur when using the [`startVaultInitiatedCheckout` method](/current/PayPalCheckout.html#startVaultInitiatedCheckout).
+ * @description Errors that occur when using the [`startVaultInitiatedCheckout` method](./PayPalCheckout.html#startVaultInitiatedCheckout).
  * @property {MERCHANT} PAYPAL_START_VAULT_INITIATED_CHECKOUT_PARAM_REQUIRED Occurs when a required param is missing when calling the method.
  * @property {MERCHANT} PAYPAL_START_VAULT_INITIATED_CHECKOUT_POPUP_OPEN_FAILED Occurs when PayPal window could not be opened. This often occurs because the call to start the vault initiated flow was not triggered from a click event.
  * @property {CUSTOMER} PAYPAL_START_VAULT_INITIATED_CHECKOUT_CANCELED Occurs when a customer closes the PayPal flow before completion.
@@ -2611,7 +2611,7 @@ module.exports = {
 
 /**
  * @name BraintreeError.PayPal Checkout - tokenizePayment Error Codes
- * @description Errors that occur when using the [`tokenizePayment` method](/current/PayPalCheckout.html#tokenizePayment).
+ * @description Errors that occur when using the [`tokenizePayment` method](./PayPalCheckout.html#tokenizePayment).
  * @property {NETWORK} PAYPAL_ACCOUNT_TOKENIZATION_FAILED Occurs when PayPal account could not be tokenized.
  */
 
@@ -2684,7 +2684,7 @@ module.exports = {
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var PayPalCheckout = _dereq_('./paypal-checkout');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 
 /**
  * @static
@@ -2766,7 +2766,7 @@ var methods = _dereq_('../lib/methods');
 var useMin = _dereq_('../lib/use-min');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
 var querystring = _dereq_('../lib/querystring');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 var INTEGRATION_TIMEOUT_MS = _dereq_('../lib/constants').INTEGRATION_TIMEOUT_MS;
 
 var REQUIRED_PARAMS_FOR_START_VAULT_INITIATED_CHECKOUT = [
@@ -3627,7 +3627,7 @@ PayPalCheckout.prototype.getClientId = function () {
 };
 
 /**
- * Resolves when the PayPal SDK has been succesfully loaded onto the page.
+ * Resolves when the PayPal SDK has been successfully loaded onto the page.
  * @public
  * @param {object} [options] A configuration object to modify the query params and data-attributes on the PayPal SDK. A subset of the parameters are listed below. For a full list of query params, see the [PayPal docs](https://developer.paypal.com/docs/checkout/reference/customize-sdk/?mark=query#query-parameters).
  * @param {string} [options.client-id] By default, this will be the client id associated with the authorization used to create the Braintree component. When used in conjunction with passing `authorization` when creating the PayPal Checkout component, you can speed up the loading of the PayPal SDK.
@@ -3685,8 +3685,14 @@ PayPalCheckout.prototype.loadPayPalSDK = function (options) {
   }, options);
   delete options.dataAttributes;
 
+  // NEXT_MAJOR_VERSION if merchant passes an explicit intent,
+  // currency, amount, etc, save those for use in createPayment
+  // if no explicit param of that type is passed in when calling
+  // createPayment to reduce the number of items that need to be
+  // duplicated here and in createPayment
+  options.intent = options.intent || 'authorize';
+
   if (!options.vault) {
-    options.intent = options.intent || 'authorize';
     options.currency = options.currency || 'USD';
   }
 
@@ -3909,13 +3915,23 @@ PayPalCheckout.prototype._formatTokenizePayload = function (response) {
  * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 PayPalCheckout.prototype.teardown = function () {
+  var self = this;
+
   convertMethodsToError(this, methods(PayPalCheckout.prototype));
 
   if (this._paypalScript && this._paypalScript.parentNode) {
     this._paypalScript.parentNode.removeChild(this._paypalScript);
   }
 
-  return Promise.resolve();
+  return this._frameServicePromise.catch(function () {
+    // no need to error in teardown for an error setting up the frame service
+  }).then(function () {
+    if (!self._frameService) {
+      return Promise.resolve();
+    }
+
+    return self._frameService.teardown();
+  });
 };
 
 module.exports = wrapPromise.wrapPrototype(PayPalCheckout);

@@ -1328,7 +1328,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1458,7 +1458,7 @@ module.exports = BraintreeError;
 },{"./enumerate":43}],36:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1607,7 +1607,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1684,9 +1684,9 @@ module.exports = enumerate;
 'use strict';
 
 /**
- * @name BraintreeError.Shared Interal Error Codes
+ * @name BraintreeError.Shared Internal Error Codes
  * @ignore
- * @description These codes should never be experienced by the mechant directly.
+ * @description These codes should never be experienced by the merchant directly.
  * @property {INTERNAL} INVALID_USE_OF_INTERNAL_FUNCTION Occurs when the client is created without a gateway configuration. Should never happen.
  */
 
@@ -1875,7 +1875,7 @@ var events = _dereq_('../../shared/events');
 var useMin = _dereq_('../../../lib/use-min');
 var BUS_CONFIGURATION_REQUEST_EVENT = _dereq_('../../../lib/constants').BUS_CONFIGURATION_REQUEST_EVENT;
 
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 var IFRAME_HEIGHT = 400;
 var IFRAME_WIDTH = 400;
 
@@ -2558,7 +2558,7 @@ var ExtendedPromise = _dereq_('@braintree/extended-promise');
 
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var PLATFORM = _dereq_('../../../lib/constants').PLATFORM;
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 var CUSTOMER_CANCELED_SONGBIRD_MODAL = '01';
 var SONGBIRD_UI_EVENTS = [
   'ui.close',
@@ -4000,7 +4000,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -4223,7 +4223,7 @@ module.exports = {
 
 /**
  * @name BraintreeError.3D Secure - Creation Error Codes
- * @description Errors that occur when [creating the 3D Secure component](/current/module-braintree-web_three-d-secure.html#.create).
+ * @description Errors that occur when [creating the 3D Secure component](./module-braintree-web_three-d-secure.html#.create).
  * @property {MERCHANT} THREEDS_NOT_ENABLED Occurs when 3D Secure is not enabled in the Braintree control panel.
  * @property {MERCHANT} THREEDS_CAN_NOT_USE_TOKENIZATION_KEY Occurs when 3D Secure component is created without a Client Token.
  * @property {MERCHANT} THREEDS_HTTPS_REQUIRED Occurs when 3D Secure component is created in production over HTTPS.
@@ -4234,14 +4234,14 @@ module.exports = {
  * @property {UNKNOWN} THREEDS_CARDINAL_SDK_SETUP_TIMEDOUT Occurs when Cardinal's Songbird.js library takes longer than 60 seconds to set up.
  * @property {UNKNOWN} THREEDS_CARDINAL_SDK_RESPONSE_TIMEDOUT Occurs when Cardinal sends a response indicating a timeout on /Validate, /Confirm, or /Continue.
  * @property {MERCHANT} THREEDS_CARDINAL_SDK_BAD_CONFIG Occurs when there is no JWT in the request. Also when there's some other malformed aspect of config.
- * @property {MERCHANT} THREEDS_CARDINAL_SDK_BAD_JWT Occus when a malformed config causes a either a missing response JWT or a malformed Cardinal response.
+ * @property {MERCHANT} THREEDS_CARDINAL_SDK_BAD_JWT Occurs when a malformed config causes a either a missing response JWT or a malformed Cardinal response.
  * @property {UNKNOWN} THREEDS_CARDINAL_SDK_ERROR Occurs when a "general error" or a Cardinal hosted fields error happens. Description contains more details.
  * @property {CUSTOMER} THREEDS_CARDINAL_SDK_CANCELED Occurs when customer cancels the transaction mid-flow, usually with alt-pays that have their own cancel buttons.
 */
 
 /**
  * @name BraintreeError.3D Secure - verifyCard Error Codes
- * @description Errors that occur when using the [`verifyCard` method](/current/ThreeDSecure.html#verifyCard).
+ * @description Errors that occur when using the [`verifyCard` method](./ThreeDSecure.html#verifyCard).
  * @property {MERCHANT} THREEDS_AUTHENTICATION_IN_PROGRESS Occurs when another verification is already in progress.
  * @property {MERCHANT} THREEDS_MISSING_VERIFY_CARD_OPTION Occurs when a required option is missing.
  * @property {UNKNOWN} THREEDS_JWT_AUTHENTICATION_FAILED Occurs when something went wrong authenticating the JWT from the Cardinal SDK.
@@ -4254,7 +4254,7 @@ module.exports = {
 
 /**
  * @name BraintreeError.3D Secure - cancelVerifyCard Error Codes
- * @description Errors that occur when using the [`cancelVerifyCard` method](/current/ThreeDSecure.html#cancelVerifyCard).
+ * @description Errors that occur when using the [`cancelVerifyCard` method](./ThreeDSecure.html#cancelVerifyCard).
  * @property {MERCHANT} THREEDS_NO_VERIFICATION_PAYLOAD Occurs when the 3D Secure flow is canceled, but there is no 3D Secure information available.
  */
 
@@ -4263,7 +4263,7 @@ module.exports = {
  * @ignore
  * @description Errors that occur internally
  * @property {INTERNAL} THREEDS_TERM_URL_REQUIRES_BRAINTREE_DOMAIN Occurs when iframe is initialized on a non-verified domain.
- * @property {INTERNAL} THREEDS_FRAMEWORK_METHOD_NOT_IMPLEMENTED Occurs when a 3D Secure framwork method is not implemented.
+ * @property {INTERNAL} THREEDS_FRAMEWORK_METHOD_NOT_IMPLEMENTED Occurs when a 3D Secure framework method is not implemented.
  */
 
 var BraintreeError = _dereq_('../../lib/braintree-error');

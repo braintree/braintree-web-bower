@@ -628,7 +628,7 @@ module.exports = Promise;
 
 /**
  * @name BraintreeError.Data Collector - Creation Error Codes
- * @description Errors that occur when [creating the Data Collector component](/current/module-braintree-web_data-collector.html#.create).
+ * @description Errors that occur when [creating the Data Collector component](./module-braintree-web_data-collector.html#.create).
  * @property {MERCHANT} DATA_COLLECTOR_KOUNT_NOT_ENABLED Occurs when Kount is enabled in creation options but is not enabled on the Braintree control panel.
  * @property {MERCHANT} DATA_COLLECTOR_KOUNT_ERROR Occurs when Kount errors while setting up.
  * @property {MERCHANT} DATA_COLLECTOR_REQUIRES_CREATE_OPTIONS Occurs when Kount or PayPal Fraudnet could not be enabled.
@@ -780,7 +780,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var methods = _dereq_('../lib/methods');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var errors = _dereq_('./errors');
@@ -1156,7 +1156,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1306,7 +1306,7 @@ module.exports = function (obj) {
 },{}],19:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1387,7 +1387,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1450,9 +1450,9 @@ module.exports = enumerate;
 'use strict';
 
 /**
- * @name BraintreeError.Shared Interal Error Codes
+ * @name BraintreeError.Shared Internal Error Codes
  * @ignore
- * @description These codes should never be experienced by the mechant directly.
+ * @description These codes should never be experienced by the merchant directly.
  * @property {INTERNAL} INVALID_USE_OF_INTERNAL_FUNCTION Occurs when the client is created without a gateway configuration. Should never happen.
  */
 

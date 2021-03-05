@@ -1252,7 +1252,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1382,7 +1382,7 @@ module.exports = BraintreeError;
 },{"./enumerate":39}],34:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1509,7 +1509,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1572,9 +1572,9 @@ module.exports = enumerate;
 'use strict';
 
 /**
- * @name BraintreeError.Shared Interal Error Codes
+ * @name BraintreeError.Shared Internal Error Codes
  * @ignore
- * @description These codes should never be experienced by the mechant directly.
+ * @description These codes should never be experienced by the merchant directly.
  * @property {INTERNAL} INVALID_USE_OF_INTERNAL_FUNCTION Occurs when the client is created without a gateway configuration. Should never happen.
  */
 
@@ -1745,7 +1745,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -1824,7 +1824,7 @@ module.exports = {
 
 /**
  * @name BraintreeError.Union Pay - Creation Error Codes
- * @description Errors that occur when [creating the Union Pay component](/current/module-braintree-web_union-pay.html#.create).
+ * @description Errors that occur when [creating the Union Pay component](./module-braintree-web_union-pay.html#.create).
  * @property {MERCHANT} UNIONPAY_NOT_ENABLED Occurs when Union Pay is not enabled on the Braintree control panel.
  */
 
@@ -1833,19 +1833,19 @@ module.exports = {
  * @description Errors that occur when starting the Union Pay Flow
  * @property {MERCHANT} UNIONPAY_CARD_AND_HOSTED_FIELDS_INSTANCES Occurs when a method is used with both card details and a Hosted Fields instance.
  * @property {MERCHANT} UNIONPAY_HOSTED_FIELDS_INSTANCE_INVALID Occurs when Hosted Fields instance used is not a valid Hosted Fields instance.
- * @property {MERCHANT} UNIONPAY_CARD_OR_HOSTED_FIELDS_INSTANCE_REQUIRED Occurs when neither card detals or Hosted Fields are used.
+ * @property {MERCHANT} UNIONPAY_CARD_OR_HOSTED_FIELDS_INSTANCE_REQUIRED Occurs when neither card details or Hosted Fields are used.
  * @property {MERCHANT} UNIONPAY_HOSTED_FIELDS_INSTANCE_REQUIRED Occurs when Hosted Fields cannot be found on the page.
  */
 
 /**
  * @name BraintreeError.Union Pay - fetchCapabilities Error Codes
- * @description Errors that occur when using the [`fetchCapabilities` method](/current/UnionPay.html#fetchCapabilities).
+ * @description Errors that occur when using the [`fetchCapabilities` method](./UnionPay.html#fetchCapabilities).
  * @property {NETWORK} UNIONPAY_FETCH_CAPABILITIES_NETWORK_ERROR Occurs when there is an error looking up the Union Pay capabilities.
  */
 
 /**
  * @name BraintreeError.Union Pay - enroll Error Codes
- * @description Errors that occur when using the [`enroll` method](/current/UnionPay.html#enroll).
+ * @description Errors that occur when using the [`enroll` method](./UnionPay.html#enroll).
  * @property {MERCHANT} UNIONPAY_MISSING_MOBILE_PHONE_DATA Occurs when no mobile phone data is provided.
  * @property {MERCHANT} UNIONPAY_EXPIRATION_DATE_INCOMPLETE Occurs when expiration date is incomplete.
  * @property {CUSTOMER} UNIONPAY_ENROLLMENT_CUSTOMER_INPUT_INVALID Occurs when customer enrollment input is invalid.
@@ -1854,7 +1854,7 @@ module.exports = {
 
 /**
  * @name BraintreeError.Union Pay - tokenize Error Codes
- * @description Errors that occur when using the [`tokenize` method](/current/UnionPay.html#tokenize).
+ * @description Errors that occur when using the [`tokenize` method](./UnionPay.html#tokenize).
  * @property {CUSTOMER} UNIONPAY_FAILED_TOKENIZATION Occurs when data cannot be tokenized.
  * @property {NETWORK} UNIONPAY_TOKENIZATION_NETWORK_ERROR Occurs when the Braintree gateway cannot be reached.
  */
@@ -1938,7 +1938,7 @@ var errors = _dereq_('./errors');
 var events = constants.events;
 var iFramer = _dereq_('@braintree/iframer');
 var methods = _dereq_('../../lib/methods');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 var uuid = _dereq_('@braintree/uuid');
 var Promise = _dereq_('../../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');

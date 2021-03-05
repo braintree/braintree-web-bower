@@ -2142,7 +2142,7 @@ var AmericanExpress = _dereq_('./american-express');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -2364,7 +2364,7 @@ ApplePay.prototype._createPaymentRequestSynchronously = function (paymentRequest
  * Validates your merchant website, as required by `ApplePaySession` before payment can be authorized.
  * @public
  * @param {object} options Options
- * @param {string} options.validationURL The validationURL fram an `ApplePayValidateMerchantEvent`.
+ * @param {string} options.validationURL The validationURL from an `ApplePayValidateMerchantEvent`.
  * @param {string} options.displayName The canonical name for your store. Use a non-localized name. This parameter should be a UTF-8 string that is a maximum of 128 characters. The system may display this name to the user.
  * @param {callback} [callback] The second argument, <code>data</code>, is the Apple Pay merchant session object. If no callback is provided, `performValidation` returns a promise.
  * Pass the merchant session to your Apple Pay session's `completeMerchantValidation` method.
@@ -2564,13 +2564,13 @@ module.exports = wrapPromise.wrapPrototype(ApplePay);
 
 /**
  * @name BraintreeError.Apple Pay - Creation Error Codes
- * @description Errors that occur when [creating the Apple Pay component](/current/module-braintree-web_apple-pay.html#.create).
+ * @description Errors that occur when [creating the Apple Pay component](./module-braintree-web_apple-pay.html#.create).
  * @property {MERCHANT} APPLE_PAY_NOT_ENABLED Occurs when the authorization used is not authorized to process Apple Pay.
  */
 
 /**
  * @name BraintreeError.Apple Pay - performValidation Error Codes
- * @description Errors that occur when [validating](/current/ApplePay.html#performValidation).
+ * @description Errors that occur when [validating](./ApplePay.html#performValidation).
  * @property {MERCHANT} APPLE_PAY_VALIDATION_URL_REQUIRED Occurs when the `validationURL` option is not passed in.
  * @property {MERCHANT} APPLE_PAY_MERCHANT_VALIDATION_FAILED Occurs when the website domain has not been registered in the Braintree control panel.
  * @property {NETWORK} APPLE_PAY_MERCHANT_VALIDATION_NETWORK Occurs when an unknown network error occurs.
@@ -2578,7 +2578,7 @@ module.exports = wrapPromise.wrapPrototype(ApplePay);
 
 /**
  * @name BraintreeError.Apple Pay - tokenize Error Codes
- * @description Errors that occur when [tokenizing](/current/ApplePay.html#tokenize).
+ * @description Errors that occur when [tokenizing](./ApplePay.html#tokenize).
  * @property {MERCHANT} APPLE_PAY_PAYMENT_TOKEN_REQUIRED Occurs when the `token` option is not passed in.
  * @property {NETWORK} APPLE_PAY_TOKENIZATION Occurs when an unknown network error occurs.
  */
@@ -2634,7 +2634,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var Promise = _dereq_('../lib/promise');
 var errors = _dereq_('./errors');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -3190,22 +3190,22 @@ module.exports = {
 'use strict';
 
 /**
- * @name BraintreeError.Client - Interal Error Codes
+ * @name BraintreeError.Client - Internal Error Codes
  * @ignore
- * @description These codes should never be experienced by the mechant directly.
+ * @description These codes should never be experienced by the merchant directly.
  * @property {MERCHANT} CLIENT_GATEWAY_CONFIGURATION_INVALID_DOMAIN An error to prevent client creation for domains that are not allowed in the JS.
  * @property {INTERNAL} CLIENT_MISSING_GATEWAY_CONFIGURATION Occurs when the client is created without a gateway configuration. Should never happen.
  */
 
 /**
  * @name BraintreeError.Client - Create Error Codes
- * @description Errors that may occur when [creating the client](/current/module-braintree-web_client.html#.create)
+ * @description Errors that may occur when [creating the client](./module-braintree-web_client.html#.create)
  * @property {MERCHANT} CLIENT_INVALID_AUTHORIZATION Occurs when client token cannot be parsed.
  */
 
 /**
  * @name BraintreeError.Client - Request Error Codes
- * @description Errors that may occur when [using the request method](/current/Client.html#request)
+ * @description Errors that may occur when [using the request method](./Client.html#request)
  * @property {MERCHANT} CLIENT_OPTION_REQUIRED An option required in the request method was not provided. Usually `options.method` or `options.endpoint`
  * @property {MERCHANT} CLIENT_OPTION_INVALID The request option provided is invalid.
  * @property {MERCHANT} CLIENT_GATEWAY_NETWORK The Braintree gateway could not be contacted.
@@ -3213,7 +3213,7 @@ module.exports = {
  * @property {NETWORK} CLIENT_REQUEST_ERROR The response from a request had status 400 or greater.
  * @property {NETWORK} CLIENT_GRAPHQL_REQUEST_ERROR The response from a request to GraphQL contained an error.
  * @property {MERCHANT} CLIENT_RATE_LIMITED The response from a request had a status of 429, indicating rate limiting.
- * @property {MERCHANT} CLIENT_AUTHORIZATION_INSUFFICIENT The user assocaited with the client token or tokenization key does not have permissions to make the request.
+ * @property {MERCHANT} CLIENT_AUTHORIZATION_INSUFFICIENT The user associated with the client token or tokenization key does not have permissions to make the request.
  * @property {MERCHANT} CLIENT_AUTHORIZATION_INVALID The provided authorization could not be found. Either the client token has expired and a new client token must be generated or the tokenization key used is set to be inactive or has been deleted.
  */
 
@@ -3401,7 +3401,7 @@ module.exports = {
 
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Client = _dereq_('./client');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -4660,7 +4660,7 @@ module.exports = {
 
 /**
  * @name BraintreeError.Data Collector - Creation Error Codes
- * @description Errors that occur when [creating the Data Collector component](/current/module-braintree-web_data-collector.html#.create).
+ * @description Errors that occur when [creating the Data Collector component](./module-braintree-web_data-collector.html#.create).
  * @property {MERCHANT} DATA_COLLECTOR_KOUNT_NOT_ENABLED Occurs when Kount is enabled in creation options but is not enabled on the Braintree control panel.
  * @property {MERCHANT} DATA_COLLECTOR_KOUNT_ERROR Occurs when Kount errors while setting up.
  * @property {MERCHANT} DATA_COLLECTOR_REQUIRES_CREATE_OPTIONS Occurs when Kount or PayPal Fraudnet could not be enabled.
@@ -4812,7 +4812,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var methods = _dereq_('../lib/methods');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var errors = _dereq_('./errors');
@@ -5178,14 +5178,14 @@ else break a;sjcl.random.addEntropy(F,1024,"crypto['getRandomValues']")}}catch(a
 
 /**
  * @name BraintreeError.Google Payment - Creation Error Codes
- * @description Errors that occur when [creating the Google Payment component](/current/module-braintree-web_google-payment.html#.create).
+ * @description Errors that occur when [creating the Google Payment component](./module-braintree-web_google-payment.html#.create).
  * @property {MERCHANT} GOOGLE_PAYMENT_NOT_ENABLED Occurs when Google Pay is not enabled on the Braintree control panel.
  * @property {MERCHANT} GOOGLE_PAYMENT_UNSUPPORTED_VERSION Occurs when a Google Pay version is used that is not supported by the Braintree SDK.
  */
 
 /**
  * @name BraintreeError.Google Payment - parseResponse Error Codes
- * @description Errors that occur when [parsing the response from Google](/current/GooglePayment.html#parseResponse).
+ * @description Errors that occur when [parsing the response from Google](./GooglePayment.html#parseResponse).
  * @property {UNKNOWN} GOOGLE_PAYMENT_GATEWAY_ERROR Occurs when Google Pay could not be tokenized.
  */
 
@@ -5556,7 +5556,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 var errors = _dereq_('./errors');
 
 /**
@@ -6815,7 +6815,7 @@ HostedFields.prototype.teardown = function () {
  *         // occurs when certain fields do not pass client side validation
  *         console.error('Some fields are invalid:', tokenizeErr.details.invalidFieldKeys);
  *
- *         // you can also programtically access the field containers for the invalid fields
+ *         // you can also programmatically access the field containers for the invalid fields
  *         tokenizeErr.details.invalidFields.forEach(function (fieldContainer) {
  *           fieldContainer.className = 'invalid';
  *         });
@@ -6835,7 +6835,7 @@ HostedFields.prototype.teardown = function () {
  *         //     with a customer ID and the verify card option is set to true
  *         //     and you have credit card verification turned on in the Braintree
  *         //     control panel
- *         //   * the cvv does not pass verfication (https://developers.braintreepayments.com/reference/general/testing/#avs-and-cvv/cid-responses)
+ *         //   * the cvv does not pass verification (https://developers.braintreepayments.com/reference/general/testing/#avs-and-cvv/cid-responses)
  *         // See: https://developers.braintreepayments.com/reference/request/client-token/generate/#options.verify_card
  *         console.error('CVV did not pass verification');
  *         break;
@@ -7126,7 +7126,7 @@ HostedFields.prototype.setAttribute = function (options) {
  *
  * @public
  * @param {array} options An array of 12 entries corresponding to the 12 months.
- * @param {callback} [callback] Callback executed on completion, containing an error if one occurred. No data is returned if the options are updated succesfully. Errors if expirationMonth is not configured on the Hosted Fields instance or if the expirationMonth field is not configured to be a select input.
+ * @param {callback} [callback] Callback executed on completion, containing an error if one occurred. No data is returned if the options are updated successfully. Errors if expirationMonth is not configured on the Hosted Fields instance or if the expirationMonth field is not configured to be a select input.
  *
  * @example <caption>Update the month options to spanish</caption>
  * hostedFieldsInstance.setMonthOptions([
@@ -7171,7 +7171,7 @@ HostedFields.prototype.setMonthOptions = function (options) {
 };
 
 /**
- * Sets a visually hidden message (for screenreaders) on a {@link module:braintree-web/hosted-fields~field field}.
+ * Sets a visually hidden message (for screen readers) on a {@link module:braintree-web/hosted-fields~field field}.
  *
  * @public
  * @param {object} options The options for the attribute you wish to set.
@@ -7337,7 +7337,7 @@ HostedFields.prototype.clear = function (field) {
  *   //   if the element has a tabindex property or the element
  *   //   is an anchor link with an href property.
  *   // In Mobile Safari, the focus method is unable to
- *   //   programatically open the keyboard, as only
+ *   //   programmatically open the keyboard, as only
  *   //   touch events are allowed to do so.
  *   e.preventDefault();
  *   hostedFieldsInstance.focus('number');
@@ -7441,7 +7441,7 @@ var supportsInputFormatting = _dereq_('restricted-input/supports-input-formattin
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -7503,7 +7503,7 @@ var VERSION = "3.73.1";
 /**
  * An object that represents CSS that will be applied in each hosted field. This object looks similar to CSS. Typically, these styles involve fonts (such as `font-family` or `color`).
  *
- * You may also pass the name of a class on your site that contains the styles you would like to apply. The style properties will be automatically pulled off the class and applied to the Hosted Fields inputs. Note: this is recomended for `input` elements only. If using a `select` for the expiration date, unexpected styling may occur.
+ * You may also pass the name of a class on your site that contains the styles you would like to apply. The style properties will be automatically pulled off the class and applied to the Hosted Fields inputs. Note: this is recommended for `input` elements only. If using a `select` for the expiration date, unexpected styling may occur.
  *
  * These are the CSS properties that Hosted Fields supports. Any other CSS should be specified on your page and outside of any Braintree configuration. Trying to set unsupported properties will fail and put a warning in the console.
  *
@@ -7825,7 +7825,7 @@ module.exports = {
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 
 var constants = {
   VERSION: VERSION,
@@ -7987,9 +7987,9 @@ module.exports = constants;
 
 /**
  * @name BraintreeError.Hosted Fields - Creation Error Codes
- * @description Errors that occur when [creating the Hosted Fields component](/current/module-braintree-web_hosted-fields.html#.create).
+ * @description Errors that occur when [creating the Hosted Fields component](./module-braintree-web_hosted-fields.html#.create).
  * @property {UNKNOWN} HOSTED_FIELDS_TIMEOUT Occurs when Hosted Fields does not finish setting up within 60 seconds.
- * @property {MERCHANT} HOSTED_FIELDS_INVALID_FIELD_KEY Occurs when Hosted Fields is instantated with an invalid Field option.
+ * @property {MERCHANT} HOSTED_FIELDS_INVALID_FIELD_KEY Occurs when Hosted Fields is instantiated with an invalid Field option.
  * @property {MERCHANT} HOSTED_FIELDS_INVALID_FIELD_SELECTOR Occurs when Hosted Fields given a field selector that is not valid.
  * @property {MERCHANT} HOSTED_FIELDS_FIELD_DUPLICATE_IFRAME Occurs when Hosted Fields given a field selector that already contains an iframe.
  * @property {MERCHANT} HOSTED_FIELDS_FIELD_PROPERTY_INVALID Occurs when a field configuration option is not valid.
@@ -7997,22 +7997,22 @@ module.exports = constants;
 
 /**
  * @name BraintreeError.Hosted Fields - Field Manipulation Error Codes
- * @description Errors that occur when modifying fields through [`addClass`](/current/HostedFields.html#addClass), [`removeClass`](/current/HostedFields.html#removeClass), [`setAttribute`](/current/HostedFields.html#setAttribute), [`removeAttribute`](/current/HostedFields.html#removeAttribute), [`clear`](/current/HostedFields.html#clear), [`focus`](/current/HostedFields.html#focus), and [`setMonthOptions`](/current/HostedFields.html#setMonthOptions).
+ * @description Errors that occur when modifying fields through [`addClass`](./HostedFields.html#addClass), [`removeClass`](./HostedFields.html#removeClass), [`setAttribute`](./HostedFields.html#setAttribute), [`removeAttribute`](./HostedFields.html#removeAttribute), [`clear`](./HostedFields.html#clear), [`focus`](./HostedFields.html#focus), and [`setMonthOptions`](./HostedFields.html#setMonthOptions).
  * @property {MERCHANT} HOSTED_FIELDS_FIELD_INVALID Occurs when attempting to modify a field that is not a valid Hosted Fields option.
  * @property {MERCHANT} HOSTED_FIELDS_FIELD_NOT_PRESENT Occurs when attempting to modify a field that is not configured with Hosted Fields.
  * @property {MERCHANT} HOSTED_FIELDS_FIELD_PROPERTY_INVALID Occurs when a field configuration option is not valid.
  */
 
 /**
- * @name BraintreeError.Hosted Fields - Set Attribtue Error Codes
- * @description Errors that occur when using the [`setAttribtue` method](/current/HostedFields.html#setAttribute)
- * @property {MERCHANT} HOSTED_FIELDS_ATTRIBUTE_NOT_SUPPORTED Occurs when trying to set an attribtue that is not supported to be set.
- * @property {MERCHANT} HOSTED_FIELDS_ATTRIBUTE_VALUE_NOT_ALLOWED Occurs when the type of value for an attribue is not allowed to be set.
+ * @name BraintreeError.Hosted Fields - Set Attribute Error Codes
+ * @description Errors that occur when using the [`setAttribute` method](./HostedFields.html#setAttribute)
+ * @property {MERCHANT} HOSTED_FIELDS_ATTRIBUTE_NOT_SUPPORTED Occurs when trying to set an attribute that is not supported to be set.
+ * @property {MERCHANT} HOSTED_FIELDS_ATTRIBUTE_VALUE_NOT_ALLOWED Occurs when the type of value for an attribute is not allowed to be set.
  */
 
 /**
  * @name BraintreeError.Hosted Fields - Tokenize Error Codes
- * @description Errors that occur when [tokenizing the card details with Hosted Fields](/current/HostedFields.html#tokenize).
+ * @description Errors that occur when [tokenizing the card details with Hosted Fields](./HostedFields.html#tokenize).
  * @property {NETWORK} HOSTED_FIELDS_TOKENIZATION_NETWORK_ERROR Occurs when the Braintree gateway cannot be contacted.
  * @property {CUSTOMER} HOSTED_FIELDS_TOKENIZATION_FAIL_ON_DUPLICATE Occurs when attempting to vault a card, but the client token being used is configured to fail if the card already exists in the vault.
  * @property {CUSTOMER} HOSTED_FIELDS_TOKENIZATION_CVV_VERIFICATION_FAILED Occurs when cvv verification is turned on in the Braintree control panel.
@@ -8290,7 +8290,7 @@ var vaultManager = _dereq_('./vault-manager');
 var venmo = _dereq_('./venmo');
 var visaCheckout = _dereq_('./visa-checkout');
 var preferredPaymentMethods = _dereq_('./preferred-payment-methods');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 
 module.exports = {
   /** @type {module:braintree-web/american-express} */
@@ -8446,7 +8446,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -8642,7 +8642,7 @@ module.exports = function (obj) {
 },{}],128:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -8791,7 +8791,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -8906,9 +8906,9 @@ module.exports = enumerate;
 'use strict';
 
 /**
- * @name BraintreeError.Shared Interal Error Codes
+ * @name BraintreeError.Shared Internal Error Codes
  * @ignore
- * @description These codes should never be experienced by the mechant directly.
+ * @description These codes should never be experienced by the merchant directly.
  * @property {INTERNAL} INVALID_USE_OF_INTERNAL_FUNCTION Occurs when the client is created without a gateway configuration. Should never happen.
  */
 
@@ -9570,7 +9570,7 @@ module.exports = enumerate([
 },{"../../enumerate":136}],151:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 var assign = _dereq_('./assign').assign;
 
 function generateTokenizationParameters(configuration, overrides) {
@@ -10016,7 +10016,7 @@ module.exports = {
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var useMin = _dereq_('../../lib/use-min');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
 var methods = _dereq_('../../lib/methods');
@@ -10027,6 +10027,9 @@ var querystring = _dereq_('../../lib/querystring');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var constants = _dereq_('./constants');
 var errors = _dereq_('../shared/errors');
+
+var DEFAULT_WINDOW_WIDTH = 1282;
+var DEFAULT_WINDOW_HEIGHT = 720;
 
 /**
  * @class
@@ -10074,6 +10077,9 @@ LocalPayment.prototype._initialize = function () {
  * @param {object} options.fallback Configuration for what to do when app switching back from a Bank app on a mobile device.
  * @param {string} options.fallback.buttonText The text to insert into a button to redirect back to the merchant page.
  * @param {string} options.fallback.url The url to redirect to when the redirect button is activated. Query params will be added to the url to process the data returned from the bank.
+ * @param {object} [options.windowOptions] The options for configuring the window that is opened when starting the payment.
+ * @param {number} [options.windowOptions.width=1282] The width in pixels of the window opened when starting the payment. The default width size is this large to allow various banking partner landing pages to display the QR Code to be scanned by the bank's mobile app. Many will not display the QR code when the window size is smaller than a standard desktop screen.
+ * @param {number} [options.windowOptions.height=720] The height in pixels of the window opened when starting the payment.
  * @param {string} options.amount The amount to authorize for the transaction.
  * @param {string} options.currencyCode The currency to process the payment.
  * @param {string} options.paymentType The type of local payment.
@@ -10082,6 +10088,7 @@ LocalPayment.prototype._initialize = function () {
  * @param {string} options.givenName First name of the customer.
  * @param {string} options.surname Last name of the customer.
  * @param {string} options.phone Phone number of the customer.
+ * @param {string} options.bic Bank Identification Code of the customer (specific to iDEAL transactions).
  * @param {boolean} options.shippingAddressRequired Indicates whether or not the payment needs to be shipped. For digital goods, this should be false. Defaults to false.
  * @param {string} options.address.streetAddress Line 1 of the Address (eg. number, street, etc). An error will occur if this address is not valid.
  * @param {string} options.address.extendedAddress Line 2 of the Address (eg. suite, apt #, etc.). An error will occur if this address is not valid.
@@ -10127,6 +10134,7 @@ LocalPayment.prototype.startPayment = function (options) {
   var address, params;
   var self = this; // eslint-disable-line no-invalid-this
   var serviceId = this._frameService._serviceId; // eslint-disable-line no-invalid-this
+  var windowOptions = options.windowOptions || {};
 
   if (hasMissingOption(options)) {
     return Promise.reject(new BraintreeError(errors.LOCAL_PAYMENT_START_PAYMENT_MISSING_REQUIRED_OPTION));
@@ -10160,7 +10168,8 @@ LocalPayment.prototype.startPayment = function (options) {
     state: address.region,
     postalCode: address.postalCode,
     countryCode: address.countryCode,
-    merchantAccountId: self._merchantAccountId
+    merchantAccountId: self._merchantAccountId,
+    bic: options.bic
   };
 
   self._paymentType = options.paymentType.toLowerCase();
@@ -10175,7 +10184,10 @@ LocalPayment.prototype.startPayment = function (options) {
   return new Promise(function (resolve, reject) {
     self._startPaymentCallback = self._createStartPaymentCallback(resolve, reject);
 
-    self._frameService.open({}, self._startPaymentCallback);
+    self._frameService.open({
+      width: windowOptions.width || DEFAULT_WINDOW_WIDTH,
+      height: windowOptions.height || DEFAULT_WINDOW_HEIGHT
+    }, self._startPaymentCallback);
 
     self._client.request({
       method: 'post',
@@ -10347,7 +10359,7 @@ LocalPayment.prototype._formatTokenizePayload = function (response) {
 };
 
 /**
- * Checks if required tokenizaiton parameters are available in querystring for manual toenization requests.
+ * Checks if required tokenization parameters are available in querystring for manual tokenization requests.
  * @public
  * @function
  * @example
@@ -10446,7 +10458,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var LocalPayment = _dereq_('./external/local-payment');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -10568,20 +10580,20 @@ module.exports = {
 
 /**
  * @name BraintreeError.LocalPayment - Creation Error Codes
- * @description Errors that occur when [creating the Local Payment component](/current/module-braintree-web_local-payment.html#.create).
+ * @description Errors that occur when [creating the Local Payment component](./module-braintree-web_local-payment.html#.create).
  * @property {MERCHANT} LOCAL_PAYMENT_NOT_ENABLED Occurs when Local Payment is not enabled on the Braintree control panel.
  */
 
 /**
  * @name BraintreeError.LocalPayment - startPayment Error Codes
- * @description Errors that occur when using the [`startPayment` method](/current/LocalPayment.html#startPayment).
+ * @description Errors that occur when using the [`startPayment` method](./LocalPayment.html#startPayment).
  * @property {MERCHANT} LOCAL_PAYMENT_START_PAYMENT_MISSING_REQUIRED_OPTION Occurs when a startPayment is missing a required option.
  * @property {MERCHANT} LOCAL_PAYMENT_ALREADY_IN_PROGRESS Occurs when a startPayment call is already in progress.
  * @property {MERCHANT} LOCAL_PAYMENT_INVALID_PAYMENT_OPTION Occurs when a startPayment call has an invalid option.
  * @property {NETWORK} LOCAL_PAYMENT_START_PAYMENT_FAILED Occurs when a startPayment call fails.
  * @property {NETWORK} LOCAL_PAYMENT_TOKENIZATION_FAILED Occurs when a startPayment call fails to tokenize the result from authorization.
  * @property {CUSTOMER} LOCAL_PAYMENT_WINDOW_CLOSED Occurs when the customer closes the Local Payment window.
- * @property {MERCHANT} LOCAL_PAYMENT_WINDOW_OPEN_FAILED Occurs when the Local Payment window fails to open. Usualy because `startPayment` was not called as a direct result of a user action.
+ * @property {MERCHANT} LOCAL_PAYMENT_WINDOW_OPEN_FAILED Occurs when the Local Payment window fails to open. Usually because `startPayment` was not called as a direct result of a user action.
  */
 
 var BraintreeError = _dereq_('../../lib/braintree-error');
@@ -10636,7 +10648,7 @@ var Promise = _dereq_('../../lib/promise');
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var errors = _dereq_('../shared/errors');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 var methods = _dereq_('../../lib/methods');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var analytics = _dereq_('../../lib/analytics');
@@ -10748,7 +10760,7 @@ Masterpass.prototype._initialize = function () {
  * @param {number} [options.frameOptions.width] Popup width to be used instead of default value (450px).
  * @param {number} [options.frameOptions.height] Popup height to be used instead of default value (660px).
  * @param {number} [options.frameOptions.top] The top position of the popup window to be used instead of default value, that is calculated based on provided height, and parent window size.
- * @param {number} [options.frameOptions.left] The left position to the popup window to be used instead of default value, that is calculated baed on provided width, and parent window size.
+ * @param {number} [options.frameOptions.left] The left position to the popup window to be used instead of default value, that is calculated based on provided width, and parent window size.
  * @param {callback} [callback] The second argument, <code>data</code>, is a {@link Masterpass~tokenizePayload|tokenizePayload}. If no callback is provided, the method will return a Promise that resolves with a {@link Masterpass~tokenizePayload|tokenizePayload}.
  * @returns {(Promise|void)} Returns a promise if no callback is provided.
  * @example
@@ -11033,7 +11045,7 @@ var browserDetection = _dereq_('./shared/browser-detection');
 var Masterpass = _dereq_('./external/masterpass');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 var errors = _dereq_('./shared/errors');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -11150,16 +11162,16 @@ module.exports = {
 
 /**
  * @name BraintreeError.Masterpass - Creation Error Codes
- * @description Errors that occur when [creating the Masterpass component](/current/module-braintree-web_masterpass#.create).
+ * @description Errors that occur when [creating the Masterpass component](./module-braintree-web_masterpass#.create).
  * @property {CUSTOMER} MASTERPASS_BROWSER_NOT_SUPPORTED Occurs when browser is not a supported browser for Masterpass.
- * @property {MERCHANT} MASTERPASS_NOT_ENABLED Occurs when Masterpass is not enabled in the Braintree contorl panel.
+ * @property {MERCHANT} MASTERPASS_NOT_ENABLED Occurs when Masterpass is not enabled in the Braintree control panel.
  */
 
 /**
  * @name BraintreeError.Masterpass - Tokenize Error Codes
- * @description Errors that occur when [tokenizing](/current/Masterpass.html#tokenize).
+ * @description Errors that occur when [tokenizing](./Masterpass.html#tokenize).
  * @property {MERCHANT} MASTERPASS_TOKENIZE_MISSING_REQUIRED_OPTION Occurs when tokenize is called without a required option.
- * @property {MERCHANT} MASTERPASS_TOKENIZATION_ALREADY_IN_PROGRESS Occurs if tokenization flow is intialized while another flow is already in progress.
+ * @property {MERCHANT} MASTERPASS_TOKENIZATION_ALREADY_IN_PROGRESS Occurs if tokenization flow is initialized while another flow is already in progress.
  * @property {NETWORK} MASTERPASS_ACCOUNT_TOKENIZATION_FAILED Occurs when tokenization of Masterpass details fails.
  * @property {MERCHANT} MASTERPASS_POPUP_OPEN_FAILED Occurs when the popup fails to open.
  * @property {MERCHANT} MASTERPASS_POPUP_MISSING_REQUIRED_PARAMETERS Occurs when Masterpass is missing required parameters for tokenization.
@@ -11239,7 +11251,7 @@ var methods = _dereq_('../../lib/methods');
 var Promise = _dereq_('../../lib/promise');
 var EventEmitter = _dereq_('@braintree/event-emitter');
 var BraintreeError = _dereq_('../../lib/braintree-error');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 var constants = _dereq_('../shared/constants');
 var events = constants.events;
 var errors = constants.errors;
@@ -11505,8 +11517,8 @@ PaymentRequestComponent.prototype.initialize = function () {
  * Create an object to pass into tokenize to specify a custom configuration. If no overrides are provided, the default configuration will be provided.
  * @public
  * @param {string} type The supported payment method type. Possible values are `basicCard` and `googlePay`.
- * If no type is provided, the function will throw an error. If the type provided is not an enabled payemnt method for the merchant account , the function will throw an error.
- * @param {object} [overrides] The configuration overrides for the [data property on the supported payment methods objects](https://developers.google.com/web/fundamentals/payments/deep-dive-into-payment-request). If not passed in, the default configuration for the specified type will be provided. If a property is not provided, the value from the default configruation will be used.
+ * If no type is provided, the function will throw an error. If the type provided is not an enabled payment method for the merchant account , the function will throw an error.
+ * @param {object} [overrides] The configuration overrides for the [data property on the supported payment methods objects](https://developers.google.com/web/fundamentals/payments/deep-dive-into-payment-request). If not passed in, the default configuration for the specified type will be provided. If a property is not provided, the value from the default configuration will be used.
  * @example <caption>Getting the default configuration for a specified type</caption>
  * var configuration = paymentRequestInstance.createSupportedPaymentMethodsConfiguration('basicCard');
  *
@@ -11926,7 +11938,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 
 /**
  * @static
@@ -12035,20 +12047,20 @@ module.exports = constants;
 
 /**
  * @name BraintreeError.Payment Request - Creation Error Codes
- * @description Errors that occur when [creating the Payment Request component](/current/module-braintree-web_payment-request.html#.create).
+ * @description Errors that occur when [creating the Payment Request component](./module-braintree-web_payment-request.html#.create).
  * @property {MERCHANT} PAYMENT_REQUEST_NO_VALID_SUPPORTED_PAYMENT_METHODS Occurs when there are no valid payment methods configured.
  */
 
 /**
  * @name BraintreeError.Payment Request - createSupportedPaymentMethodsConfiguration  Error Codes
- * @description Errors that occur when using the [`createSupportedPaymentMethodsConfiguration` method](/current/PaymentRequestComponent.html#createSupportedPaymentMethodsConfiguration)
+ * @description Errors that occur when using the [`createSupportedPaymentMethodsConfiguration` method](./PaymentRequestComponent.html#createSupportedPaymentMethodsConfiguration)
  * @property {MERCHANT} PAYMENT_REQUEST_CREATE_SUPPORTED_PAYMENT_METHODS_CONFIGURATION_MUST_INCLUDE_TYPE Occurs when no type is supplied for method.
  * @property {MERCHANT} PAYMENT_REQUEST_CREATE_SUPPORTED_PAYMENT_METHODS_CONFIGURATION_TYPE_NOT_ENABLED Occurs when configured type is not enabled.
  */
 
 /**
  * @name BraintreeError.Payment Request - tokenize  Error Codes
- * @description Errors that occur when using the [`tokenize` method](/current/PaymentRequestComponent.html#tokenize)
+ * @description Errors that occur when using the [`tokenize` method](./PaymentRequestComponent.html#tokenize)
  * @property {CUSTOMER} PAYMENT_REQUEST_CANCELED Occurs when customer cancels the Payment Request.
  * @property {MERCHANT} PAYMENT_REQUEST_INITIALIZATION_MISCONFIGURED Occurs when the Payment Request is closed do to the options being misconfigured.
  * @property {MERCHANT} PAYMENT_REQUEST_GOOGLE_PAYMENT_FAILED_TO_TOKENIZE Occurs when a Google Payment payment method is unable to be tokenized.
@@ -12058,8 +12070,8 @@ module.exports = constants;
 
 /**
  * @name BraintreeError.Payment Request - canMakePayment  Error Codes
- * @description Errors that occur when using the [`canMakePayment` method](/current/PaymentRequestComponent.html#canMakePayment)
- * @property {MERCHANT} PAYMENT_REQUEST_INITIALIZATION_MISCONFIGURED Occurs when the Payment Request is intatiated with misconfigured options.
+ * @description Errors that occur when using the [`canMakePayment` method](./PaymentRequestComponent.html#canMakePayment)
+ * @property {MERCHANT} PAYMENT_REQUEST_INITIALIZATION_MISCONFIGURED Occurs when the Payment Request is instantiated with misconfigured options.
  * @property {MERCHANT} PAYMENT_REQUEST_CAN_MAKE_PAYMENT_NOT_ALLOWED Occurs when `canMakePayment` results in a `DomException` with a `NotAllowedError`. This usually occurs when `canMakePayment` is called multiple times with different supported payment options.
  * @property {MERCHANT} PAYMENT_REQUEST_UNSUPPORTED_PAYMENT_METHOD Occurs when `canMakePayment` is called with a `supportedPaymentMethods` array that contains a payment method that is not supported by the Braintree SDK.
  * @property {UNKNOWN} PAYMENT_REQUEST_CAN_MAKE_PAYMENT_FAILED Occurs when `canMakePayment` fails for any reason other than a misconfigured Payment Request object.
@@ -12128,14 +12140,14 @@ module.exports = {
 
 /**
  * @name BraintreeError.PayPal Checkout - Creation Error Codes
- * @description Errors that occur when [creating the PayPal Checkout component](/current/module-braintree-web_paypal-checkout.html#.create).
+ * @description Errors that occur when [creating the PayPal Checkout component](./module-braintree-web_paypal-checkout.html#.create).
  * @property {MERCHANT} PAYPAL_NOT_ENABLED Occurs when PayPal is not enabled on the Braintree control panel.
  * @property {MERCHANT} PAYPAL_SANDBOX_ACCOUNT_NOT_LINKED Occurs only when testing in Sandbox, when a PayPal sandbox account is not linked to the merchant account in the Braintree control panel.
  */
 
 /**
  * @name BraintreeError.PayPal Checkout - createPayment Error Codes
- * @description Errors that occur when using the [`createPayment` method](/current/PayPalCheckout.html#createPayment).
+ * @description Errors that occur when using the [`createPayment` method](./PayPalCheckout.html#createPayment).
  * @property {MERCHANT} PAYPAL_FLOW_OPTION_REQUIRED Occurs when a required option is missing.
  * @property {MERCHANT} PAYPAL_INVALID_PAYMENT_OPTION Occurs when an option contains an invalid value.
  * @property {NETWORK} PAYPAL_FLOW_FAILED Occurs when something goes wrong when initializing the flow.
@@ -12143,7 +12155,7 @@ module.exports = {
 
 /**
  * @name BraintreeError.PayPal Checkout - startVaultInitiatedCheckout Error Codes
- * @description Errors that occur when using the [`startVaultInitiatedCheckout` method](/current/PayPalCheckout.html#startVaultInitiatedCheckout).
+ * @description Errors that occur when using the [`startVaultInitiatedCheckout` method](./PayPalCheckout.html#startVaultInitiatedCheckout).
  * @property {MERCHANT} PAYPAL_START_VAULT_INITIATED_CHECKOUT_PARAM_REQUIRED Occurs when a required param is missing when calling the method.
  * @property {MERCHANT} PAYPAL_START_VAULT_INITIATED_CHECKOUT_POPUP_OPEN_FAILED Occurs when PayPal window could not be opened. This often occurs because the call to start the vault initiated flow was not triggered from a click event.
  * @property {CUSTOMER} PAYPAL_START_VAULT_INITIATED_CHECKOUT_CANCELED Occurs when a customer closes the PayPal flow before completion.
@@ -12153,7 +12165,7 @@ module.exports = {
 
 /**
  * @name BraintreeError.PayPal Checkout - tokenizePayment Error Codes
- * @description Errors that occur when using the [`tokenizePayment` method](/current/PayPalCheckout.html#tokenizePayment).
+ * @description Errors that occur when using the [`tokenizePayment` method](./PayPalCheckout.html#tokenizePayment).
  * @property {NETWORK} PAYPAL_ACCOUNT_TOKENIZATION_FAILED Occurs when PayPal account could not be tokenized.
  */
 
@@ -12226,7 +12238,7 @@ module.exports = {
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var PayPalCheckout = _dereq_('./paypal-checkout');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 
 /**
  * @static
@@ -12308,7 +12320,7 @@ var methods = _dereq_('../lib/methods');
 var useMin = _dereq_('../lib/use-min');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
 var querystring = _dereq_('../lib/querystring');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 var INTEGRATION_TIMEOUT_MS = _dereq_('../lib/constants').INTEGRATION_TIMEOUT_MS;
 
 var REQUIRED_PARAMS_FOR_START_VAULT_INITIATED_CHECKOUT = [
@@ -13169,7 +13181,7 @@ PayPalCheckout.prototype.getClientId = function () {
 };
 
 /**
- * Resolves when the PayPal SDK has been succesfully loaded onto the page.
+ * Resolves when the PayPal SDK has been successfully loaded onto the page.
  * @public
  * @param {object} [options] A configuration object to modify the query params and data-attributes on the PayPal SDK. A subset of the parameters are listed below. For a full list of query params, see the [PayPal docs](https://developer.paypal.com/docs/checkout/reference/customize-sdk/?mark=query#query-parameters).
  * @param {string} [options.client-id] By default, this will be the client id associated with the authorization used to create the Braintree component. When used in conjunction with passing `authorization` when creating the PayPal Checkout component, you can speed up the loading of the PayPal SDK.
@@ -13227,8 +13239,14 @@ PayPalCheckout.prototype.loadPayPalSDK = function (options) {
   }, options);
   delete options.dataAttributes;
 
+  // NEXT_MAJOR_VERSION if merchant passes an explicit intent,
+  // currency, amount, etc, save those for use in createPayment
+  // if no explicit param of that type is passed in when calling
+  // createPayment to reduce the number of items that need to be
+  // duplicated here and in createPayment
+  options.intent = options.intent || 'authorize';
+
   if (!options.vault) {
-    options.intent = options.intent || 'authorize';
     options.currency = options.currency || 'USD';
   }
 
@@ -13451,13 +13469,23 @@ PayPalCheckout.prototype._formatTokenizePayload = function (response) {
  * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 PayPalCheckout.prototype.teardown = function () {
+  var self = this;
+
   convertMethodsToError(this, methods(PayPalCheckout.prototype));
 
   if (this._paypalScript && this._paypalScript.parentNode) {
     this._paypalScript.parentNode.removeChild(this._paypalScript);
   }
 
-  return Promise.resolve();
+  return this._frameServicePromise.catch(function () {
+    // no need to error in teardown for an error setting up the frame service
+  }).then(function () {
+    if (!self._frameService) {
+      return Promise.resolve();
+    }
+
+    return self._frameService.teardown();
+  });
 };
 
 module.exports = wrapPromise.wrapPrototype(PayPalCheckout);
@@ -13470,7 +13498,7 @@ var BraintreeError = _dereq_('../../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../../lib/convert-to-braintree-error');
 var useMin = _dereq_('../../lib/use-min');
 var once = _dereq_('../../lib/once');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 var constants = _dereq_('../shared/constants');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
@@ -14075,7 +14103,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var errors = _dereq_('./shared/errors');
 var PayPal = _dereq_('./external/paypal');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var Promise = _dereq_('../lib/promise');
 
@@ -14087,7 +14115,7 @@ var Promise = _dereq_('../lib/promise');
  * @param {string} [options.authorization] A tokenizationKey or clientToken. Can be used in place of `options.client`.
  * @param {callback} callback The second argument, `data`, is the {@link PayPal} instance.
  * @example
- * // We recomend creating your PayPal button with button.js
+ * // We recommend creating your PayPal button with button.js
  * // For an example, see https://codepen.io/braintree/pen/LNKJWa
  * var paypalButton = document.querySelector('.paypal-button');
  *
@@ -14210,15 +14238,15 @@ module.exports = {
 
 /**
  * @name BraintreeError.PayPal - Creation Error Codes
- * @description Errors that occur when [creating the PayPal component](/current/module-braintree-web_paypal.html#.create).
+ * @description Errors that occur when [creating the PayPal component](./module-braintree-web_paypal.html#.create).
  * @property {MERCHANT} PAYPAL_NOT_ENABLED Occurs when PayPal is not enabled on the Braintree control panel.
  */
 
 /**
  * @name BraintreeError.PayPal - tokenize Error Codes
- * @description Errors that occur when using the [`tokenize` method](/current/PayPal.html#tokenize).
+ * @description Errors that occur when using the [`tokenize` method](./PayPal.html#tokenize).
  * @property {MERCHANT} PAYPAL_TOKENIZATION_REQUEST_ACTIVE Occurs when a tokenization request is already in progress.
- * @property {MERCHANT} PAYPAL_FLOW_OPTION_REQUIRED Occurs when flow option is not provdided.
+ * @property {MERCHANT} PAYPAL_FLOW_OPTION_REQUIRED Occurs when flow option is not provided.
  * @property {NETWORK} PAYPAL_ACCOUNT_TOKENIZATION_FAILED Occurs when PayPal account could not be tokenized.
  * @property {NETWORK} PAYPAL_FLOW_FAILED Occurs when PayPal flow could not be initiated.
  * @property {MERCHANT} PAYPAL_POPUP_OPEN_FAILED Occurs when PayPal window could not be opened.
@@ -14278,7 +14306,7 @@ module.exports = {
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var PreferredPaymentMethods = _dereq_('./preferred-payment-methods');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 
 /**
  * @static
@@ -14445,7 +14473,7 @@ var events = _dereq_('../../shared/events');
 var useMin = _dereq_('../../../lib/use-min');
 var BUS_CONFIGURATION_REQUEST_EVENT = _dereq_('../../../lib/constants').BUS_CONFIGURATION_REQUEST_EVENT;
 
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 var IFRAME_HEIGHT = 400;
 var IFRAME_WIDTH = 400;
 
@@ -15128,7 +15156,7 @@ var ExtendedPromise = _dereq_('@braintree/extended-promise');
 
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var PLATFORM = _dereq_('../../../lib/constants').PLATFORM;
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 var CUSTOMER_CANCELED_SONGBIRD_MODAL = '01';
 var SONGBIRD_UI_EVENTS = [
   'ui.close',
@@ -16570,7 +16598,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -16793,7 +16821,7 @@ module.exports = {
 
 /**
  * @name BraintreeError.3D Secure - Creation Error Codes
- * @description Errors that occur when [creating the 3D Secure component](/current/module-braintree-web_three-d-secure.html#.create).
+ * @description Errors that occur when [creating the 3D Secure component](./module-braintree-web_three-d-secure.html#.create).
  * @property {MERCHANT} THREEDS_NOT_ENABLED Occurs when 3D Secure is not enabled in the Braintree control panel.
  * @property {MERCHANT} THREEDS_CAN_NOT_USE_TOKENIZATION_KEY Occurs when 3D Secure component is created without a Client Token.
  * @property {MERCHANT} THREEDS_HTTPS_REQUIRED Occurs when 3D Secure component is created in production over HTTPS.
@@ -16804,14 +16832,14 @@ module.exports = {
  * @property {UNKNOWN} THREEDS_CARDINAL_SDK_SETUP_TIMEDOUT Occurs when Cardinal's Songbird.js library takes longer than 60 seconds to set up.
  * @property {UNKNOWN} THREEDS_CARDINAL_SDK_RESPONSE_TIMEDOUT Occurs when Cardinal sends a response indicating a timeout on /Validate, /Confirm, or /Continue.
  * @property {MERCHANT} THREEDS_CARDINAL_SDK_BAD_CONFIG Occurs when there is no JWT in the request. Also when there's some other malformed aspect of config.
- * @property {MERCHANT} THREEDS_CARDINAL_SDK_BAD_JWT Occus when a malformed config causes a either a missing response JWT or a malformed Cardinal response.
+ * @property {MERCHANT} THREEDS_CARDINAL_SDK_BAD_JWT Occurs when a malformed config causes a either a missing response JWT or a malformed Cardinal response.
  * @property {UNKNOWN} THREEDS_CARDINAL_SDK_ERROR Occurs when a "general error" or a Cardinal hosted fields error happens. Description contains more details.
  * @property {CUSTOMER} THREEDS_CARDINAL_SDK_CANCELED Occurs when customer cancels the transaction mid-flow, usually with alt-pays that have their own cancel buttons.
 */
 
 /**
  * @name BraintreeError.3D Secure - verifyCard Error Codes
- * @description Errors that occur when using the [`verifyCard` method](/current/ThreeDSecure.html#verifyCard).
+ * @description Errors that occur when using the [`verifyCard` method](./ThreeDSecure.html#verifyCard).
  * @property {MERCHANT} THREEDS_AUTHENTICATION_IN_PROGRESS Occurs when another verification is already in progress.
  * @property {MERCHANT} THREEDS_MISSING_VERIFY_CARD_OPTION Occurs when a required option is missing.
  * @property {UNKNOWN} THREEDS_JWT_AUTHENTICATION_FAILED Occurs when something went wrong authenticating the JWT from the Cardinal SDK.
@@ -16824,7 +16852,7 @@ module.exports = {
 
 /**
  * @name BraintreeError.3D Secure - cancelVerifyCard Error Codes
- * @description Errors that occur when using the [`cancelVerifyCard` method](/current/ThreeDSecure.html#cancelVerifyCard).
+ * @description Errors that occur when using the [`cancelVerifyCard` method](./ThreeDSecure.html#cancelVerifyCard).
  * @property {MERCHANT} THREEDS_NO_VERIFICATION_PAYLOAD Occurs when the 3D Secure flow is canceled, but there is no 3D Secure information available.
  */
 
@@ -16833,7 +16861,7 @@ module.exports = {
  * @ignore
  * @description Errors that occur internally
  * @property {INTERNAL} THREEDS_TERM_URL_REQUIRES_BRAINTREE_DOMAIN Occurs when iframe is initialized on a non-verified domain.
- * @property {INTERNAL} THREEDS_FRAMEWORK_METHOD_NOT_IMPLEMENTED Occurs when a 3D Secure framwork method is not implemented.
+ * @property {INTERNAL} THREEDS_FRAMEWORK_METHOD_NOT_IMPLEMENTED Occurs when a 3D Secure framework method is not implemented.
  */
 
 var BraintreeError = _dereq_('../../lib/braintree-error');
@@ -16982,7 +17010,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -17061,7 +17089,7 @@ module.exports = {
 
 /**
  * @name BraintreeError.Union Pay - Creation Error Codes
- * @description Errors that occur when [creating the Union Pay component](/current/module-braintree-web_union-pay.html#.create).
+ * @description Errors that occur when [creating the Union Pay component](./module-braintree-web_union-pay.html#.create).
  * @property {MERCHANT} UNIONPAY_NOT_ENABLED Occurs when Union Pay is not enabled on the Braintree control panel.
  */
 
@@ -17070,19 +17098,19 @@ module.exports = {
  * @description Errors that occur when starting the Union Pay Flow
  * @property {MERCHANT} UNIONPAY_CARD_AND_HOSTED_FIELDS_INSTANCES Occurs when a method is used with both card details and a Hosted Fields instance.
  * @property {MERCHANT} UNIONPAY_HOSTED_FIELDS_INSTANCE_INVALID Occurs when Hosted Fields instance used is not a valid Hosted Fields instance.
- * @property {MERCHANT} UNIONPAY_CARD_OR_HOSTED_FIELDS_INSTANCE_REQUIRED Occurs when neither card detals or Hosted Fields are used.
+ * @property {MERCHANT} UNIONPAY_CARD_OR_HOSTED_FIELDS_INSTANCE_REQUIRED Occurs when neither card details or Hosted Fields are used.
  * @property {MERCHANT} UNIONPAY_HOSTED_FIELDS_INSTANCE_REQUIRED Occurs when Hosted Fields cannot be found on the page.
  */
 
 /**
  * @name BraintreeError.Union Pay - fetchCapabilities Error Codes
- * @description Errors that occur when using the [`fetchCapabilities` method](/current/UnionPay.html#fetchCapabilities).
+ * @description Errors that occur when using the [`fetchCapabilities` method](./UnionPay.html#fetchCapabilities).
  * @property {NETWORK} UNIONPAY_FETCH_CAPABILITIES_NETWORK_ERROR Occurs when there is an error looking up the Union Pay capabilities.
  */
 
 /**
  * @name BraintreeError.Union Pay - enroll Error Codes
- * @description Errors that occur when using the [`enroll` method](/current/UnionPay.html#enroll).
+ * @description Errors that occur when using the [`enroll` method](./UnionPay.html#enroll).
  * @property {MERCHANT} UNIONPAY_MISSING_MOBILE_PHONE_DATA Occurs when no mobile phone data is provided.
  * @property {MERCHANT} UNIONPAY_EXPIRATION_DATE_INCOMPLETE Occurs when expiration date is incomplete.
  * @property {CUSTOMER} UNIONPAY_ENROLLMENT_CUSTOMER_INPUT_INVALID Occurs when customer enrollment input is invalid.
@@ -17091,7 +17119,7 @@ module.exports = {
 
 /**
  * @name BraintreeError.Union Pay - tokenize Error Codes
- * @description Errors that occur when using the [`tokenize` method](/current/UnionPay.html#tokenize).
+ * @description Errors that occur when using the [`tokenize` method](./UnionPay.html#tokenize).
  * @property {CUSTOMER} UNIONPAY_FAILED_TOKENIZATION Occurs when data cannot be tokenized.
  * @property {NETWORK} UNIONPAY_TOKENIZATION_NETWORK_ERROR Occurs when the Braintree gateway cannot be reached.
  */
@@ -17175,7 +17203,7 @@ var errors = _dereq_('./errors');
 var events = constants.events;
 var iFramer = _dereq_('@braintree/iframer');
 var methods = _dereq_('../../lib/methods');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 var uuid = _dereq_('@braintree/uuid');
 var Promise = _dereq_('../../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -17571,15 +17599,15 @@ module.exports = {
 
 /**
  * @name BraintreeError.Us Bank Account - Creation Error Codes
- * @description Errors that occur when [creating the Us Bank Account component](/current/module-braintree-web_us-bank-account.html#.create).
+ * @description Errors that occur when [creating the Us Bank Account component](./module-braintree-web_us-bank-account.html#.create).
  * @property {MERCHANT} US_BANK_ACCOUNT_NOT_ENABLED Occurs when US Bank Account is not enabled in the Braintree control panel.
  */
 
 /**
  * @name BraintreeError.Us Bank Account - tokenize Error Codes
- * @description Errors that occur when using the [`tokenize` method](/current/UsBankAccount.html#tokenize).
+ * @description Errors that occur when using the [`tokenize` method](./UsBankAccount.html#tokenize).
  * @property {MERCHANT} US_BANK_ACCOUNT_OPTION_REQUIRED Occurs when a required option is not passed.
- * @property {MERCHANT} US_BANK_ACCOUNT_MUTUALLY_EXCLUSIVE_OPTIONS Occurs when 1 or more incompatible options are passsed.
+ * @property {MERCHANT} US_BANK_ACCOUNT_MUTUALLY_EXCLUSIVE_OPTIONS Occurs when 1 or more incompatible options are passed.
  * @property {NETWORK} US_BANK_ACCOUNT_LOGIN_LOAD_FAILED Occurs when bank login flow fails.
  * @property {CUSTOMER} US_BANK_ACCOUNT_LOGIN_CLOSED Occurs when bank login window is closed.
  * @property {MERCHANT} US_BANK_ACCOUNT_LOGIN_REQUEST_ACTIVE Occurs when a bank login flow is already active.
@@ -17649,7 +17677,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var errors = _dereq_('./errors');
 var USBankAccount = _dereq_('./us-bank-account');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -18178,8 +18206,8 @@ module.exports = wrapPromise.wrapPrototype(USBankAccount);
 
 /**
  * @name BraintreeError.Vault Manager - deletePaymentMethod Error Codes
- * @description Errors that occur when using the [`deletePaymentMethod` method](/current/VaultManager.html#deletePaymentMethod).
- * @property {MERCHANT} VAULT_MANAGER_DELETE_PAYMENT_METHOD_NONCE_REQUIRES_CLIENT_TOKEN Occurs when vault manager is initalized with a tokenization key instead of a Client Token.
+ * @description Errors that occur when using the [`deletePaymentMethod` method](./VaultManager.html#deletePaymentMethod).
+ * @property {MERCHANT} VAULT_MANAGER_DELETE_PAYMENT_METHOD_NONCE_REQUIRES_CLIENT_TOKEN Occurs when vault manager is initialized with a tokenization key instead of a Client Token.
  * @property {MERCHANT} VAULT_MANAGER_PAYMENT_METHOD_NONCE_NOT_FOUND Occurs when the specified payment method can not be found.
  * @property {UNKNOWN} VAULT_MANAGER_DELETE_PAYMENT_METHOD_UNKNOWN_ERROR Occurs when there is an error attempting to delete the payment method.
  */
@@ -18213,7 +18241,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var VaultManager = _dereq_('./vault-manager');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -18298,7 +18326,7 @@ function VaultManager(options) {
  * @public
  * @param {object} [options] Options for fetching payment methods.
  * @param {boolean} [options.defaultFirst = false] If `true`, the payment methods will be returned with the default payment method for the customer first. Otherwise, the payment methods will be returned with the most recently used payment method first.
- * @param {callback} [callback] The second argument is a {@link VaultManager~fetchPaymentMethodsPayload|fetchPaymentMehodsPayload}. This is also what is resolved by the promise if no callback is provided.
+ * @param {callback} [callback] The second argument is a {@link VaultManager~fetchPaymentMethodsPayload|fetchPaymentMethodsPayload}. This is also what is resolved by the promise if no callback is provided.
  * @returns {(Promise|void)} Returns a promise if no callback is provided.
  * @example
  * vaultManagerInstance.fetchPaymentMethods(function (err, paymentMethods) {
@@ -18810,7 +18838,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var Venmo = _dereq_('./venmo');
 var Promise = _dereq_('../lib/promise');
 var supportsVenmo = _dereq_('./shared/supports-venmo');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 
 /**
  * @static
@@ -18964,15 +18992,15 @@ module.exports = {
 
 /**
  * @name BraintreeError.Venmo - Creation Error Codes
- * @description Errors that occur when [creating the Venmo component](/current/module-braintree-web_venmo.html#.create).
+ * @description Errors that occur when [creating the Venmo component](./module-braintree-web_venmo.html#.create).
  * @property {MERCHANT} VENMO_NOT_ENABLED Occurs when Venmo is not enabled on the Braintree control panel.
- * @property {MERCHANT} VENMO_INVALID_PROFILE_ID Occurs when Venmo is intilaized with a profile id, but it is invalid.
+ * @property {MERCHANT} VENMO_INVALID_PROFILE_ID Occurs when Venmo is initialized with a profile id, but it is invalid.
  * @property {UNKNOWN} VENMO_MOBILE_POLLING_SETUP_FAILED Occurs when enabling mobile polling alternative for tokenization fails.
  */
 
 /**
  * @name BraintreeError.Venmo - tokenize Error Codes
- * @description Errors that occur when using the [`tokenize` method](/current/Venmo.html#tokenize).
+ * @description Errors that occur when using the [`tokenize` method](./Venmo.html#tokenize).
  * @property {MERCHANT} VENMO_TOKENIZATION_REQUEST_ACTIVE Occurs when `tokenize` is called when the flow is already in progress.
  * @property {MERCHANT} VENMO_TOKENIZATION_REQUEST_NOT_ACTIVE Occurs when `cancelTokenization` is called when the flow is not in progress.
  * @property {UNKNOWN} VENMO_APP_FAILED Occurs when tokenization fails.
@@ -19165,7 +19193,7 @@ var ExtendedPromise = _dereq_('@braintree/extended-promise');
 var createVenmoDesktop = _dereq_('./external/');
 var graphqlQueries = _dereq_('./external/queries');
 
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 var DEFAULT_MOBILE_POLLING_INTERVAL = 250; // 1/4 second
 var DEFAULT_MOBILE_EXPIRING_THRESHOLD = 300000; // 5 minutes
 
@@ -19388,7 +19416,7 @@ Venmo.prototype._isDesktop = function () {
  * Only one Venmo flow can be active at a time. One way to achieve this is to disable your Venmo button while the flow is open.
  * @public
  * @param {object} [options] Options for tokenization.
- * @param {number} [options.processResultsDelay=500] The amount of time in milliseeconds to delay processing the results. In most cases, this value should be left as the default.
+ * @param {number} [options.processResultsDelay=500] The amount of time in milliseconds to delay processing the results. In most cases, this value should be left as the default.
  * @param {callback} [callback] The second argument, <code>data</code>, is a {@link Venmo~tokenizePayload|tokenizePayload}. If no callback is provided, the method will return a Promise that resolves with a {@link Venmo~tokenizePayload|tokenizePayload}.
  * @returns {(Promise|void)} Returns a promise if no callback is provided.
  * @example
@@ -19918,19 +19946,19 @@ module.exports = wrapPromise.wrapPrototype(Venmo);
 
 /**
  * @name BraintreeError.Visa Checkout - Creation Error Codes
- * @description Errors that occur when [creating the Visa Checkout component](/current/module-braintree-web_venmo.html#.create).
+ * @description Errors that occur when [creating the Visa Checkout component](./module-braintree-web_venmo.html#.create).
  * @property {MERCHANT} VISA_CHECKOUT_NOT_ENABLED Occurs when Visa Checkout is not enabled in the Braintree control panel.
  */
 
 /**
  * @name BraintreeError.Visa Checkout - createInitOptions Error Codes
- * @description Errors that occur when using the [`createInitOptions` method](/current/VisaCheckout.html#createInitOptions).
+ * @description Errors that occur when using the [`createInitOptions` method](./VisaCheckout.html#createInitOptions).
  * @property {MERCHANT} VISA_CHECKOUT_INIT_OPTIONS_REQUIRED Occurs when no options are provided to method.
  */
 
 /**
  * @name BraintreeError.Visa Checkout - tokenize Error Codes
- * @description Errors that occur when using the [`tokenize` method](/current/VisaCheckout.html#tokenize).
+ * @description Errors that occur when using the [`tokenize` method](./VisaCheckout.html#tokenize).
  * @property {MERCHANT} VISA_CHECKOUT_PAYMENT_REQUIRED Occurs when no payment data is not provided.
  * @property {NETWORK} VISA_CHECKOUT_TOKENIZATION Occurs when tokenization fails.
  */
@@ -19975,7 +20003,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var VisaCheckout = _dereq_('./visa-checkout');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./errors');
-var VERSION = "3.73.1";
+var VERSION = "3.74.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
