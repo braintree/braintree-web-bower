@@ -2142,7 +2142,7 @@ var AmericanExpress = _dereq_('./american-express');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
-var VERSION = "3.74.0";
+var VERSION = "3.75.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -2634,7 +2634,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var Promise = _dereq_('../lib/promise');
 var errors = _dereq_('./errors');
-var VERSION = "3.74.0";
+var VERSION = "3.75.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -3401,7 +3401,7 @@ module.exports = {
 
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Client = _dereq_('./client');
-var VERSION = "3.74.0";
+var VERSION = "3.75.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -4812,7 +4812,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var methods = _dereq_('../lib/methods');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
-var VERSION = "3.74.0";
+var VERSION = "3.75.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var errors = _dereq_('./errors');
@@ -5556,7 +5556,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.74.0";
+var VERSION = "3.75.0";
 var errors = _dereq_('./errors');
 
 /**
@@ -7441,7 +7441,7 @@ var supportsInputFormatting = _dereq_('restricted-input/supports-input-formattin
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.74.0";
+var VERSION = "3.75.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -7509,6 +7509,7 @@ var VERSION = "3.74.0";
  *
  * Supported CSS properties are:
  * `appearance`
+ * `box-shadow`
  * `color`
  * `direction`
  * `font-family`
@@ -7542,10 +7543,12 @@ var VERSION = "3.74.0";
  * `text-shadow`
  * `transition`
  * `-moz-appearance`
+ * `-moz-box-shadow`
  * `-moz-osx-font-smoothing`
  * `-moz-tap-highlight-color`
  * `-moz-transition`
  * `-webkit-appearance`
+ * `-webkit-box-shadow`
  * `-webkit-font-smoothing`
  * `-webkit-tap-highlight-color`
  * `-webkit-transition`
@@ -7825,7 +7828,7 @@ module.exports = {
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.74.0";
+var VERSION = "3.75.0";
 
 var constants = {
   VERSION: VERSION,
@@ -7870,14 +7873,17 @@ var constants = {
   },
   allowedStyles: [
     '-moz-appearance',
+    '-moz-box-shadow',
     '-moz-osx-font-smoothing',
     '-moz-tap-highlight-color',
     '-moz-transition',
     '-webkit-appearance',
+    '-webkit-box-shadow',
     '-webkit-font-smoothing',
     '-webkit-tap-highlight-color',
     '-webkit-transition',
     'appearance',
+    'box-shadow',
     'color',
     'direction',
     'font',
@@ -8290,7 +8296,7 @@ var vaultManager = _dereq_('./vault-manager');
 var venmo = _dereq_('./venmo');
 var visaCheckout = _dereq_('./visa-checkout');
 var preferredPaymentMethods = _dereq_('./preferred-payment-methods');
-var VERSION = "3.74.0";
+var VERSION = "3.75.0";
 
 module.exports = {
   /** @type {module:braintree-web/american-express} */
@@ -8446,7 +8452,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.74.0";
+var VERSION = "3.75.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -8642,7 +8648,7 @@ module.exports = function (obj) {
 },{}],128:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.74.0";
+var VERSION = "3.75.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -8791,7 +8797,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.74.0";
+var VERSION = "3.75.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -9570,7 +9576,7 @@ module.exports = enumerate([
 },{"../../enumerate":136}],151:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.74.0";
+var VERSION = "3.75.0";
 var assign = _dereq_('./assign').assign;
 
 function generateTokenizationParameters(configuration, overrides) {
@@ -10016,7 +10022,7 @@ module.exports = {
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var useMin = _dereq_('../../lib/use-min');
-var VERSION = "3.74.0";
+var VERSION = "3.75.0";
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
 var methods = _dereq_('../../lib/methods');
@@ -10458,7 +10464,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var LocalPayment = _dereq_('./external/local-payment');
-var VERSION = "3.74.0";
+var VERSION = "3.75.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -10648,7 +10654,7 @@ var Promise = _dereq_('../../lib/promise');
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var errors = _dereq_('../shared/errors');
-var VERSION = "3.74.0";
+var VERSION = "3.75.0";
 var methods = _dereq_('../../lib/methods');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var analytics = _dereq_('../../lib/analytics');
@@ -11045,7 +11051,7 @@ var browserDetection = _dereq_('./shared/browser-detection');
 var Masterpass = _dereq_('./external/masterpass');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
-var VERSION = "3.74.0";
+var VERSION = "3.75.0";
 var errors = _dereq_('./shared/errors');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -11251,7 +11257,7 @@ var methods = _dereq_('../../lib/methods');
 var Promise = _dereq_('../../lib/promise');
 var EventEmitter = _dereq_('@braintree/event-emitter');
 var BraintreeError = _dereq_('../../lib/braintree-error');
-var VERSION = "3.74.0";
+var VERSION = "3.75.0";
 var constants = _dereq_('../shared/constants');
 var events = constants.events;
 var errors = constants.errors;
@@ -11938,7 +11944,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.74.0";
+var VERSION = "3.75.0";
 
 /**
  * @static
@@ -12238,7 +12244,7 @@ module.exports = {
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var PayPalCheckout = _dereq_('./paypal-checkout');
-var VERSION = "3.74.0";
+var VERSION = "3.75.0";
 
 /**
  * @static
@@ -12320,7 +12326,7 @@ var methods = _dereq_('../lib/methods');
 var useMin = _dereq_('../lib/use-min');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
 var querystring = _dereq_('../lib/querystring');
-var VERSION = "3.74.0";
+var VERSION = "3.75.0";
 var INTEGRATION_TIMEOUT_MS = _dereq_('../lib/constants').INTEGRATION_TIMEOUT_MS;
 
 var REQUIRED_PARAMS_FOR_START_VAULT_INITIATED_CHECKOUT = [
@@ -13185,7 +13191,7 @@ PayPalCheckout.prototype.getClientId = function () {
  * @public
  * @param {object} [options] A configuration object to modify the query params and data-attributes on the PayPal SDK. A subset of the parameters are listed below. For a full list of query params, see the [PayPal docs](https://developer.paypal.com/docs/checkout/reference/customize-sdk/?mark=query#query-parameters).
  * @param {string} [options.client-id] By default, this will be the client id associated with the authorization used to create the Braintree component. When used in conjunction with passing `authorization` when creating the PayPal Checkout component, you can speed up the loading of the PayPal SDK.
- * @param {string} [options.intent="authorize"] By default, the PayPal SDK defaults to an intent of `capture`. Since the default intent when calling {@link PayPalCheckout#createPayment|`createPayment`} is `authorize`, the PayPal SDK will be loaded with `intent=authorize`. If you wish to use a different intent when calling {@link PayPalCheckout#createPayment|`createPayment`}, make sure it matches here. If `sale` is used, it will be converted to `capture` for the PayPal SDK. If the `vault: true` param is used, no default intent will be passed.
+ * @param {string} [options.intent="authorize"] By default, the PayPal SDK defaults to an intent of `capture`. Since the default intent when calling {@link PayPalCheckout#createPayment|`createPayment`} is `authorize`, the PayPal SDK will be loaded with `intent=authorize`. If you wish to use a different intent when calling {@link PayPalCheckout#createPayment|`createPayment`}, make sure it matches here. If `sale` is used, it will be converted to `capture` for the PayPal SDK. If the `vault: true` param is used, `tokenize` will be passed as the default intent.
  * @param {string} [options.currency="USD"] If a currency is passed in {@link PayPalCheckout#createPayment|`createPayment`}, it must match the currency passed here.
  * @param {boolean} [options.vault] Must be `true` when using `flow: vault` in {@link PayPalCheckout#createPayment|`createPayment`}.
  * @param {string} [options.components=buttons] By default, the Braintree SDK will only load the PayPal smart buttons component. If you would like to load just the [messages component](https://developer.paypal.com/docs/business/checkout/add-capabilities/credit-messaging/), pass `messages`. If you would like to load both, pass `buttons,messages`
@@ -13244,9 +13250,10 @@ PayPalCheckout.prototype.loadPayPalSDK = function (options) {
   // if no explicit param of that type is passed in when calling
   // createPayment to reduce the number of items that need to be
   // duplicated here and in createPayment
-  options.intent = options.intent || 'authorize';
-
-  if (!options.vault) {
+  if (options.vault) {
+    options.intent = options.intent || 'tokenize';
+  } else {
+    options.intent = options.intent || 'authorize';
     options.currency = options.currency || 'USD';
   }
 
@@ -13498,7 +13505,7 @@ var BraintreeError = _dereq_('../../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../../lib/convert-to-braintree-error');
 var useMin = _dereq_('../../lib/use-min');
 var once = _dereq_('../../lib/once');
-var VERSION = "3.74.0";
+var VERSION = "3.75.0";
 var constants = _dereq_('../shared/constants');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
@@ -13607,6 +13614,7 @@ PayPal.prototype._initialize = function () {
  * * `order` - Validates the transaction without an authorization (i.e. without holding funds). Useful for authorizing and capturing funds up to 90 days after the order has been placed. Only available for Checkout flow.
  * * `sale` - Payment will be immediately submitted for settlement upon creating a transaction.
  * @param {boolean} [options.offerCredit=false] Offers PayPal Credit as the default funding instrument for the transaction. If the customer isn't pre-approved for PayPal Credit, they will be prompted to apply for it.
+ * @param {boolean} [options.offerPayLater=false] Offers PayPal Pay Later if the customer qualifies. Defaults to false. Only available with `flow: 'checkout'`.
  * @param {string} [options.useraction]
  * Changes the call-to-action in the PayPal flow. By default the final button will show the localized
  * word for "Continue" and implies that the final amount billed is not yet known.
@@ -13774,6 +13782,10 @@ PayPal.prototype.tokenize = function (options, callback) {
 
       if (options.offerCredit === true) {
         analytics.sendEvent(client, 'paypal.credit.offered');
+      }
+
+      if (options.offerPayLater === true) {
+        analytics.sendEvent(client, 'paypal.paylater.offered');
       }
 
       self._navigateFrameToAuth(options).catch(reject);
@@ -13999,6 +14011,7 @@ PayPal.prototype._formatPaymentResourceData = function (options) {
     returnUrl: gatewayConfiguration.paypal.assetsUrl + '/web/' + VERSION + '/html/redirect-frame' + useMin(this._isDebug) + '.html?channel=' + serviceId,
     cancelUrl: gatewayConfiguration.paypal.assetsUrl + '/web/' + VERSION + '/html/cancel-frame' + useMin(this._isDebug) + '.html?channel=' + serviceId,
     offerPaypalCredit: options.offerCredit === true,
+    offerPayLater: options.offerPayLater === true,
     experienceProfile: {
       brandName: options.displayName || gatewayConfiguration.paypal.displayName,
       localeCode: options.locale,
@@ -14103,7 +14116,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var errors = _dereq_('./shared/errors');
 var PayPal = _dereq_('./external/paypal');
-var VERSION = "3.74.0";
+var VERSION = "3.75.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var Promise = _dereq_('../lib/promise');
 
@@ -14306,7 +14319,7 @@ module.exports = {
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var PreferredPaymentMethods = _dereq_('./preferred-payment-methods');
-var VERSION = "3.74.0";
+var VERSION = "3.75.0";
 
 /**
  * @static
@@ -14473,7 +14486,7 @@ var events = _dereq_('../../shared/events');
 var useMin = _dereq_('../../../lib/use-min');
 var BUS_CONFIGURATION_REQUEST_EVENT = _dereq_('../../../lib/constants').BUS_CONFIGURATION_REQUEST_EVENT;
 
-var VERSION = "3.74.0";
+var VERSION = "3.75.0";
 var IFRAME_HEIGHT = 400;
 var IFRAME_WIDTH = 400;
 
@@ -15156,7 +15169,7 @@ var ExtendedPromise = _dereq_('@braintree/extended-promise');
 
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var PLATFORM = _dereq_('../../../lib/constants').PLATFORM;
-var VERSION = "3.74.0";
+var VERSION = "3.75.0";
 var CUSTOMER_CANCELED_SONGBIRD_MODAL = '01';
 var SONGBIRD_UI_EVENTS = [
   'ui.close',
@@ -15910,12 +15923,12 @@ var FRAMEWORKS = _dereq_('./frameworks');
 
 /**
  * @typedef {object} ThreeDSecure~billingAddress
- * @property {string} [givenName] The first name associated with the billing address.
- * @property {string} [surname] The last name associated with the billing address.
+ * @property {string} [givenName] The first name associated with the billing address. (maximum length 50)
+ * @property {string} [surname] The last name associated with the billing address. (maximum length 50)
  * @property {string} [phoneNumber] The phone number associated with the billing address. Only numbers; remove dashes, parenthesis and other characters.
- * @property {string} [streetAddress] Line 1 of the billing address (eg. number, street, etc).
- * @property {string} [extendedAddress] Line 2 of the billing address (eg. suite, apt #, etc.).
- * @property {string} [line3] Line 3 of the billing address if needed (eg. suite, apt #, etc).
+ * @property {string} [streetAddress] Line 1 of the billing address (eg. number, street, etc). (maximum length 50)
+ * @property {string} [extendedAddress] Line 2 of the billing address (eg. suite, apt #, etc.). (maximum length 50)
+ * @property {string} [line3] Line 3 of the billing address if needed (eg. suite, apt #, etc). (maximum length 50)
  * @property {string} [locality] The locality (city) name associated with the billing address.
  * @property {string} [region] The 2 letter code for US states or an ISO-3166-2 country subdivision code of up to three letters.
  * @property {string} [postalCode] The zip code or equivalent for countries that have them.
@@ -15924,19 +15937,19 @@ var FRAMEWORKS = _dereq_('./frameworks');
 
 /**
  * @typedef {object} ThreeDSecure~additionalInformation
- * @property {string} [workPhoneNumber] The work phone number used for verification. Only numbers; remove dashes, parenthesis and other characters.
- * @property {string} [shippingGivenName] The first name associated with the shipping address.
- * @property {string} [shippingSurname] The last name associated with the shipping address.
+ * @property {string} [workPhoneNumber] The work phone number used for verification. Only numbers; remove dashes, parenthesis and other characters. (maximum length 25)
+ * @property {string} [shippingGivenName] The first name associated with the shipping address. (maximum length 50)
+ * @property {string} [shippingSurname] The last name associated with the shipping address. (maximum length 50)
  * @property {object} [shippingAddress]
- * @property {string} [shippingAddress.streetAddress] The first name associated with the shipping address.
- * @property {string} [shippingAddress.extendedAddress] The last name associated with the shipping address.
- * @property {string} [shippingAddress.line3] Line 3 of the shipping address if needed (eg. suite, apt #, etc).
- * @property {string} [shippingAddress.locality] The locality (city) name associated with the shipping address.
- * @property {string} [shippingAddress.region] The 2 letter code for US states or an ISO-3166-2 country subdivision code of up to three letters.
- * @property {string} [shippingAddress.postalCode] The zip code or equivalent for countries that have them.
- * @property {string} [shippingAddress.countryCodeAlpha2] The 2 character country code.
- * @property {string} [shippingPhone] The phone number associated with the shipping address. Only numbers; remove dashes, parenthesis and other characters.
- * @property {string} [shippingMethod] The 2-digit string indicating the name of the shipping method chosen for the transaction. Possible values:
+ * @property {string} [shippingAddress.streetAddress] Line 1 of the shipping address (eg. number, street, etc). (maximum length 50)
+ * @property {string} [shippingAddress.extendedAddress] Line 2 of the shipping address (eg. suite, apt #, etc.). (maximum length 50)
+ * @property {string} [shippingAddress.line3] Line 3 of the shipping address if needed (eg. suite, apt #, etc). (maximum length 50)
+ * @property {string} [shippingAddress.locality] The locality (city) name associated with the shipping address. (maximum length 50)
+ * @property {string} [shippingAddress.region] The 2 letter code for US states or an ISO-3166-2 country subdivision code of up to three letters. (maximum length 50)
+ * @property {string} [shippingAddress.postalCode] The zip code or equivalent for countries that have them. (maximum length 10)
+ * @property {string} [shippingAddress.countryCodeAlpha2] The 2 character country code. (maximum length 2)
+ * @property {string} [shippingPhone] The phone number associated with the shipping address. Only numbers; remove dashes, parenthesis and other characters. (maximum length 20)
+ * @property {string} [shippingMethod] The 2-digit string indicating the name of the shipping method chosen for the transaction. (maximum length 50) Possible values:
  * - `01` Same Day
  * - `02` Overnight / Expedited
  * - `03` Priority (2-3 Days)
@@ -15969,7 +15982,7 @@ var FRAMEWORKS = _dereq_('./frameworks');
  * - `02` Same day shipping
  * - `03` Overnight shipping
  * - `04` Two or more day shipping
- * @property {string} [deliveryEmail] For electronic delivery, email address to which the merchandise was delivered.
+ * @property {string} [deliveryEmail] For electronic delivery, email address to which the merchandise was delivered. (maximum length 254)
  * @property {string} [reorderindicator] The 2-digit number indicating whether the cardholder is reordering previously purchased merchandise. possible values:
  * - `01` First time ordered
  * - `02` Reordered
@@ -15977,9 +15990,9 @@ var FRAMEWORKS = _dereq_('./frameworks');
  * - `01` Merchandise available
  * - `02` Future availability
  * @property {string} [preorderDate] The 8-digit number (format: YYYYMMDD) indicating expected date that a pre-ordered purchase will be available.
- * @property {string} [giftCardAmount] The purchase amount total for prepaid gift cards in major units.
- * @property {string} [giftCardCurrencyCode] ISO 4217 currency code for the gift card purchased.
- * @property {string} [giftCardCount] Total count of individual prepaid gift cards purchased.
+ * @property {string} [giftCardAmount] The purchase amount total for prepaid gift cards in major units. (maximum length 15)
+ * @property {string} [giftCardCurrencyCode] ISO 4217 currency code for the gift card purchased. (maximum length 3)
+ * @property {string} [giftCardCount] Total count of individual prepaid gift cards purchased. (maximum length 2)
  * @property {string} [accountAgeIndicator] The 2-digit value representing the length of time cardholder has had account. Possible values:
  * - `01` No Account
  * - `02` Created during transaction
@@ -16006,9 +16019,9 @@ var FRAMEWORKS = _dereq_('./frameworks');
  * - `03` 30-60 days
  * - `04` More than 60 days
  * @property {string} [shippingAddressUsageDate] The 8-digit number (format: YYYYMMDD) indicating the date when the shipping address used for this transaction was first used.
- * @property {string} [transactionCountDay] Number of transactions (successful or abandoned) for this cardholder account within the last 24 hours.
- * @property {string} [transactionCountYear] Number of transactions (successful or abandoned) for this cardholder account within the last year.
- * @property {string} [addCardAttempts] Number of add card attempts in the last 24 hours.
+ * @property {string} [transactionCountDay] Number of transactions (successful or abandoned) for this cardholder account within the last 24 hours. (maximum length 3)
+ * @property {string} [transactionCountYear] Number of transactions (successful or abandoned) for this cardholder account within the last year. (maximum length 3)
+ * @property {string} [addCardAttempts] Number of add card attempts in the last 24 hours. (maximum length 3)
  * @property {string} [accountPurchases] Number of purchases with this cardholder account during the previous six months.
  * @property {string} [fraudActivity] The 2-digit value indicating whether the merchant experienced suspicious activity (including previous fraud) on the account. Possible values:
  * - `01` No suspicious activity
@@ -16031,18 +16044,18 @@ var FRAMEWORKS = _dereq_('./frameworks');
  * - `05` Full page
  * @property {string} [sdkMaxTimeout] The 2-digit number of minutes (minimum 05) to set the maximum amount of time for all 3DS 2.0 messages to be communicated between all components.
  * @property {string} [addressMatch] The 1-character value (Y/N) indicating whether cardholder billing and shipping addresses match.
- * @property {string} [accountId] Additional cardholder account information.
+ * @property {string} [accountId] Additional cardholder account information. (maximum length 64)
  * @property {string} [ipAddress] The IP address of the consumer. IPv4 and IPv6 are supported.
- * @property {string} [orderDescription] Brief description of items purchased.
- * @property {string} [taxAmount] Unformatted tax amount without any decimalization (ie. $123.67 = 12367).
- * @property {string} [userAgent] The exact content of the HTTP user agent header.
+ * @property {string} [orderDescription] Brief description of items purchased. (maximum length 256)
+ * @property {string} [taxAmount] Unformatted tax amount without any decimalization (ie. $123.67 = 12367). (maximum length 20)
+ * @property {string} [userAgent] The exact content of the HTTP user agent header. (maximum length 500)
  * @property {string} [authenticationIndicator] The 2-digit number indicating the type of authentication request. Possible values:
  *  - `02` Recurring
  *  - `03` Installment
- * @property {string} [installment] An integer value greater than 1 indicating the maximum number of permitted authorizations for installment payments.
+ * @property {string} [installment] An integer value greater than 1 indicating the maximum number of permitted authorizations for installment payments. (maximum length 3)
  * @property {string} [purchaseDate] The 14-digit number (format: YYYYMMDDHHMMSS) indicating the date in UTC of original purchase.
  * @property {string} [recurringEnd] The 8-digit number (format: YYYYMMDD) indicating the date after which no further recurring authorizations should be performed.
- * @property {string} [recurringFrequency] Integer value indicating the minimum number of days between recurring authorizations. A frequency of monthly is indicated by the value 28. Multiple of 28 days will be used to indicate months (ex. 6 months = 168).
+ * @property {string} [recurringFrequency] Integer value indicating the minimum number of days between recurring authorizations. A frequency of monthly is indicated by the value 28. Multiple of 28 days will be used to indicate months (ex. 6 months = 168). (maximum length 3)
  */
 
 /**
@@ -16206,8 +16219,8 @@ EventEmitter.createChild(ThreeDSecure);
  * @param {boolean} [options.challengeRequested] If set to true, an authentication challenge will be forced if possible.
  * @param {boolean} [options.exemptionRequested] If set to true, an exemption to the authentication challenge will be requested.
  * @param {function} [options.onLookupComplete] *Deprecated:* Use {@link ThreeDSecure#event:lookup-complete|`threeDSecureInstance.on('lookup-complete')`} instead. Function to execute when lookup completes. The first argument, `data`, is a {@link ThreeDSecure~verificationData|verificationData} object, and the second argument, `next`, is a callback. `next` must be called to continue.
- * @param {string} [options.email] The email used for verification.
- * @param {string} [options.mobilePhoneNumber] The mobile phone number used for verification. Only numbers; remove dashes, parenthesis and other characters.
+ * @param {string} [options.email] The email used for verification. (maximum length 255)
+ * @param {string} [options.mobilePhoneNumber] The mobile phone number used for verification. Only numbers; remove dashes, parenthesis and other characters. (maximum length 25)
  * @param {object} [options.billingAddress] An {@link ThreeDSecure~billingAddress|billingAddress} object for verification.
  * @param {object} [options.additionalInformation] An {@link ThreeDSecure~additionalInformation|additionalInformation} object for verification.
  * @param {object} [options.customer] **Deprecated** Customer information for use in 3DS 1.0 verifications. Can contain any subset of a {@link ThreeDSecure~verifyCardCustomerObject|verifyCardCustomerObject}. Only to be used for 3DS 1.0 integrations.
@@ -16598,7 +16611,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.74.0";
+var VERSION = "3.75.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -17010,7 +17023,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.74.0";
+var VERSION = "3.75.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -17203,7 +17216,7 @@ var errors = _dereq_('./errors');
 var events = constants.events;
 var iFramer = _dereq_('@braintree/iframer');
 var methods = _dereq_('../../lib/methods');
-var VERSION = "3.74.0";
+var VERSION = "3.75.0";
 var uuid = _dereq_('@braintree/uuid');
 var Promise = _dereq_('../../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -17677,7 +17690,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var errors = _dereq_('./errors');
 var USBankAccount = _dereq_('./us-bank-account');
-var VERSION = "3.74.0";
+var VERSION = "3.75.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -18241,7 +18254,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var VaultManager = _dereq_('./vault-manager');
-var VERSION = "3.74.0";
+var VERSION = "3.75.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -18838,7 +18851,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var Venmo = _dereq_('./venmo');
 var Promise = _dereq_('../lib/promise');
 var supportsVenmo = _dereq_('./shared/supports-venmo');
-var VERSION = "3.74.0";
+var VERSION = "3.75.0";
 
 /**
  * @static
@@ -19193,7 +19206,7 @@ var ExtendedPromise = _dereq_('@braintree/extended-promise');
 var createVenmoDesktop = _dereq_('./external/');
 var graphqlQueries = _dereq_('./external/queries');
 
-var VERSION = "3.74.0";
+var VERSION = "3.75.0";
 var DEFAULT_MOBILE_POLLING_INTERVAL = 250; // 1/4 second
 var DEFAULT_MOBILE_EXPIRING_THRESHOLD = 300000; // 5 minutes
 
@@ -19326,6 +19339,8 @@ Venmo.prototype.getUrl = function () {
         sessionId: analyticsMetadata.sessionId
       }
     };
+
+    currentUrl = currentUrl.replace(/#*$/, '');
 
     if (this._mobilePollingContextId) {
       accessToken += '|pcid:' + this._mobilePollingContextId;
@@ -19630,7 +19645,12 @@ Venmo.prototype._tokenizeForMobileWithPolling = function () {
 
   return this.getUrl().then(function (url) {
     analytics.sendEvent(self._createPromise, 'venmo.appswitch.start.browser');
-    window.open(url);
+
+    if (browserDetection.isIosWebview()) {
+      window.location.href = url;
+    } else {
+      window.open(url);
+    }
 
     return self._tokenizePromise;
   });
@@ -19700,7 +19720,7 @@ Venmo.prototype._tokenizeForMobileWithHashChangeListeners = function (options) {
 
   return this.getUrl().then(function (url) {
     if (self._deepLinkReturnUrl) {
-      if (isIosWebview()) {
+      if (isIosWebviewInDeepLinkReturnUrlFlow()) {
         analytics.sendEvent(self._createPromise, 'venmo.appswitch.start.ios-webview');
         // Deep link URLs do not launch iOS apps from a webview when using window.open or PopupBridge.open.
         window.location.href = url;
@@ -19931,7 +19951,7 @@ function documentVisibilityChangeEventName() {
   return visibilityChange;
 }
 
-function isIosWebview() {
+function isIosWebviewInDeepLinkReturnUrlFlow() {
   // we know it's a webview because this flow only gets
   // used when checking the deep link flow
   // test the platform here to get around custom useragents
@@ -20003,7 +20023,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var VisaCheckout = _dereq_('./visa-checkout');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./errors');
-var VERSION = "3.74.0";
+var VERSION = "3.75.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 

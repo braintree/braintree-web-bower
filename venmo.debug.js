@@ -1336,7 +1336,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.74.0";
+var VERSION = "3.75.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1466,7 +1466,7 @@ module.exports = BraintreeError;
 },{"./enumerate":51}],46:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.74.0";
+var VERSION = "3.75.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1593,7 +1593,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.74.0";
+var VERSION = "3.75.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -2280,7 +2280,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var Venmo = _dereq_('./venmo');
 var Promise = _dereq_('../lib/promise');
 var supportsVenmo = _dereq_('./shared/supports-venmo');
-var VERSION = "3.74.0";
+var VERSION = "3.75.0";
 
 /**
  * @static
@@ -2635,7 +2635,7 @@ var ExtendedPromise = _dereq_('@braintree/extended-promise');
 var createVenmoDesktop = _dereq_('./external/');
 var graphqlQueries = _dereq_('./external/queries');
 
-var VERSION = "3.74.0";
+var VERSION = "3.75.0";
 var DEFAULT_MOBILE_POLLING_INTERVAL = 250; // 1/4 second
 var DEFAULT_MOBILE_EXPIRING_THRESHOLD = 300000; // 5 minutes
 
@@ -2768,6 +2768,8 @@ Venmo.prototype.getUrl = function () {
         sessionId: analyticsMetadata.sessionId
       }
     };
+
+    currentUrl = currentUrl.replace(/#*$/, '');
 
     if (this._mobilePollingContextId) {
       accessToken += '|pcid:' + this._mobilePollingContextId;
@@ -3072,7 +3074,12 @@ Venmo.prototype._tokenizeForMobileWithPolling = function () {
 
   return this.getUrl().then(function (url) {
     analytics.sendEvent(self._createPromise, 'venmo.appswitch.start.browser');
-    window.open(url);
+
+    if (browserDetection.isIosWebview()) {
+      window.location.href = url;
+    } else {
+      window.open(url);
+    }
 
     return self._tokenizePromise;
   });
@@ -3142,7 +3149,7 @@ Venmo.prototype._tokenizeForMobileWithHashChangeListeners = function (options) {
 
   return this.getUrl().then(function (url) {
     if (self._deepLinkReturnUrl) {
-      if (isIosWebview()) {
+      if (isIosWebviewInDeepLinkReturnUrlFlow()) {
         analytics.sendEvent(self._createPromise, 'venmo.appswitch.start.ios-webview');
         // Deep link URLs do not launch iOS apps from a webview when using window.open or PopupBridge.open.
         window.location.href = url;
@@ -3373,7 +3380,7 @@ function documentVisibilityChangeEventName() {
   return visibilityChange;
 }
 
-function isIosWebview() {
+function isIosWebviewInDeepLinkReturnUrlFlow() {
   // we know it's a webview because this flow only gets
   // used when checking the deep link flow
   // test the platform here to get around custom useragents

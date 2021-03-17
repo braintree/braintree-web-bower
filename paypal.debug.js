@@ -1421,7 +1421,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.74.0";
+var VERSION = "3.75.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1551,7 +1551,7 @@ module.exports = BraintreeError;
 },{"./enumerate":57}],50:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.74.0";
+var VERSION = "3.75.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1700,7 +1700,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.74.0";
+var VERSION = "3.75.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -2619,7 +2619,7 @@ var BraintreeError = _dereq_('../../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../../lib/convert-to-braintree-error');
 var useMin = _dereq_('../../lib/use-min');
 var once = _dereq_('../../lib/once');
-var VERSION = "3.74.0";
+var VERSION = "3.75.0";
 var constants = _dereq_('../shared/constants');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
@@ -2728,6 +2728,7 @@ PayPal.prototype._initialize = function () {
  * * `order` - Validates the transaction without an authorization (i.e. without holding funds). Useful for authorizing and capturing funds up to 90 days after the order has been placed. Only available for Checkout flow.
  * * `sale` - Payment will be immediately submitted for settlement upon creating a transaction.
  * @param {boolean} [options.offerCredit=false] Offers PayPal Credit as the default funding instrument for the transaction. If the customer isn't pre-approved for PayPal Credit, they will be prompted to apply for it.
+ * @param {boolean} [options.offerPayLater=false] Offers PayPal Pay Later if the customer qualifies. Defaults to false. Only available with `flow: 'checkout'`.
  * @param {string} [options.useraction]
  * Changes the call-to-action in the PayPal flow. By default the final button will show the localized
  * word for "Continue" and implies that the final amount billed is not yet known.
@@ -2895,6 +2896,10 @@ PayPal.prototype.tokenize = function (options, callback) {
 
       if (options.offerCredit === true) {
         analytics.sendEvent(client, 'paypal.credit.offered');
+      }
+
+      if (options.offerPayLater === true) {
+        analytics.sendEvent(client, 'paypal.paylater.offered');
       }
 
       self._navigateFrameToAuth(options).catch(reject);
@@ -3120,6 +3125,7 @@ PayPal.prototype._formatPaymentResourceData = function (options) {
     returnUrl: gatewayConfiguration.paypal.assetsUrl + '/web/' + VERSION + '/html/redirect-frame' + useMin(this._isDebug) + '.html?channel=' + serviceId,
     cancelUrl: gatewayConfiguration.paypal.assetsUrl + '/web/' + VERSION + '/html/cancel-frame' + useMin(this._isDebug) + '.html?channel=' + serviceId,
     offerPaypalCredit: options.offerCredit === true,
+    offerPayLater: options.offerPayLater === true,
     experienceProfile: {
       brandName: options.displayName || gatewayConfiguration.paypal.displayName,
       localeCode: options.locale,
@@ -3224,7 +3230,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var errors = _dereq_('./shared/errors');
 var PayPal = _dereq_('./external/paypal');
-var VERSION = "3.74.0";
+var VERSION = "3.75.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var Promise = _dereq_('../lib/promise');
 
