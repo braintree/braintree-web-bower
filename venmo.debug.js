@@ -1336,7 +1336,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.75.0";
+var VERSION = "3.76.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1466,7 +1466,7 @@ module.exports = BraintreeError;
 },{"./enumerate":51}],46:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.75.0";
+var VERSION = "3.76.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1593,7 +1593,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.75.0";
+var VERSION = "3.76.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -2280,7 +2280,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var Venmo = _dereq_('./venmo');
 var Promise = _dereq_('../lib/promise');
 var supportsVenmo = _dereq_('./shared/supports-venmo');
-var VERSION = "3.75.0";
+var VERSION = "3.76.0";
 
 /**
  * @static
@@ -2294,6 +2294,15 @@ var VERSION = "3.75.0";
  * @param {string} [options.profileId] The Venmo profile ID to be used during payment authorization. Customers will see the business name and logo associated with this Venmo profile, and it will show up in the Venmo app as a "Connected Merchant". Venmo profile IDs can be found in the Braintree Control Panel. Omitting this value will use the default Venmo profile.
  * @param {string} [options.deepLinkReturnUrl] An override for the URL that the Venmo iOS app opens to return from an app switch.
  * @param {boolean} [options.requireManualReturn=false] When `true`, the customer will have to manually switch back to the browser/webview that is presenting Venmo to complete the payment.
+ * @param {boolean} [options.useRedirectForIOS=false] Normally, the Venmo flow is launched using `window.open` and the Venmo app intercepts that call and opens the Venmo app instead. If the customer does not have the Venmo app installed, it opens the Venmo website in a new window and instructs the customer to install the app.
+ *
+ * In iOS webviews and Safari View Controllers (a webview-like environment which is indistinguishable from Safari for JavaScript environments), this call to `window.open` will always fail to app switch to Venmo, resulting instead in a white screen. Because of this, an alternate approach is required to launch the Venmo flow.
+ *
+ * When `useRedirectForIOS` is `true` and the Venmo flow is started in an iOS environment, the Venmo flow will be started by setting `window.location.href` to the Venmo website (which will still be intercepted by the Venmo app and should be the same behavior as if `window.open` was called). However, if the customer does not have the Venmo app installed, the merchant page will instead be replaced with the Venmo website and the customer will need to use the browser's back button to return to the merchant's website. Ensure that your customer's checkout information will not be lost if they are navigated away from the website and return using the browser back button.
+ *
+ * Due to a bug in iOS's implementation of `window.open` in iOS webviews and Safari View Controllers, if `useRedirectForIOS` is not set to `true` and the flow is launched from an iOS webview or Safari View Controller, the customer will be presented with a blank screen, halting the flow and leaving the customer unable to return to the merchant's website. Setting `useRedirectForIOS` to `true` will allow the flow to continue, but the Venmo app will be unable to return back to the webview/Safari View Controller. It will instead open the merchant's site in a new window in the customer's browser, which means the merchant site must be able to process the Venmo payment. If the SDK is configured with `allowNewBrowserTab = false`, it is unlikely that the website is set up to process the Venmo payment from a new window.
+ *
+ * If processing the payment from a new window is not possible, use this flag in conjunction with `requireManualReturn` so that the customer may start the flow from a webview/Safari View Controller or their Safari browser and manually return to the place that originated the flow once the Venmo app has authorized the payment and instructed them to do so.
  * @param {callback} [callback] The second argument, `data`, is the {@link Venmo} instance. If no callback is provided, `create` returns a promise that resolves with the {@link Venmo} instance.
  * @example
  * braintree.venmo.create({
@@ -2635,7 +2644,7 @@ var ExtendedPromise = _dereq_('@braintree/extended-promise');
 var createVenmoDesktop = _dereq_('./external/');
 var graphqlQueries = _dereq_('./external/queries');
 
-var VERSION = "3.75.0";
+var VERSION = "3.76.0";
 var DEFAULT_MOBILE_POLLING_INTERVAL = 250; // 1/4 second
 var DEFAULT_MOBILE_EXPIRING_THRESHOLD = 300000; // 5 minutes
 
@@ -2662,6 +2671,7 @@ function Venmo(options) {
   this._allowWebviews = options.allowWebviews !== false;
   this._allowDesktop = options.allowDesktop === true;
   this._requireManualReturn = options.requireManualReturn === true;
+  this._useRedirectForIOS = options.useRedirectForIOS === true;
   this._profileId = options.profileId;
   this._deepLinkReturnUrl = options.deepLinkReturnUrl;
   this._ignoreHistoryChanges = options.ignoreHistoryChanges;
@@ -3075,7 +3085,7 @@ Venmo.prototype._tokenizeForMobileWithPolling = function () {
   return this.getUrl().then(function (url) {
     analytics.sendEvent(self._createPromise, 'venmo.appswitch.start.browser');
 
-    if (browserDetection.isIosWebview()) {
+    if (browserDetection.isIosWebview() || self._shouldUseRedirectStrategy()) {
       window.location.href = url;
     } else {
       window.open(url);
@@ -3083,6 +3093,14 @@ Venmo.prototype._tokenizeForMobileWithPolling = function () {
 
     return self._tokenizePromise;
   });
+};
+
+Venmo.prototype._shouldUseRedirectStrategy = function () {
+  if (!browserDetection.isIos()) {
+    return false;
+  }
+
+  return this._useRedirectForIOS;
 };
 
 Venmo.prototype._tokenizeForMobileWithHashChangeListeners = function (options) {
@@ -3162,7 +3180,12 @@ Venmo.prototype._tokenizeForMobileWithHashChangeListeners = function (options) {
       }
     } else {
       analytics.sendEvent(self._createPromise, 'venmo.appswitch.start.browser');
-      window.open(url);
+
+      if (self._shouldUseRedirectStrategy()) {
+        window.location.href = url;
+      } else {
+        window.open(url);
+      }
     }
 
     // Add a brief delay to ignore visibility change events that occur right before app switch
