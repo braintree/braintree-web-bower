@@ -1421,7 +1421,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.76.0";
+var VERSION = "3.76.1";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1551,7 +1551,7 @@ module.exports = BraintreeError;
 },{"./enumerate":56}],50:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.76.0";
+var VERSION = "3.76.1";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1700,7 +1700,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.76.0";
+var VERSION = "3.76.1";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -2461,12 +2461,18 @@ function _isArray(value) {
 }
 /* eslint-enable no-mixed-operators */
 
+function hasQueryParams(url) {
+  url = url || window.location.href;
+
+  return /\?/.test(url);
+}
+
 function parse(url) {
   var query, params;
 
   url = url || window.location.href;
 
-  if (!/\?/.test(url)) {
+  if (!hasQueryParams(url)) {
     return {};
   }
 
@@ -2530,7 +2536,8 @@ function queryify(url, params) {
 module.exports = {
   parse: parse,
   stringify: stringify,
-  queryify: queryify
+  queryify: queryify,
+  hasQueryParams: hasQueryParams
 };
 
 },{}],74:[function(_dereq_,module,exports){
@@ -2594,7 +2601,7 @@ module.exports = {
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var useMin = _dereq_('../../lib/use-min');
-var VERSION = "3.76.0";
+var VERSION = "3.76.1";
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
 var methods = _dereq_('../../lib/methods');
@@ -2886,6 +2893,20 @@ LocalPayment.prototype._createStartPaymentCallback = function (resolve, reject) 
     self._authorizationInProgress = false;
     if (err) {
       if (err.code === 'FRAME_SERVICE_FRAME_CLOSED') {
+        if (params && params.errorcode === 'processing_error') {
+          // something failed within the payment window (rather than when
+          // tokenizing with Braintree)
+          analytics.sendEvent(client, self._paymentType + '.local-payment.failed-in-window');
+          reject(new BraintreeError(errors.LOCAL_PAYMENT_START_PAYMENT_FAILED));
+
+          return;
+        }
+
+        // its possible to have a query param with errorcode=payment_error, which
+        // indicates that the customer cancelled the flow from within the UI,
+        // but as there's no meaningful difference to the merchant whether the
+        // customer closes via the UI or by manually closing the window, we
+        // don't differentiate these
         analytics.sendEvent(client, self._paymentType + '.local-payment.tokenization.closed.by-user');
         reject(new BraintreeError(errors.LOCAL_PAYMENT_WINDOW_CLOSED));
       } else if (err.code && err.code.indexOf('FRAME_SERVICE_FRAME_OPEN_FAILED') > -1) {
@@ -3036,7 +3057,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var LocalPayment = _dereq_('./external/local-payment');
-var VERSION = "3.76.0";
+var VERSION = "3.76.1";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
