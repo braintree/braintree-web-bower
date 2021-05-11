@@ -1344,7 +1344,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.76.3";
+var VERSION = "3.76.4";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1474,7 +1474,7 @@ module.exports = BraintreeError;
 },{"./enumerate":52}],47:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.76.3";
+var VERSION = "3.76.4";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1601,7 +1601,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.76.3";
+var VERSION = "3.76.4";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -2298,7 +2298,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var Venmo = _dereq_('./venmo');
 var Promise = _dereq_('../lib/promise');
 var supportsVenmo = _dereq_('./shared/supports-venmo');
-var VERSION = "3.76.3";
+var VERSION = "3.76.4";
 
 /**
  * @static
@@ -2662,7 +2662,7 @@ var ExtendedPromise = _dereq_('@braintree/extended-promise');
 var createVenmoDesktop = _dereq_('./external/');
 var graphqlQueries = _dereq_('./external/queries');
 
-var VERSION = "3.76.3";
+var VERSION = "3.76.4";
 var DEFAULT_MOBILE_POLLING_INTERVAL = 250; // 1/4 second
 var DEFAULT_MOBILE_EXPIRING_THRESHOLD = 300000; // 5 minutes
 
