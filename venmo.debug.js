@@ -1344,7 +1344,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.76.4";
+var VERSION = "3.77.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1474,7 +1474,7 @@ module.exports = BraintreeError;
 },{"./enumerate":52}],47:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.76.4";
+var VERSION = "3.77.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1601,7 +1601,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.76.4";
+var VERSION = "3.77.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1940,10 +1940,13 @@ module.exports = function createVenmoDesktop(options) {
 },{"./venmo-desktop":63}],62:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.VENMO_DESKTOP_PAYMENT_RESOURCE_STATUS_QUERY = exports.UPDATE_VENMO_DESKTOP_PAYMENT_RESOURCE_QUERY = exports.CREATE_VENMO_DESKTOP_PAYMENT_RESOURCE_QUERY = void 0;
-exports.CREATE_VENMO_DESKTOP_PAYMENT_RESOURCE_QUERY = "mutation CreateVenmoQRCodePaymentContext($input: CreateVenmoQRCodePaymentContextInput!) {\n  createVenmoQRCodePaymentContext(input: $input) {\n    clientMutationId\n    venmoQRCodePaymentContext {\n      id\n      merchantId\n      createdAt\n      expiresAt\n    }\n  }\n}";
-exports.UPDATE_VENMO_DESKTOP_PAYMENT_RESOURCE_QUERY = "mutation UpdateVenmoQRCodePaymentContext($input: UpdateVenmoQRCodePaymentContextInput!) {\n  updateVenmoQRCodePaymentContext(input: $input) {\n    clientMutationId\n  }\n}";
-exports.VENMO_DESKTOP_PAYMENT_RESOURCE_STATUS_QUERY = "query PaymentContext($id: ID!) {\n  node(id: $id) {\n    ... on VenmoQRCodePaymentContext {\n      status\n      paymentMethodId\n      userName\n    }\n  }\n}";
+exports.VENMO_PAYMENT_CONTEXT_STATUS_QUERY = exports.LEGACY_VENMO_PAYMENT_CONTEXT_STATUS_QUERY = exports.UPDATE_PAYMENT_CONTEXT_QUERY = exports.LEGACY_UPDATE_PAYMENT_CONTEXT_QUERY = exports.CREATE_PAYMENT_CONTEXT_QUERY = exports.LEGACY_CREATE_PAYMENT_CONTEXT_QUERY = void 0;
+exports.LEGACY_CREATE_PAYMENT_CONTEXT_QUERY = "mutation CreateVenmoQRCodePaymentContext($input: CreateVenmoQRCodePaymentContextInput!) {\n  createVenmoQRCodePaymentContext(input: $input) {\n    clientMutationId\n    venmoQRCodePaymentContext {\n      id\n      merchantId\n      createdAt\n      expiresAt\n    }\n  }\n}";
+exports.CREATE_PAYMENT_CONTEXT_QUERY = "mutation CreateVenmoPaymentContext($input: CreateVenmoPaymentContextInput!) {\n  createVenmoPaymentContext(input: $input) {\n    clientMutationId\n    venmoPaymentContext {\n      id\n      merchantId\n      createdAt\n      expiresAt\n    }\n  }\n}";
+exports.LEGACY_UPDATE_PAYMENT_CONTEXT_QUERY = "mutation UpdateVenmoQRCodePaymentContext($input: UpdateVenmoQRCodePaymentContextInput!) {\n  updateVenmoQRCodePaymentContext(input: $input) {\n    clientMutationId\n  }\n}";
+exports.UPDATE_PAYMENT_CONTEXT_QUERY = "mutation UpdateVenmoPaymentContext($input: UpdateVenmoPaymentContextInput!) {\n  updateVenmoPaymentContext(input: $input) {\n    clientMutationId\n  }\n}";
+exports.LEGACY_VENMO_PAYMENT_CONTEXT_STATUS_QUERY = "query PaymentContext($id: ID!) {\n  node(id: $id) {\n    ... on VenmoQRCodePaymentContext {\n      status\n      paymentMethodId\n      userName\n    }\n  }\n}";
+exports.VENMO_PAYMENT_CONTEXT_STATUS_QUERY = "query PaymentContext($id: ID!) {\n  node(id: $id) {\n    ... on VenmoPaymentContext {\n      status\n      paymentMethodId\n      userName\n    }\n  }\n}";
 
 },{}],63:[function(_dereq_,module,exports){
 "use strict";
@@ -1975,6 +1978,8 @@ var VenmoDesktop = /** @class */ (function () {
         this.env = options.environment;
         this.id = uuid_1.default();
         this.profileId = options.profileId;
+        this.paymentMethodUsage = options.paymentMethodUsage;
+        this.shouldUseLegacyQRCodeMutation = !this.paymentMethodUsage;
         var frameUrl = options.url + "#" + this.env + "_" + this.id;
         this.bus = new framebus_1.default({
             channel: this.id,
@@ -2237,16 +2242,39 @@ var VenmoDesktop = /** @class */ (function () {
         this.alertBox.style.display = message ? "block" : "none";
         this.alertBox.textContent = message;
     };
-    VenmoDesktop.prototype.createVenmoDesktopPaymentContext = function () {
-        var _this = this;
+    VenmoDesktop.prototype.createPaymentContextFromGraphqlLegacyQRCodeMutation = function (intent) {
+        return this.apiRequest(queries_1.LEGACY_CREATE_PAYMENT_CONTEXT_QUERY, {
+            input: {
+                environment: this.env,
+                intent: intent,
+            },
+        }).then(function (response) {
+            return response.createVenmoQRCodePaymentContext
+                .venmoQRCodePaymentContext;
+        });
+    };
+    VenmoDesktop.prototype.createPaymentContextFromGraphQL = function (intent) {
         var input = {
-            environment: this.env,
-            intent: "PAY_FROM_APP",
+            intent: intent,
+            paymentMethodUsage: this.paymentMethodUsage,
+            customerClient: "DESKTOP",
         };
-        return this.apiRequest(queries_1.CREATE_VENMO_DESKTOP_PAYMENT_RESOURCE_QUERY, {
+        if (this.profileId) {
+            input.merchantProfileId = this.profileId;
+        }
+        return this.apiRequest(queries_1.CREATE_PAYMENT_CONTEXT_QUERY, {
             input: input,
         }).then(function (response) {
-            var context = response.createVenmoQRCodePaymentContext.venmoQRCodePaymentContext;
+            return response.createVenmoPaymentContext
+                .venmoPaymentContext;
+        });
+    };
+    VenmoDesktop.prototype.createVenmoDesktopPaymentContext = function () {
+        var _this = this;
+        var contextPromise = this.shouldUseLegacyQRCodeMutation
+            ? this.createPaymentContextFromGraphqlLegacyQRCodeMutation("PAY_FROM_APP")
+            : this.createPaymentContextFromGraphQL("PAY_FROM_APP");
+        return contextPromise.then(function (context) {
             _this.venmoContextId = context.id;
             var merchantId = _this.profileId || context.merchantId;
             return {
@@ -2266,7 +2294,10 @@ var VenmoDesktop = /** @class */ (function () {
         var data = {
             input: __assign({ id: this.venmoContextId, status: status }, additionalOptions),
         };
-        return this.apiRequest(queries_1.UPDATE_VENMO_DESKTOP_PAYMENT_RESOURCE_QUERY, data).then(function () {
+        var query = this.shouldUseLegacyQRCodeMutation
+            ? queries_1.LEGACY_UPDATE_PAYMENT_CONTEXT_QUERY
+            : queries_1.UPDATE_PAYMENT_CONTEXT_QUERY;
+        return this.apiRequest(query, data).then(function () {
             // noop so we can resolve without any data to match the type
         });
     };
@@ -2274,7 +2305,10 @@ var VenmoDesktop = /** @class */ (function () {
         if (!this.venmoContextId) {
             return this.Promise.resolve();
         }
-        return this.apiRequest(queries_1.VENMO_DESKTOP_PAYMENT_RESOURCE_STATUS_QUERY, {
+        var query = this.shouldUseLegacyQRCodeMutation
+            ? queries_1.LEGACY_VENMO_PAYMENT_CONTEXT_STATUS_QUERY
+            : queries_1.VENMO_PAYMENT_CONTEXT_STATUS_QUERY;
+        return this.apiRequest(query, {
             id: this.venmoContextId,
         }).then(function (response) {
             return response.node;
@@ -2298,7 +2332,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var Venmo = _dereq_('./venmo');
 var Promise = _dereq_('../lib/promise');
 var supportsVenmo = _dereq_('./shared/supports-venmo');
-var VERSION = "3.76.4";
+var VERSION = "3.77.0";
 
 /**
  * @static
@@ -2321,6 +2355,9 @@ var VERSION = "3.76.4";
  * Due to a bug in iOS's implementation of `window.open` in iOS webviews and Safari View Controllers, if `useRedirectForIOS` is not set to `true` and the flow is launched from an iOS webview or Safari View Controller, the customer will be presented with a blank screen, halting the flow and leaving the customer unable to return to the merchant's website. Setting `useRedirectForIOS` to `true` will allow the flow to continue, but the Venmo app will be unable to return back to the webview/Safari View Controller. It will instead open the merchant's site in a new window in the customer's browser, which means the merchant site must be able to process the Venmo payment. If the SDK is configured with `allowNewBrowserTab = false`, it is unlikely that the website is set up to process the Venmo payment from a new window.
  *
  * If processing the payment from a new window is not possible, use this flag in conjunction with `requireManualReturn` so that the customer may start the flow from a webview/Safari View Controller or their Safari browser and manually return to the place that originated the flow once the Venmo app has authorized the payment and instructed them to do so.
+ * @param {string} [options.paymentMethodUsage] The intended usage for the Venmo payment method nonce. Possible options are:
+ * * single_use - inteneded as a one time transaction
+ * * multi_use - intended to be vaulted and used for multiple transactions
  * @param {callback} [callback] The second argument, `data`, is the {@link Venmo} instance. If no callback is provided, `create` returns a promise that resolves with the {@link Venmo} instance.
  * @example
  * braintree.venmo.create({
@@ -2464,7 +2501,8 @@ module.exports = {
  * @description Errors that occur when [creating the Venmo component](./module-braintree-web_venmo.html#.create).
  * @property {MERCHANT} VENMO_NOT_ENABLED Occurs when Venmo is not enabled on the Braintree control panel.
  * @property {MERCHANT} VENMO_INVALID_PROFILE_ID Occurs when Venmo is initialized with a profile id, but it is invalid.
- * @property {UNKNOWN} VENMO_MOBILE_POLLING_SETUP_FAILED Occurs when enabling mobile polling alternative for tokenization fails.
+ * @property {UNKNOWN} VENMO_MOBILE_POLLING_SETUP_FAILED __Deprecated__ No longer returned. Use `VENMO_MOBILE_PAYMENT_CONTEXT_SETUP_FAILED` instead.
+ * @property {UNKNOWN} VENMO_MOBILE_PAYMENT_CONTEXT_SETUP_FAILED Occurs when the request to set up a Venmo Payment Context object fails.
  */
 
 /**
@@ -2533,10 +2571,10 @@ module.exports = {
     code: 'VENMO_DESKTOP_UNKNOWN_ERROR',
     message: 'Something went wrong with the Venmo Desktop flow.'
   },
-  VENMO_MOBILE_POLLING_SETUP_FAILED: {
-    type: BraintreeError.types.UNKNOWN,
-    code: 'VENMO_MOBILE_POLLING_SETUP_FAILED',
-    message: 'Something went wrong setting up Venmo for mobile polling.'
+  VENMO_MOBILE_PAYMENT_CONTEXT_SETUP_FAILED: {
+    type: BraintreeError.types.NETWORK,
+    code: 'VENMO_MOBILE_PAYMENT_CONTEXT_SETUP_FAILED',
+    message: 'Something went wrong creating the Venmo Payment Context.'
   },
   VENMO_MOBILE_POLLING_TOKENIZATION_NETWORK_ERROR: {
     type: BraintreeError.types.UNKNOWN,
@@ -2662,7 +2700,7 @@ var ExtendedPromise = _dereq_('@braintree/extended-promise');
 var createVenmoDesktop = _dereq_('./external/');
 var graphqlQueries = _dereq_('./external/queries');
 
-var VERSION = "3.76.4";
+var VERSION = "3.77.0";
 var DEFAULT_MOBILE_POLLING_INTERVAL = 250; // 1/4 second
 var DEFAULT_MOBILE_EXPIRING_THRESHOLD = 300000; // 5 minutes
 
@@ -2693,12 +2731,24 @@ function Venmo(options) {
   this._profileId = options.profileId;
   this._deepLinkReturnUrl = options.deepLinkReturnUrl;
   this._ignoreHistoryChanges = options.ignoreHistoryChanges;
+  this._paymentMethodUsage = (options.paymentMethodUsage || '').toUpperCase();
+  this._shouldUseLegacyFlow = !this._paymentMethodUsage;
   this._useDesktopFlow = this._allowDesktop && this._isDesktop();
-  this._useMobilePollingStrategy = inIframe() || this._requireManualReturn;
+  this._cannotHaveReturnUrls = inIframe() || this._requireManualReturn;
+  this._shouldCreateVenmoPaymentContext = this._cannotHaveReturnUrls || !this._shouldUseLegacyFlow;
 
   analytics.sendEvent(this._createPromise, 'venmo.desktop-flow.configured.' + String(Boolean(this._allowDesktop)));
 
-  if (this._useDesktopFlow) {
+  // if the url has a tokenization result, that indicates
+  // that it cannot be the desktop flow or the manual return
+  // flow. If it's the hash change with paymentMethodUsage
+  // flow, we want to skip creating a new payment context, since
+  // there is already a pending payment context waiting to be
+  // processed. For the hash change flow without paymentMethodUsage,
+  // no further actions are needed.
+  if (this.hasTokenizationResult()) {
+    analytics.sendEvent(this._createPromise, 'venmo.appswitch.return-in-new-tab');
+  } else if (this._useDesktopFlow) {
     this._createPromise = this._createPromise.then(function (client) {
       var config = client.getConfiguration().gatewayConfiguration;
 
@@ -2706,6 +2756,7 @@ function Venmo(options) {
         url: config.assetsUrl + '/web/' + VERSION + '/html/venmo-desktop-frame.html',
         environment: config.environment === 'production' ? 'PRODUCTION' : 'SANDBOX',
         profileId: self._profileId || config.payWithVenmo.merchantId,
+        paymentMethodUsage: self._paymentMethodUsage,
         Promise: Promise,
         apiRequest: function (query, data) {
           return client.request({
@@ -2734,44 +2785,31 @@ function Venmo(options) {
         return client;
       });
     });
-  } else if (this._useMobilePollingStrategy) {
+  } else if (this._shouldCreateVenmoPaymentContext) {
+    // these variables are only relevant for the manual return flow
+    // and they are only set to make testing easier (so they can
+    // be overwritten with smaller values in the tests)
     this._mobilePollingInterval = DEFAULT_MOBILE_POLLING_INTERVAL;
     this._mobilePollingExpiresThreshold = DEFAULT_MOBILE_EXPIRING_THRESHOLD;
+
     this._createPromise = this._createPromise.then(function (client) {
+      var analyticsCategory = self._cannotHaveReturnUrls ?
+        'manual-return' : 'mobile-payment-context';
       var config = client.getConfiguration().gatewayConfiguration;
 
       self._mobilePollingContextEnvironment = config.environment.toUpperCase();
 
-      return client.request({
-        api: 'graphQLApi',
-        data: {
-          query: graphqlQueries.CREATE_VENMO_DESKTOP_PAYMENT_RESOURCE_QUERY,
-          variables: {
-            input: {
-              environment: self._mobilePollingContextEnvironment,
-              intent: 'PAY_FROM_APP'
-            }
-          }
-        }
-      }).then(function (response) {
-        var context = response.data.createVenmoQRCodePaymentContext.venmoQRCodePaymentContext;
-
-        self._mobilePollingContextStatus = context.status;
-        self._mobilePollingContextId = context.id;
-        // TODO should maybe do polling here at the halfway point for expiration
-        // and recreate the payment context id, and abort if at any time before
-        // the payment context switch happens if tokenization is in progress
-
-        analytics.sendEvent(self._createPromise, 'venmo.mobile-polling.presented');
+      return self._createVenmoPaymentContext(client).then(function () {
+        analytics.sendEvent(self._createPromise, 'venmo.' + analyticsCategory + '.presented');
 
         return client;
       }).catch(function (err) {
-        analytics.sendEvent(self._createPromise, 'venmo.mobile-polling.setup-failed');
+        analytics.sendEvent(self._createPromise, 'venmo.' + analyticsCategory + '.setup-failed');
 
         return Promise.reject(new BraintreeError({
-          type: errors.VENMO_MOBILE_POLLING_SETUP_FAILED.type,
-          code: errors.VENMO_MOBILE_POLLING_SETUP_FAILED.code,
-          message: errors.VENMO_MOBILE_POLLING_SETUP_FAILED.message,
+          type: errors.VENMO_MOBILE_PAYMENT_CONTEXT_SETUP_FAILED.type,
+          code: errors.VENMO_MOBILE_PAYMENT_CONTEXT_SETUP_FAILED.code,
+          message: errors.VENMO_MOBILE_PAYMENT_CONTEXT_SETUP_FAILED.message,
           details: {
             originalError: err
           }
@@ -2780,6 +2818,95 @@ function Venmo(options) {
     });
   }
 }
+
+Venmo.prototype._createVenmoPaymentContext = function (client, cancelIfTokenizationInProgress) {
+  var self = this;
+  var promise;
+
+  if (!this._shouldCreateVenmoPaymentContext) {
+    return Promise.resolve();
+  }
+
+  if (this._shouldUseLegacyFlow) {
+    promise = client.request({
+      api: 'graphQLApi',
+      data: {
+        query: graphqlQueries.LEGACY_CREATE_PAYMENT_CONTEXT_QUERY,
+        variables: {
+          input: {
+            environment: this._mobilePollingContextEnvironment,
+            intent: 'PAY_FROM_APP'
+          }
+        }
+      }
+    }).then(function (response) {
+      return response.data.createVenmoQRCodePaymentContext.venmoQRCodePaymentContext;
+    });
+  } else {
+    promise = client.request({
+      api: 'graphQLApi',
+      data: {
+        query: graphqlQueries.CREATE_PAYMENT_CONTEXT_QUERY,
+        variables: {
+          input: {
+            paymentMethodUsage: this._paymentMethodUsage,
+            intent: 'CONTINUE',
+            customerClient: 'MOBILE_WEB'
+          }
+        }
+      }
+    }).then(function (response) {
+      return response.data.createVenmoPaymentContext.venmoPaymentContext;
+    });
+  }
+
+  return promise.then(function (context) {
+    var expiredTime = new Date(context.expiresAt) - new Date(context.createdAt);
+    var refreshIn = expiredTime * 0.6666;
+
+    // prevents multiple setTimeouts from firing from separate calls
+    // to create a payment context by canceling the previous one
+    // if there is a pending call
+    clearTimeout(self._refreshPaymentContextTimeout);
+    self._refreshPaymentContextTimeout = setTimeout(function () {
+      if (self._tokenizationInProgress) {
+        return;
+      }
+      self._createVenmoPaymentContext(client, true);
+    }, refreshIn);
+
+    if (cancelIfTokenizationInProgress && self._tokenizationInProgress) {
+      return;
+    }
+
+    self._venmoPaymentContextStatus = context.status;
+    self._venmoPaymentContextId = context.id;
+  });
+};
+
+Venmo.prototype.appSwitch = function (url) {
+  if (this._deepLinkReturnUrl) {
+    if (isIosWebviewInDeepLinkReturnUrlFlow()) {
+      analytics.sendEvent(this._createPromise, 'venmo.appswitch.start.ios-webview');
+      // Deep link URLs do not launch iOS apps from a webview when using window.open or PopupBridge.open.
+      window.location.href = url;
+    } else if (window.popupBridge && typeof window.popupBridge.open === 'function') {
+      analytics.sendEvent(this._createPromise, 'venmo.appswitch.start.popup-bridge');
+      window.popupBridge.open(url);
+    } else {
+      analytics.sendEvent(this._createPromise, 'venmo.appswitch.start.webview');
+      window.open(url);
+    }
+  } else {
+    analytics.sendEvent(this._createPromise, 'venmo.appswitch.start.browser');
+
+    if (browserDetection.isIosWebview() || this._shouldUseRedirectStrategy()) {
+      window.location.href = url;
+    } else {
+      window.open(url);
+    }
+  }
+};
 
 Venmo.prototype.getUrl = function () {
   return this._createPromise.then(function (client) {
@@ -2800,8 +2927,17 @@ Venmo.prototype.getUrl = function () {
 
     currentUrl = currentUrl.replace(/#*$/, '');
 
-    if (this._mobilePollingContextId) {
-      accessToken += '|pcid:' + this._mobilePollingContextId;
+    /* eslint-disable camelcase */
+    if (this._venmoPaymentContextId) {
+      if (this._shouldUseLegacyFlow) {
+        // NEXT_MAJOR_VERSION stop adding the context id to the access token.
+        // the context id is placed here for backwards compatiblity
+        // with versions of the venmo app that did not support
+        // pulling the resource id off of the query params
+        accessToken += '|pcid:' + this._venmoPaymentContextId;
+      } else {
+        params.resource_id = this._venmoPaymentContextId;
+      }
     }
 
     if (this._shouldIncludeReturnUrls()) {
@@ -2814,7 +2950,6 @@ Venmo.prototype.getUrl = function () {
       params['x-error'] = 'NOOP';
     }
     params.ua = window.navigator.userAgent;
-    /* eslint-disable camelcase */
     params.braintree_merchant_id = this._profileId || venmoConfiguration.merchantId;
     params.braintree_access_token = accessToken;
     params.braintree_environment = venmoConfiguration.environment;
@@ -2874,7 +3009,7 @@ Venmo.prototype._shouldIncludeReturnUrls = function () {
   // without also setting a deepLinkReturnUrl. When the return
   // urls are omitted, the Venmo app prompts the user to return
   // manually.
-  return !this._useMobilePollingStrategy;
+  return !this._cannotHaveReturnUrls;
 };
 
 Venmo.prototype._isDesktop = function () {
@@ -2941,32 +3076,51 @@ Venmo.prototype.tokenize = function (options) {
     // payment context has updated and then pass the
     // resulting nonce back to the merchant.
     tokenizationPromise = this._tokenizeForDesktop(options);
-  } else if (this._useMobilePollingStrategy) {
-    // when the sdk is in an iframe, venmo cannot app
-    // switch back with the nonce params encoded in
-    // the hash like the normal mobile flow, so instead
-    // we create a venmo payment context and instruct
-    // the venmo app to update it with a nonce. We then
-    // do polling on the sdk to get updates on the
-    // payment context status, and return back the
-    // nonce when we receive it.
-    tokenizationPromise = this._tokenizeForMobileWithPolling();
+  } else if (this._cannotHaveReturnUrls) {
+    // in the manual return strategy, we create the payment
+    // context on initialization, then continually poll once
+    // the app switch begins until we get a response indiciating
+    // the payment context was approved by the customer on the
+    // Venmo app. The payment context response also includes a
+    // nonce. There are 2 cases where we use the manual return
+    // strategy:
+    // 1. the sdk is instantiated in an iframe, because
+    //    the venmo app is unable to redirect automatically
+    //    when that is the case so we rely on the customer
+    //    to do a manual redirect and continunally poll for
+    //    updates on the payment context to get the nonce
+    // 2. same deal for when `requireManualReturn` is configured
+    tokenizationPromise = this._tokenizeForMobileWithManualReturn();
   } else {
-    // the normal mobile flow is to app switch to the
+    // the default mobile flow is to app switch to the
     // venmo app, and then have the venmo app switch
     // back to the page with the venmo nonce details
-    // encoded into the hash portion of the url
+    // encoded into the hash portion of the url. If
+    // `paymentMethodUsage` is provided when instantiating
+    // the sdk, we also create a payment context and pass
+    // the resource id to the Venmo app during the app switch.
+    // Once we get a succesful return, we ping the payment
+    // context query to get any additional data needed
+    // to send back to the merchant.
     tokenizationPromise = this._tokenizeForMobileWithHashChangeListeners(options);
   }
 
   return tokenizationPromise.then(function (payload) {
-    self._tokenizationInProgress = false;
+    return self._createPromise.then(function (client) {
+      return self._createVenmoPaymentContext(client);
+    }).then(function () {
+      self._tokenizationInProgress = false;
 
-    return formatTokenizePayload(payload);
+      return formatTokenizePayload(payload);
+    });
   }).catch(function (err) {
-    self._tokenizationInProgress = false;
+    return self._createPromise.then(function (client) {
+      return self._createVenmoPaymentContext(client);
+    }).then(function () {
+      self._tokenizationInProgress = false;
 
-    return Promise.reject(err);
+      return Promise.reject(err);
+    });
   });
 };
 
@@ -3013,9 +3167,31 @@ Venmo.prototype.cancelTokenization = function () {
   }
 
   return Promise.all([
-    this._cancelMobilePollingContext(),
+    this._cancelMobilePaymentContext(),
     this._cancelVenmoDesktopContext()
   ]);
+};
+
+Venmo.prototype._queryPaymentContextStatus = function (id) {
+  var self = this;
+
+  return this._createPromise.then(function (client) {
+    var query = self._shouldUseLegacyFlow ?
+      graphqlQueries.LEGACY_VENMO_PAYMENT_CONTEXT_STATUS_QUERY :
+      graphqlQueries.VENMO_PAYMENT_CONTEXT_STATUS_QUERY;
+
+    return client.request({
+      api: 'graphQLApi',
+      data: {
+        query: query,
+        variables: {
+          id: id
+        }
+      }
+    });
+  }).then(function (response) {
+    return response.data.node;
+  });
 };
 
 Venmo.prototype._pollForStatusChange = function () {
@@ -3025,17 +3201,7 @@ Venmo.prototype._pollForStatusChange = function () {
     return Promise.reject(new BraintreeError(errors.VENMO_MOBILE_POLLING_TOKENIZATION_TIMEOUT));
   }
 
-  return this._createPromise.then(function (client) {
-    return client.request({
-      api: 'graphQLApi',
-      data: {
-        query: graphqlQueries.VENMO_DESKTOP_PAYMENT_RESOURCE_STATUS_QUERY,
-        variables: {
-          id: self._mobilePollingContextId
-        }
-      }
-    });
-  }).catch(function (networkError) {
+  return this._queryPaymentContextStatus(this._venmoPaymentContextId).catch(function (networkError) {
     return Promise.reject(new BraintreeError({
       type: errors.VENMO_MOBILE_POLLING_TOKENIZATION_NETWORK_ERROR.type,
       code: errors.VENMO_MOBILE_POLLING_TOKENIZATION_NETWORK_ERROR.code,
@@ -3044,14 +3210,13 @@ Venmo.prototype._pollForStatusChange = function () {
         originalError: networkError
       }
     }));
-  }).then(function (response) {
-    var node = response.data.node;
+  }).then(function (node) {
     var newStatus = node.status;
 
-    if (newStatus !== self._mobilePollingContextStatus) {
-      self._mobilePollingContextStatus = newStatus;
+    if (newStatus !== self._venmoPaymentContextStatus) {
+      self._venmoPaymentContextStatus = newStatus;
 
-      analytics.sendEvent(self._createPromise, 'venmo.tokenize.mobile-polling.status-change.' + newStatus.toLowerCase());
+      analytics.sendEvent(self._createPromise, 'venmo.tokenize.manual-return.status-change.' + newStatus.toLowerCase());
 
       switch (newStatus) {
         case 'EXPIRED':
@@ -3078,37 +3243,29 @@ Venmo.prototype._pollForStatusChange = function () {
   });
 };
 
-Venmo.prototype._tokenizeForMobileWithPolling = function () {
+Venmo.prototype._tokenizeForMobileWithManualReturn = function () {
   var self = this;
 
-  analytics.sendEvent(this._createPromise, 'venmo.tokenize.mobile-polling.start');
+  analytics.sendEvent(this._createPromise, 'venmo.tokenize.manual-return.start');
 
   this._mobilePollingContextExpiresIn = Date.now() + this._mobilePollingExpiresThreshold;
   this._tokenizePromise = new ExtendedPromise();
 
   this._pollForStatusChange().then(function (payload) {
-    analytics.sendEvent(self._createPromise, 'venmo.tokenize.mobile-polling.success');
+    analytics.sendEvent(self._createPromise, 'venmo.tokenize.manual-return.success');
 
     self._tokenizePromise.resolve({
       paymentMethodNonce: payload.paymentMethodId,
       username: '@' + (payload.userName || '').replace('@', '')
     });
-
-    // TODO should create a new payment context in case the customer authorizes again
   }).catch(function (err) {
-    analytics.sendEvent(self._createPromise, 'venmo.tokenize.mobile-polling.failure');
+    analytics.sendEvent(self._createPromise, 'venmo.tokenize.manual-return.failure');
 
     self._tokenizePromise.reject(err);
   });
 
   return this.getUrl().then(function (url) {
-    analytics.sendEvent(self._createPromise, 'venmo.appswitch.start.browser');
-
-    if (browserDetection.isIosWebview() || self._shouldUseRedirectStrategy()) {
-      window.location.href = url;
-    } else {
-      window.open(url);
-    }
+    self.appSwitch(url);
 
     return self._tokenizePromise;
   });
@@ -3127,7 +3284,7 @@ Venmo.prototype._tokenizeForMobileWithHashChangeListeners = function (options) {
   var resultProcessingInProgress, visibilityChangeListenerTimeout;
 
   if (this.hasTokenizationResult()) {
-    return this._processResults();
+    return this.processResultsFromHash();
   }
 
   analytics.sendEvent(this._createPromise, 'venmo.tokenize.mobile.start');
@@ -3138,7 +3295,7 @@ Venmo.prototype._tokenizeForMobileWithHashChangeListeners = function (options) {
   function completeFlow(hash) {
     var error;
 
-    self._processResults(hash).catch(function (err) {
+    self.processResultsFromHash(hash).catch(function (err) {
       error = err;
     }).then(function (res) {
       if (!self._ignoreHistoryChanges && window.location.hash !== self._previousHash) {
@@ -3185,27 +3342,7 @@ Venmo.prototype._tokenizeForMobileWithHashChangeListeners = function (options) {
   };
 
   return this.getUrl().then(function (url) {
-    if (self._deepLinkReturnUrl) {
-      if (isIosWebviewInDeepLinkReturnUrlFlow()) {
-        analytics.sendEvent(self._createPromise, 'venmo.appswitch.start.ios-webview');
-        // Deep link URLs do not launch iOS apps from a webview when using window.open or PopupBridge.open.
-        window.location.href = url;
-      } else if (window.popupBridge && typeof window.popupBridge.open === 'function') {
-        analytics.sendEvent(self._createPromise, 'venmo.appswitch.start.popup-bridge');
-        window.popupBridge.open(url);
-      } else {
-        analytics.sendEvent(self._createPromise, 'venmo.appswitch.start.webview');
-        window.open(url);
-      }
-    } else {
-      analytics.sendEvent(self._createPromise, 'venmo.appswitch.start.browser');
-
-      if (self._shouldUseRedirectStrategy()) {
-        window.location.href = url;
-      } else {
-        window.open(url);
-      }
-    }
+    self.appSwitch(url);
 
     // Add a brief delay to ignore visibility change events that occur right before app switch
     setTimeout(function () {
@@ -3262,18 +3399,24 @@ Venmo.prototype._updateVenmoDesktopPaymentContext = function (status, options) {
   return this._venmoDesktopInstance.updateVenmoDesktopPaymentContext(status, options);
 };
 
-Venmo.prototype._cancelMobilePollingContext = function () {
+Venmo.prototype._cancelMobilePaymentContext = function () {
   var self = this;
 
   return this._createPromise.then(function (client) {
-    if (self._mobilePollingContextId) {
+    var query;
+
+    if (self._venmoPaymentContextId) {
+      query = self._shouldUseLegacyFlow ?
+        graphqlQueries.LEGACY_UPDATE_PAYMENT_CONTEXT_QUERY :
+        graphqlQueries.UPDATE_PAYMENT_CONTEXT_QUERY;
+
       return client.request({
         api: 'graphQLApi',
         data: {
-          query: graphqlQueries.UPDATE_VENMO_DESKTOP_PAYMENT_RESOURCE_QUERY,
+          query: query,
           variables: {
             input: {
-              id: self._mobilePollingContextId,
+              id: self._venmoPaymentContextId,
               status: 'CANCELED'
             }
           }
@@ -3319,7 +3462,8 @@ Venmo.prototype.teardown = function () {
       self._venmoDesktopInstance.teardown();
     }
 
-    self._cancelMobilePollingContext();
+    clearTimeout(self._refreshPaymentContextTimeout);
+    self._cancelMobilePaymentContext();
 
     convertMethodsToError(this, methods(Venmo.prototype));
   }.bind(this));
@@ -3333,14 +3477,33 @@ Venmo.prototype._removeVisibilityEventListener = function () {
   delete this._onHashChangeListener;
 };
 
-Venmo.prototype._processResults = function (hash) {
+Venmo.prototype.processResultsFromHash = function (hash) {
   var self = this;
   var params = getFragmentParameters(hash);
 
   return new Promise(function (resolve, reject) {
     if (params.venmoSuccess) {
       analytics.sendEvent(self._createPromise, 'venmo.appswitch.handle.success');
-      resolve(params);
+
+      if (params.resource_id && !self._shouldUseLegacyFlow) {
+        self._queryPaymentContextStatus(params.resource_id).then(function (result) {
+          if (result.status !== 'APPROVED') {
+            analytics.sendEvent(self._createPromise, 'venmo.process-results.unexpected-payment-context-status.' + result.status.toLowerCase());
+            resolve(params);
+
+            return;
+          }
+          resolve({
+            paymentMethodNonce: result.paymentMethodId,
+            username: result.userName
+          });
+        }).catch(function () {
+          analytics.sendEvent(self._createPromise, 'venmo.process-results.payment-context-status-query-failed');
+          resolve(params);
+        });
+      } else {
+        resolve(params);
+      }
     } else if (params.venmoError) {
       analytics.sendEvent(self._createPromise, 'venmo.appswitch.handle.error');
       reject(new BraintreeError({
