@@ -1382,7 +1382,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.78.0";
+var VERSION = "3.78.1";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1512,7 +1512,7 @@ module.exports = BraintreeError;
 },{"./enumerate":56}],51:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.78.0";
+var VERSION = "3.78.1";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1639,7 +1639,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.78.0";
+var VERSION = "3.78.1";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -2374,7 +2374,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var Venmo = _dereq_('./venmo');
 var Promise = _dereq_('../lib/promise');
 var supportsVenmo = _dereq_('./shared/supports-venmo');
-var VERSION = "3.78.0";
+var VERSION = "3.78.1";
 
 /**
  * @static
@@ -2518,13 +2518,18 @@ function isAndroidWebview() {
   return isAndroid() && window.navigator.userAgent.toLowerCase().indexOf('wv') > -1;
 }
 
+function doesNotSupportWindowOpenInIos() {
+  return isIosWebview() || (isIos() && isChrome());
+}
+
 module.exports = {
   isAndroid: isAndroid,
   isAndroidWebview: isAndroidWebview,
   isChrome: isChrome,
   isIos: isIos,
   isIosSafari: isIosSafari,
-  isIosWebview: isIosWebview
+  isIosWebview: isIosWebview,
+  doesNotSupportWindowOpenInIos: doesNotSupportWindowOpenInIos
 };
 
 },{"@braintree/browser-detection/is-android":16,"@braintree/browser-detection/is-chrome":17,"@braintree/browser-detection/is-ios":20,"@braintree/browser-detection/is-ios-safari":18,"@braintree/browser-detection/is-ios-webview":19}],70:[function(_dereq_,module,exports){
@@ -2743,7 +2748,7 @@ var ExtendedPromise = _dereq_('@braintree/extended-promise');
 var createVenmoDesktop = _dereq_('./external/');
 var graphqlQueries = _dereq_('./external/queries');
 
-var VERSION = "3.78.0";
+var VERSION = "3.78.1";
 var DEFAULT_MOBILE_POLLING_INTERVAL = 250; // 1/4 second
 var DEFAULT_MOBILE_EXPIRING_THRESHOLD = 300000; // 5 minutes
 
@@ -2946,7 +2951,7 @@ Venmo.prototype.appSwitch = function (url) {
   } else {
     analytics.sendEvent(this._createPromise, 'venmo.appswitch.start.browser');
 
-    if (browserDetection.isIosWebview() || this._shouldUseRedirectStrategy()) {
+    if (browserDetection.doesNotSupportWindowOpenInIos() || this._shouldUseRedirectStrategy()) {
       window.location.href = url;
     } else {
       window.open(url);
