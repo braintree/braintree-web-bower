@@ -1328,7 +1328,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.77.0";
+var VERSION = "3.78.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1458,7 +1458,7 @@ module.exports = BraintreeError;
 },{"./enumerate":43}],36:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.77.0";
+var VERSION = "3.78.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1607,7 +1607,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.77.0";
+var VERSION = "3.78.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1875,7 +1875,7 @@ var events = _dereq_('../../shared/events');
 var useMin = _dereq_('../../../lib/use-min');
 var BUS_CONFIGURATION_REQUEST_EVENT = _dereq_('../../../lib/constants').BUS_CONFIGURATION_REQUEST_EVENT;
 
-var VERSION = "3.77.0";
+var VERSION = "3.78.0";
 var IFRAME_HEIGHT = 400;
 var IFRAME_WIDTH = 400;
 
@@ -2558,7 +2558,7 @@ var ExtendedPromise = _dereq_('@braintree/extended-promise');
 
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var PLATFORM = _dereq_('../../../lib/constants').PLATFORM;
-var VERSION = "3.77.0";
+var VERSION = "3.78.0";
 var CUSTOMER_CANCELED_SONGBIRD_MODAL = '01';
 var SONGBIRD_UI_EVENTS = [
   'ui.close',
@@ -4002,7 +4002,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.77.0";
+var VERSION = "3.78.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
