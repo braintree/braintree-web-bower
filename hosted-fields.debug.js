@@ -2660,9 +2660,7 @@ function HostedFields(options) {
     });
 
     this._injectedNodes.push.apply(this._injectedNodes, injectFrame(componentId, frame, internalContainer, function () {
-      self._bus.emit(events.TRIGGER_INPUT_FOCUS, {
-        field: key
-      });
+      self.focus(key);
     }));
 
     this._setupLabelFocus(key, externalContainer);
@@ -2724,9 +2722,7 @@ function HostedFields(options) {
       });
     },
     onTriggerInputFocus: function (targetType) {
-      self._bus.emit(events.TRIGGER_INPUT_FOCUS, {
-        field: targetType
-      });
+      self.focus(targetType);
     }
   }));
 
@@ -2771,21 +2767,6 @@ function HostedFields(options) {
     createInputEventHandler(fields).bind(this)
   );
 
-  if (browserDetection.isIos()) {
-    this._bus.on(events.TRIGGER_INPUT_FOCUS, function (data) {
-      var container = fields[data.field].containerElement;
-
-      // Inputs outside of the viewport don't always scroll into view on
-      // focus in iOS Safari. 5ms timeout gives the browser a chance to
-      // do the right thing and prevents stuttering.
-      setTimeout(function () {
-        if (!isVisibleEnough(container)) {
-          container.scrollIntoView();
-        }
-      }, SAFARI_FOCUS_TIMEOUT);
-    });
-  }
-
   this._destructor.registerFunctionForTeardown(function () {
     var j, node, parent;
 
@@ -2819,17 +2800,13 @@ EventEmitter.createChild(HostedFields);
 
 HostedFields.prototype._setupLabelFocus = function (type, container) {
   var labels, i;
-  var shouldSkipLabelFocus = browserDetection.isIos();
-  var bus = this._bus;
+  var self = this;
   var rootNode = findRootNode(container);
 
-  if (shouldSkipLabelFocus) { return; }
   if (container.id == null) { return; }
 
   function triggerFocus() {
-    bus.emit(events.TRIGGER_INPUT_FOCUS, {
-      field: type
-    });
+    self.focus(type);
   }
 
   // find any labels in the normal DOM
@@ -3524,15 +3501,13 @@ HostedFields.prototype.clear = function (field) {
  *   // In Firefox, the focus method can be suppressed
  *   //   if the element has a tabindex property or the element
  *   //   is an anchor link with an href property.
- *   // In Mobile Safari, the focus method is unable to
- *   //   programmatically open the keyboard, as only
- *   //   touch events are allowed to do so.
  *   e.preventDefault();
  *   hostedFieldsInstance.focus('number');
  * });
  */
 HostedFields.prototype.focus = function (field) {
   var err;
+  var fieldConfig = this._fields[field];
 
   if (!allowedFields.hasOwnProperty(field)) {
     err = new BraintreeError({
@@ -3547,9 +3522,22 @@ HostedFields.prototype.focus = function (field) {
       message: 'Cannot focus "' + field + '" field because it is not part of the current Hosted Fields options.'
     });
   } else {
+    fieldConfig.frameElement.focus();
+
     this._bus.emit(events.TRIGGER_INPUT_FOCUS, {
       field: field
     });
+
+    if (browserDetection.isIos()) {
+      // Inputs outside of the viewport don't always scroll into view on
+      // focus in iOS Safari. 5ms timeout gives the browser a chance to
+      // do the right thing and prevents stuttering.
+      setTimeout(function () {
+        if (!isVisibleEnough(fieldConfig.containerElement)) {
+          fieldConfig.containerElement.scrollIntoView();
+        }
+      }, SAFARI_FOCUS_TIMEOUT);
+    }
   }
 
   if (err) {
@@ -3629,7 +3617,7 @@ var supportsInputFormatting = _dereq_('restricted-input/supports-input-formattin
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.78.1";
+var VERSION = "3.78.2";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -4016,7 +4004,7 @@ module.exports = {
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.78.1";
+var VERSION = "3.78.2";
 
 var constants = {
   VERSION: VERSION,
@@ -4537,7 +4525,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.78.1";
+var VERSION = "3.78.2";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -4713,7 +4701,7 @@ module.exports = BraintreeError;
 },{"./enumerate":93}],87:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.78.1";
+var VERSION = "3.78.2";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -4840,7 +4828,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.78.1";
+var VERSION = "3.78.2";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
