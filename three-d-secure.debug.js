@@ -1328,7 +1328,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.78.3";
+var VERSION = "3.79.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1458,7 +1458,7 @@ module.exports = BraintreeError;
 },{"./enumerate":43}],36:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.78.3";
+var VERSION = "3.79.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1607,7 +1607,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.78.3";
+var VERSION = "3.79.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1820,7 +1820,10 @@ module.exports = useMin;
 },{}],51:[function(_dereq_,module,exports){
 'use strict';
 
-var atobNormalized = typeof atob === 'function' ? window.atob : atobPolyfill;
+// NEXT_MAJOR_VERSION old versions of IE don't have atob, in the
+// next major version, we're dropping support for those versions
+// so we can eliminate the need to have this atob polyfill
+var atobNormalized = typeof atob === 'function' ? atob : atobPolyfill;
 
 function atobPolyfill(base64String) {
   var a, b, c, b1, b2, b3, b4, i;
@@ -1875,7 +1878,7 @@ var events = _dereq_('../../shared/events');
 var useMin = _dereq_('../../../lib/use-min');
 var BUS_CONFIGURATION_REQUEST_EVENT = _dereq_('../../../lib/constants').BUS_CONFIGURATION_REQUEST_EVENT;
 
-var VERSION = "3.78.3";
+var VERSION = "3.79.0";
 var IFRAME_HEIGHT = 400;
 var IFRAME_WIDTH = 400;
 
@@ -2558,7 +2561,7 @@ var ExtendedPromise = _dereq_('@braintree/extended-promise');
 
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var PLATFORM = _dereq_('../../../lib/constants').PLATFORM;
-var VERSION = "3.78.3";
+var VERSION = "3.79.0";
 var CUSTOMER_CANCELED_SONGBIRD_MODAL = '01';
 var SONGBIRD_UI_EVENTS = [
   'ui.close',
@@ -3174,6 +3177,9 @@ SongbirdFramework.prototype._formatLookupData = function (options) {
     if (options.bin) {
       data.bin = options.bin;
     }
+    if (options.cardAdd) {
+      data.cardAdd = options.cardAdd;
+    }
 
     return self.prepareLookup(data);
   });
@@ -3607,6 +3613,7 @@ EventEmitter.createChild(ThreeDSecure);
  * @param {string} options.bin The numeric Bank Identification Number (bin) of the card from a tokenization payload. For example, this can be a {@link HostedFields~tokenizePayload|tokenizePayload} returned by Hosted Fields under `payload.details.bin`.
  * @param {string} options.amount The amount of the transaction in the current merchant account's currency. This must be expressed in numbers with an optional decimal (using `.`) and precision up to the hundredths place. For example, if you're processing a transaction for 1.234,56 € then `amount` should be `1234.56`.
  * @param {string} [options.accountType] The account type for the card (if known). Accepted values: `credit` or `debit`.
+ * @param {boolean} [options.cardAdd] If set to true, card-add challenge will be requested from the issuer to confirm adding new card to the merchant's vault. An authentication created using this flag should only be used for card add operations (creation of customers' credit cards or payment methods) and not for creating transactions.
  * @param {boolean} [options.challengeRequested] If set to true, an authentication challenge will be forced if possible.
  * @param {boolean} [options.exemptionRequested] If set to true, an exemption to the authentication challenge will be requested.
  * @param {function} [options.onLookupComplete] *Deprecated:* Use {@link ThreeDSecure#event:lookup-complete|`threeDSecureInstance.on('lookup-complete')`} instead. Function to execute when lookup completes. The first argument, `data`, is a {@link ThreeDSecure~verificationData|verificationData} object, and the second argument, `next`, is a callback. `next` must be called to continue.
@@ -4002,7 +4009,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.78.3";
+var VERSION = "3.79.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 

@@ -1370,7 +1370,7 @@ module.exports = {
 
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Client = _dereq_('./client');
-var VERSION = "3.78.3";
+var VERSION = "3.79.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -1663,6 +1663,7 @@ var cardTypeTransforms = {
     MASTERCARD: 'mastercard',
     DISCOVER: 'discover',
     AMERICAN_EXPRESS: 'amex',
+    INTERNATIONAL_MAESTRO: 'maestro',
     ELO: 'elo'
   },
   masterpass: {
@@ -2818,7 +2819,7 @@ module.exports = BraintreeError;
 },{"./enumerate":48}],43:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.78.3";
+var VERSION = "3.79.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -3219,7 +3220,10 @@ module.exports = {
 },{}],57:[function(_dereq_,module,exports){
 'use strict';
 
-var atobNormalized = typeof atob === 'function' ? window.atob : atobPolyfill;
+// NEXT_MAJOR_VERSION old versions of IE don't have atob, in the
+// next major version, we're dropping support for those versions
+// so we can eliminate the need to have this atob polyfill
+var atobNormalized = typeof atob === 'function' ? atob : atobPolyfill;
 
 function atobPolyfill(base64String) {
   var a, b, c, b1, b2, b3, b4, i;
