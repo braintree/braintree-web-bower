@@ -1328,7 +1328,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.79.1";
+var VERSION = "3.80.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1458,7 +1458,7 @@ module.exports = BraintreeError;
 },{"./enumerate":43}],36:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.79.1";
+var VERSION = "3.80.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1607,7 +1607,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.79.1";
+var VERSION = "3.80.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1878,7 +1878,7 @@ var events = _dereq_('../../shared/events');
 var useMin = _dereq_('../../../lib/use-min');
 var BUS_CONFIGURATION_REQUEST_EVENT = _dereq_('../../../lib/constants').BUS_CONFIGURATION_REQUEST_EVENT;
 
-var VERSION = "3.79.1";
+var VERSION = "3.80.0";
 var IFRAME_HEIGHT = 400;
 var IFRAME_WIDTH = 400;
 
@@ -2084,6 +2084,7 @@ BaseFramework.prototype._onLookupComplete = function (response) {
 BaseFramework.prototype._formatAuthResponse = function (paymentMethod, threeDSecureInfo) {
   return {
     nonce: paymentMethod.nonce,
+    type: paymentMethod.type,
     binData: paymentMethod.binData,
     details: paymentMethod.details,
     description: paymentMethod.description && paymentMethod.description.replace(/\+/g, ' '),
@@ -2561,7 +2562,7 @@ var ExtendedPromise = _dereq_('@braintree/extended-promise');
 
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var PLATFORM = _dereq_('../../../lib/constants').PLATFORM;
-var VERSION = "3.79.1";
+var VERSION = "3.80.0";
 var CUSTOMER_CANCELED_SONGBIRD_MODAL = '01';
 var SONGBIRD_UI_EVENTS = [
   'ui.close',
@@ -2654,10 +2655,14 @@ SongbirdFramework.prototype.initializeChallengeWithLookupResponse = function (lo
   }.bind(this));
 };
 
-SongbirdFramework.prototype._initiateV1Fallback = function (errorType) {
+SongbirdFramework.prototype.initiateV1Fallback = function (errorType) {
   this._useV1Fallback = true;
+  this._removeSongbirdListeners();
   analytics.sendEvent(this._createPromise, 'three-d-secure.v1-fallback.' + errorType);
-  this._songbirdPromise.resolve();
+
+  if (this._songbirdPromise) {
+    this._songbirdPromise.resolve();
+  }
 };
 
 SongbirdFramework.prototype._triggerCardinalBinProcess = function (bin) {
@@ -2809,7 +2814,7 @@ SongbirdFramework.prototype.setupSongbird = function (setupOptions) {
 
     window.clearTimeout(self._songbirdSetupTimeoutReference);
     analytics.sendEvent(self._client, 'three-d-secure.cardinal-sdk.init.setup-failed');
-    self._initiateV1Fallback('cardinal-sdk-setup-failed.' + self._v2SetupFailureReason);
+    self.initiateV1Fallback('cardinal-sdk-setup-failed.' + self._v2SetupFailureReason);
   });
 
   return this._songbirdPromise;
@@ -2901,7 +2906,7 @@ SongbirdFramework.prototype._loadCardinalScript = function (setupOptions) {
 
     self._songbirdSetupTimeoutReference = window.setTimeout(function () {
       analytics.sendEvent(self._client, 'three-d-secure.cardinal-sdk.init.setup-timeout');
-      self._initiateV1Fallback('cardinal-sdk-setup-timeout');
+      self.initiateV1Fallback('cardinal-sdk-setup-timeout');
     }, setupOptions.timeout || INTEGRATION_TIMEOUT_MS);
 
     if (isProduction) {
@@ -3004,10 +3009,19 @@ SongbirdFramework.prototype._createPaymentsValidatedCallback = function () {
   return function (data, validatedJwt) {
     var formattedError;
 
+    if (self._useV1Fallback) {
+      // TODO since we've removed the listeners for the payments validated callback when initiating the v1 fallback,
+      // we should never get to this point. Leave this analtyics event in for now and review if that is indeed the
+      // case before removing this block.
+      analytics.sendEvent(self._createPromise, 'three-d-secure.verification-flow.cardinal-sdk.payments-validated-callback-called-in-v1-fallback-flow');
+
+      return;
+    }
+
     analytics.sendEvent(self._createPromise, 'three-d-secure.verification-flow.cardinal-sdk.action-code.' + data.ActionCode.toLowerCase());
 
     if (!self._verifyCardPromisePlus) {
-      self._initiateV1Fallback('cardinal-sdk-setup-error.number-' + data.ErrorNumber);
+      self.initiateV1Fallback('cardinal-sdk-setup-error.number-' + data.ErrorNumber);
 
       return;
     }
@@ -3177,8 +3191,12 @@ SongbirdFramework.prototype._formatLookupData = function (options) {
     if (options.bin) {
       data.bin = options.bin;
     }
-    if (options.cardAdd) {
+    // NEXT_MAJOR_VERSION remove cardAdd in favor of cardAddChallengeRequested
+    if (options.cardAdd != null) {
       data.cardAdd = options.cardAdd;
+    }
+    if (options.cardAddChallengeRequested != null) {
+      data.cardAdd = options.cardAddChallengeRequested;
     }
 
     return self.prepareLookup(data);
@@ -3199,11 +3217,17 @@ SongbirdFramework.prototype.cancelVerifyCard = function (verifyCardError) {
   });
 };
 
+SongbirdFramework.prototype._removeSongbirdListeners = function () {
+  this._cardinalEvents.forEach(function (eventName) {
+    window.Cardinal.off(eventName);
+  });
+
+  this._cardinalEvents = [];
+};
+
 SongbirdFramework.prototype.teardown = function () {
   if (window.Cardinal) {
-    this._cardinalEvents.forEach(function (eventName) {
-      window.Cardinal.off(eventName);
-    });
+    this._removeSongbirdListeners();
   }
 
   // we intentionally do not remove the Cardinal SDK
@@ -3272,6 +3296,7 @@ var FRAMEWORKS = _dereq_('./frameworks');
 /**
  * @typedef {object} ThreeDSecure~verifyPayload
  * @property {string} nonce The new payment method nonce produced by the 3D Secure lookup. The original nonce passed into {@link ThreeDSecure#verifyCard|verifyCard} was consumed. This new nonce should be used to transact on your server.
+ * @property {string} type The payment method type.
  * @property {object} details Additional account details.
  * @property {string} details.cardType Type of card, ex: Visa, MasterCard.
  * @property {string} details.lastFour Last four digits of card number.
@@ -3613,7 +3638,8 @@ EventEmitter.createChild(ThreeDSecure);
  * @param {string} options.bin The numeric Bank Identification Number (bin) of the card from a tokenization payload. For example, this can be a {@link HostedFields~tokenizePayload|tokenizePayload} returned by Hosted Fields under `payload.details.bin`.
  * @param {string} options.amount The amount of the transaction in the current merchant account's currency. This must be expressed in numbers with an optional decimal (using `.`) and precision up to the hundredths place. For example, if you're processing a transaction for 1.234,56 € then `amount` should be `1234.56`.
  * @param {string} [options.accountType] The account type for the card (if known). Accepted values: `credit` or `debit`.
- * @param {boolean} [options.cardAdd] If set to true, card-add challenge will be requested from the issuer to confirm adding new card to the merchant's vault. An authentication created using this flag should only be used for card add operations (creation of customers' credit cards or payment methods) and not for creating transactions.
+ * @param {boolean} [options.cardAddChallengeRequested] If set to `true`, a card-add challenge will be requested from the issuer. If set to `false`, a card-add challenge will not be requested. If the param is missing, a card-add challenge will only be requested for $0 amount. An authentication created using this flag should only be used for vaulting operations (creation of customers' credit cards or payment methods) and not for creating transactions.
+ * @param {boolean} [options.cardAdd] *Deprecated:* Use `cardAddChallengeRequested` instead.
  * @param {boolean} [options.challengeRequested] If set to true, an authentication challenge will be forced if possible.
  * @param {boolean} [options.exemptionRequested] If set to true, an exemption to the authentication challenge will be requested.
  * @param {function} [options.onLookupComplete] *Deprecated:* Use {@link ThreeDSecure#event:lookup-complete|`threeDSecureInstance.on('lookup-complete')`} instead. Function to execute when lookup completes. The first argument, `data`, is a {@link ThreeDSecure~verificationData|verificationData} object, and the second argument, `next`, is a callback. `next` must be called to continue.
@@ -4009,7 +4035,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.79.1";
+var VERSION = "3.80.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
