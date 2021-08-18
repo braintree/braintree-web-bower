@@ -2182,7 +2182,7 @@ var AmericanExpress = _dereq_('./american-express');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
-var VERSION = "3.80.0";
+var VERSION = "3.81.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -2674,7 +2674,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var Promise = _dereq_('../lib/promise');
 var errors = _dereq_('./errors');
-var VERSION = "3.80.0";
+var VERSION = "3.81.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -3441,7 +3441,7 @@ module.exports = {
 
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Client = _dereq_('./client');
-var VERSION = "3.80.0";
+var VERSION = "3.81.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var sharedErrors = _dereq_('../lib/errors');
@@ -3864,6 +3864,7 @@ function adaptConfigurationResponseBody(body, ctx) {
   if (configuration.visaCheckout) {
     response.visaCheckout = {
       apikey: configuration.visaCheckout.apiKey,
+      encryptionKey: configuration.visaCheckout.encryptionKey,
       externalClientId: configuration.visaCheckout.externalClientId,
       supportedCardTypes: mapCardTypes(configuration.visaCheckout.supportedCardBrands, cardTypeTransforms.visaCheckout)
     };
@@ -4739,16 +4740,18 @@ var Promise = _dereq_('../lib/promise');
 
 var cachedSessionId;
 
-function setup(environment) {
+function setup(options) {
   var fraudNet = new Fraudnet();
 
-  if (cachedSessionId) {
+  options = options || {};
+
+  if (!options.sessionId && cachedSessionId) {
     fraudNet.sessionId = cachedSessionId;
 
     return Promise.resolve(fraudNet);
   }
 
-  return fraudNet.initialize(environment);
+  return fraudNet.initialize(options);
 }
 
 function clearSessionIdCache() {
@@ -4758,10 +4761,14 @@ function clearSessionIdCache() {
 function Fraudnet() {
 }
 
-Fraudnet.prototype.initialize = function (environment) {
+Fraudnet.prototype.initialize = function (options) {
+  var environment = options.environment;
   var self = this;
 
-  this.sessionId = cachedSessionId = _generateSessionId();
+  this.sessionId = options.sessionId || _generateSessionId();
+  if (!options.sessionId) {
+    cachedSessionId = this.sessionId;
+  }
   this._beaconId = _generateBeaconId(this.sessionId);
   this._parameterBlock = _createParameterBlock(this.sessionId, this._beaconId, environment);
 
@@ -4855,7 +4862,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var methods = _dereq_('../lib/methods');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
-var VERSION = "3.80.0";
+var VERSION = "3.81.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var errors = _dereq_('./errors');
@@ -4938,6 +4945,7 @@ var errors = _dereq_('./errors');
  * @param {boolean} [options.kount] Kount fraud data collection will occur if the merchant configuration has it enabled.
  * **Note:** the data sent to Kount is asynchronous and may not have completed by the time the data collector create call is complete. In most cases, this will not matter, but if you create the data collector instance and immediately navigate away from the page, the device information may fail to be sent to Kount.
  * @param {boolean} [options.paypal] *Deprecated:* PayPal fraud data collection will occur when the DataCollector instance is created.
+ * @param {string} [options.correlationId] Pass a custom correlation id when creating the data collector.
  * @param {callback} [callback] The second argument, `data`, is the {@link DataCollector} instance.
  * @returns {(Promise|void)} Returns a promise that resolves the {@link DataCollector} instance if no callback is provided.
  */
@@ -4986,7 +4994,10 @@ function create(options) {
 
       return Promise.resolve(client);
     }).then(function (client) {
-      return fraudnet.setup(client.getConfiguration().gatewayConfiguration.environment).then(function (fraudnetInstance) {
+      return fraudnet.setup({
+        sessionId: options.correlationId,
+        environment: client.getConfiguration().gatewayConfiguration.environment
+      }).then(function (fraudnetInstance) {
         if (fraudnetInstance) {
           data.correlation_id = fraudnetInstance.sessionId; // eslint-disable-line camelcase
           result._instances.push(fraudnetInstance);
@@ -5599,7 +5610,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.80.0";
+var VERSION = "3.81.0";
 var errors = _dereq_('./errors');
 
 /**
@@ -6019,8 +6030,8 @@ var SAFARI_FOCUS_TIMEOUT = 5;
 /**
  * @typedef {object} HostedFields~tokenizePayload
  * @property {string} nonce The payment method nonce.
- * @property {object} authenticationInsight Info about the [regulatory environment](https://developers.braintreepayments.com/guides/3d-secure/advanced-options/javascript/v3#authentication-insight) of the tokenized card. Only available if `authenticationInsight.merchantAccountId` is passed in the `tokenize` method options.
- * @property {string} authenticationInsight.regulationEnvironment The [regulation environment](https://developers.braintreepayments.com/guides/3d-secure/advanced-options/javascript/v3#authentication-insight) for the tokenized card.
+ * @property {object} authenticationInsight Info about the [regulatory environment](https://developer.paypal.com/braintree/docs/guides/3d-secure/advanced-options/javascript/v3#authentication-insight) of the tokenized card. Only available if `authenticationInsight.merchantAccountId` is passed in the `tokenize` method options.
+ * @property {string} authenticationInsight.regulationEnvironment The [regulation environment](https://developer.paypal.com/braintree/docs/guides/3d-secure/advanced-options/javascript/v3#authentication-insight) for the tokenized card.
  * @property {object} details Additional account details.
  * @property {string} details.bin The BIN number of the card.
  * @property {string} details.cardType Type of card, ex: Visa, MasterCard.
@@ -6805,7 +6816,7 @@ HostedFields.prototype.teardown = function () {
  * @public
  * @param {object} [options] All tokenization options for the Hosted Fields component.
  * @param {boolean} [options.vault=false] When true, will vault the tokenized card. Cards will only be vaulted when using a client created with a client token that includes a customer ID. Note: merchants using Advanced Fraud Tools should not use this option, as device data will not be included.
- * @param {object} [options.authenticationInsight] Options for checking authentication insight - the [regulatory environment](https://developers.braintreepayments.com/guides/3d-secure/advanced-options/javascript/v3#authentication-insight) of the tokenized card.
+ * @param {object} [options.authenticationInsight] Options for checking authentication insight - the [regulatory environment](https://developer.paypal.com/braintree/docs/guides/3d-secure/advanced-options/javascript/v3#authentication-insight) of the tokenized card.
  * @param {string} options.authenticationInsight.merchantAccountId The Braintree merchant account id to use to look up the authentication insight information.
  * @param {array} [options.fieldsToTokenize] By default, all fields will be tokenized. You may specify which fields specifically you wish to tokenize with this property. Valid options are `'number'`, `'cvv'`, `'expirationDate'`, `'expirationMonth'`, `'expirationYear'`, `'postalCode'`, `'cardholderName'`.
  * @param {string} [options.cardholderName] When supplied, the cardholder name to be tokenized with the contents of the fields.
@@ -6846,7 +6857,7 @@ HostedFields.prototype.teardown = function () {
  *         //     with a customer ID and the fail on duplicate payment method
  *         //     option is set to true
  *         //   * the card being tokenized has previously been vaulted (with any customer)
- *         // See: https://developers.braintreepayments.com/reference/request/client-token/generate/#options.fail_on_duplicate_payment_method
+ *         // See: https://developer.paypal.com/braintree/docs/reference/request/client-token/generate#options.fail_on_duplicate_payment_method
  *         console.error('This payment method already exists in your vault.');
  *         break;
  *       case 'HOSTED_FIELDS_TOKENIZATION_CVV_VERIFICATION_FAILED':
@@ -6855,8 +6866,8 @@ HostedFields.prototype.teardown = function () {
  *         //     with a customer ID and the verify card option is set to true
  *         //     and you have credit card verification turned on in the Braintree
  *         //     control panel
- *         //   * the cvv does not pass verification (https://developers.braintreepayments.com/reference/general/testing/#avs-and-cvv/cid-responses)
- *         // See: https://developers.braintreepayments.com/reference/request/client-token/generate/#options.verify_card
+ *         //   * the cvv does not pass verification (https://developer.paypal.com/braintree/docs/reference/general/testing#avs-and-cvv/cid-responses)
+ *         // See: https://developer.paypal.com/braintree/docs/reference/request/client-token/generate#options.verify_card
  *         console.error('CVV did not pass verification');
  *         break;
  *       case 'HOSTED_FIELDS_FAILED_TOKENIZATION':
@@ -6917,7 +6928,7 @@ HostedFields.prototype.teardown = function () {
  *     // passing just one of the country options is sufficient to
  *     // associate the card details with a particular country
  *     // valid country names and codes can be found here:
- *     // https://developers.braintreepayments.com/reference/general/countries/ruby#list-of-countries
+ *     // https://developer.paypal.com/braintree/docs/reference/general/countries/ruby#list-of-countries
  *     countryName: 'United States',
  *     countryCodeAlpha2: 'US',
  *     countryCodeAlpha3: 'USA',
@@ -7472,7 +7483,7 @@ var supportsInputFormatting = _dereq_('restricted-input/supports-input-formattin
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.80.0";
+var VERSION = "3.81.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -7859,7 +7870,7 @@ module.exports = {
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.80.0";
+var VERSION = "3.81.0";
 
 var constants = {
   VERSION: VERSION,
@@ -8327,7 +8338,7 @@ var vaultManager = _dereq_('./vault-manager');
 var venmo = _dereq_('./venmo');
 var visaCheckout = _dereq_('./visa-checkout');
 var preferredPaymentMethods = _dereq_('./preferred-payment-methods');
-var VERSION = "3.80.0";
+var VERSION = "3.81.0";
 
 module.exports = {
   /** @type {module:braintree-web/american-express} */
@@ -8483,7 +8494,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.80.0";
+var VERSION = "3.81.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -8679,7 +8690,7 @@ module.exports = function (obj) {
 },{}],132:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.80.0";
+var VERSION = "3.81.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -8828,7 +8839,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.80.0";
+var VERSION = "3.81.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -9607,7 +9618,7 @@ module.exports = enumerate([
 },{"../../enumerate":140}],155:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.80.0";
+var VERSION = "3.81.0";
 var assign = _dereq_('./assign').assign;
 
 function generateTokenizationParameters(configuration, overrides) {
@@ -10067,7 +10078,7 @@ module.exports = {
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var useMin = _dereq_('../../lib/use-min');
-var VERSION = "3.80.0";
+var VERSION = "3.81.0";
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
 var methods = _dereq_('../../lib/methods');
@@ -10137,7 +10148,7 @@ LocalPayment.prototype._initialize = function () {
  * @param {string} options.amount The amount to authorize for the transaction.
  * @param {string} options.currencyCode The currency to process the payment.
  * @param {string} options.paymentType The type of local payment.
- * @param {string} options.paymentTypeCountryCode The country code of the local payment. This value must be one of the supported country codes for a given local payment type listed {@link https://developers.braintreepayments.com/guides/local-payment-methods/client-side-custom/javascript/v3#render-local-payment-method-buttons|here}. For local payments supported in multiple countries, this value may determine which banks are presented to the customer.
+ * @param {string} options.paymentTypeCountryCode The country code of the local payment. This value must be one of the supported country codes for a given local payment type listed {@link https://developer.paypal.com/braintree/docs/guides/local-payment-methods/client-side-custom/javascript/v3#render-local-payment-method-buttons|here}. For local payments supported in multiple countries, this value may determine which banks are presented to the customer.
  * @param {string} options.email Payer email of the customer.
  * @param {string} options.givenName First name of the customer.
  * @param {string} options.surname Last name of the customer.
@@ -10564,7 +10575,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var LocalPayment = _dereq_('./external/local-payment');
-var VERSION = "3.80.0";
+var VERSION = "3.81.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
@@ -10760,7 +10771,7 @@ var Promise = _dereq_('../../lib/promise');
 var frameService = _dereq_('../../lib/frame-service/external');
 var BraintreeError = _dereq_('../../lib/braintree-error');
 var errors = _dereq_('../shared/errors');
-var VERSION = "3.80.0";
+var VERSION = "3.81.0";
 var methods = _dereq_('../../lib/methods');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var analytics = _dereq_('../../lib/analytics');
@@ -11157,7 +11168,7 @@ var browserDetection = _dereq_('./shared/browser-detection');
 var Masterpass = _dereq_('./external/masterpass');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
-var VERSION = "3.80.0";
+var VERSION = "3.81.0";
 var errors = _dereq_('./shared/errors');
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -11363,7 +11374,7 @@ var methods = _dereq_('../../lib/methods');
 var Promise = _dereq_('../../lib/promise');
 var EventEmitter = _dereq_('@braintree/event-emitter');
 var BraintreeError = _dereq_('../../lib/braintree-error');
-var VERSION = "3.80.0";
+var VERSION = "3.81.0";
 var constants = _dereq_('../shared/constants');
 var events = constants.events;
 var errors = constants.errors;
@@ -12050,7 +12061,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.80.0";
+var VERSION = "3.81.0";
 
 /**
  * @static
@@ -12292,7 +12303,7 @@ module.exports = {
   PAYPAL_SANDBOX_ACCOUNT_NOT_LINKED: {
     type: BraintreeError.types.MERCHANT,
     code: 'PAYPAL_SANDBOX_ACCOUNT_NOT_LINKED',
-    message: 'A linked PayPal Sandbox account is required to use PayPal Checkout in Sandbox. See https://developers.braintreepayments.com/guides/paypal/testing-go-live/#linked-paypal-testing for details on linking your PayPal sandbox with Braintree.'
+    message: 'A linked PayPal Sandbox account is required to use PayPal Checkout in Sandbox. See https://developer.paypal.com/braintree/docs/guides/paypal/testing-go-live#linked-paypal-testing for details on linking your PayPal sandbox with Braintree.'
   },
   PAYPAL_ACCOUNT_TOKENIZATION_FAILED: {
     type: BraintreeError.types.NETWORK,
@@ -12350,7 +12361,7 @@ module.exports = {
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var PayPalCheckout = _dereq_('./paypal-checkout');
-var VERSION = "3.80.0";
+var VERSION = "3.81.0";
 
 /**
  * @static
@@ -12432,7 +12443,7 @@ var methods = _dereq_('../lib/methods');
 var useMin = _dereq_('../lib/use-min');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
 var querystring = _dereq_('../lib/querystring');
-var VERSION = "3.80.0";
+var VERSION = "3.81.0";
 var INTEGRATION_TIMEOUT_MS = _dereq_('../lib/constants').INTEGRATION_TIMEOUT_MS;
 
 var REQUIRED_PARAMS_FOR_START_VAULT_INITIATED_CHECKOUT = [
@@ -12464,7 +12475,7 @@ var PAYPAL_SDK_PRELOAD_URL = 'https://www.{ENV}paypal.com/smart/buttons/preload'
  * @property {string} details.shippingAddress.postalCode Postal code.
  * @property {string} details.shippingAddress.countryCode 2 character country code (e.g. US).
  * @property {?object} details.billingAddress User's billing address details.
- * Not available to all merchants; [contact PayPal](https://developers.braintreepayments.com/support/guides/paypal/setup-guide#contacting-paypal-support) for details on eligibility and enabling this feature.
+ * Not available to all merchants; [contact support](https://developer.paypal.com/braintree/help) for details on eligibility and enabling this feature.
  * Alternatively, see `shippingAddress` above as an available client option.
  * @property {string} details.billingAddress.line1 Street number and name.
  * @property {string} details.billingAddress.line2 Extended address.
@@ -13608,7 +13619,7 @@ var BraintreeError = _dereq_('../../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../../lib/convert-to-braintree-error');
 var useMin = _dereq_('../../lib/use-min');
 var once = _dereq_('../../lib/once');
-var VERSION = "3.80.0";
+var VERSION = "3.81.0";
 var constants = _dereq_('../shared/constants');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
@@ -13640,7 +13651,7 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
  * @property {string} details.shippingAddress.postalCode Postal code.
  * @property {string} details.shippingAddress.countryCode 2 character country code (e.g. US).
  * @property {?object} details.billingAddress User's billing address details.
- * Not available to all merchants; [contact PayPal](https://developers.braintreepayments.com/support/guides/paypal/setup-guide#contacting-paypal-support) for details on eligibility and enabling this feature.
+ * Not available to all merchants; [contact support](https://developer.paypal.com/braintree/help) for details on eligibility and enabling this feature.
  * Alternatively, see `shippingAddress` above as an available client option.
  * @property {string} details.billingAddress.line1 Street number and name.
  * @property {string} details.billingAddress.line2 Extended address.
@@ -14219,7 +14230,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var errors = _dereq_('./shared/errors');
 var PayPal = _dereq_('./external/paypal');
-var VERSION = "3.80.0";
+var VERSION = "3.81.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var Promise = _dereq_('../lib/promise');
 
@@ -14422,7 +14433,7 @@ module.exports = {
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var PreferredPaymentMethods = _dereq_('./preferred-payment-methods');
-var VERSION = "3.80.0";
+var VERSION = "3.81.0";
 
 /**
  * @static
@@ -14589,7 +14600,7 @@ var events = _dereq_('../../shared/events');
 var useMin = _dereq_('../../../lib/use-min');
 var BUS_CONFIGURATION_REQUEST_EVENT = _dereq_('../../../lib/constants').BUS_CONFIGURATION_REQUEST_EVENT;
 
-var VERSION = "3.80.0";
+var VERSION = "3.81.0";
 var IFRAME_HEIGHT = 400;
 var IFRAME_WIDTH = 400;
 
@@ -15273,7 +15284,7 @@ var ExtendedPromise = _dereq_('@braintree/extended-promise');
 
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var PLATFORM = _dereq_('../../../lib/constants').PLATFORM;
-var VERSION = "3.80.0";
+var VERSION = "3.81.0";
 var CUSTOMER_CANCELED_SONGBIRD_MODAL = '01';
 var SONGBIRD_UI_EVENTS = [
   'ui.close',
@@ -16025,7 +16036,7 @@ var FRAMEWORKS = _dereq_('./frameworks');
  * @property {string} binData.productId The product id.
  * @property {boolean} liabilityShiftPossible *Deprecated:* Use `threeDSecureInfo.liabilityShiftPossible` instead.
  * @property {boolean} liabilityShifted *Deprecated:* Use `threeDSecureInfo.liabilityShifted` instead.
- * @property {object} threeDSecureInfo 3DS information about the card. Note: This information should be verified on the server by using the [payment method nonce find method](https://developers.braintreepayments.com/reference/request/payment-method-nonce/find). The values provided here are merely for convenience. Only values looked up on the server should determine the logic about how to process a transaction.
+ * @property {object} threeDSecureInfo 3DS information about the card. Note: This information should be verified on the server by using the [payment method nonce find method](https://developer.paypal.com/braintree/docs/reference/request/payment-method-nonce/find). The values provided here are merely for convenience. Only values looked up on the server should determine the logic about how to process a transaction.
  * @property {boolean} threeDSecureInfo.liabilityShiftPossible Indicates whether the card was eligible for 3D Secure.
  * @property {boolean} threeDSecureInfo.liabilityShifted Indicates whether the liability for fraud has been shifted away from the merchant.
  * @property {string} threeDSecureInfo.cavv Cardholder authentication verification value or CAVV. The main encrypted message issuers and card networks use to verify authentication has occurred. Mastercard uses an AVV message and American Express uses an AEVV message, each of which should also be passed in the cavv parameter.
@@ -16324,7 +16335,7 @@ var FRAMEWORKS = _dereq_('./frameworks');
  *
  * If you use the Braintree SDK from within an iframe, you must not use the `sandbox` attribute on your iframe or the 3D Secure modal will not function correctly.
  *
- * **Note**: 3D Secure 2.0 is documented below and will become the default integration method in a future version of Braintree-web. Until then, version 1.0 will continue to be supported. To view 3D Secure 1.0 documentation, look at Braintree-web documentation from version [3.40.0](https://braintree.github.io/braintree-web/3.40.0/ThreeDSecure.html) and earlier, or upgrade your integration by referring to the [3D Secure 2.0 adoption guide](https://developers.braintreepayments.com/guides/3d-secure/migration/javascript/v3).
+ * **Note**: 3D Secure 2.0 is documented below and will become the default integration method in a future version of Braintree-web. Until then, version 1.0 will continue to be supported. To view 3D Secure 1.0 documentation, look at Braintree-web documentation from version [3.40.0](https://braintree.github.io/braintree-web/3.40.0/ThreeDSecure.html) and earlier, or upgrade your integration by referring to the [3D Secure 2.0 adoption guide](https://developer.paypal.com/braintree/docs/guides/3d-secure/migration/javascript/v3).
  */
 function ThreeDSecure(options) {
   var self = this;
@@ -16746,7 +16757,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.80.0";
+var VERSION = "3.81.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -17158,7 +17169,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./shared/errors');
-var VERSION = "3.80.0";
+var VERSION = "3.81.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -17351,7 +17362,7 @@ var errors = _dereq_('./errors');
 var events = constants.events;
 var iFramer = _dereq_('@braintree/iframer');
 var methods = _dereq_('../../lib/methods');
-var VERSION = "3.80.0";
+var VERSION = "3.81.0";
 var uuid = _dereq_('@braintree/uuid');
 var Promise = _dereq_('../../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
@@ -17825,7 +17836,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var errors = _dereq_('./errors');
 var USBankAccount = _dereq_('./us-bank-account');
-var VERSION = "3.80.0";
+var VERSION = "3.81.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -18389,7 +18400,7 @@ var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var VaultManager = _dereq_('./vault-manager');
-var VERSION = "3.80.0";
+var VERSION = "3.81.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
 /**
@@ -19027,7 +19038,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var Venmo = _dereq_('./venmo');
 var Promise = _dereq_('../lib/promise');
 var supportsVenmo = _dereq_('./shared/supports-venmo');
-var VERSION = "3.80.0";
+var VERSION = "3.81.0";
 
 /**
  * @static
@@ -19401,7 +19412,7 @@ var ExtendedPromise = _dereq_('@braintree/extended-promise');
 var createVenmoDesktop = _dereq_('./external/');
 var graphqlQueries = _dereq_('./external/queries');
 
-var VERSION = "3.80.0";
+var VERSION = "3.81.0";
 var DEFAULT_MOBILE_POLLING_INTERVAL = 250; // 1/4 second
 var DEFAULT_MOBILE_EXPIRING_THRESHOLD = 300000; // 5 minutes
 
@@ -20361,7 +20372,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var VisaCheckout = _dereq_('./visa-checkout');
 var analytics = _dereq_('../lib/analytics');
 var errors = _dereq_('./errors');
-var VERSION = "3.80.0";
+var VERSION = "3.81.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 
@@ -20528,6 +20539,7 @@ VisaCheckout.prototype.createInitOptions = function (options) {
 
   initOptions = jsonClone(options);
   initOptions.apikey = initOptions.apikey || visaCheckoutConfiguration.apikey;
+  initOptions.encryptionKey = visaCheckoutConfiguration.encryptionKey;
   initOptions.externalClientId = initOptions.externalClientId || visaCheckoutConfiguration.externalClientId;
   initOptions.settings = initOptions.settings || {};
   initOptions.settings.dataLevel = 'FULL';

@@ -1460,7 +1460,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.80.0";
+var VERSION = "3.81.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1590,7 +1590,7 @@ module.exports = BraintreeError;
 },{"./enumerate":61}],54:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.80.0";
+var VERSION = "3.81.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1739,7 +1739,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.80.0";
+var VERSION = "3.81.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -2668,7 +2668,7 @@ var BraintreeError = _dereq_('../../lib/braintree-error');
 var convertToBraintreeError = _dereq_('../../lib/convert-to-braintree-error');
 var useMin = _dereq_('../../lib/use-min');
 var once = _dereq_('../../lib/once');
-var VERSION = "3.80.0";
+var VERSION = "3.81.0";
 var constants = _dereq_('../shared/constants');
 var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_('../../lib/analytics');
@@ -2700,7 +2700,7 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
  * @property {string} details.shippingAddress.postalCode Postal code.
  * @property {string} details.shippingAddress.countryCode 2 character country code (e.g. US).
  * @property {?object} details.billingAddress User's billing address details.
- * Not available to all merchants; [contact PayPal](https://developers.braintreepayments.com/support/guides/paypal/setup-guide#contacting-paypal-support) for details on eligibility and enabling this feature.
+ * Not available to all merchants; [contact support](https://developer.paypal.com/braintree/help) for details on eligibility and enabling this feature.
  * Alternatively, see `shippingAddress` above as an available client option.
  * @property {string} details.billingAddress.line1 Street number and name.
  * @property {string} details.billingAddress.line2 Extended address.
@@ -3279,7 +3279,7 @@ var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var errors = _dereq_('./shared/errors');
 var PayPal = _dereq_('./external/paypal');
-var VERSION = "3.80.0";
+var VERSION = "3.81.0";
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var Promise = _dereq_('../lib/promise');
 

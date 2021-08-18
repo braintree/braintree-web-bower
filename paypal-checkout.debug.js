@@ -1460,7 +1460,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.80.0";
+var VERSION = "3.81.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1590,7 +1590,7 @@ module.exports = BraintreeError;
 },{"./enumerate":60}],54:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.80.0";
+var VERSION = "3.81.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1739,7 +1739,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.80.0";
+var VERSION = "3.81.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -2675,7 +2675,7 @@ module.exports = {
   PAYPAL_SANDBOX_ACCOUNT_NOT_LINKED: {
     type: BraintreeError.types.MERCHANT,
     code: 'PAYPAL_SANDBOX_ACCOUNT_NOT_LINKED',
-    message: 'A linked PayPal Sandbox account is required to use PayPal Checkout in Sandbox. See https://developers.braintreepayments.com/guides/paypal/testing-go-live/#linked-paypal-testing for details on linking your PayPal sandbox with Braintree.'
+    message: 'A linked PayPal Sandbox account is required to use PayPal Checkout in Sandbox. See https://developer.paypal.com/braintree/docs/guides/paypal/testing-go-live#linked-paypal-testing for details on linking your PayPal sandbox with Braintree.'
   },
   PAYPAL_ACCOUNT_TOKENIZATION_FAILED: {
     type: BraintreeError.types.NETWORK,
@@ -2733,7 +2733,7 @@ module.exports = {
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var PayPalCheckout = _dereq_('./paypal-checkout');
-var VERSION = "3.80.0";
+var VERSION = "3.81.0";
 
 /**
  * @static
@@ -2815,7 +2815,7 @@ var methods = _dereq_('../lib/methods');
 var useMin = _dereq_('../lib/use-min');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
 var querystring = _dereq_('../lib/querystring');
-var VERSION = "3.80.0";
+var VERSION = "3.81.0";
 var INTEGRATION_TIMEOUT_MS = _dereq_('../lib/constants').INTEGRATION_TIMEOUT_MS;
 
 var REQUIRED_PARAMS_FOR_START_VAULT_INITIATED_CHECKOUT = [
@@ -2847,7 +2847,7 @@ var PAYPAL_SDK_PRELOAD_URL = 'https://www.{ENV}paypal.com/smart/buttons/preload'
  * @property {string} details.shippingAddress.postalCode Postal code.
  * @property {string} details.shippingAddress.countryCode 2 character country code (e.g. US).
  * @property {?object} details.billingAddress User's billing address details.
- * Not available to all merchants; [contact PayPal](https://developers.braintreepayments.com/support/guides/paypal/setup-guide#contacting-paypal-support) for details on eligibility and enabling this feature.
+ * Not available to all merchants; [contact support](https://developer.paypal.com/braintree/help) for details on eligibility and enabling this feature.
  * Alternatively, see `shippingAddress` above as an available client option.
  * @property {string} details.billingAddress.line1 Street number and name.
  * @property {string} details.billingAddress.line2 Extended address.

@@ -664,16 +664,18 @@ var Promise = _dereq_('../lib/promise');
 
 var cachedSessionId;
 
-function setup(environment) {
+function setup(options) {
   var fraudNet = new Fraudnet();
 
-  if (cachedSessionId) {
+  options = options || {};
+
+  if (!options.sessionId && cachedSessionId) {
     fraudNet.sessionId = cachedSessionId;
 
     return Promise.resolve(fraudNet);
   }
 
-  return fraudNet.initialize(environment);
+  return fraudNet.initialize(options);
 }
 
 function clearSessionIdCache() {
@@ -683,10 +685,14 @@ function clearSessionIdCache() {
 function Fraudnet() {
 }
 
-Fraudnet.prototype.initialize = function (environment) {
+Fraudnet.prototype.initialize = function (options) {
+  var environment = options.environment;
   var self = this;
 
-  this.sessionId = cachedSessionId = _generateSessionId();
+  this.sessionId = options.sessionId || _generateSessionId();
+  if (!options.sessionId) {
+    cachedSessionId = this.sessionId;
+  }
   this._beaconId = _generateBeaconId(this.sessionId);
   this._parameterBlock = _createParameterBlock(this.sessionId, this._beaconId, environment);
 
@@ -780,7 +786,7 @@ var createDeferredClient = _dereq_('../lib/create-deferred-client');
 var createAssetsUrl = _dereq_('../lib/create-assets-url');
 var methods = _dereq_('../lib/methods');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
-var VERSION = "3.80.0";
+var VERSION = "3.81.0";
 var Promise = _dereq_('../lib/promise');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var errors = _dereq_('./errors');
@@ -863,6 +869,7 @@ var errors = _dereq_('./errors');
  * @param {boolean} [options.kount] Kount fraud data collection will occur if the merchant configuration has it enabled.
  * **Note:** the data sent to Kount is asynchronous and may not have completed by the time the data collector create call is complete. In most cases, this will not matter, but if you create the data collector instance and immediately navigate away from the page, the device information may fail to be sent to Kount.
  * @param {boolean} [options.paypal] *Deprecated:* PayPal fraud data collection will occur when the DataCollector instance is created.
+ * @param {string} [options.correlationId] Pass a custom correlation id when creating the data collector.
  * @param {callback} [callback] The second argument, `data`, is the {@link DataCollector} instance.
  * @returns {(Promise|void)} Returns a promise that resolves the {@link DataCollector} instance if no callback is provided.
  */
@@ -911,7 +918,10 @@ function create(options) {
 
       return Promise.resolve(client);
     }).then(function (client) {
-      return fraudnet.setup(client.getConfiguration().gatewayConfiguration.environment).then(function (fraudnetInstance) {
+      return fraudnet.setup({
+        sessionId: options.correlationId,
+        environment: client.getConfiguration().gatewayConfiguration.environment
+      }).then(function (fraudnetInstance) {
         if (fraudnetInstance) {
           data.correlation_id = fraudnetInstance.sessionId; // eslint-disable-line camelcase
           result._instances.push(fraudnetInstance);
@@ -1156,7 +1166,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.80.0";
+var VERSION = "3.81.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1306,7 +1316,7 @@ module.exports = function (obj) {
 },{}],19:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.80.0";
+var VERSION = "3.81.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1387,7 +1397,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.80.0";
+var VERSION = "3.81.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
