@@ -1057,6 +1057,8 @@ function allSettled(arr) {
 // Store setTimeout reference so promise-polyfill will be unaffected by
 // other code modifying setTimeout (like sinon.useFakeTimers())
 var setTimeoutFunc = setTimeout;
+// @ts-ignore
+var setImmediateFunc = typeof setImmediate !== 'undefined' ? setImmediate : null;
 
 function isArray(x) {
   return Boolean(x && typeof x.length !== 'undefined');
@@ -1290,10 +1292,10 @@ Promise.race = function(arr) {
 // Use polyfill for setImmediate for performance gains
 Promise._immediateFn =
   // @ts-ignore
-  (typeof setImmediate === 'function' &&
+  (typeof setImmediateFunc === 'function' &&
     function(fn) {
       // @ts-ignore
-      setImmediate(fn);
+      setImmediateFunc(fn);
     }) ||
   function(fn) {
     setTimeoutFunc(fn, 0);
@@ -1392,7 +1394,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.82.0";
+var VERSION = "3.83.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1522,7 +1524,7 @@ module.exports = BraintreeError;
 },{"./enumerate":56}],51:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.82.0";
+var VERSION = "3.83.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1649,7 +1651,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.82.0";
+var VERSION = "3.83.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1994,10 +1996,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.VENMO_PAYMENT_CONTEXT_STATUS_QUERY = exports.LEGACY_VENMO_PAYMENT_CONTEXT_STATUS_QUERY = exports.UPDATE_PAYMENT_CONTEXT_QUERY = exports.LEGACY_UPDATE_PAYMENT_CONTEXT_QUERY = exports.CREATE_PAYMENT_CONTEXT_QUERY = exports.LEGACY_CREATE_PAYMENT_CONTEXT_QUERY = void 0;
 exports.LEGACY_CREATE_PAYMENT_CONTEXT_QUERY = "mutation CreateVenmoQRCodePaymentContext($input: CreateVenmoQRCodePaymentContextInput!) {\n  createVenmoQRCodePaymentContext(input: $input) {\n    clientMutationId\n    venmoQRCodePaymentContext {\n      id\n      merchantId\n      createdAt\n      expiresAt\n    }\n  }\n}";
 exports.CREATE_PAYMENT_CONTEXT_QUERY = "mutation CreateVenmoPaymentContext($input: CreateVenmoPaymentContextInput!) {\n  createVenmoPaymentContext(input: $input) {\n    clientMutationId\n    venmoPaymentContext {\n      id\n      merchantId\n      createdAt\n      expiresAt\n    }\n  }\n}";
+// Used only by Braintree.js, not the venmo desktop module
 exports.LEGACY_UPDATE_PAYMENT_CONTEXT_QUERY = "mutation UpdateVenmoQRCodePaymentContext($input: UpdateVenmoQRCodePaymentContextInput!) {\n  updateVenmoQRCodePaymentContext(input: $input) {\n    clientMutationId\n  }\n}";
 exports.UPDATE_PAYMENT_CONTEXT_QUERY = "mutation UpdateVenmoPaymentContextStatus($input: UpdateVenmoPaymentContextStatusInput!) {\n  updateVenmoPaymentContextStatus(input: $input) {\n    clientMutationId\n  }\n}";
 exports.LEGACY_VENMO_PAYMENT_CONTEXT_STATUS_QUERY = "query PaymentContext($id: ID!) {\n  node(id: $id) {\n    ... on VenmoQRCodePaymentContext {\n      status\n      paymentMethodId\n      userName\n    }\n  }\n}";
-exports.VENMO_PAYMENT_CONTEXT_STATUS_QUERY = "query PaymentContext($id: ID!) {\n  node(id: $id) {\n    ... on VenmoPaymentContext {\n      status\n      paymentMethodId\n      userName\n    }\n  }\n}";
+exports.VENMO_PAYMENT_CONTEXT_STATUS_QUERY = "query PaymentContext($id: ID!) {\n  node(id: $id) {\n    ... on VenmoPaymentContext {\n      status\n      paymentMethodId\n      userName\n      payerInfo {\n        firstName\n        lastName\n        phoneNumber\n        email\n        externalId\n        userName\n      }\n    }\n  }\n}";
 
 },{}],67:[function(_dereq_,module,exports){
 "use strict";
@@ -2387,7 +2390,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var Venmo = _dereq_('./venmo');
 var Promise = _dereq_('../lib/promise');
 var supportsVenmo = _dereq_('./shared/supports-venmo');
-var VERSION = "3.82.0";
+var VERSION = "3.83.0";
 
 /**
  * @static
@@ -2539,6 +2542,21 @@ function doesNotSupportWindowOpenInIos() {
   return isIosWebview() || !isIosSafari();
 }
 
+function isFacebookOwnedBrowserOnAndroid() {
+  var ua = window.navigator.userAgent.toLowerCase();
+
+  // Huawei's Facebook useragent does not include Android
+  if (ua.indexOf('huawei') > -1 && ua.indexOf('fban') > -1) {
+    return true;
+  }
+
+  if (!isAndroid()) {
+    return false;
+  }
+
+  return ua.indexOf('fb_iab') > -1 || ua.indexOf('instagram') > -1;
+}
+
 module.exports = {
   isAndroid: isAndroid,
   isAndroidWebview: isAndroidWebview,
@@ -2546,6 +2564,7 @@ module.exports = {
   isIos: isIos,
   isIosSafari: isIosSafari,
   isIosWebview: isIosWebview,
+  isFacebookOwnedBrowserOnAndroid: isFacebookOwnedBrowserOnAndroid,
   doesNotSupportWindowOpenInIos: doesNotSupportWindowOpenInIos
 };
 
@@ -2730,6 +2749,10 @@ function isBrowserSupported(options) {
     return merchantAllowsDesktopBrowsers && !isMobileDevice;
   }
 
+  if (browserDetection.isFacebookOwnedBrowserOnAndroid()) {
+    return false;
+  }
+
   if (!merchantAllowsDesktopBrowsers) {
     return isMobileDevice;
   }
@@ -2765,7 +2788,7 @@ var ExtendedPromise = _dereq_('@braintree/extended-promise');
 var createVenmoDesktop = _dereq_('./external/');
 var graphqlQueries = _dereq_('./external/queries');
 
-var VERSION = "3.82.0";
+var VERSION = "3.83.0";
 var DEFAULT_MOBILE_POLLING_INTERVAL = 250; // 1/4 second
 var DEFAULT_MOBILE_EXPIRING_THRESHOLD = 300000; // 5 minutes
 
@@ -2775,7 +2798,7 @@ var DEFAULT_MOBILE_EXPIRING_THRESHOLD = 300000; // 5 minutes
  * @property {string} nonce The payment method nonce.
  * @property {string} type The payment method type, always `VenmoAccount`.
  * @property {object} details Additional Venmo account details.
- * @property {string} details.username Username of the Venmo account.
+ * @property {string} details.username The username of the Venmo account.
  */
 
 /**
@@ -3324,7 +3347,8 @@ Venmo.prototype._tokenizeForMobileWithManualReturn = function () {
 
     self._tokenizePromise.resolve({
       paymentMethodNonce: payload.paymentMethodId,
-      username: payload.userName
+      username: payload.userName,
+      payerInfo: payload.payerInfo
     });
   }).catch(function (err) {
     analytics.sendEvent(self._createPromise, 'venmo.tokenize.manual-return.failure');
@@ -3563,7 +3587,8 @@ Venmo.prototype.processResultsFromHash = function (hash) {
           }
           resolve({
             paymentMethodNonce: result.paymentMethodId,
-            username: result.userName
+            username: result.userName,
+            payerInfo: result.payerInfo
           });
         }).catch(function () {
           analytics.sendEvent(self._createPromise, 'venmo.process-results.payment-context-status-query-failed');
@@ -3626,16 +3651,29 @@ function getFragmentParameters(hash) {
   }, {});
 }
 
+function formatUserName(username) {
+  username = username || '';
+
+  // NEXT_MAJOR_VERSION the web sdks have a prepended @ sign
+  // but the ios and android ones do not. This should be standardized
+  return '@' + username.replace('@', '');
+}
+
 function formatTokenizePayload(payload) {
-  return {
+  var formattedPayload = {
     nonce: payload.paymentMethodNonce,
     type: 'VenmoAccount',
     details: {
-      // NEXT_MAJOR_VERSION the web sdks have a prepended @ sign
-      // but the ios and android ones do not. This should be standardized
-      username: '@' + (payload.username || '').replace('@', '')
+      username: formatUserName(payload.username)
     }
   };
+
+  if (payload.payerInfo) {
+    formattedPayload.details.payerInfo = payload.payerInfo;
+    formattedPayload.details.payerInfo.userName = formatUserName(payload.payerInfo.userName);
+  }
+
+  return formattedPayload;
 }
 
 // From https://developer.mozilla.org/en-US/docs/Web/API/Page_Visibility_API

@@ -1100,6 +1100,8 @@ function allSettled(arr) {
 // Store setTimeout reference so promise-polyfill will be unaffected by
 // other code modifying setTimeout (like sinon.useFakeTimers())
 var setTimeoutFunc = setTimeout;
+// @ts-ignore
+var setImmediateFunc = typeof setImmediate !== 'undefined' ? setImmediate : null;
 
 function isArray(x) {
   return Boolean(x && typeof x.length !== 'undefined');
@@ -1333,10 +1335,10 @@ Promise.race = function(arr) {
 // Use polyfill for setImmediate for performance gains
 Promise._immediateFn =
   // @ts-ignore
-  (typeof setImmediate === 'function' &&
+  (typeof setImmediateFunc === 'function' &&
     function(fn) {
       // @ts-ignore
-      setImmediate(fn);
+      setImmediateFunc(fn);
     }) ||
   function(fn) {
     setTimeoutFunc(fn, 0);
@@ -1460,7 +1462,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.82.0";
+var VERSION = "3.83.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1590,7 +1592,7 @@ module.exports = BraintreeError;
 },{"./enumerate":60}],54:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.82.0";
+var VERSION = "3.83.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1739,7 +1741,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.82.0";
+var VERSION = "3.83.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -2733,7 +2735,7 @@ module.exports = {
 var basicComponentVerification = _dereq_('../lib/basic-component-verification');
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var PayPalCheckout = _dereq_('./paypal-checkout');
-var VERSION = "3.82.0";
+var VERSION = "3.83.0";
 
 /**
  * @static
@@ -2815,7 +2817,7 @@ var methods = _dereq_('../lib/methods');
 var useMin = _dereq_('../lib/use-min');
 var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
 var querystring = _dereq_('../lib/querystring');
-var VERSION = "3.82.0";
+var VERSION = "3.83.0";
 var INTEGRATION_TIMEOUT_MS = _dereq_('../lib/constants').INTEGRATION_TIMEOUT_MS;
 
 var REQUIRED_PARAMS_FOR_START_VAULT_INITIATED_CHECKOUT = [
@@ -3880,8 +3882,14 @@ PayPalCheckout.prototype._formatPaymentResourceData = function (options, config)
     }
   }
 
-  if (options.clientMetadataId) {
-    paymentResource.correlationId = options.clientMetadataId;
+  // this needs to be set outside of the block where add it to the
+  // payment request so that a follow up tokenization call can use it,
+  // but if a second create payment resource call is made without
+  // the correlation id, we want to reset it to undefined so that the
+  // tokenization call does not use a stale correlation id
+  this._riskCorrelationId = options.riskCorrelationId;
+  if (options.riskCorrelationId) {
+    paymentResource.correlationId = this._riskCorrelationId;
   }
 
   return paymentResource;
@@ -3892,9 +3900,10 @@ PayPalCheckout.prototype._formatTokenizeData = function (options, params) {
   var gatewayConfiguration = clientConfiguration.gatewayConfiguration;
   var isTokenizationKey = clientConfiguration.authorizationType === 'TOKENIZATION_KEY';
   var isVaultFlow = options.flow === 'vault';
+  var correlationId = this._riskCorrelationId || params.billingToken || params.ecToken;
   var data = {
     paypalAccount: {
-      correlationId: params.billingToken || params.ecToken,
+      correlationId: correlationId,
       options: {
         validate: isVaultFlow && !isTokenizationKey && options.vault
       }

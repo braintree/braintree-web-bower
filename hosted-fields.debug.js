@@ -1604,6 +1604,8 @@ function allSettled(arr) {
 // Store setTimeout reference so promise-polyfill will be unaffected by
 // other code modifying setTimeout (like sinon.useFakeTimers())
 var setTimeoutFunc = setTimeout;
+// @ts-ignore
+var setImmediateFunc = typeof setImmediate !== 'undefined' ? setImmediate : null;
 
 function isArray(x) {
   return Boolean(x && typeof x.length !== 'undefined');
@@ -1837,10 +1839,10 @@ Promise.race = function(arr) {
 // Use polyfill for setImmediate for performance gains
 Promise._immediateFn =
   // @ts-ignore
-  (typeof setImmediate === 'function' &&
+  (typeof setImmediateFunc === 'function' &&
     function(fn) {
       // @ts-ignore
-      setImmediate(fn);
+      setImmediateFunc(fn);
     }) ||
   function(fn) {
     setTimeoutFunc(fn, 0);
@@ -2656,7 +2658,7 @@ function HostedFields(options) {
       type: key,
       name: 'braintree-hosted-field-' + key,
       style: constants.defaultIFrameStyle,
-      title: 'Secure Credit Card Frame - ' + constants.allowedFields[key].label
+      title: field.iframeTitle || 'Secure Credit Card Frame - ' + constants.allowedFields[key].label
     });
 
     this._injectedNodes.push.apply(this._injectedNodes, injectFrame(componentId, frame, internalContainer, function () {
@@ -3617,7 +3619,7 @@ var supportsInputFormatting = _dereq_('restricted-input/supports-input-formattin
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.82.0";
+var VERSION = "3.83.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -3626,6 +3628,7 @@ var VERSION = "3.82.0";
  * @property {(string|HTMLElement)} container A DOM node or CSS selector to find the container where the hosted field will be inserted.
  * @property {string} [placeholder] Will be used as the `placeholder` attribute of the input. If `placeholder` is not natively supported by the browser, it will be polyfilled.
  * @property {string} [type] Will be used as the `type` attribute of the input. To mask `cvv` input, for instance, `type: "password"` can be used.
+ * @property {string} [iframeTitle] The title used for the iframe containing the credit card input. By default, this will be `Secure Credit Card Frame - <the name of the specific field>`.
  * @property {string} [internalLabel] Each Hosted Field iframe has a hidden label that is used by screen readers to identify the input. The `internalLabel` property can be used to customize the field for localization purposes. The default values are:
  * * number: Credit Card Number
  * * cvv: CVV
@@ -4004,7 +4007,7 @@ module.exports = {
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.82.0";
+var VERSION = "3.83.0";
 
 var constants = {
   VERSION: VERSION,
@@ -4525,7 +4528,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.82.0";
+var VERSION = "3.83.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -4701,7 +4704,7 @@ module.exports = BraintreeError;
 },{"./enumerate":93}],87:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.82.0";
+var VERSION = "3.83.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -4828,7 +4831,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.82.0";
+var VERSION = "3.83.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
