@@ -3619,7 +3619,7 @@ var supportsInputFormatting = _dereq_('restricted-input/supports-input-formattin
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.83.0";
+var VERSION = "3.84.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -4007,7 +4007,7 @@ module.exports = {
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.83.0";
+var VERSION = "3.84.0";
 
 var constants = {
   VERSION: VERSION,
@@ -4481,6 +4481,16 @@ function sendAnalyticsEvent(clientInstanceOrPromise, kind, callback) {
       data: addMetadata(configuration, data),
       timeout: constants.ANALYTICS_REQUEST_TIMEOUT_MS
     }, callback);
+  }).catch(function (err) {
+    // for all non-test cases, we don't provide a callback,
+    // so this error will always be swallowed. In this case,
+    // that's fine, it should only error when the deferred
+    // client fails to set up, in which case we don't want
+    // that error to report over and over again via these
+    // deferred analytics events
+    if (callback) {
+      callback(err);
+    }
   });
 }
 
@@ -4528,7 +4538,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.83.0";
+var VERSION = "3.84.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -4704,7 +4714,7 @@ module.exports = BraintreeError;
 },{"./enumerate":93}],87:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.83.0";
+var VERSION = "3.84.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -4831,7 +4841,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.83.0";
+var VERSION = "3.84.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();

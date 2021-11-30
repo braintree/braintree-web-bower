@@ -1372,6 +1372,16 @@ function sendAnalyticsEvent(clientInstanceOrPromise, kind, callback) {
       data: addMetadata(configuration, data),
       timeout: constants.ANALYTICS_REQUEST_TIMEOUT_MS
     }, callback);
+  }).catch(function (err) {
+    // for all non-test cases, we don't provide a callback,
+    // so this error will always be swallowed. In this case,
+    // that's fine, it should only error when the deferred
+    // client fails to set up, in which case we don't want
+    // that error to report over and over again via these
+    // deferred analytics events
+    if (callback) {
+      callback(err);
+    }
   });
 }
 
@@ -1394,7 +1404,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.83.0";
+var VERSION = "3.84.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1524,7 +1534,7 @@ module.exports = BraintreeError;
 },{"./enumerate":56}],51:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.83.0";
+var VERSION = "3.84.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1651,7 +1661,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.83.0";
+var VERSION = "3.84.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -2212,6 +2222,7 @@ var VenmoDesktop = /** @class */ (function () {
             _this.triggerCompleted({
                 paymentMethodNonce: result.paymentMethodId,
                 username: username,
+                payerInfo: result.payerInfo,
             });
         })
             .catch(function (err) {
@@ -2390,7 +2401,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var Venmo = _dereq_('./venmo');
 var Promise = _dereq_('../lib/promise');
 var supportsVenmo = _dereq_('./shared/supports-venmo');
-var VERSION = "3.83.0";
+var VERSION = "3.84.0";
 
 /**
  * @static
@@ -2788,7 +2799,7 @@ var ExtendedPromise = _dereq_('@braintree/extended-promise');
 var createVenmoDesktop = _dereq_('./external/');
 var graphqlQueries = _dereq_('./external/queries');
 
-var VERSION = "3.83.0";
+var VERSION = "3.84.0";
 var DEFAULT_MOBILE_POLLING_INTERVAL = 250; // 1/4 second
 var DEFAULT_MOBILE_EXPIRING_THRESHOLD = 300000; // 5 minutes
 
