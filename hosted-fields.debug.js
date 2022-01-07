@@ -2448,10 +2448,6 @@ function createInputEventHandler(fields) {
 
     field = merchantPayload.fields[emittedBy];
 
-    if (eventData.type === 'blur') {
-      performBlurFixForIos(container);
-    }
-
     classList.toggle(container, constants.externalClasses.FOCUSED, field.isFocused);
     classList.toggle(container, constants.externalClasses.VALID, field.isValid);
     classList.toggle(container, constants.externalClasses.INVALID, !field.isPotentiallyValid);
@@ -2463,41 +2459,6 @@ function createInputEventHandler(fields) {
 
     this._emit(eventData.type, merchantPayload); // eslint-disable-line no-invalid-this
   };
-}
-
-// iOS Safari has a bug where inputs in iframes
-// will not dismiss the keyboard when they lose
-// focus. We create a hidden button input that we
-// can focus on and blur to force the keyboard to
-// dismiss. See #229
-function performBlurFixForIos(container) {
-  var hiddenInput;
-
-  if (!browserDetection.isIos()) {
-    return;
-  }
-
-  if (document.activeElement === document.body) {
-    hiddenInput = container.querySelector('input');
-
-    if (!hiddenInput) {
-      hiddenInput = document.createElement('input');
-
-      hiddenInput.type = 'button';
-      hiddenInput.style.height = '0px';
-      hiddenInput.style.width = '0px';
-      hiddenInput.style.opacity = '0';
-      hiddenInput.style.padding = '0';
-      hiddenInput.style.position = 'absolute';
-      hiddenInput.style.left = '-200%';
-      hiddenInput.style.top = '0px';
-
-      container.insertBefore(hiddenInput, container.firstChild);
-    }
-
-    hiddenInput.focus();
-    hiddenInput.blur();
-  }
 }
 
 function isVisibleEnough(node) {
@@ -3619,7 +3580,7 @@ var supportsInputFormatting = _dereq_('restricted-input/supports-input-formattin
 var wrapPromise = _dereq_('@braintree/wrap-promise');
 var BraintreeError = _dereq_('../lib/braintree-error');
 var Promise = _dereq_('../lib/promise');
-var VERSION = "3.84.0";
+var VERSION = "3.85.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -4007,7 +3968,7 @@ module.exports = {
 
 var enumerate = _dereq_('../../lib/enumerate');
 var errors = _dereq_('./errors');
-var VERSION = "3.84.0";
+var VERSION = "3.85.0";
 
 var constants = {
   VERSION: VERSION,
@@ -4538,7 +4499,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.84.0";
+var VERSION = "3.85.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -4714,7 +4675,7 @@ module.exports = BraintreeError;
 },{"./enumerate":93}],87:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.84.0";
+var VERSION = "3.85.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -4841,7 +4802,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.84.0";
+var VERSION = "3.85.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();

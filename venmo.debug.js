@@ -1404,7 +1404,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.84.0";
+var VERSION = "3.85.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1534,7 +1534,7 @@ module.exports = BraintreeError;
 },{"./enumerate":56}],51:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.84.0";
+var VERSION = "3.85.0";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1661,7 +1661,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.84.0";
+var VERSION = "3.85.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -2006,7 +2006,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.VENMO_PAYMENT_CONTEXT_STATUS_QUERY = exports.LEGACY_VENMO_PAYMENT_CONTEXT_STATUS_QUERY = exports.UPDATE_PAYMENT_CONTEXT_QUERY = exports.LEGACY_UPDATE_PAYMENT_CONTEXT_QUERY = exports.CREATE_PAYMENT_CONTEXT_QUERY = exports.LEGACY_CREATE_PAYMENT_CONTEXT_QUERY = void 0;
 exports.LEGACY_CREATE_PAYMENT_CONTEXT_QUERY = "mutation CreateVenmoQRCodePaymentContext($input: CreateVenmoQRCodePaymentContextInput!) {\n  createVenmoQRCodePaymentContext(input: $input) {\n    clientMutationId\n    venmoQRCodePaymentContext {\n      id\n      merchantId\n      createdAt\n      expiresAt\n    }\n  }\n}";
 exports.CREATE_PAYMENT_CONTEXT_QUERY = "mutation CreateVenmoPaymentContext($input: CreateVenmoPaymentContextInput!) {\n  createVenmoPaymentContext(input: $input) {\n    clientMutationId\n    venmoPaymentContext {\n      id\n      merchantId\n      createdAt\n      expiresAt\n    }\n  }\n}";
-// Used only by Braintree.js, not the venmo desktop module
 exports.LEGACY_UPDATE_PAYMENT_CONTEXT_QUERY = "mutation UpdateVenmoQRCodePaymentContext($input: UpdateVenmoQRCodePaymentContextInput!) {\n  updateVenmoQRCodePaymentContext(input: $input) {\n    clientMutationId\n  }\n}";
 exports.UPDATE_PAYMENT_CONTEXT_QUERY = "mutation UpdateVenmoPaymentContextStatus($input: UpdateVenmoPaymentContextStatusInput!) {\n  updateVenmoPaymentContextStatus(input: $input) {\n    clientMutationId\n  }\n}";
 exports.LEGACY_VENMO_PAYMENT_CONTEXT_STATUS_QUERY = "query PaymentContext($id: ID!) {\n  node(id: $id) {\n    ... on VenmoQRCodePaymentContext {\n      status\n      paymentMethodId\n      userName\n    }\n  }\n}";
@@ -2223,6 +2222,7 @@ var VenmoDesktop = /** @class */ (function () {
                 paymentMethodNonce: result.paymentMethodId,
                 username: username,
                 payerInfo: result.payerInfo,
+                id: _this.venmoContextId || "",
             });
         })
             .catch(function (err) {
@@ -2401,7 +2401,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var Venmo = _dereq_('./venmo');
 var Promise = _dereq_('../lib/promise');
 var supportsVenmo = _dereq_('./shared/supports-venmo');
-var VERSION = "3.84.0";
+var VERSION = "3.85.0";
 
 /**
  * @static
@@ -2799,7 +2799,7 @@ var ExtendedPromise = _dereq_('@braintree/extended-promise');
 var createVenmoDesktop = _dereq_('./external/');
 var graphqlQueries = _dereq_('./external/queries');
 
-var VERSION = "3.84.0";
+var VERSION = "3.85.0";
 var DEFAULT_MOBILE_POLLING_INTERVAL = 250; // 1/4 second
 var DEFAULT_MOBILE_EXPIRING_THRESHOLD = 300000; // 5 minutes
 
@@ -2810,6 +2810,7 @@ var DEFAULT_MOBILE_EXPIRING_THRESHOLD = 300000; // 5 minutes
  * @property {string} type The payment method type, always `VenmoAccount`.
  * @property {object} details Additional Venmo account details.
  * @property {string} details.username The username of the Venmo account.
+ * @property {string} details.paymentContextId The context ID of the Venmo payment. Only available when used with {@link https://braintree.github.io/braintree-web/current/module-braintree-web_venmo.html#.create|`paymentMethodUsage`}.
  */
 
 /**
@@ -3359,7 +3360,8 @@ Venmo.prototype._tokenizeForMobileWithManualReturn = function () {
     self._tokenizePromise.resolve({
       paymentMethodNonce: payload.paymentMethodId,
       username: payload.userName,
-      payerInfo: payload.payerInfo
+      payerInfo: payload.payerInfo,
+      id: self._venmoPaymentContextId
     });
   }).catch(function (err) {
     analytics.sendEvent(self._createPromise, 'venmo.tokenize.manual-return.failure');
@@ -3599,7 +3601,8 @@ Venmo.prototype.processResultsFromHash = function (hash) {
           resolve({
             paymentMethodNonce: result.paymentMethodId,
             username: result.userName,
-            payerInfo: result.payerInfo
+            payerInfo: result.payerInfo,
+            id: params.resource_id
           });
         }).catch(function () {
           analytics.sendEvent(self._createPromise, 'venmo.process-results.payment-context-status-query-failed');
@@ -3675,7 +3678,8 @@ function formatTokenizePayload(payload) {
     nonce: payload.paymentMethodNonce,
     type: 'VenmoAccount',
     details: {
-      username: formatUserName(payload.username)
+      username: formatUserName(payload.username),
+      paymentContextId: payload.id
     }
   };
 
