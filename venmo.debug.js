@@ -1404,7 +1404,7 @@ module.exports = {
 var BraintreeError = _dereq_('./braintree-error');
 var Promise = _dereq_('./promise');
 var sharedErrors = _dereq_('./errors');
-var VERSION = "3.85.1";
+var VERSION = "3.85.2";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1534,7 +1534,7 @@ module.exports = BraintreeError;
 },{"./enumerate":56}],51:[function(_dereq_,module,exports){
 'use strict';
 
-var VERSION = "3.85.1";
+var VERSION = "3.85.2";
 var PLATFORM = 'web';
 
 var CLIENT_API_URLS = {
@@ -1661,7 +1661,7 @@ var Promise = _dereq_('./promise');
 var assets = _dereq_('./assets');
 var sharedErrors = _dereq_('./errors');
 
-var VERSION = "3.85.1";
+var VERSION = "3.85.2";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -2401,7 +2401,7 @@ var BraintreeError = _dereq_('../lib/braintree-error');
 var Venmo = _dereq_('./venmo');
 var Promise = _dereq_('../lib/promise');
 var supportsVenmo = _dereq_('./shared/supports-venmo');
-var VERSION = "3.85.1";
+var VERSION = "3.85.2";
 
 /**
  * @static
@@ -2743,10 +2743,10 @@ var browserDetection = _dereq_('./browser-detection');
 function isBrowserSupported(options) {
   var merchantAllowsReturningToNewBrowserTab, merchantAllowsWebviews, merchantAllowsDesktopBrowsers;
   var isAndroid = browserDetection.isAndroid();
-  var isSupportedMobileDevice = isAndroid ||
-    (browserDetection.isIos() && !browserDetection.isIosChrome());
+  var isMobileDevice = isAndroid || browserDetection.isIos();
   var isAndroidChrome = isAndroid && browserDetection.isChrome();
   var isMobileDeviceThatSupportsReturnToSameTab = browserDetection.isIosSafari() || isAndroidChrome;
+  var isKnownUnsupportedMobileBrowser = browserDetection.isIosChrome() || browserDetection.isFacebookOwnedBrowserOnAndroid();
 
   options = options || {};
   // NEXT_MAJOR_VERSION allowDesktop will default to true, but can be opted out
@@ -2760,27 +2760,23 @@ function isBrowserSupported(options) {
   // merchant's app via a webview.
   merchantAllowsWebviews = options.hasOwnProperty('allowWebviews') ? options.allowWebviews : true;
 
+  if (isKnownUnsupportedMobileBrowser) {
+    return false;
+  }
+
   if (!merchantAllowsWebviews && (browserDetection.isAndroidWebview() || browserDetection.isIosWebview())) {
     return false;
   }
 
+  if (!isMobileDevice) {
+    return merchantAllowsDesktopBrowsers;
+  }
+
   if (!merchantAllowsReturningToNewBrowserTab) {
-    if (isMobileDeviceThatSupportsReturnToSameTab) {
-      return true;
-    }
-
-    return merchantAllowsDesktopBrowsers && !isSupportedMobileDevice;
+    return isMobileDeviceThatSupportsReturnToSameTab;
   }
 
-  if (browserDetection.isFacebookOwnedBrowserOnAndroid()) {
-    return false;
-  }
-
-  if (!merchantAllowsDesktopBrowsers) {
-    return isSupportedMobileDevice;
-  }
-
-  return true;
+  return isMobileDevice;
 }
 
 module.exports = {
@@ -2811,7 +2807,7 @@ var ExtendedPromise = _dereq_('@braintree/extended-promise');
 var createVenmoDesktop = _dereq_('./external/');
 var graphqlQueries = _dereq_('./external/queries');
 
-var VERSION = "3.85.1";
+var VERSION = "3.85.2";
 var DEFAULT_MOBILE_POLLING_INTERVAL = 250; // 1/4 second
 var DEFAULT_MOBILE_EXPIRING_THRESHOLD = 300000; // 5 minutes
 
