@@ -968,8 +968,6 @@ function allSettled(arr) {
 // Store setTimeout reference so promise-polyfill will be unaffected by
 // other code modifying setTimeout (like sinon.useFakeTimers())
 var setTimeoutFunc = setTimeout;
-// @ts-ignore
-var setImmediateFunc = typeof setImmediate !== 'undefined' ? setImmediate : null;
 
 function isArray(x) {
   return Boolean(x && typeof x.length !== 'undefined');
@@ -1203,10 +1201,10 @@ Promise.race = function(arr) {
 // Use polyfill for setImmediate for performance gains
 Promise._immediateFn =
   // @ts-ignore
-  (typeof setImmediateFunc === 'function' &&
+  (typeof setImmediate === 'function' &&
     function(fn) {
       // @ts-ignore
-      setImmediateFunc(fn);
+      setImmediate(fn);
     }) ||
   function(fn) {
     setTimeoutFunc(fn, 0);
@@ -1221,11 +1219,11 @@ Promise._unhandledRejectionFn = function _unhandledRejectionFn(err) {
 module.exports = Promise;
 
 },{}],30:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var createAuthorizationData = _dereq_('./create-authorization-data');
-var jsonClone = _dereq_('./json-clone');
-var constants = _dereq_('./constants');
+var createAuthorizationData = _dereq_("./create-authorization-data");
+var jsonClone = _dereq_("./json-clone");
+var constants = _dereq_("./constants");
 
 function addMetadata(configuration, data) {
   var key;
@@ -1255,64 +1253,74 @@ function addMetadata(configuration, data) {
 module.exports = addMetadata;
 
 },{"./constants":36,"./create-authorization-data":39,"./json-clone":44}],31:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var Promise = _dereq_('./promise');
-var constants = _dereq_('./constants');
-var addMetadata = _dereq_('./add-metadata');
+var Promise = _dereq_("./promise");
+var constants = _dereq_("./constants");
+var addMetadata = _dereq_("./add-metadata");
 
 function sendAnalyticsEvent(clientInstanceOrPromise, kind, callback) {
   var timestamp = Date.now(); // milliseconds
 
-  return Promise.resolve(clientInstanceOrPromise).then(function (client) {
-    var timestampInPromise = Date.now();
-    var configuration = client.getConfiguration();
-    var request = client._request;
-    var url = configuration.gatewayConfiguration.analytics.url;
-    var data = {
-      analytics: [{
-        kind: constants.ANALYTICS_PREFIX + kind,
-        isAsync: Math.floor(timestampInPromise / 1000) !== Math.floor(timestamp / 1000),
-        timestamp: timestamp
-      }]
-    };
+  return Promise.resolve(clientInstanceOrPromise)
+    .then(function (client) {
+      var timestampInPromise = Date.now();
+      var configuration = client.getConfiguration();
+      var request = client._request;
+      var url = configuration.gatewayConfiguration.analytics.url;
+      var data = {
+        analytics: [
+          {
+            kind: constants.ANALYTICS_PREFIX + kind,
+            isAsync:
+              Math.floor(timestampInPromise / 1000) !==
+              Math.floor(timestamp / 1000),
+            timestamp: timestamp,
+          },
+        ],
+      };
 
-    request({
-      url: url,
-      method: 'post',
-      data: addMetadata(configuration, data),
-      timeout: constants.ANALYTICS_REQUEST_TIMEOUT_MS
-    }, callback);
-  }).catch(function (err) {
-    // for all non-test cases, we don't provide a callback,
-    // so this error will always be swallowed. In this case,
-    // that's fine, it should only error when the deferred
-    // client fails to set up, in which case we don't want
-    // that error to report over and over again via these
-    // deferred analytics events
-    if (callback) {
-      callback(err);
-    }
-  });
+      request(
+        {
+          url: url,
+          method: "post",
+          data: addMetadata(configuration, data),
+          timeout: constants.ANALYTICS_REQUEST_TIMEOUT_MS,
+        },
+        callback
+      );
+    })
+    .catch(function (err) {
+      // for all non-test cases, we don't provide a callback,
+      // so this error will always be swallowed. In this case,
+      // that's fine, it should only error when the deferred
+      // client fails to set up, in which case we don't want
+      // that error to report over and over again via these
+      // deferred analytics events
+      if (callback) {
+        callback(err);
+      }
+    });
 }
 
 module.exports = {
-  sendEvent: sendAnalyticsEvent
+  sendEvent: sendAnalyticsEvent,
 };
 
 },{"./add-metadata":30,"./constants":36,"./promise":46}],32:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var loadScript = _dereq_('@braintree/asset-loader/load-script');
+var loadScript = _dereq_("@braintree/asset-loader/load-script");
 
 module.exports = {
-  loadScript: loadScript
+  loadScript: loadScript,
 };
 
 },{"@braintree/asset-loader/load-script":3}],33:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var assignNormalized = typeof Object.assign === 'function' ? Object.assign : assignPolyfill;
+var assignNormalized =
+  typeof Object.assign === "function" ? Object.assign : assignPolyfill;
 
 function assignPolyfill(destination) {
   var i, source, key;
@@ -1331,26 +1339,29 @@ function assignPolyfill(destination) {
 
 module.exports = {
   assign: assignNormalized,
-  _assign: assignPolyfill
+  _assign: assignPolyfill,
 };
 
 },{}],34:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var BraintreeError = _dereq_('./braintree-error');
-var Promise = _dereq_('./promise');
-var sharedErrors = _dereq_('./errors');
-var VERSION = "3.85.2";
+var BraintreeError = _dereq_("./braintree-error");
+var Promise = _dereq_("./promise");
+var sharedErrors = _dereq_("./errors");
+var VERSION = "3.85.3";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
 
   if (!options) {
-    return Promise.reject(new BraintreeError({
-      type: sharedErrors.INVALID_USE_OF_INTERNAL_FUNCTION.type,
-      code: sharedErrors.INVALID_USE_OF_INTERNAL_FUNCTION.code,
-      message: 'Options must be passed to basicComponentVerification function.'
-    }));
+    return Promise.reject(
+      new BraintreeError({
+        type: sharedErrors.INVALID_USE_OF_INTERNAL_FUNCTION.type,
+        code: sharedErrors.INVALID_USE_OF_INTERNAL_FUNCTION.code,
+        message:
+          "Options must be passed to basicComponentVerification function.",
+      })
+    );
   }
 
   name = options.name;
@@ -1358,34 +1369,45 @@ function basicComponentVerification(options) {
   authorization = options.authorization;
 
   if (!client && !authorization) {
-    return Promise.reject(new BraintreeError({
-      type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
-      code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
-      // NEXT_MAJOR_VERSION in major version, we expose passing in authorization for all components
-      // instead of passing in a client instance. Leave this a silent feature for now.
-      message: 'options.client is required when instantiating ' + name + '.'
-    }));
+    return Promise.reject(
+      new BraintreeError({
+        type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
+        code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
+        // NEXT_MAJOR_VERSION in major version, we expose passing in authorization for all components
+        // instead of passing in a client instance. Leave this a silent feature for now.
+        message: "options.client is required when instantiating " + name + ".",
+      })
+    );
   }
 
   if (!authorization && client.getVersion() !== VERSION) {
-    return Promise.reject(new BraintreeError({
-      type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
-      code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
-      message: 'Client (version ' + client.getVersion() + ') and ' + name + ' (version ' + VERSION + ') components must be from the same SDK version.'
-    }));
+    return Promise.reject(
+      new BraintreeError({
+        type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
+        code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
+        message:
+          "Client (version " +
+          client.getVersion() +
+          ") and " +
+          name +
+          " (version " +
+          VERSION +
+          ") components must be from the same SDK version.",
+      })
+    );
   }
 
   return Promise.resolve();
 }
 
 module.exports = {
-  verify: basicComponentVerification
+  verify: basicComponentVerification,
 };
 
 },{"./braintree-error":35,"./errors":42,"./promise":46}],35:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var enumerate = _dereq_('./enumerate');
+var enumerate = _dereq_("./enumerate");
 
 /**
  * @class
@@ -1396,18 +1418,18 @@ var enumerate = _dereq_('./enumerate');
  */
 function BraintreeError(options) {
   if (!BraintreeError.types.hasOwnProperty(options.type)) {
-    throw new Error(options.type + ' is not a valid type.');
+    throw new Error(options.type + " is not a valid type.");
   }
 
   if (!options.code) {
-    throw new Error('Error code required.');
+    throw new Error("Error code required.");
   }
 
   if (!options.message) {
-    throw new Error('Error message required.');
+    throw new Error("Error message required.");
   }
 
-  this.name = 'BraintreeError';
+  this.name = "BraintreeError";
 
   /**
    * @type {string}
@@ -1450,15 +1472,19 @@ BraintreeError.prototype.constructor = BraintreeError;
  * @property {string} UNKNOWN An error where the origin is unknown.
  */
 BraintreeError.types = enumerate([
-  'CUSTOMER',
-  'MERCHANT',
-  'NETWORK',
-  'INTERNAL',
-  'UNKNOWN'
+  "CUSTOMER",
+  "MERCHANT",
+  "NETWORK",
+  "INTERNAL",
+  "UNKNOWN",
 ]);
 
 BraintreeError.findRootError = function (err) {
-  if (err instanceof BraintreeError && err.details && err.details.originalError) {
+  if (
+    err instanceof BraintreeError &&
+    err.details &&
+    err.details.originalError
+  ) {
     return BraintreeError.findRootError(err.details.originalError);
   }
 
@@ -1468,51 +1494,51 @@ BraintreeError.findRootError = function (err) {
 module.exports = BraintreeError;
 
 },{"./enumerate":41}],36:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var VERSION = "3.85.2";
-var PLATFORM = 'web';
+var VERSION = "3.85.3";
+var PLATFORM = "web";
 
 var CLIENT_API_URLS = {
-  production: 'https://api.braintreegateway.com:443',
-  sandbox: 'https://api.sandbox.braintreegateway.com:443'
+  production: "https://api.braintreegateway.com:443",
+  sandbox: "https://api.sandbox.braintreegateway.com:443",
 };
 
 var ASSETS_URLS = {
-  production: 'https://assets.braintreegateway.com',
-  sandbox: 'https://assets.braintreegateway.com'
+  production: "https://assets.braintreegateway.com",
+  sandbox: "https://assets.braintreegateway.com",
 };
 
 var GRAPHQL_URLS = {
-  production: 'https://payments.braintree-api.com/graphql',
-  sandbox: 'https://payments.sandbox.braintree-api.com/graphql'
+  production: "https://payments.braintree-api.com/graphql",
+  sandbox: "https://payments.sandbox.braintree-api.com/graphql",
 };
 
 // endRemoveIf(production)
 
 module.exports = {
-  ANALYTICS_PREFIX: PLATFORM + '.',
+  ANALYTICS_PREFIX: PLATFORM + ".",
   ANALYTICS_REQUEST_TIMEOUT_MS: 2000,
   ASSETS_URLS: ASSETS_URLS,
   CLIENT_API_URLS: CLIENT_API_URLS,
-  FRAUDNET_SOURCE: 'BRAINTREE_SIGNIN',
-  FRAUDNET_FNCLS: 'fnparams-dede7cc5-15fd-4c75-a9f4-36c430ee3a99',
-  FRAUDNET_URL: 'https://c.paypal.com/da/r/fb.js',
-  BUS_CONFIGURATION_REQUEST_EVENT: 'BUS_CONFIGURATION_REQUEST',
+  FRAUDNET_SOURCE: "BRAINTREE_SIGNIN",
+  FRAUDNET_FNCLS: "fnparams-dede7cc5-15fd-4c75-a9f4-36c430ee3a99",
+  FRAUDNET_URL: "https://c.paypal.com/da/r/fb.js",
+  BUS_CONFIGURATION_REQUEST_EVENT: "BUS_CONFIGURATION_REQUEST",
   GRAPHQL_URLS: GRAPHQL_URLS,
   INTEGRATION_TIMEOUT_MS: 60000,
   VERSION: VERSION,
-  INTEGRATION: 'custom',
-  SOURCE: 'client',
+  INTEGRATION: "custom",
+  SOURCE: "client",
   PLATFORM: PLATFORM,
-  BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
+  BRAINTREE_LIBRARY_VERSION: "braintree/" + PLATFORM + "/" + VERSION,
 };
 
 },{}],37:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var BraintreeError = _dereq_('./braintree-error');
-var sharedErrors = _dereq_('./errors');
+var BraintreeError = _dereq_("./braintree-error");
+var sharedErrors = _dereq_("./errors");
 
 module.exports = function (instance, methodNames) {
   methodNames.forEach(function (methodName) {
@@ -1520,17 +1546,17 @@ module.exports = function (instance, methodNames) {
       throw new BraintreeError({
         type: sharedErrors.METHOD_CALLED_AFTER_TEARDOWN.type,
         code: sharedErrors.METHOD_CALLED_AFTER_TEARDOWN.code,
-        message: methodName + ' cannot be called after teardown.'
+        message: methodName + " cannot be called after teardown.",
       });
     };
   });
 };
 
 },{"./braintree-error":35,"./errors":42}],38:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
 // endRemoveIf(production)
-var ASSETS_URLS = _dereq_('./constants').ASSETS_URLS;
+var ASSETS_URLS = _dereq_("./constants").ASSETS_URLS;
 
 function createAssetsUrl(authorization) {
   // endRemoveIf(production)
@@ -1540,27 +1566,27 @@ function createAssetsUrl(authorization) {
 /* eslint-enable */
 
 module.exports = {
-  create: createAssetsUrl
+  create: createAssetsUrl,
 };
 
 },{"./constants":36}],39:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var atob = _dereq_('../lib/vendor/polyfill').atob;
-var CLIENT_API_URLS = _dereq_('../lib/constants').CLIENT_API_URLS;
+var atob = _dereq_("../lib/vendor/polyfill").atob;
+var CLIENT_API_URLS = _dereq_("../lib/constants").CLIENT_API_URLS;
 
 function _isTokenizationKey(str) {
   return /^[a-zA-Z0-9]+_[a-zA-Z0-9]+_[a-zA-Z0-9_]+$/.test(str);
 }
 
 function _parseTokenizationKey(tokenizationKey) {
-  var tokens = tokenizationKey.split('_');
+  var tokens = tokenizationKey.split("_");
   var environment = tokens[0];
-  var merchantId = tokens.slice(2).join('_');
+  var merchantId = tokens.slice(2).join("_");
 
   return {
     merchantId: merchantId,
-    environment: environment
+    environment: environment,
   };
 }
 
@@ -1568,18 +1594,23 @@ function createAuthorizationData(authorization) {
   var parsedClientToken, parsedTokenizationKey;
   var data = {
     attrs: {},
-    configUrl: ''
+    configUrl: "",
   };
 
   if (_isTokenizationKey(authorization)) {
     parsedTokenizationKey = _parseTokenizationKey(authorization);
     data.environment = parsedTokenizationKey.environment;
     data.attrs.tokenizationKey = authorization;
-    data.configUrl = CLIENT_API_URLS[parsedTokenizationKey.environment] + '/merchants/' + parsedTokenizationKey.merchantId + '/client_api/v1/configuration';
+    data.configUrl =
+      CLIENT_API_URLS[parsedTokenizationKey.environment] +
+      "/merchants/" +
+      parsedTokenizationKey.merchantId +
+      "/client_api/v1/configuration";
   } else {
     parsedClientToken = JSON.parse(atob(authorization));
     data.environment = parsedClientToken.environment;
-    data.attrs.authorizationFingerprint = parsedClientToken.authorizationFingerprint;
+    data.attrs.authorizationFingerprint =
+      parsedClientToken.authorizationFingerprint;
     data.configUrl = parsedClientToken.configUrl;
     data.graphQL = parsedClientToken.graphQL;
   }
@@ -1590,14 +1621,14 @@ function createAuthorizationData(authorization) {
 module.exports = createAuthorizationData;
 
 },{"../lib/constants":36,"../lib/vendor/polyfill":48}],40:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var BraintreeError = _dereq_('./braintree-error');
-var Promise = _dereq_('./promise');
-var assets = _dereq_('./assets');
-var sharedErrors = _dereq_('./errors');
+var BraintreeError = _dereq_("./braintree-error");
+var Promise = _dereq_("./promise");
+var assets = _dereq_("./assets");
+var sharedErrors = _dereq_("./errors");
 
-var VERSION = "3.85.2";
+var VERSION = "3.85.3";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1607,45 +1638,58 @@ function createDeferredClient(options) {
   }
 
   if (!(window.braintree && window.braintree.client)) {
-    promise = assets.loadScript({
-      src: options.assetsUrl + '/web/' + VERSION + '/js/client.min.js'
-    }).catch(function (err) {
-      return Promise.reject(new BraintreeError({
-        type: sharedErrors.CLIENT_SCRIPT_FAILED_TO_LOAD.type,
-        code: sharedErrors.CLIENT_SCRIPT_FAILED_TO_LOAD.code,
-        message: sharedErrors.CLIENT_SCRIPT_FAILED_TO_LOAD.message,
-        details: {
-          originalError: err
-        }
-      }));
-    });
+    promise = assets
+      .loadScript({
+        src: options.assetsUrl + "/web/" + VERSION + "/js/client.min.js",
+      })
+      .catch(function (err) {
+        return Promise.reject(
+          new BraintreeError({
+            type: sharedErrors.CLIENT_SCRIPT_FAILED_TO_LOAD.type,
+            code: sharedErrors.CLIENT_SCRIPT_FAILED_TO_LOAD.code,
+            message: sharedErrors.CLIENT_SCRIPT_FAILED_TO_LOAD.message,
+            details: {
+              originalError: err,
+            },
+          })
+        );
+      });
   }
 
   return promise.then(function () {
     if (window.braintree.client.VERSION !== VERSION) {
-      return Promise.reject(new BraintreeError({
-        type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
-        code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
-        message: 'Client (version ' + window.braintree.client.VERSION + ') and ' + options.name + ' (version ' + VERSION + ') components must be from the same SDK version.'
-      }));
+      return Promise.reject(
+        new BraintreeError({
+          type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
+          code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
+          message:
+            "Client (version " +
+            window.braintree.client.VERSION +
+            ") and " +
+            options.name +
+            " (version " +
+            VERSION +
+            ") components must be from the same SDK version.",
+        })
+      );
     }
 
     return window.braintree.client.create({
       authorization: options.authorization,
-      debug: options.debug
+      debug: options.debug,
     });
   });
 }
 
 module.exports = {
-  create: createDeferredClient
+  create: createDeferredClient,
 };
 
 },{"./assets":32,"./braintree-error":35,"./errors":42,"./promise":46}],41:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
 function enumerate(values, prefix) {
-  prefix = prefix == null ? '' : prefix;
+  prefix = prefix == null ? "" : prefix;
 
   return values.reduce(function (enumeration, value) {
     enumeration[value] = prefix + value;
@@ -1657,7 +1701,7 @@ function enumerate(values, prefix) {
 module.exports = enumerate;
 
 },{}],42:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
 /**
  * @name BraintreeError.Shared Internal Error Codes
@@ -1680,52 +1724,52 @@ module.exports = enumerate;
  * @property {MERCHANT} METHOD_CALLED_AFTER_TEARDOWN Occurs when a method is called on a component instance after it has been torn down.
  */
 
-var BraintreeError = _dereq_('./braintree-error');
+var BraintreeError = _dereq_("./braintree-error");
 
 module.exports = {
   INVALID_USE_OF_INTERNAL_FUNCTION: {
     type: BraintreeError.types.INTERNAL,
-    code: 'INVALID_USE_OF_INTERNAL_FUNCTION'
+    code: "INVALID_USE_OF_INTERNAL_FUNCTION",
   },
   INSTANTIATION_OPTION_REQUIRED: {
     type: BraintreeError.types.MERCHANT,
-    code: 'INSTANTIATION_OPTION_REQUIRED'
+    code: "INSTANTIATION_OPTION_REQUIRED",
   },
   INCOMPATIBLE_VERSIONS: {
     type: BraintreeError.types.MERCHANT,
-    code: 'INCOMPATIBLE_VERSIONS'
+    code: "INCOMPATIBLE_VERSIONS",
   },
   CLIENT_SCRIPT_FAILED_TO_LOAD: {
     type: BraintreeError.types.NETWORK,
-    code: 'CLIENT_SCRIPT_FAILED_TO_LOAD',
-    message: 'Braintree client script could not be loaded.'
+    code: "CLIENT_SCRIPT_FAILED_TO_LOAD",
+    message: "Braintree client script could not be loaded.",
   },
   METHOD_CALLED_AFTER_TEARDOWN: {
     type: BraintreeError.types.MERCHANT,
-    code: 'METHOD_CALLED_AFTER_TEARDOWN'
-  }
+    code: "METHOD_CALLED_AFTER_TEARDOWN",
+  },
 };
 
 },{"./braintree-error":35}],43:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var VERSION = "3.85.2";
-var assign = _dereq_('./assign').assign;
+var VERSION = "3.85.3";
+var assign = _dereq_("./assign").assign;
 
 function generateTokenizationParameters(configuration, overrides) {
   var metadata = configuration.analyticsMetadata;
   var basicTokenizationParameters = {
-    gateway: 'braintree',
-    'braintree:merchantId': configuration.gatewayConfiguration.merchantId,
-    'braintree:apiVersion': 'v1',
-    'braintree:sdkVersion': VERSION,
-    'braintree:metadata': JSON.stringify({
+    gateway: "braintree",
+    "braintree:merchantId": configuration.gatewayConfiguration.merchantId,
+    "braintree:apiVersion": "v1",
+    "braintree:sdkVersion": VERSION,
+    "braintree:metadata": JSON.stringify({
       source: metadata.source,
       integration: metadata.integration,
       sessionId: metadata.sessionId,
       version: VERSION,
-      platform: metadata.platform
-    })
+      platform: metadata.platform,
+    }),
   };
 
   return assign({}, basicTokenizationParameters, overrides);
@@ -1734,61 +1778,67 @@ function generateTokenizationParameters(configuration, overrides) {
 module.exports = function (configuration, googlePayVersion, googleMerchantId) {
   var data, paypalPaymentMethod;
   var androidPayConfiguration = configuration.gatewayConfiguration.androidPay;
-  var environment = configuration.gatewayConfiguration.environment === 'production' ? 'PRODUCTION' : 'TEST';
+  var environment =
+    configuration.gatewayConfiguration.environment === "production"
+      ? "PRODUCTION"
+      : "TEST";
 
   if (googlePayVersion === 2) {
     data = {
       apiVersion: 2,
       apiVersionMinor: 0,
       environment: environment,
-      allowedPaymentMethods: [{
-        type: 'CARD',
-        parameters: {
-          allowedAuthMethods: [
-            'PAN_ONLY',
-            'CRYPTOGRAM_3DS'
-          ],
-          allowedCardNetworks:
-            androidPayConfiguration.supportedNetworks.map(function (card) { return card.toUpperCase(); })
+      allowedPaymentMethods: [
+        {
+          type: "CARD",
+          parameters: {
+            allowedAuthMethods: ["PAN_ONLY", "CRYPTOGRAM_3DS"],
+            allowedCardNetworks: androidPayConfiguration.supportedNetworks.map(
+              function (card) {
+                return card.toUpperCase();
+              }
+            ),
+          },
+          tokenizationSpecification: {
+            type: "PAYMENT_GATEWAY",
+            parameters: generateTokenizationParameters(configuration, {
+              "braintree:authorizationFingerprint":
+                androidPayConfiguration.googleAuthorizationFingerprint,
+            }),
+          },
         },
-        tokenizationSpecification: {
-          type: 'PAYMENT_GATEWAY',
-          parameters: generateTokenizationParameters(configuration, {
-            'braintree:authorizationFingerprint': androidPayConfiguration.googleAuthorizationFingerprint
-          })
-        }
-      }]
+      ],
     };
 
     if (googleMerchantId) {
       data.merchantInfo = {
-        merchantId: googleMerchantId
+        merchantId: googleMerchantId,
       };
     }
 
     if (androidPayConfiguration.paypalClientId) {
       paypalPaymentMethod = {
-        type: 'PAYPAL',
+        type: "PAYPAL",
         parameters: {
           /* eslint-disable camelcase */
           purchase_context: {
             purchase_units: [
               {
                 payee: {
-                  client_id: androidPayConfiguration.paypalClientId
+                  client_id: androidPayConfiguration.paypalClientId,
                 },
-                recurring_payment: true
-              }
-            ]
-          }
+                recurring_payment: true,
+              },
+            ],
+          },
           /* eslint-enable camelcase */
         },
         tokenizationSpecification: {
-          type: 'PAYMENT_GATEWAY',
+          type: "PAYMENT_GATEWAY",
           parameters: generateTokenizationParameters(configuration, {
-            'braintree:paypalClientId': androidPayConfiguration.paypalClientId
-          })
-        }
+            "braintree:paypalClientId": androidPayConfiguration.paypalClientId,
+          }),
+        },
       };
 
       data.allowedPaymentMethods.push(paypalPaymentMethod);
@@ -1796,20 +1846,27 @@ module.exports = function (configuration, googlePayVersion, googleMerchantId) {
   } else {
     data = {
       environment: environment,
-      allowedPaymentMethods: ['CARD', 'TOKENIZED_CARD'],
+      allowedPaymentMethods: ["CARD", "TOKENIZED_CARD"],
       paymentMethodTokenizationParameters: {
-        tokenizationType: 'PAYMENT_GATEWAY',
+        tokenizationType: "PAYMENT_GATEWAY",
         parameters: generateTokenizationParameters(configuration, {
-          'braintree:authorizationFingerprint': androidPayConfiguration.googleAuthorizationFingerprint
-        })
+          "braintree:authorizationFingerprint":
+            androidPayConfiguration.googleAuthorizationFingerprint,
+        }),
       },
       cardRequirements: {
-        allowedCardNetworks: androidPayConfiguration.supportedNetworks.map(function (card) { return card.toUpperCase(); })
-      }
+        allowedCardNetworks: androidPayConfiguration.supportedNetworks.map(
+          function (card) {
+            return card.toUpperCase();
+          }
+        ),
+      },
     };
 
-    if (configuration.authorizationType === 'TOKENIZATION_KEY') {
-      data.paymentMethodTokenizationParameters.parameters['braintree:clientKey'] = configuration.authorization;
+    if (configuration.authorizationType === "TOKENIZATION_KEY") {
+      data.paymentMethodTokenizationParameters.parameters[
+        "braintree:clientKey"
+      ] = configuration.authorization;
     }
 
     if (googleMerchantId) {
@@ -1825,29 +1882,29 @@ module.exports = function (configuration, googlePayVersion, googleMerchantId) {
 };
 
 },{"./assign":33}],44:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
 },{}],45:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
 module.exports = function (obj) {
   return Object.keys(obj).filter(function (key) {
-    return typeof obj[key] === 'function';
+    return typeof obj[key] === "function";
   });
 };
 
 },{}],46:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var PromisePolyfill = _dereq_('promise-polyfill');
-var ExtendedPromise = _dereq_('@braintree/extended-promise');
+var PromisePolyfill = _dereq_("promise-polyfill");
+var ExtendedPromise = _dereq_("@braintree/extended-promise");
 
 // eslint-disable-next-line no-undef
-var PromiseGlobal = typeof Promise !== 'undefined' ? Promise : PromisePolyfill;
+var PromiseGlobal = typeof Promise !== "undefined" ? Promise : PromisePolyfill;
 
 ExtendedPromise.suppressUnhandledPromiseMessage = true;
 ExtendedPromise.setPromise(PromiseGlobal);
@@ -1855,30 +1912,33 @@ ExtendedPromise.setPromise(PromiseGlobal);
 module.exports = PromiseGlobal;
 
 },{"@braintree/extended-promise":5,"promise-polyfill":29}],47:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
 function useMin(isDebug) {
-  return isDebug ? '' : '.min';
+  return isDebug ? "" : ".min";
 }
 
 module.exports = useMin;
 
 },{}],48:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
 // NEXT_MAJOR_VERSION old versions of IE don't have atob, in the
 // next major version, we're dropping support for those versions
 // so we can eliminate the need to have this atob polyfill
-var atobNormalized = typeof atob === 'function' ? atob : atobPolyfill;
+var atobNormalized = typeof atob === "function" ? atob : atobPolyfill;
 
 function atobPolyfill(base64String) {
   var a, b, c, b1, b2, b3, b4, i;
-  var base64Matcher = new RegExp('^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})([=]{1,2})?$');
-  var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
-  var result = '';
+  var base64Matcher = new RegExp(
+    "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})([=]{1,2})?$"
+  );
+  var characters =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+  var result = "";
 
   if (!base64Matcher.test(base64String)) {
-    throw new Error('Non base64 encoded input passed to window.atob polyfill');
+    throw new Error("Non base64 encoded input passed to window.atob polyfill");
   }
 
   i = 0;
@@ -1888,11 +1948,14 @@ function atobPolyfill(base64String) {
     b3 = characters.indexOf(base64String.charAt(i++));
     b4 = characters.indexOf(base64String.charAt(i++));
 
-    a = (b1 & 0x3F) << 2 | b2 >> 4 & 0x3;
-    b = (b2 & 0xF) << 4 | b3 >> 2 & 0xF;
-    c = (b3 & 0x3) << 6 | b4 & 0x3F;
+    a = ((b1 & 0x3f) << 2) | ((b2 >> 4) & 0x3);
+    b = ((b2 & 0xf) << 4) | ((b3 >> 2) & 0xf);
+    c = ((b3 & 0x3) << 6) | (b4 & 0x3f);
 
-    result += String.fromCharCode(a) + (b ? String.fromCharCode(b) : '') + (c ? String.fromCharCode(c) : '');
+    result +=
+      String.fromCharCode(a) +
+      (b ? String.fromCharCode(b) : "") +
+      (c ? String.fromCharCode(c) : "");
   } while (i < base64String.length);
 
   return result;
@@ -1902,29 +1965,29 @@ module.exports = {
   atob: function (base64String) {
     return atobNormalized.call(window, base64String);
   },
-  _atob: atobPolyfill
+  _atob: atobPolyfill,
 };
 
 },{}],49:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var analytics = _dereq_('../../lib/analytics');
-var assign = _dereq_('../../lib/assign').assign;
-var Bus = _dereq_('framebus');
-var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
-var generateGooglePayConfiguration = _dereq_('../../lib/generate-google-pay-configuration');
-var iFramer = _dereq_('@braintree/iframer');
-var uuid = _dereq_('@braintree/uuid');
-var useMin = _dereq_('../../lib/use-min');
-var methods = _dereq_('../../lib/methods');
-var Promise = _dereq_('../../lib/promise');
-var EventEmitter = _dereq_('@braintree/event-emitter');
-var BraintreeError = _dereq_('../../lib/braintree-error');
-var VERSION = "3.85.2";
-var constants = _dereq_('../shared/constants');
+var analytics = _dereq_("../../lib/analytics");
+var assign = _dereq_("../../lib/assign").assign;
+var Bus = _dereq_("framebus");
+var convertMethodsToError = _dereq_("../../lib/convert-methods-to-error");
+var generateGooglePayConfiguration = _dereq_("../../lib/generate-google-pay-configuration");
+var iFramer = _dereq_("@braintree/iframer");
+var uuid = _dereq_("@braintree/uuid");
+var useMin = _dereq_("../../lib/use-min");
+var methods = _dereq_("../../lib/methods");
+var Promise = _dereq_("../../lib/promise");
+var EventEmitter = _dereq_("@braintree/event-emitter");
+var BraintreeError = _dereq_("../../lib/braintree-error");
+var VERSION = "3.85.3";
+var constants = _dereq_("../shared/constants");
 var events = constants.events;
 var errors = constants.errors;
-var wrapPromise = _dereq_('@braintree/wrap-promise');
+var wrapPromise = _dereq_("@braintree/wrap-promise");
 
 /**
  * @typedef {object} PaymentRequestComponent~tokenizePayload
@@ -2034,24 +2097,32 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
  */
 
 var CARD_TYPE_MAPPINGS = {
-  Visa: 'visa',
-  MasterCard: 'mastercard',
-  'American Express': 'amex',
-  'Diners Club': 'diners',
-  Discover: 'discover',
-  JCB: 'jcb',
-  UnionPay: 'unionpay',
-  Maestro: 'maestro'
+  Visa: "visa",
+  MasterCard: "mastercard",
+  "American Express": "amex",
+  "Diners Club": "diners",
+  Discover: "discover",
+  JCB: "jcb",
+  UnionPay: "unionpay",
+  Maestro: "maestro",
 };
 
-var BRAINTREE_GOOGLE_PAY_MERCHANT_ID = '18278000977346790994';
+var BRAINTREE_GOOGLE_PAY_MERCHANT_ID = "18278000977346790994";
 
 function composeUrl(assetsUrl, componentId, isDebug) {
   var baseUrl = assetsUrl;
 
   // endRemoveIf(production)
 
-  return baseUrl + '/web/' + VERSION + '/html/payment-request-frame' + useMin(isDebug) + '.html#' + componentId;
+  return (
+    baseUrl +
+    "/web/" +
+    VERSION +
+    "/html/payment-request-frame" +
+    useMin(isDebug) +
+    ".html#" +
+    componentId
+  );
 }
 
 /**
@@ -2072,51 +2143,70 @@ function PaymentRequestComponent(options) {
   this._client = options.client;
   this._enabledPaymentMethods = {
     basicCard: enabledPaymentMethods.basicCard !== false,
-    googlePay: enabledPaymentMethods.googlePay !== false
+    googlePay: enabledPaymentMethods.googlePay !== false,
   };
   this._googlePayVersion = options.googlePayVersion === 2 ? 2 : 1;
   this._googleMerchantId = BRAINTREE_GOOGLE_PAY_MERCHANT_ID;
-  this._supportedPaymentMethods = this._constructDefaultSupportedPaymentMethods();
-  this._defaultSupportedPaymentMethods = Object.keys(this._supportedPaymentMethods).map(function (key) {
-    return this._supportedPaymentMethods[key];
-  }.bind(this));
-  this._bus = new Bus({channel: this._componentId});
+  this._supportedPaymentMethods =
+    this._constructDefaultSupportedPaymentMethods();
+  this._defaultSupportedPaymentMethods = Object.keys(
+    this._supportedPaymentMethods
+  ).map(
+    function (key) {
+      return this._supportedPaymentMethods[key];
+    }.bind(this)
+  );
+  this._bus = new Bus({ channel: this._componentId });
 }
 
 EventEmitter.createChild(PaymentRequestComponent);
 
-PaymentRequestComponent.prototype._constructDefaultSupportedPaymentMethods = function () {
-  var configuration = this._client.getConfiguration();
-  var androidPayConfiguration = configuration.gatewayConfiguration.androidPay;
-  var cardConfiguration = configuration.gatewayConfiguration.creditCards;
-  var supportedPaymentMethods = {};
+PaymentRequestComponent.prototype._constructDefaultSupportedPaymentMethods =
+  function () {
+    var configuration = this._client.getConfiguration();
+    var androidPayConfiguration = configuration.gatewayConfiguration.androidPay;
+    var cardConfiguration = configuration.gatewayConfiguration.creditCards;
+    var supportedPaymentMethods = {};
 
-  if (this._enabledPaymentMethods.basicCard && cardConfiguration && cardConfiguration.supportedCardTypes.length > 0) {
-    supportedPaymentMethods.basicCard = {
-      supportedMethods: 'basic-card',
-      data: {
-        supportedNetworks: cardConfiguration.supportedCardTypes.reduce(function (types, cardType) {
-          if (cardType in CARD_TYPE_MAPPINGS) {
-            types.push(CARD_TYPE_MAPPINGS[cardType]);
-          }
+    if (
+      this._enabledPaymentMethods.basicCard &&
+      cardConfiguration &&
+      cardConfiguration.supportedCardTypes.length > 0
+    ) {
+      supportedPaymentMethods.basicCard = {
+        supportedMethods: "basic-card",
+        data: {
+          supportedNetworks: cardConfiguration.supportedCardTypes.reduce(
+            function (types, cardType) {
+              if (cardType in CARD_TYPE_MAPPINGS) {
+                types.push(CARD_TYPE_MAPPINGS[cardType]);
+              }
 
-          return types;
-        }, [])
-      }
-    };
-  }
+              return types;
+            },
+            []
+          ),
+        },
+      };
+    }
 
-  if (this._enabledPaymentMethods.googlePay && androidPayConfiguration && androidPayConfiguration.enabled) {
-    supportedPaymentMethods.googlePay = {
-      supportedMethods: 'https://google.com/pay',
-      data: generateGooglePayConfiguration(
-        configuration, this._googlePayVersion, this._googleMerchantId
-      )
-    };
-  }
+    if (
+      this._enabledPaymentMethods.googlePay &&
+      androidPayConfiguration &&
+      androidPayConfiguration.enabled
+    ) {
+      supportedPaymentMethods.googlePay = {
+        supportedMethods: "https://google.com/pay",
+        data: generateGooglePayConfiguration(
+          configuration,
+          this._googlePayVersion,
+          this._googleMerchantId
+        ),
+      };
+    }
 
-  return supportedPaymentMethods;
-};
+    return supportedPaymentMethods;
+  };
 
 PaymentRequestComponent.prototype.initialize = function () {
   var clientConfiguration = this._client.getConfiguration();
@@ -2124,19 +2214,23 @@ PaymentRequestComponent.prototype.initialize = function () {
 
   this._frame = iFramer({
     allowPaymentRequest: true,
-    name: 'braintree-payment-request-frame',
-    'class': 'braintree-payment-request-frame',
+    name: "braintree-payment-request-frame",
+    class: "braintree-payment-request-frame",
     height: 0,
     width: 0,
     style: {
-      position: 'absolute',
-      left: '-9999px'
+      position: "absolute",
+      left: "-9999px",
     },
-    title: 'Secure Payment Frame'
+    title: "Secure Payment Frame",
   });
 
   if (this._defaultSupportedPaymentMethods.length === 0) {
-    return Promise.reject(new BraintreeError(errors.PAYMENT_REQUEST_NO_VALID_SUPPORTED_PAYMENT_METHODS));
+    return Promise.reject(
+      new BraintreeError(
+        errors.PAYMENT_REQUEST_NO_VALID_SUPPORTED_PAYMENT_METHODS
+      )
+    );
   }
 
   return new Promise(function (resolve) {
@@ -2144,32 +2238,32 @@ PaymentRequestComponent.prototype.initialize = function () {
       reply(self._client);
     });
     self._bus.on(events.FRAME_CAN_MAKE_REQUESTS, function () {
-      analytics.sendEvent(self._client, 'payment-request.initialized');
+      analytics.sendEvent(self._client, "payment-request.initialized");
       self._bus.on(events.SHIPPING_ADDRESS_CHANGE, function (shippingAddress) {
         var shippingAddressChangeEvent = {
           target: {
-            shippingAddress: shippingAddress
+            shippingAddress: shippingAddress,
           },
           updateWith: function (paymentDetails) {
             self._bus.emit(events.UPDATE_SHIPPING_ADDRESS, paymentDetails);
-          }
+          },
         };
 
-        self._emit('shippingAddressChange', shippingAddressChangeEvent);
-        self._emit('shippingaddresschange', shippingAddressChangeEvent);
+        self._emit("shippingAddressChange", shippingAddressChangeEvent);
+        self._emit("shippingaddresschange", shippingAddressChangeEvent);
       });
       self._bus.on(events.SHIPPING_OPTION_CHANGE, function (shippingOption) {
         var shippingOptionChangeEvent = {
           target: {
-            shippingOption: shippingOption
+            shippingOption: shippingOption,
           },
           updateWith: function (paymentDetails) {
             self._bus.emit(events.UPDATE_SHIPPING_OPTION, paymentDetails);
-          }
+          },
         };
 
-        self._emit('shippingOptionChange', shippingOptionChangeEvent);
-        self._emit('shippingoptionchange', shippingOptionChangeEvent);
+        self._emit("shippingOptionChange", shippingOptionChangeEvent);
+        self._emit("shippingoptionchange", shippingOptionChangeEvent);
       });
       resolve(self);
     });
@@ -2177,7 +2271,11 @@ PaymentRequestComponent.prototype.initialize = function () {
     // TODO - We may need to apply the same setTimeout hack that Hosted Fields
     // uses for iframes to load correctly in Edge. See:
     // https://github.com/braintree/braintree-web/blob/0c951e5f9859c606652485de14188b6bd6656677/src/hosted-fields/external/hosted-fields.js#L449-L469
-    self._frame.src = composeUrl(clientConfiguration.gatewayConfiguration.assetsUrl, self._componentId, clientConfiguration.isDebug);
+    self._frame.src = composeUrl(
+      clientConfiguration.gatewayConfiguration.assetsUrl,
+      self._componentId,
+      clientConfiguration.isDebug
+    );
     document.body.appendChild(self._frame);
   });
 };
@@ -2204,22 +2302,27 @@ PaymentRequestComponent.prototype.initialize = function () {
  * configuration.data.supportedTypes; // ['credit', 'debit']
  * @returns {object} Returns a configuration object for use in the tokenize function.
  */
-PaymentRequestComponent.prototype.createSupportedPaymentMethodsConfiguration = function (type, overrides) {
-  var configuration;
+PaymentRequestComponent.prototype.createSupportedPaymentMethodsConfiguration =
+  function (type, overrides) {
+    var configuration;
 
-  if (!type) {
-    throw new BraintreeError(errors.PAYMENT_REQUEST_CREATE_SUPPORTED_PAYMENT_METHODS_CONFIGURATION_MUST_INCLUDE_TYPE);
-  }
+    if (!type) {
+      throw new BraintreeError(
+        errors.PAYMENT_REQUEST_CREATE_SUPPORTED_PAYMENT_METHODS_CONFIGURATION_MUST_INCLUDE_TYPE
+      );
+    }
 
-  if (!this._enabledPaymentMethods[type]) {
-    throw new BraintreeError(errors.PAYMENT_REQUEST_CREATE_SUPPORTED_PAYMENT_METHODS_CONFIGURATION_TYPE_NOT_ENABLED);
-  }
+    if (!this._enabledPaymentMethods[type]) {
+      throw new BraintreeError(
+        errors.PAYMENT_REQUEST_CREATE_SUPPORTED_PAYMENT_METHODS_CONFIGURATION_TYPE_NOT_ENABLED
+      );
+    }
 
-  configuration = assign({}, this._supportedPaymentMethods[type]);
-  configuration.data = assign({}, configuration.data, overrides);
+    configuration = assign({}, this._supportedPaymentMethods[type]);
+    configuration.data = assign({}, configuration.data, overrides);
 
-  return configuration;
-};
+    return configuration;
+  };
 
 /**
  * Tokenizes a Payment Request
@@ -2358,34 +2461,40 @@ PaymentRequestComponent.prototype.tokenize = function (configuration) {
   // NEXT_MAJOR_VERSION fail early if a payment method is passed in
   // that the component does not support
   return new Promise(function (resolve, reject) {
-    self._bus.emit(events.PAYMENT_REQUEST_INITIALIZED, {
-      supportedPaymentMethods: configuration.supportedPaymentMethods || self._defaultSupportedPaymentMethods,
-      details: configuration.details,
-      options: configuration.options
-    }, function (response) {
-      var rawError = response[0];
-      var payload = response[1];
+    self._bus.emit(
+      events.PAYMENT_REQUEST_INITIALIZED,
+      {
+        supportedPaymentMethods:
+          configuration.supportedPaymentMethods ||
+          self._defaultSupportedPaymentMethods,
+        details: configuration.details,
+        options: configuration.options,
+      },
+      function (response) {
+        var rawError = response[0];
+        var payload = response[1];
 
-      if (rawError) {
-        reject(self._formatTokenizationError(rawError));
+        if (rawError) {
+          reject(self._formatTokenizationError(rawError));
 
-        return;
+          return;
+        }
+
+        analytics.sendEvent(self._client, "payment-request.tokenize.succeeded");
+        resolve({
+          nonce: payload.nonce,
+          type: payload.type,
+          description: payload.description,
+          details: {
+            rawPaymentResponse: payload.details.rawPaymentResponse,
+            cardType: payload.details.cardType,
+            lastFour: payload.details.lastFour,
+            lastTwo: payload.details.lastTwo,
+          },
+          binData: payload.binData,
+        });
       }
-
-      analytics.sendEvent(self._client, 'payment-request.tokenize.succeeded');
-      resolve({
-        nonce: payload.nonce,
-        type: payload.type,
-        description: payload.description,
-        details: {
-          rawPaymentResponse: payload.details.rawPaymentResponse,
-          cardType: payload.details.cardType,
-          lastFour: payload.details.lastFour,
-          lastTwo: payload.details.lastTwo
-        },
-        binData: payload.binData
-      });
-    });
+    );
   });
 };
 
@@ -2420,7 +2529,10 @@ PaymentRequestComponent.prototype.canMakePayment = function (configuration) {
 
   // NEXT_MAJOR_VERSION Move this check to component creation
   if (!window.PaymentRequest) {
-    analytics.sendEvent(self._client, 'payment-request.can-make-payment.not-available');
+    analytics.sendEvent(
+      self._client,
+      "payment-request.can-make-payment.not-available"
+    );
 
     return Promise.resolve(false);
   }
@@ -2435,33 +2547,45 @@ PaymentRequestComponent.prototype.canMakePayment = function (configuration) {
     });
 
     if (unsupportedPaymentMethod) {
-      return Promise.reject(new BraintreeError({
-        type: errors.PAYMENT_REQUEST_UNSUPPORTED_PAYMENT_METHOD.type,
-        code: errors.PAYMENT_REQUEST_UNSUPPORTED_PAYMENT_METHOD.code,
-        message: unsupportedPaymentMethod + ' is not a supported payment method.'
-      }));
+      return Promise.reject(
+        new BraintreeError({
+          type: errors.PAYMENT_REQUEST_UNSUPPORTED_PAYMENT_METHOD.type,
+          code: errors.PAYMENT_REQUEST_UNSUPPORTED_PAYMENT_METHOD.code,
+          message:
+            unsupportedPaymentMethod + " is not a supported payment method.",
+        })
+      );
     }
   }
 
   return new Promise(function (resolve, reject) {
-    self._bus.emit(events.CAN_MAKE_PAYMENT, {
-      supportedPaymentMethods: configuration.supportedPaymentMethods || self._defaultSupportedPaymentMethods,
-      details: configuration.details,
-      options: configuration.options
-    }, function (response) {
-      var error = response[0];
-      var payload = response[1];
+    self._bus.emit(
+      events.CAN_MAKE_PAYMENT,
+      {
+        supportedPaymentMethods:
+          configuration.supportedPaymentMethods ||
+          self._defaultSupportedPaymentMethods,
+        details: configuration.details,
+        options: configuration.options,
+      },
+      function (response) {
+        var error = response[0];
+        var payload = response[1];
 
-      if (error) {
-        reject(self._formatCanMakePaymentError(error));
+        if (error) {
+          reject(self._formatCanMakePaymentError(error));
 
-        return;
+          return;
+        }
+
+        analytics.sendEvent(
+          self._client,
+          "payment-request.can-make-payment." + payload
+        );
+
+        resolve(payload);
       }
-
-      analytics.sendEvent(self._client, 'payment-request.can-make-payment.' + payload);
-
-      resolve(payload);
-    });
+    );
   });
 };
 
@@ -2483,7 +2607,7 @@ PaymentRequestComponent.prototype.teardown = function () {
 
   convertMethodsToError(this, methods(PaymentRequestComponent.prototype));
 
-  analytics.sendEvent(this._client, 'payment-request.teardown-completed');
+  analytics.sendEvent(this._client, "payment-request.teardown-completed");
 
   return Promise.resolve();
 };
@@ -2492,47 +2616,48 @@ PaymentRequestComponent.prototype._formatTokenizationError = function (error) {
   var formattedError;
 
   switch (error.name) {
-    case 'AbortError':
+    case "AbortError":
       formattedError = new BraintreeError({
         type: errors.PAYMENT_REQUEST_CANCELED.type,
         code: errors.PAYMENT_REQUEST_CANCELED.code,
         message: errors.PAYMENT_REQUEST_CANCELED.message,
         details: {
-          originalError: error
-        }
+          originalError: error,
+        },
       });
 
-      analytics.sendEvent(this._client, 'payment-request.tokenize.canceled');
+      analytics.sendEvent(this._client, "payment-request.tokenize.canceled");
 
       return formattedError;
-    case 'PAYMENT_REQUEST_INITIALIZATION_FAILED':
+    case "PAYMENT_REQUEST_INITIALIZATION_FAILED":
       formattedError = new BraintreeError({
         type: errors.PAYMENT_REQUEST_INITIALIZATION_MISCONFIGURED.type,
         code: errors.PAYMENT_REQUEST_INITIALIZATION_MISCONFIGURED.code,
         message: errors.PAYMENT_REQUEST_INITIALIZATION_MISCONFIGURED.message,
         details: {
-          originalError: error
-        }
+          originalError: error,
+        },
       });
       break;
-    case 'BRAINTREE_GATEWAY_GOOGLE_PAYMENT_TOKENIZATION_ERROR':
+    case "BRAINTREE_GATEWAY_GOOGLE_PAYMENT_TOKENIZATION_ERROR":
       formattedError = new BraintreeError({
         type: errors.PAYMENT_REQUEST_GOOGLE_PAYMENT_FAILED_TO_TOKENIZE.type,
         code: errors.PAYMENT_REQUEST_GOOGLE_PAYMENT_FAILED_TO_TOKENIZE.code,
-        message: errors.PAYMENT_REQUEST_GOOGLE_PAYMENT_FAILED_TO_TOKENIZE.message,
+        message:
+          errors.PAYMENT_REQUEST_GOOGLE_PAYMENT_FAILED_TO_TOKENIZE.message,
         details: {
-          originalError: error
-        }
+          originalError: error,
+        },
       });
       break;
-    case 'BRAINTREE_GATEWAY_GOOGLE_PAYMENT_PARSING_ERROR':
+    case "BRAINTREE_GATEWAY_GOOGLE_PAYMENT_PARSING_ERROR":
       formattedError = new BraintreeError({
         type: errors.PAYMENT_REQUEST_GOOGLE_PAYMENT_PARSING_ERROR.type,
         code: errors.PAYMENT_REQUEST_GOOGLE_PAYMENT_PARSING_ERROR.code,
         message: errors.PAYMENT_REQUEST_GOOGLE_PAYMENT_PARSING_ERROR.message,
         details: {
-          originalError: error
-        }
+          originalError: error,
+        },
       });
       break;
     default:
@@ -2541,38 +2666,40 @@ PaymentRequestComponent.prototype._formatTokenizationError = function (error) {
         type: error.type || BraintreeError.types.CUSTOMER,
         message: errors.PAYMENT_REQUEST_NOT_COMPLETED.message,
         details: {
-          originalError: error
-        }
+          originalError: error,
+        },
       });
   }
 
-  analytics.sendEvent(this._client, 'payment-request.tokenize.failed');
+  analytics.sendEvent(this._client, "payment-request.tokenize.failed");
 
   return formattedError;
 };
 
-PaymentRequestComponent.prototype._formatCanMakePaymentError = function (error) {
+PaymentRequestComponent.prototype._formatCanMakePaymentError = function (
+  error
+) {
   var formattedError;
 
   switch (error.name) {
-    case 'PAYMENT_REQUEST_INITIALIZATION_FAILED':
+    case "PAYMENT_REQUEST_INITIALIZATION_FAILED":
       formattedError = new BraintreeError({
         type: errors.PAYMENT_REQUEST_INITIALIZATION_MISCONFIGURED.type,
         code: errors.PAYMENT_REQUEST_INITIALIZATION_MISCONFIGURED.code,
         message: errors.PAYMENT_REQUEST_INITIALIZATION_MISCONFIGURED.message,
         details: {
-          originalError: error
-        }
+          originalError: error,
+        },
       });
       break;
-    case 'NotAllowedError':
+    case "NotAllowedError":
       formattedError = new BraintreeError({
         type: errors.PAYMENT_REQUEST_CAN_MAKE_PAYMENT_NOT_ALLOWED.type,
         code: errors.PAYMENT_REQUEST_CAN_MAKE_PAYMENT_NOT_ALLOWED.code,
         message: errors.PAYMENT_REQUEST_CAN_MAKE_PAYMENT_NOT_ALLOWED.message,
         details: {
-          originalError: error
-        }
+          originalError: error,
+        },
       });
       break;
     default:
@@ -2581,12 +2708,12 @@ PaymentRequestComponent.prototype._formatCanMakePaymentError = function (error) 
         type: errors.PAYMENT_REQUEST_CAN_MAKE_PAYMENT_FAILED.type,
         message: errors.PAYMENT_REQUEST_CAN_MAKE_PAYMENT_FAILED.message,
         details: {
-          originalError: error
-        }
+          originalError: error,
+        },
       });
   }
 
-  analytics.sendEvent(this._client, 'payment-request.can-make-payment.failed');
+  analytics.sendEvent(this._client, "payment-request.can-make-payment.failed");
 
   return formattedError;
 };
@@ -2594,7 +2721,7 @@ PaymentRequestComponent.prototype._formatCanMakePaymentError = function (error) 
 module.exports = wrapPromise.wrapPrototype(PaymentRequestComponent);
 
 },{"../../lib/analytics":31,"../../lib/assign":33,"../../lib/braintree-error":35,"../../lib/convert-methods-to-error":37,"../../lib/generate-google-pay-configuration":43,"../../lib/methods":45,"../../lib/promise":46,"../../lib/use-min":47,"../shared/constants":51,"@braintree/event-emitter":4,"@braintree/iframer":6,"@braintree/uuid":10,"@braintree/wrap-promise":14,"framebus":16}],50:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 /**
  * @module braintree-web/payment-request
  * @description A component to integrate with the Payment Request API.
@@ -2602,12 +2729,12 @@ module.exports = wrapPromise.wrapPrototype(PaymentRequestComponent);
  * **Note:** This component is currently in beta and the API may include breaking changes when upgrading. Please review the [Changelog](https://github.com/braintree/braintree-web/blob/main/CHANGELOG.md) for upgrade steps whenever you upgrade the version of braintree-web.
  * */
 
-var PaymentRequestComponent = _dereq_('./external/payment-request');
-var basicComponentVerification = _dereq_('../lib/basic-component-verification');
-var createDeferredClient = _dereq_('../lib/create-deferred-client');
-var createAssetsUrl = _dereq_('../lib/create-assets-url');
-var wrapPromise = _dereq_('@braintree/wrap-promise');
-var VERSION = "3.85.2";
+var PaymentRequestComponent = _dereq_("./external/payment-request");
+var basicComponentVerification = _dereq_("../lib/basic-component-verification");
+var createDeferredClient = _dereq_("../lib/create-deferred-client");
+var createAssetsUrl = _dereq_("../lib/create-assets-url");
+var wrapPromise = _dereq_("@braintree/wrap-promise");
+var VERSION = "3.85.3";
 
 /**
  * @static
@@ -2650,28 +2777,31 @@ var VERSION = "3.85.2";
  *
  */
 function create(options) {
-  var name = 'Payment Request';
+  var name = "Payment Request";
 
-  return basicComponentVerification.verify({
-    name: name,
-    client: options.client,
-    authorization: options.authorization
-  }).then(function () {
-    return createDeferredClient.create({
-      authorization: options.authorization,
+  return basicComponentVerification
+    .verify({
+      name: name,
       client: options.client,
-      debug: options.debug,
-      assetsUrl: createAssetsUrl.create(options.authorization),
-      name: name
+      authorization: options.authorization,
+    })
+    .then(function () {
+      return createDeferredClient.create({
+        authorization: options.authorization,
+        client: options.client,
+        debug: options.debug,
+        assetsUrl: createAssetsUrl.create(options.authorization),
+        name: name,
+      });
+    })
+    .then(function (client) {
+      var paymentRequestInstance;
+
+      options.client = client;
+      paymentRequestInstance = new PaymentRequestComponent(options);
+
+      return paymentRequestInstance.initialize();
     });
-  }).then(function (client) {
-    var paymentRequestInstance;
-
-    options.client = client;
-    paymentRequestInstance = new PaymentRequestComponent(options);
-
-    return paymentRequestInstance.initialize();
-  });
 }
 
 module.exports = {
@@ -2680,39 +2810,42 @@ module.exports = {
    * @description The current version of the SDK, i.e. `{@pkg version}`.
    * @type {string}
    */
-  VERSION: VERSION
+  VERSION: VERSION,
 };
 
 },{"../lib/basic-component-verification":34,"../lib/create-assets-url":38,"../lib/create-deferred-client":40,"./external/payment-request":49,"@braintree/wrap-promise":14}],51:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var enumerate = _dereq_('../../lib/enumerate');
-var errors = _dereq_('./errors');
+var enumerate = _dereq_("../../lib/enumerate");
+var errors = _dereq_("./errors");
 
 var constants = {};
 
-constants.events = enumerate([
-  'CAN_MAKE_PAYMENT',
-  'FRAME_READY',
-  'FRAME_CAN_MAKE_REQUESTS',
-  'PAYMENT_REQUEST_INITIALIZED',
-  'SHIPPING_ADDRESS_CHANGE',
-  'UPDATE_SHIPPING_ADDRESS',
-  'SHIPPING_OPTION_CHANGE',
-  'UPDATE_SHIPPING_OPTION'
-], 'payment-request:');
+constants.events = enumerate(
+  [
+    "CAN_MAKE_PAYMENT",
+    "FRAME_READY",
+    "FRAME_CAN_MAKE_REQUESTS",
+    "PAYMENT_REQUEST_INITIALIZED",
+    "SHIPPING_ADDRESS_CHANGE",
+    "UPDATE_SHIPPING_ADDRESS",
+    "SHIPPING_OPTION_CHANGE",
+    "UPDATE_SHIPPING_OPTION",
+  ],
+  "payment-request:"
+);
 
 constants.errors = errors;
 
 constants.SUPPORTED_METHODS = {
-  'basic-card': true,
-  'https://google.com/pay': true
+  "basic-card": true,
+  "https://google.com/pay": true,
 };
 
 module.exports = constants;
 
 },{"../../lib/enumerate":41,"./errors":52}],52:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
 /**
  * @name BraintreeError.Payment Request - Creation Error Codes
@@ -2746,62 +2879,68 @@ module.exports = constants;
  * @property {UNKNOWN} PAYMENT_REQUEST_CAN_MAKE_PAYMENT_FAILED Occurs when `canMakePayment` fails for any reason other than a misconfigured Payment Request object.
  */
 
-var BraintreeError = _dereq_('../../lib/braintree-error');
+var BraintreeError = _dereq_("../../lib/braintree-error");
 
 module.exports = {
   PAYMENT_REQUEST_NO_VALID_SUPPORTED_PAYMENT_METHODS: {
     type: BraintreeError.types.MERCHANT,
-    code: 'PAYMENT_REQUEST_NO_VALID_SUPPORTED_PAYMENT_METHODS',
-    message: 'There are no supported payment methods associated with this account.'
+    code: "PAYMENT_REQUEST_NO_VALID_SUPPORTED_PAYMENT_METHODS",
+    message:
+      "There are no supported payment methods associated with this account.",
   },
   PAYMENT_REQUEST_CANCELED: {
     type: BraintreeError.types.CUSTOMER,
-    code: 'PAYMENT_REQUEST_CANCELED',
-    message: 'Payment request was canceled.'
+    code: "PAYMENT_REQUEST_CANCELED",
+    message: "Payment request was canceled.",
   },
   PAYMENT_REQUEST_INITIALIZATION_MISCONFIGURED: {
     type: BraintreeError.types.MERCHANT,
-    code: 'PAYMENT_REQUEST_INITIALIZATION_MISCONFIGURED',
-    message: 'Something went wrong when configuring the payment request.'
+    code: "PAYMENT_REQUEST_INITIALIZATION_MISCONFIGURED",
+    message: "Something went wrong when configuring the payment request.",
   },
   PAYMENT_REQUEST_CAN_MAKE_PAYMENT_FAILED: {
     type: BraintreeError.types.UNKNOWN,
-    code: 'PAYMENT_REQUEST_CAN_MAKE_PAYMENT_FAILED',
-    message: 'Something went wrong when calling `canMakePayment`'
+    code: "PAYMENT_REQUEST_CAN_MAKE_PAYMENT_FAILED",
+    message: "Something went wrong when calling `canMakePayment`",
   },
   PAYMENT_REQUEST_CAN_MAKE_PAYMENT_NOT_ALLOWED: {
     type: BraintreeError.types.MERCHANT,
-    code: 'PAYMENT_REQUEST_CAN_MAKE_PAYMENT_NOT_ALLOWED',
-    message: 'Something went wrong when calling `canMakePayment`. Most likely, `canMakePayment` was called multiple times with different supportedMethods configurations.'
+    code: "PAYMENT_REQUEST_CAN_MAKE_PAYMENT_NOT_ALLOWED",
+    message:
+      "Something went wrong when calling `canMakePayment`. Most likely, `canMakePayment` was called multiple times with different supportedMethods configurations.",
   },
   PAYMENT_REQUEST_UNSUPPORTED_PAYMENT_METHOD: {
     type: BraintreeError.types.MERCHANT,
-    code: 'PAYMENT_REQUEST_UNSUPPORTED_PAYMENT_METHOD'
+    code: "PAYMENT_REQUEST_UNSUPPORTED_PAYMENT_METHOD",
   },
   PAYMENT_REQUEST_GOOGLE_PAYMENT_FAILED_TO_TOKENIZE: {
     type: BraintreeError.types.MERCHANT,
-    code: 'PAYMENT_REQUEST_GOOGLE_PAYMENT_FAILED_TO_TOKENIZE',
-    message: 'Something went wrong when tokenizing the Google Pay card.'
+    code: "PAYMENT_REQUEST_GOOGLE_PAYMENT_FAILED_TO_TOKENIZE",
+    message: "Something went wrong when tokenizing the Google Pay card.",
   },
   PAYMENT_REQUEST_GOOGLE_PAYMENT_PARSING_ERROR: {
     type: BraintreeError.types.UNKNOWN,
-    code: 'PAYMENT_REQUEST_GOOGLE_PAYMENT_PARSING_ERROR',
-    message: 'Something went wrong when tokenizing the Google Pay card.'
+    code: "PAYMENT_REQUEST_GOOGLE_PAYMENT_PARSING_ERROR",
+    message: "Something went wrong when tokenizing the Google Pay card.",
   },
   PAYMENT_REQUEST_NOT_COMPLETED: {
-    code: 'PAYMENT_REQUEST_NOT_COMPLETED',
-    message: 'Payment request could not be completed.'
+    code: "PAYMENT_REQUEST_NOT_COMPLETED",
+    message: "Payment request could not be completed.",
   },
-  PAYMENT_REQUEST_CREATE_SUPPORTED_PAYMENT_METHODS_CONFIGURATION_MUST_INCLUDE_TYPE: {
-    type: BraintreeError.types.MERCHANT,
-    code: 'PAYMENT_REQUEST_CREATE_SUPPORTED_PAYMENT_METHODS_CONFIGURATION_MUST_INCLUDE_TYPE',
-    message: 'createSupportedPaymentMethodsConfiguration must include a type parameter.'
-  },
-  PAYMENT_REQUEST_CREATE_SUPPORTED_PAYMENT_METHODS_CONFIGURATION_TYPE_NOT_ENABLED: {
-    type: BraintreeError.types.MERCHANT,
-    code: 'PAYMENT_REQUEST_CREATE_SUPPORTED_PAYMENT_METHODS_CONFIGURATION_TYPE_NOT_ENABLED',
-    message: 'createSupportedPaymentMethodsConfiguration type parameter must be valid or enabled.'
-  }
+  PAYMENT_REQUEST_CREATE_SUPPORTED_PAYMENT_METHODS_CONFIGURATION_MUST_INCLUDE_TYPE:
+    {
+      type: BraintreeError.types.MERCHANT,
+      code: "PAYMENT_REQUEST_CREATE_SUPPORTED_PAYMENT_METHODS_CONFIGURATION_MUST_INCLUDE_TYPE",
+      message:
+        "createSupportedPaymentMethodsConfiguration must include a type parameter.",
+    },
+  PAYMENT_REQUEST_CREATE_SUPPORTED_PAYMENT_METHODS_CONFIGURATION_TYPE_NOT_ENABLED:
+    {
+      type: BraintreeError.types.MERCHANT,
+      code: "PAYMENT_REQUEST_CREATE_SUPPORTED_PAYMENT_METHODS_CONFIGURATION_TYPE_NOT_ENABLED",
+      message:
+        "createSupportedPaymentMethodsConfiguration type parameter must be valid or enabled.",
+    },
 };
 
 },{"../../lib/braintree-error":35}]},{},[50])(50)

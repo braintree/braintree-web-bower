@@ -373,8 +373,6 @@ function allSettled(arr) {
 // Store setTimeout reference so promise-polyfill will be unaffected by
 // other code modifying setTimeout (like sinon.useFakeTimers())
 var setTimeoutFunc = setTimeout;
-// @ts-ignore
-var setImmediateFunc = typeof setImmediate !== 'undefined' ? setImmediate : null;
 
 function isArray(x) {
   return Boolean(x && typeof x.length !== 'undefined');
@@ -608,10 +606,10 @@ Promise.race = function(arr) {
 // Use polyfill for setImmediate for performance gains
 Promise._immediateFn =
   // @ts-ignore
-  (typeof setImmediateFunc === 'function' &&
+  (typeof setImmediate === 'function' &&
     function(fn) {
       // @ts-ignore
-      setImmediateFunc(fn);
+      setImmediate(fn);
     }) ||
   function(fn) {
     setTimeoutFunc(fn, 0);
@@ -626,15 +624,15 @@ Promise._unhandledRejectionFn = function _unhandledRejectionFn(err) {
 module.exports = Promise;
 
 },{}],10:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var BraintreeError = _dereq_('../lib/braintree-error');
-var errors = _dereq_('./errors');
-var assign = _dereq_('../lib/assign').assign;
-var Promise = _dereq_('../lib/promise');
-var methods = _dereq_('../lib/methods');
-var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
-var wrapPromise = _dereq_('@braintree/wrap-promise');
+var BraintreeError = _dereq_("../lib/braintree-error");
+var errors = _dereq_("./errors");
+var assign = _dereq_("../lib/assign").assign;
+var Promise = _dereq_("../lib/promise");
+var methods = _dereq_("../lib/methods");
+var convertMethodsToError = _dereq_("../lib/convert-methods-to-error");
+var wrapPromise = _dereq_("@braintree/wrap-promise");
 
 /**
  * @class
@@ -673,34 +671,44 @@ AmericanExpress.prototype.getRewardsBalance = function (options) {
   var data;
 
   if (!nonce) {
-    return Promise.reject(new BraintreeError({
-      type: errors.AMEX_NONCE_REQUIRED.type,
-      code: errors.AMEX_NONCE_REQUIRED.code,
-      message: 'getRewardsBalance must be called with a nonce.'
-    }));
+    return Promise.reject(
+      new BraintreeError({
+        type: errors.AMEX_NONCE_REQUIRED.type,
+        code: errors.AMEX_NONCE_REQUIRED.code,
+        message: "getRewardsBalance must be called with a nonce.",
+      })
+    );
   }
 
-  data = assign({
-    _meta: {source: 'american-express'},
-    paymentMethodNonce: nonce
-  }, options);
+  data = assign(
+    {
+      _meta: { source: "american-express" },
+      paymentMethodNonce: nonce,
+    },
+    options
+  );
 
   delete data.nonce;
 
-  return this._client.request({
-    method: 'get',
-    endpoint: 'payment_methods/amex_rewards_balance',
-    data: data
-  }).catch(function (err) {
-    return Promise.reject(new BraintreeError({
-      type: errors.AMEX_NETWORK_ERROR.type,
-      code: errors.AMEX_NETWORK_ERROR.code,
-      message: 'A network error occurred when getting the American Express rewards balance.',
-      details: {
-        originalError: err
-      }
-    }));
-  });
+  return this._client
+    .request({
+      method: "get",
+      endpoint: "payment_methods/amex_rewards_balance",
+      data: data,
+    })
+    .catch(function (err) {
+      return Promise.reject(
+        new BraintreeError({
+          type: errors.AMEX_NETWORK_ERROR.type,
+          code: errors.AMEX_NETWORK_ERROR.code,
+          message:
+            "A network error occurred when getting the American Express rewards balance.",
+          details: {
+            originalError: err,
+          },
+        })
+      );
+    });
 };
 
 /**
@@ -727,30 +735,37 @@ AmericanExpress.prototype.getRewardsBalance = function (options) {
  */
 AmericanExpress.prototype.getExpressCheckoutProfile = function (options) {
   if (!options.nonce) {
-    return Promise.reject(new BraintreeError({
-      type: errors.AMEX_NONCE_REQUIRED.type,
-      code: errors.AMEX_NONCE_REQUIRED.code,
-      message: 'getExpressCheckoutProfile must be called with a nonce.'
-    }));
+    return Promise.reject(
+      new BraintreeError({
+        type: errors.AMEX_NONCE_REQUIRED.type,
+        code: errors.AMEX_NONCE_REQUIRED.code,
+        message: "getExpressCheckoutProfile must be called with a nonce.",
+      })
+    );
   }
 
-  return this._client.request({
-    method: 'get',
-    endpoint: 'payment_methods/amex_express_checkout_cards/' + options.nonce,
-    data: {
-      _meta: {source: 'american-express'},
-      paymentMethodNonce: options.nonce
-    }
-  }).catch(function (err) {
-    return Promise.reject(new BraintreeError({
-      type: errors.AMEX_NETWORK_ERROR.type,
-      code: errors.AMEX_NETWORK_ERROR.code,
-      message: 'A network error occurred when getting the American Express Checkout nonce profile.',
-      details: {
-        originalError: err
-      }
-    }));
-  });
+  return this._client
+    .request({
+      method: "get",
+      endpoint: "payment_methods/amex_express_checkout_cards/" + options.nonce,
+      data: {
+        _meta: { source: "american-express" },
+        paymentMethodNonce: options.nonce,
+      },
+    })
+    .catch(function (err) {
+      return Promise.reject(
+        new BraintreeError({
+          type: errors.AMEX_NETWORK_ERROR.type,
+          code: errors.AMEX_NETWORK_ERROR.code,
+          message:
+            "A network error occurred when getting the American Express Checkout nonce profile.",
+          details: {
+            originalError: err,
+          },
+        })
+      );
+    });
 };
 
 /**
@@ -774,7 +789,7 @@ AmericanExpress.prototype.teardown = function () {
 module.exports = wrapPromise.wrapPrototype(AmericanExpress);
 
 },{"../lib/assign":14,"../lib/braintree-error":16,"../lib/convert-methods-to-error":18,"../lib/methods":23,"../lib/promise":24,"./errors":11,"@braintree/wrap-promise":8}],11:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
 /**
  * @name BraintreeError.American Express - getRewardsBalance Error Codes
@@ -790,32 +805,32 @@ module.exports = wrapPromise.wrapPrototype(AmericanExpress);
  * @property {NETWORK} AMEX_NETWORK_ERROR Occurs when there is an error communicating with the Braintree gateway.
  */
 
-var BraintreeError = _dereq_('../lib/braintree-error');
+var BraintreeError = _dereq_("../lib/braintree-error");
 
 module.exports = {
   AMEX_NONCE_REQUIRED: {
     type: BraintreeError.types.MERCHANT,
-    code: 'AMEX_NONCE_REQUIRED'
+    code: "AMEX_NONCE_REQUIRED",
   },
   AMEX_NETWORK_ERROR: {
     type: BraintreeError.types.NETWORK,
-    code: 'AMEX_NETWORK_ERROR'
-  }
+    code: "AMEX_NETWORK_ERROR",
+  },
 };
 
 },{"../lib/braintree-error":16}],12:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 /**
  * @module braintree-web/american-express
  * @description This module is for use with Amex Express Checkout. To accept American Express cards, use Hosted Fields.
  */
 
-var AmericanExpress = _dereq_('./american-express');
-var basicComponentVerification = _dereq_('../lib/basic-component-verification');
-var createDeferredClient = _dereq_('../lib/create-deferred-client');
-var createAssetsUrl = _dereq_('../lib/create-assets-url');
-var VERSION = "3.85.2";
-var wrapPromise = _dereq_('@braintree/wrap-promise');
+var AmericanExpress = _dereq_("./american-express");
+var basicComponentVerification = _dereq_("../lib/basic-component-verification");
+var createDeferredClient = _dereq_("../lib/create-deferred-client");
+var createAssetsUrl = _dereq_("../lib/create-assets-url");
+var VERSION = "3.85.3";
+var wrapPromise = _dereq_("@braintree/wrap-promise");
 
 /**
  * @static
@@ -827,25 +842,28 @@ var wrapPromise = _dereq_('@braintree/wrap-promise');
  * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 function create(options) {
-  var name = 'American Express';
+  var name = "American Express";
 
-  return basicComponentVerification.verify({
-    name: name,
-    client: options.client,
-    authorization: options.authorization
-  }).then(function () {
-    return createDeferredClient.create({
-      authorization: options.authorization,
+  return basicComponentVerification
+    .verify({
+      name: name,
       client: options.client,
-      debug: options.debug,
-      assetsUrl: createAssetsUrl.create(options.authorization),
-      name: name
-    });
-  }).then(function (client) {
-    options.client = client;
+      authorization: options.authorization,
+    })
+    .then(function () {
+      return createDeferredClient.create({
+        authorization: options.authorization,
+        client: options.client,
+        debug: options.debug,
+        assetsUrl: createAssetsUrl.create(options.authorization),
+        name: name,
+      });
+    })
+    .then(function (client) {
+      options.client = client;
 
-    return new AmericanExpress(options);
-  });
+      return new AmericanExpress(options);
+    });
 }
 
 module.exports = {
@@ -854,22 +872,23 @@ module.exports = {
    * @description The current version of the SDK, i.e. `{@pkg version}`.
    * @type {string}
    */
-  VERSION: VERSION
+  VERSION: VERSION,
 };
 
 },{"../lib/basic-component-verification":15,"../lib/create-assets-url":19,"../lib/create-deferred-client":20,"./american-express":10,"@braintree/wrap-promise":8}],13:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var loadScript = _dereq_('@braintree/asset-loader/load-script');
+var loadScript = _dereq_("@braintree/asset-loader/load-script");
 
 module.exports = {
-  loadScript: loadScript
+  loadScript: loadScript,
 };
 
 },{"@braintree/asset-loader/load-script":3}],14:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var assignNormalized = typeof Object.assign === 'function' ? Object.assign : assignPolyfill;
+var assignNormalized =
+  typeof Object.assign === "function" ? Object.assign : assignPolyfill;
 
 function assignPolyfill(destination) {
   var i, source, key;
@@ -888,26 +907,29 @@ function assignPolyfill(destination) {
 
 module.exports = {
   assign: assignNormalized,
-  _assign: assignPolyfill
+  _assign: assignPolyfill,
 };
 
 },{}],15:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var BraintreeError = _dereq_('./braintree-error');
-var Promise = _dereq_('./promise');
-var sharedErrors = _dereq_('./errors');
-var VERSION = "3.85.2";
+var BraintreeError = _dereq_("./braintree-error");
+var Promise = _dereq_("./promise");
+var sharedErrors = _dereq_("./errors");
+var VERSION = "3.85.3";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
 
   if (!options) {
-    return Promise.reject(new BraintreeError({
-      type: sharedErrors.INVALID_USE_OF_INTERNAL_FUNCTION.type,
-      code: sharedErrors.INVALID_USE_OF_INTERNAL_FUNCTION.code,
-      message: 'Options must be passed to basicComponentVerification function.'
-    }));
+    return Promise.reject(
+      new BraintreeError({
+        type: sharedErrors.INVALID_USE_OF_INTERNAL_FUNCTION.type,
+        code: sharedErrors.INVALID_USE_OF_INTERNAL_FUNCTION.code,
+        message:
+          "Options must be passed to basicComponentVerification function.",
+      })
+    );
   }
 
   name = options.name;
@@ -915,34 +937,45 @@ function basicComponentVerification(options) {
   authorization = options.authorization;
 
   if (!client && !authorization) {
-    return Promise.reject(new BraintreeError({
-      type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
-      code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
-      // NEXT_MAJOR_VERSION in major version, we expose passing in authorization for all components
-      // instead of passing in a client instance. Leave this a silent feature for now.
-      message: 'options.client is required when instantiating ' + name + '.'
-    }));
+    return Promise.reject(
+      new BraintreeError({
+        type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
+        code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
+        // NEXT_MAJOR_VERSION in major version, we expose passing in authorization for all components
+        // instead of passing in a client instance. Leave this a silent feature for now.
+        message: "options.client is required when instantiating " + name + ".",
+      })
+    );
   }
 
   if (!authorization && client.getVersion() !== VERSION) {
-    return Promise.reject(new BraintreeError({
-      type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
-      code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
-      message: 'Client (version ' + client.getVersion() + ') and ' + name + ' (version ' + VERSION + ') components must be from the same SDK version.'
-    }));
+    return Promise.reject(
+      new BraintreeError({
+        type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
+        code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
+        message:
+          "Client (version " +
+          client.getVersion() +
+          ") and " +
+          name +
+          " (version " +
+          VERSION +
+          ") components must be from the same SDK version.",
+      })
+    );
   }
 
   return Promise.resolve();
 }
 
 module.exports = {
-  verify: basicComponentVerification
+  verify: basicComponentVerification,
 };
 
 },{"./braintree-error":16,"./errors":22,"./promise":24}],16:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var enumerate = _dereq_('./enumerate');
+var enumerate = _dereq_("./enumerate");
 
 /**
  * @class
@@ -953,18 +986,18 @@ var enumerate = _dereq_('./enumerate');
  */
 function BraintreeError(options) {
   if (!BraintreeError.types.hasOwnProperty(options.type)) {
-    throw new Error(options.type + ' is not a valid type.');
+    throw new Error(options.type + " is not a valid type.");
   }
 
   if (!options.code) {
-    throw new Error('Error code required.');
+    throw new Error("Error code required.");
   }
 
   if (!options.message) {
-    throw new Error('Error message required.');
+    throw new Error("Error message required.");
   }
 
-  this.name = 'BraintreeError';
+  this.name = "BraintreeError";
 
   /**
    * @type {string}
@@ -1007,15 +1040,19 @@ BraintreeError.prototype.constructor = BraintreeError;
  * @property {string} UNKNOWN An error where the origin is unknown.
  */
 BraintreeError.types = enumerate([
-  'CUSTOMER',
-  'MERCHANT',
-  'NETWORK',
-  'INTERNAL',
-  'UNKNOWN'
+  "CUSTOMER",
+  "MERCHANT",
+  "NETWORK",
+  "INTERNAL",
+  "UNKNOWN",
 ]);
 
 BraintreeError.findRootError = function (err) {
-  if (err instanceof BraintreeError && err.details && err.details.originalError) {
+  if (
+    err instanceof BraintreeError &&
+    err.details &&
+    err.details.originalError
+  ) {
     return BraintreeError.findRootError(err.details.originalError);
   }
 
@@ -1025,51 +1062,51 @@ BraintreeError.findRootError = function (err) {
 module.exports = BraintreeError;
 
 },{"./enumerate":21}],17:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var VERSION = "3.85.2";
-var PLATFORM = 'web';
+var VERSION = "3.85.3";
+var PLATFORM = "web";
 
 var CLIENT_API_URLS = {
-  production: 'https://api.braintreegateway.com:443',
-  sandbox: 'https://api.sandbox.braintreegateway.com:443'
+  production: "https://api.braintreegateway.com:443",
+  sandbox: "https://api.sandbox.braintreegateway.com:443",
 };
 
 var ASSETS_URLS = {
-  production: 'https://assets.braintreegateway.com',
-  sandbox: 'https://assets.braintreegateway.com'
+  production: "https://assets.braintreegateway.com",
+  sandbox: "https://assets.braintreegateway.com",
 };
 
 var GRAPHQL_URLS = {
-  production: 'https://payments.braintree-api.com/graphql',
-  sandbox: 'https://payments.sandbox.braintree-api.com/graphql'
+  production: "https://payments.braintree-api.com/graphql",
+  sandbox: "https://payments.sandbox.braintree-api.com/graphql",
 };
 
 // endRemoveIf(production)
 
 module.exports = {
-  ANALYTICS_PREFIX: PLATFORM + '.',
+  ANALYTICS_PREFIX: PLATFORM + ".",
   ANALYTICS_REQUEST_TIMEOUT_MS: 2000,
   ASSETS_URLS: ASSETS_URLS,
   CLIENT_API_URLS: CLIENT_API_URLS,
-  FRAUDNET_SOURCE: 'BRAINTREE_SIGNIN',
-  FRAUDNET_FNCLS: 'fnparams-dede7cc5-15fd-4c75-a9f4-36c430ee3a99',
-  FRAUDNET_URL: 'https://c.paypal.com/da/r/fb.js',
-  BUS_CONFIGURATION_REQUEST_EVENT: 'BUS_CONFIGURATION_REQUEST',
+  FRAUDNET_SOURCE: "BRAINTREE_SIGNIN",
+  FRAUDNET_FNCLS: "fnparams-dede7cc5-15fd-4c75-a9f4-36c430ee3a99",
+  FRAUDNET_URL: "https://c.paypal.com/da/r/fb.js",
+  BUS_CONFIGURATION_REQUEST_EVENT: "BUS_CONFIGURATION_REQUEST",
   GRAPHQL_URLS: GRAPHQL_URLS,
   INTEGRATION_TIMEOUT_MS: 60000,
   VERSION: VERSION,
-  INTEGRATION: 'custom',
-  SOURCE: 'client',
+  INTEGRATION: "custom",
+  SOURCE: "client",
   PLATFORM: PLATFORM,
-  BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
+  BRAINTREE_LIBRARY_VERSION: "braintree/" + PLATFORM + "/" + VERSION,
 };
 
 },{}],18:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var BraintreeError = _dereq_('./braintree-error');
-var sharedErrors = _dereq_('./errors');
+var BraintreeError = _dereq_("./braintree-error");
+var sharedErrors = _dereq_("./errors");
 
 module.exports = function (instance, methodNames) {
   methodNames.forEach(function (methodName) {
@@ -1077,17 +1114,17 @@ module.exports = function (instance, methodNames) {
       throw new BraintreeError({
         type: sharedErrors.METHOD_CALLED_AFTER_TEARDOWN.type,
         code: sharedErrors.METHOD_CALLED_AFTER_TEARDOWN.code,
-        message: methodName + ' cannot be called after teardown.'
+        message: methodName + " cannot be called after teardown.",
       });
     };
   });
 };
 
 },{"./braintree-error":16,"./errors":22}],19:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
 // endRemoveIf(production)
-var ASSETS_URLS = _dereq_('./constants').ASSETS_URLS;
+var ASSETS_URLS = _dereq_("./constants").ASSETS_URLS;
 
 function createAssetsUrl(authorization) {
   // endRemoveIf(production)
@@ -1097,18 +1134,18 @@ function createAssetsUrl(authorization) {
 /* eslint-enable */
 
 module.exports = {
-  create: createAssetsUrl
+  create: createAssetsUrl,
 };
 
 },{"./constants":17}],20:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var BraintreeError = _dereq_('./braintree-error');
-var Promise = _dereq_('./promise');
-var assets = _dereq_('./assets');
-var sharedErrors = _dereq_('./errors');
+var BraintreeError = _dereq_("./braintree-error");
+var Promise = _dereq_("./promise");
+var assets = _dereq_("./assets");
+var sharedErrors = _dereq_("./errors");
 
-var VERSION = "3.85.2";
+var VERSION = "3.85.3";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1118,45 +1155,58 @@ function createDeferredClient(options) {
   }
 
   if (!(window.braintree && window.braintree.client)) {
-    promise = assets.loadScript({
-      src: options.assetsUrl + '/web/' + VERSION + '/js/client.min.js'
-    }).catch(function (err) {
-      return Promise.reject(new BraintreeError({
-        type: sharedErrors.CLIENT_SCRIPT_FAILED_TO_LOAD.type,
-        code: sharedErrors.CLIENT_SCRIPT_FAILED_TO_LOAD.code,
-        message: sharedErrors.CLIENT_SCRIPT_FAILED_TO_LOAD.message,
-        details: {
-          originalError: err
-        }
-      }));
-    });
+    promise = assets
+      .loadScript({
+        src: options.assetsUrl + "/web/" + VERSION + "/js/client.min.js",
+      })
+      .catch(function (err) {
+        return Promise.reject(
+          new BraintreeError({
+            type: sharedErrors.CLIENT_SCRIPT_FAILED_TO_LOAD.type,
+            code: sharedErrors.CLIENT_SCRIPT_FAILED_TO_LOAD.code,
+            message: sharedErrors.CLIENT_SCRIPT_FAILED_TO_LOAD.message,
+            details: {
+              originalError: err,
+            },
+          })
+        );
+      });
   }
 
   return promise.then(function () {
     if (window.braintree.client.VERSION !== VERSION) {
-      return Promise.reject(new BraintreeError({
-        type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
-        code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
-        message: 'Client (version ' + window.braintree.client.VERSION + ') and ' + options.name + ' (version ' + VERSION + ') components must be from the same SDK version.'
-      }));
+      return Promise.reject(
+        new BraintreeError({
+          type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
+          code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
+          message:
+            "Client (version " +
+            window.braintree.client.VERSION +
+            ") and " +
+            options.name +
+            " (version " +
+            VERSION +
+            ") components must be from the same SDK version.",
+        })
+      );
     }
 
     return window.braintree.client.create({
       authorization: options.authorization,
-      debug: options.debug
+      debug: options.debug,
     });
   });
 }
 
 module.exports = {
-  create: createDeferredClient
+  create: createDeferredClient,
 };
 
 },{"./assets":13,"./braintree-error":16,"./errors":22,"./promise":24}],21:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
 function enumerate(values, prefix) {
-  prefix = prefix == null ? '' : prefix;
+  prefix = prefix == null ? "" : prefix;
 
   return values.reduce(function (enumeration, value) {
     enumeration[value] = prefix + value;
@@ -1168,7 +1218,7 @@ function enumerate(values, prefix) {
 module.exports = enumerate;
 
 },{}],22:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
 /**
  * @name BraintreeError.Shared Internal Error Codes
@@ -1191,49 +1241,49 @@ module.exports = enumerate;
  * @property {MERCHANT} METHOD_CALLED_AFTER_TEARDOWN Occurs when a method is called on a component instance after it has been torn down.
  */
 
-var BraintreeError = _dereq_('./braintree-error');
+var BraintreeError = _dereq_("./braintree-error");
 
 module.exports = {
   INVALID_USE_OF_INTERNAL_FUNCTION: {
     type: BraintreeError.types.INTERNAL,
-    code: 'INVALID_USE_OF_INTERNAL_FUNCTION'
+    code: "INVALID_USE_OF_INTERNAL_FUNCTION",
   },
   INSTANTIATION_OPTION_REQUIRED: {
     type: BraintreeError.types.MERCHANT,
-    code: 'INSTANTIATION_OPTION_REQUIRED'
+    code: "INSTANTIATION_OPTION_REQUIRED",
   },
   INCOMPATIBLE_VERSIONS: {
     type: BraintreeError.types.MERCHANT,
-    code: 'INCOMPATIBLE_VERSIONS'
+    code: "INCOMPATIBLE_VERSIONS",
   },
   CLIENT_SCRIPT_FAILED_TO_LOAD: {
     type: BraintreeError.types.NETWORK,
-    code: 'CLIENT_SCRIPT_FAILED_TO_LOAD',
-    message: 'Braintree client script could not be loaded.'
+    code: "CLIENT_SCRIPT_FAILED_TO_LOAD",
+    message: "Braintree client script could not be loaded.",
   },
   METHOD_CALLED_AFTER_TEARDOWN: {
     type: BraintreeError.types.MERCHANT,
-    code: 'METHOD_CALLED_AFTER_TEARDOWN'
-  }
+    code: "METHOD_CALLED_AFTER_TEARDOWN",
+  },
 };
 
 },{"./braintree-error":16}],23:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
 module.exports = function (obj) {
   return Object.keys(obj).filter(function (key) {
-    return typeof obj[key] === 'function';
+    return typeof obj[key] === "function";
   });
 };
 
 },{}],24:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var PromisePolyfill = _dereq_('promise-polyfill');
-var ExtendedPromise = _dereq_('@braintree/extended-promise');
+var PromisePolyfill = _dereq_("promise-polyfill");
+var ExtendedPromise = _dereq_("@braintree/extended-promise");
 
 // eslint-disable-next-line no-undef
-var PromiseGlobal = typeof Promise !== 'undefined' ? Promise : PromisePolyfill;
+var PromiseGlobal = typeof Promise !== "undefined" ? Promise : PromisePolyfill;
 
 ExtendedPromise.suppressUnhandledPromiseMessage = true;
 ExtendedPromise.setPromise(PromiseGlobal);

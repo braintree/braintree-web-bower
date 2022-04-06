@@ -11,7 +11,7 @@ var PromiseGlobal =
 typeof Promise !== "undefined" ? Promise : promise_polyfill_1.default;
 exports.PromiseGlobal = PromiseGlobal;
 
-},{"promise-polyfill":45}],2:[function(_dereq_,module,exports){
+},{"promise-polyfill":46}],2:[function(_dereq_,module,exports){
 "use strict";
 var promise_1 = _dereq_("./lib/promise");
 var scriptPromiseCache = {};
@@ -200,6 +200,9 @@ module.exports = _dereq_("./dist/is-ios-webview");
 module.exports = _dereq_("./dist/is-ios");
 
 },{"./dist/is-ios":12}],21:[function(_dereq_,module,exports){
+module.exports = _dereq_("./dist/is-samsung");
+
+},{"./dist/is-samsung":14}],22:[function(_dereq_,module,exports){
 "use strict";
 var GlobalPromise = (typeof Promise !== "undefined"
     ? Promise // eslint-disable-line no-undef
@@ -333,7 +336,7 @@ var ExtendedPromise = /** @class */ (function () {
 }());
 module.exports = ExtendedPromise;
 
-},{}],22:[function(_dereq_,module,exports){
+},{}],23:[function(_dereq_,module,exports){
 "use strict";
 var set_attributes_1 = _dereq_("./lib/set-attributes");
 var default_attributes_1 = _dereq_("./lib/default-attributes");
@@ -353,7 +356,7 @@ module.exports = function createFrame(options) {
     return iframe;
 };
 
-},{"./lib/assign":23,"./lib/default-attributes":24,"./lib/set-attributes":25}],23:[function(_dereq_,module,exports){
+},{"./lib/assign":24,"./lib/default-attributes":25,"./lib/set-attributes":26}],24:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.assign = void 0;
@@ -376,7 +379,7 @@ target) {
 }
 exports.assign = assign;
 
-},{}],24:[function(_dereq_,module,exports){
+},{}],25:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.defaultAttributes = void 0;
@@ -387,7 +390,7 @@ exports.defaultAttributes = {
     scrolling: "no",
 };
 
-},{}],25:[function(_dereq_,module,exports){
+},{}],26:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.setAttributes = void 0;
@@ -408,7 +411,7 @@ attributes) {
 }
 exports.setAttributes = setAttributes;
 
-},{}],26:[function(_dereq_,module,exports){
+},{}],27:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {
@@ -422,7 +425,7 @@ function uuid() {
 
 module.exports = uuid;
 
-},{}],27:[function(_dereq_,module,exports){
+},{}],28:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 function deferred(fn) {
@@ -446,7 +449,7 @@ function deferred(fn) {
 }
 exports.deferred = deferred;
 
-},{}],28:[function(_dereq_,module,exports){
+},{}],29:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 function once(fn) {
@@ -464,7 +467,7 @@ function once(fn) {
 }
 exports.once = once;
 
-},{}],29:[function(_dereq_,module,exports){
+},{}],30:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 /* eslint-disable consistent-return */
@@ -476,7 +479,7 @@ function promiseOrCallback(promise, callback) {
 }
 exports.promiseOrCallback = promiseOrCallback;
 
-},{}],30:[function(_dereq_,module,exports){
+},{}],31:[function(_dereq_,module,exports){
 "use strict";
 var deferred_1 = _dereq_("./lib/deferred");
 var once_1 = _dereq_("./lib/once");
@@ -526,7 +529,7 @@ wrapPromise.wrapPrototype = function (target, options) {
 };
 module.exports = wrapPromise;
 
-},{"./lib/deferred":27,"./lib/once":28,"./lib/promise-or-callback":29}],31:[function(_dereq_,module,exports){
+},{"./lib/deferred":28,"./lib/once":29,"./lib/promise-or-callback":30}],32:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Framebus = void 0;
@@ -712,14 +715,14 @@ var Framebus = /** @class */ (function () {
 }());
 exports.Framebus = Framebus;
 
-},{"./lib/broadcast":35,"./lib/constants":36,"./lib/is-not-string":39,"./lib/package-payload":41,"./lib/subscription-args-invalid":43}],32:[function(_dereq_,module,exports){
+},{"./lib/broadcast":36,"./lib/constants":37,"./lib/is-not-string":40,"./lib/package-payload":42,"./lib/subscription-args-invalid":44}],33:[function(_dereq_,module,exports){
 "use strict";
 var attach_1 = _dereq_("./lib/attach");
 var framebus_1 = _dereq_("./framebus");
 attach_1.attach();
 module.exports = framebus_1.Framebus;
 
-},{"./framebus":31,"./lib/attach":33}],33:[function(_dereq_,module,exports){
+},{"./framebus":32,"./lib/attach":34}],34:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.detach = exports.attach = void 0;
@@ -741,7 +744,7 @@ function detach() {
 exports.detach = detach;
 // endRemoveIf(production)
 
-},{"./message":40}],34:[function(_dereq_,module,exports){
+},{"./message":41}],35:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.broadcastToChildWindows = void 0;
@@ -760,7 +763,7 @@ function broadcastToChildWindows(payload, origin, source) {
 }
 exports.broadcastToChildWindows = broadcastToChildWindows;
 
-},{"./broadcast":35,"./constants":36}],35:[function(_dereq_,module,exports){
+},{"./broadcast":36,"./constants":37}],36:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.broadcast = void 0;
@@ -792,7 +795,7 @@ function broadcast(frame, payload, origin) {
 }
 exports.broadcast = broadcast;
 
-},{"./has-opener":38}],36:[function(_dereq_,module,exports){
+},{"./has-opener":39}],37:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.subscribers = exports.childWindows = exports.prefix = void 0;
@@ -800,7 +803,7 @@ exports.prefix = "/*framebus*/";
 exports.childWindows = [];
 exports.subscribers = {};
 
-},{}],37:[function(_dereq_,module,exports){
+},{}],38:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.dispatch = void 0;
@@ -825,7 +828,7 @@ function dispatch(origin, event, data, reply, e) {
 }
 exports.dispatch = dispatch;
 
-},{"./constants":36}],38:[function(_dereq_,module,exports){
+},{"./constants":37}],39:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.hasOpener = void 0;
@@ -846,7 +849,7 @@ function hasOpener(frame) {
 }
 exports.hasOpener = hasOpener;
 
-},{}],39:[function(_dereq_,module,exports){
+},{}],40:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.isntString = void 0;
@@ -855,7 +858,7 @@ function isntString(str) {
 }
 exports.isntString = isntString;
 
-},{}],40:[function(_dereq_,module,exports){
+},{}],41:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.onmessage = void 0;
@@ -879,7 +882,7 @@ function onmessage(e) {
 }
 exports.onmessage = onmessage;
 
-},{"./broadcast-to-child-windows":34,"./dispatch":37,"./is-not-string":39,"./unpack-payload":44}],41:[function(_dereq_,module,exports){
+},{"./broadcast-to-child-windows":35,"./dispatch":38,"./is-not-string":40,"./unpack-payload":45}],42:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.packagePayload = void 0;
@@ -905,7 +908,7 @@ function packagePayload(event, origin, data, reply) {
 }
 exports.packagePayload = packagePayload;
 
-},{"./constants":36,"./subscribe-replier":42}],42:[function(_dereq_,module,exports){
+},{"./constants":37,"./subscribe-replier":43}],43:[function(_dereq_,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -929,7 +932,7 @@ function subscribeReplier(fn, origin) {
 }
 exports.subscribeReplier = subscribeReplier;
 
-},{"../framebus":31,"@braintree/uuid":26}],43:[function(_dereq_,module,exports){
+},{"../framebus":32,"@braintree/uuid":27}],44:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.subscriptionArgsInvalid = void 0;
@@ -945,7 +948,7 @@ function subscriptionArgsInvalid(event, fn, origin) {
 }
 exports.subscriptionArgsInvalid = subscriptionArgsInvalid;
 
-},{"./is-not-string":39}],44:[function(_dereq_,module,exports){
+},{"./is-not-string":40}],45:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.unpackPayload = void 0;
@@ -981,7 +984,7 @@ function unpackPayload(e) {
 }
 exports.unpackPayload = unpackPayload;
 
-},{"./constants":36,"./package-payload":41}],45:[function(_dereq_,module,exports){
+},{"./constants":37,"./package-payload":42}],46:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -1057,8 +1060,6 @@ function allSettled(arr) {
 // Store setTimeout reference so promise-polyfill will be unaffected by
 // other code modifying setTimeout (like sinon.useFakeTimers())
 var setTimeoutFunc = setTimeout;
-// @ts-ignore
-var setImmediateFunc = typeof setImmediate !== 'undefined' ? setImmediate : null;
 
 function isArray(x) {
   return Boolean(x && typeof x.length !== 'undefined');
@@ -1292,10 +1293,10 @@ Promise.race = function(arr) {
 // Use polyfill for setImmediate for performance gains
 Promise._immediateFn =
   // @ts-ignore
-  (typeof setImmediateFunc === 'function' &&
+  (typeof setImmediate === 'function' &&
     function(fn) {
       // @ts-ignore
-      setImmediateFunc(fn);
+      setImmediate(fn);
     }) ||
   function(fn) {
     setTimeoutFunc(fn, 0);
@@ -1309,12 +1310,12 @@ Promise._unhandledRejectionFn = function _unhandledRejectionFn(err) {
 
 module.exports = Promise;
 
-},{}],46:[function(_dereq_,module,exports){
-'use strict';
+},{}],47:[function(_dereq_,module,exports){
+"use strict";
 
-var createAuthorizationData = _dereq_('./create-authorization-data');
-var jsonClone = _dereq_('./json-clone');
-var constants = _dereq_('./constants');
+var createAuthorizationData = _dereq_("./create-authorization-data");
+var jsonClone = _dereq_("./json-clone");
+var constants = _dereq_("./constants");
 
 function addMetadata(configuration, data) {
   var key;
@@ -1343,78 +1344,90 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":51,"./create-authorization-data":54,"./json-clone":60}],47:[function(_dereq_,module,exports){
-'use strict';
+},{"./constants":52,"./create-authorization-data":55,"./json-clone":61}],48:[function(_dereq_,module,exports){
+"use strict";
 
-var Promise = _dereq_('./promise');
-var constants = _dereq_('./constants');
-var addMetadata = _dereq_('./add-metadata');
+var Promise = _dereq_("./promise");
+var constants = _dereq_("./constants");
+var addMetadata = _dereq_("./add-metadata");
 
 function sendAnalyticsEvent(clientInstanceOrPromise, kind, callback) {
   var timestamp = Date.now(); // milliseconds
 
-  return Promise.resolve(clientInstanceOrPromise).then(function (client) {
-    var timestampInPromise = Date.now();
-    var configuration = client.getConfiguration();
-    var request = client._request;
-    var url = configuration.gatewayConfiguration.analytics.url;
-    var data = {
-      analytics: [{
-        kind: constants.ANALYTICS_PREFIX + kind,
-        isAsync: Math.floor(timestampInPromise / 1000) !== Math.floor(timestamp / 1000),
-        timestamp: timestamp
-      }]
-    };
+  return Promise.resolve(clientInstanceOrPromise)
+    .then(function (client) {
+      var timestampInPromise = Date.now();
+      var configuration = client.getConfiguration();
+      var request = client._request;
+      var url = configuration.gatewayConfiguration.analytics.url;
+      var data = {
+        analytics: [
+          {
+            kind: constants.ANALYTICS_PREFIX + kind,
+            isAsync:
+              Math.floor(timestampInPromise / 1000) !==
+              Math.floor(timestamp / 1000),
+            timestamp: timestamp,
+          },
+        ],
+      };
 
-    request({
-      url: url,
-      method: 'post',
-      data: addMetadata(configuration, data),
-      timeout: constants.ANALYTICS_REQUEST_TIMEOUT_MS
-    }, callback);
-  }).catch(function (err) {
-    // for all non-test cases, we don't provide a callback,
-    // so this error will always be swallowed. In this case,
-    // that's fine, it should only error when the deferred
-    // client fails to set up, in which case we don't want
-    // that error to report over and over again via these
-    // deferred analytics events
-    if (callback) {
-      callback(err);
-    }
-  });
+      request(
+        {
+          url: url,
+          method: "post",
+          data: addMetadata(configuration, data),
+          timeout: constants.ANALYTICS_REQUEST_TIMEOUT_MS,
+        },
+        callback
+      );
+    })
+    .catch(function (err) {
+      // for all non-test cases, we don't provide a callback,
+      // so this error will always be swallowed. In this case,
+      // that's fine, it should only error when the deferred
+      // client fails to set up, in which case we don't want
+      // that error to report over and over again via these
+      // deferred analytics events
+      if (callback) {
+        callback(err);
+      }
+    });
 }
 
 module.exports = {
-  sendEvent: sendAnalyticsEvent
+  sendEvent: sendAnalyticsEvent,
 };
 
-},{"./add-metadata":46,"./constants":51,"./promise":62}],48:[function(_dereq_,module,exports){
-'use strict';
+},{"./add-metadata":47,"./constants":52,"./promise":63}],49:[function(_dereq_,module,exports){
+"use strict";
 
-var loadScript = _dereq_('@braintree/asset-loader/load-script');
+var loadScript = _dereq_("@braintree/asset-loader/load-script");
 
 module.exports = {
-  loadScript: loadScript
+  loadScript: loadScript,
 };
 
-},{"@braintree/asset-loader/load-script":3}],49:[function(_dereq_,module,exports){
-'use strict';
+},{"@braintree/asset-loader/load-script":3}],50:[function(_dereq_,module,exports){
+"use strict";
 
-var BraintreeError = _dereq_('./braintree-error');
-var Promise = _dereq_('./promise');
-var sharedErrors = _dereq_('./errors');
-var VERSION = "3.85.2";
+var BraintreeError = _dereq_("./braintree-error");
+var Promise = _dereq_("./promise");
+var sharedErrors = _dereq_("./errors");
+var VERSION = "3.85.3";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
 
   if (!options) {
-    return Promise.reject(new BraintreeError({
-      type: sharedErrors.INVALID_USE_OF_INTERNAL_FUNCTION.type,
-      code: sharedErrors.INVALID_USE_OF_INTERNAL_FUNCTION.code,
-      message: 'Options must be passed to basicComponentVerification function.'
-    }));
+    return Promise.reject(
+      new BraintreeError({
+        type: sharedErrors.INVALID_USE_OF_INTERNAL_FUNCTION.type,
+        code: sharedErrors.INVALID_USE_OF_INTERNAL_FUNCTION.code,
+        message:
+          "Options must be passed to basicComponentVerification function.",
+      })
+    );
   }
 
   name = options.name;
@@ -1422,34 +1435,45 @@ function basicComponentVerification(options) {
   authorization = options.authorization;
 
   if (!client && !authorization) {
-    return Promise.reject(new BraintreeError({
-      type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
-      code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
-      // NEXT_MAJOR_VERSION in major version, we expose passing in authorization for all components
-      // instead of passing in a client instance. Leave this a silent feature for now.
-      message: 'options.client is required when instantiating ' + name + '.'
-    }));
+    return Promise.reject(
+      new BraintreeError({
+        type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
+        code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
+        // NEXT_MAJOR_VERSION in major version, we expose passing in authorization for all components
+        // instead of passing in a client instance. Leave this a silent feature for now.
+        message: "options.client is required when instantiating " + name + ".",
+      })
+    );
   }
 
   if (!authorization && client.getVersion() !== VERSION) {
-    return Promise.reject(new BraintreeError({
-      type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
-      code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
-      message: 'Client (version ' + client.getVersion() + ') and ' + name + ' (version ' + VERSION + ') components must be from the same SDK version.'
-    }));
+    return Promise.reject(
+      new BraintreeError({
+        type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
+        code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
+        message:
+          "Client (version " +
+          client.getVersion() +
+          ") and " +
+          name +
+          " (version " +
+          VERSION +
+          ") components must be from the same SDK version.",
+      })
+    );
   }
 
   return Promise.resolve();
 }
 
 module.exports = {
-  verify: basicComponentVerification
+  verify: basicComponentVerification,
 };
 
-},{"./braintree-error":50,"./errors":57,"./promise":62}],50:[function(_dereq_,module,exports){
-'use strict';
+},{"./braintree-error":51,"./errors":58,"./promise":63}],51:[function(_dereq_,module,exports){
+"use strict";
 
-var enumerate = _dereq_('./enumerate');
+var enumerate = _dereq_("./enumerate");
 
 /**
  * @class
@@ -1460,18 +1484,18 @@ var enumerate = _dereq_('./enumerate');
  */
 function BraintreeError(options) {
   if (!BraintreeError.types.hasOwnProperty(options.type)) {
-    throw new Error(options.type + ' is not a valid type.');
+    throw new Error(options.type + " is not a valid type.");
   }
 
   if (!options.code) {
-    throw new Error('Error code required.');
+    throw new Error("Error code required.");
   }
 
   if (!options.message) {
-    throw new Error('Error message required.');
+    throw new Error("Error message required.");
   }
 
-  this.name = 'BraintreeError';
+  this.name = "BraintreeError";
 
   /**
    * @type {string}
@@ -1514,15 +1538,19 @@ BraintreeError.prototype.constructor = BraintreeError;
  * @property {string} UNKNOWN An error where the origin is unknown.
  */
 BraintreeError.types = enumerate([
-  'CUSTOMER',
-  'MERCHANT',
-  'NETWORK',
-  'INTERNAL',
-  'UNKNOWN'
+  "CUSTOMER",
+  "MERCHANT",
+  "NETWORK",
+  "INTERNAL",
+  "UNKNOWN",
 ]);
 
 BraintreeError.findRootError = function (err) {
-  if (err instanceof BraintreeError && err.details && err.details.originalError) {
+  if (
+    err instanceof BraintreeError &&
+    err.details &&
+    err.details.originalError
+  ) {
     return BraintreeError.findRootError(err.details.originalError);
   }
 
@@ -1531,52 +1559,52 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":56}],51:[function(_dereq_,module,exports){
-'use strict';
+},{"./enumerate":57}],52:[function(_dereq_,module,exports){
+"use strict";
 
-var VERSION = "3.85.2";
-var PLATFORM = 'web';
+var VERSION = "3.85.3";
+var PLATFORM = "web";
 
 var CLIENT_API_URLS = {
-  production: 'https://api.braintreegateway.com:443',
-  sandbox: 'https://api.sandbox.braintreegateway.com:443'
+  production: "https://api.braintreegateway.com:443",
+  sandbox: "https://api.sandbox.braintreegateway.com:443",
 };
 
 var ASSETS_URLS = {
-  production: 'https://assets.braintreegateway.com',
-  sandbox: 'https://assets.braintreegateway.com'
+  production: "https://assets.braintreegateway.com",
+  sandbox: "https://assets.braintreegateway.com",
 };
 
 var GRAPHQL_URLS = {
-  production: 'https://payments.braintree-api.com/graphql',
-  sandbox: 'https://payments.sandbox.braintree-api.com/graphql'
+  production: "https://payments.braintree-api.com/graphql",
+  sandbox: "https://payments.sandbox.braintree-api.com/graphql",
 };
 
 // endRemoveIf(production)
 
 module.exports = {
-  ANALYTICS_PREFIX: PLATFORM + '.',
+  ANALYTICS_PREFIX: PLATFORM + ".",
   ANALYTICS_REQUEST_TIMEOUT_MS: 2000,
   ASSETS_URLS: ASSETS_URLS,
   CLIENT_API_URLS: CLIENT_API_URLS,
-  FRAUDNET_SOURCE: 'BRAINTREE_SIGNIN',
-  FRAUDNET_FNCLS: 'fnparams-dede7cc5-15fd-4c75-a9f4-36c430ee3a99',
-  FRAUDNET_URL: 'https://c.paypal.com/da/r/fb.js',
-  BUS_CONFIGURATION_REQUEST_EVENT: 'BUS_CONFIGURATION_REQUEST',
+  FRAUDNET_SOURCE: "BRAINTREE_SIGNIN",
+  FRAUDNET_FNCLS: "fnparams-dede7cc5-15fd-4c75-a9f4-36c430ee3a99",
+  FRAUDNET_URL: "https://c.paypal.com/da/r/fb.js",
+  BUS_CONFIGURATION_REQUEST_EVENT: "BUS_CONFIGURATION_REQUEST",
   GRAPHQL_URLS: GRAPHQL_URLS,
   INTEGRATION_TIMEOUT_MS: 60000,
   VERSION: VERSION,
-  INTEGRATION: 'custom',
-  SOURCE: 'client',
+  INTEGRATION: "custom",
+  SOURCE: "client",
   PLATFORM: PLATFORM,
-  BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
+  BRAINTREE_LIBRARY_VERSION: "braintree/" + PLATFORM + "/" + VERSION,
 };
 
-},{}],52:[function(_dereq_,module,exports){
-'use strict';
+},{}],53:[function(_dereq_,module,exports){
+"use strict";
 
-var BraintreeError = _dereq_('./braintree-error');
-var sharedErrors = _dereq_('./errors');
+var BraintreeError = _dereq_("./braintree-error");
+var sharedErrors = _dereq_("./errors");
 
 module.exports = function (instance, methodNames) {
   methodNames.forEach(function (methodName) {
@@ -1584,17 +1612,17 @@ module.exports = function (instance, methodNames) {
       throw new BraintreeError({
         type: sharedErrors.METHOD_CALLED_AFTER_TEARDOWN.type,
         code: sharedErrors.METHOD_CALLED_AFTER_TEARDOWN.code,
-        message: methodName + ' cannot be called after teardown.'
+        message: methodName + " cannot be called after teardown.",
       });
     };
   });
 };
 
-},{"./braintree-error":50,"./errors":57}],53:[function(_dereq_,module,exports){
-'use strict';
+},{"./braintree-error":51,"./errors":58}],54:[function(_dereq_,module,exports){
+"use strict";
 
 // endRemoveIf(production)
-var ASSETS_URLS = _dereq_('./constants').ASSETS_URLS;
+var ASSETS_URLS = _dereq_("./constants").ASSETS_URLS;
 
 function createAssetsUrl(authorization) {
   // endRemoveIf(production)
@@ -1604,27 +1632,27 @@ function createAssetsUrl(authorization) {
 /* eslint-enable */
 
 module.exports = {
-  create: createAssetsUrl
+  create: createAssetsUrl,
 };
 
-},{"./constants":51}],54:[function(_dereq_,module,exports){
-'use strict';
+},{"./constants":52}],55:[function(_dereq_,module,exports){
+"use strict";
 
-var atob = _dereq_('../lib/vendor/polyfill').atob;
-var CLIENT_API_URLS = _dereq_('../lib/constants').CLIENT_API_URLS;
+var atob = _dereq_("../lib/vendor/polyfill").atob;
+var CLIENT_API_URLS = _dereq_("../lib/constants").CLIENT_API_URLS;
 
 function _isTokenizationKey(str) {
   return /^[a-zA-Z0-9]+_[a-zA-Z0-9]+_[a-zA-Z0-9_]+$/.test(str);
 }
 
 function _parseTokenizationKey(tokenizationKey) {
-  var tokens = tokenizationKey.split('_');
+  var tokens = tokenizationKey.split("_");
   var environment = tokens[0];
-  var merchantId = tokens.slice(2).join('_');
+  var merchantId = tokens.slice(2).join("_");
 
   return {
     merchantId: merchantId,
-    environment: environment
+    environment: environment,
   };
 }
 
@@ -1632,18 +1660,23 @@ function createAuthorizationData(authorization) {
   var parsedClientToken, parsedTokenizationKey;
   var data = {
     attrs: {},
-    configUrl: ''
+    configUrl: "",
   };
 
   if (_isTokenizationKey(authorization)) {
     parsedTokenizationKey = _parseTokenizationKey(authorization);
     data.environment = parsedTokenizationKey.environment;
     data.attrs.tokenizationKey = authorization;
-    data.configUrl = CLIENT_API_URLS[parsedTokenizationKey.environment] + '/merchants/' + parsedTokenizationKey.merchantId + '/client_api/v1/configuration';
+    data.configUrl =
+      CLIENT_API_URLS[parsedTokenizationKey.environment] +
+      "/merchants/" +
+      parsedTokenizationKey.merchantId +
+      "/client_api/v1/configuration";
   } else {
     parsedClientToken = JSON.parse(atob(authorization));
     data.environment = parsedClientToken.environment;
-    data.attrs.authorizationFingerprint = parsedClientToken.authorizationFingerprint;
+    data.attrs.authorizationFingerprint =
+      parsedClientToken.authorizationFingerprint;
     data.configUrl = parsedClientToken.configUrl;
     data.graphQL = parsedClientToken.graphQL;
   }
@@ -1653,15 +1686,15 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/constants":51,"../lib/vendor/polyfill":64}],55:[function(_dereq_,module,exports){
-'use strict';
+},{"../lib/constants":52,"../lib/vendor/polyfill":65}],56:[function(_dereq_,module,exports){
+"use strict";
 
-var BraintreeError = _dereq_('./braintree-error');
-var Promise = _dereq_('./promise');
-var assets = _dereq_('./assets');
-var sharedErrors = _dereq_('./errors');
+var BraintreeError = _dereq_("./braintree-error");
+var Promise = _dereq_("./promise");
+var assets = _dereq_("./assets");
+var sharedErrors = _dereq_("./errors");
 
-var VERSION = "3.85.2";
+var VERSION = "3.85.3";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1671,45 +1704,58 @@ function createDeferredClient(options) {
   }
 
   if (!(window.braintree && window.braintree.client)) {
-    promise = assets.loadScript({
-      src: options.assetsUrl + '/web/' + VERSION + '/js/client.min.js'
-    }).catch(function (err) {
-      return Promise.reject(new BraintreeError({
-        type: sharedErrors.CLIENT_SCRIPT_FAILED_TO_LOAD.type,
-        code: sharedErrors.CLIENT_SCRIPT_FAILED_TO_LOAD.code,
-        message: sharedErrors.CLIENT_SCRIPT_FAILED_TO_LOAD.message,
-        details: {
-          originalError: err
-        }
-      }));
-    });
+    promise = assets
+      .loadScript({
+        src: options.assetsUrl + "/web/" + VERSION + "/js/client.min.js",
+      })
+      .catch(function (err) {
+        return Promise.reject(
+          new BraintreeError({
+            type: sharedErrors.CLIENT_SCRIPT_FAILED_TO_LOAD.type,
+            code: sharedErrors.CLIENT_SCRIPT_FAILED_TO_LOAD.code,
+            message: sharedErrors.CLIENT_SCRIPT_FAILED_TO_LOAD.message,
+            details: {
+              originalError: err,
+            },
+          })
+        );
+      });
   }
 
   return promise.then(function () {
     if (window.braintree.client.VERSION !== VERSION) {
-      return Promise.reject(new BraintreeError({
-        type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
-        code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
-        message: 'Client (version ' + window.braintree.client.VERSION + ') and ' + options.name + ' (version ' + VERSION + ') components must be from the same SDK version.'
-      }));
+      return Promise.reject(
+        new BraintreeError({
+          type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
+          code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
+          message:
+            "Client (version " +
+            window.braintree.client.VERSION +
+            ") and " +
+            options.name +
+            " (version " +
+            VERSION +
+            ") components must be from the same SDK version.",
+        })
+      );
     }
 
     return window.braintree.client.create({
       authorization: options.authorization,
-      debug: options.debug
+      debug: options.debug,
     });
   });
 }
 
 module.exports = {
-  create: createDeferredClient
+  create: createDeferredClient,
 };
 
-},{"./assets":48,"./braintree-error":50,"./errors":57,"./promise":62}],56:[function(_dereq_,module,exports){
-'use strict';
+},{"./assets":49,"./braintree-error":51,"./errors":58,"./promise":63}],57:[function(_dereq_,module,exports){
+"use strict";
 
 function enumerate(values, prefix) {
-  prefix = prefix == null ? '' : prefix;
+  prefix = prefix == null ? "" : prefix;
 
   return values.reduce(function (enumeration, value) {
     enumeration[value] = prefix + value;
@@ -1720,8 +1766,8 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],57:[function(_dereq_,module,exports){
-'use strict';
+},{}],58:[function(_dereq_,module,exports){
+"use strict";
 
 /**
  * @name BraintreeError.Shared Internal Error Codes
@@ -1744,34 +1790,34 @@ module.exports = enumerate;
  * @property {MERCHANT} METHOD_CALLED_AFTER_TEARDOWN Occurs when a method is called on a component instance after it has been torn down.
  */
 
-var BraintreeError = _dereq_('./braintree-error');
+var BraintreeError = _dereq_("./braintree-error");
 
 module.exports = {
   INVALID_USE_OF_INTERNAL_FUNCTION: {
     type: BraintreeError.types.INTERNAL,
-    code: 'INVALID_USE_OF_INTERNAL_FUNCTION'
+    code: "INVALID_USE_OF_INTERNAL_FUNCTION",
   },
   INSTANTIATION_OPTION_REQUIRED: {
     type: BraintreeError.types.MERCHANT,
-    code: 'INSTANTIATION_OPTION_REQUIRED'
+    code: "INSTANTIATION_OPTION_REQUIRED",
   },
   INCOMPATIBLE_VERSIONS: {
     type: BraintreeError.types.MERCHANT,
-    code: 'INCOMPATIBLE_VERSIONS'
+    code: "INCOMPATIBLE_VERSIONS",
   },
   CLIENT_SCRIPT_FAILED_TO_LOAD: {
     type: BraintreeError.types.NETWORK,
-    code: 'CLIENT_SCRIPT_FAILED_TO_LOAD',
-    message: 'Braintree client script could not be loaded.'
+    code: "CLIENT_SCRIPT_FAILED_TO_LOAD",
+    message: "Braintree client script could not be loaded.",
   },
   METHOD_CALLED_AFTER_TEARDOWN: {
     type: BraintreeError.types.MERCHANT,
-    code: 'METHOD_CALLED_AFTER_TEARDOWN'
-  }
+    code: "METHOD_CALLED_AFTER_TEARDOWN",
+  },
 };
 
-},{"./braintree-error":50}],58:[function(_dereq_,module,exports){
-'use strict';
+},{"./braintree-error":51}],59:[function(_dereq_,module,exports){
+"use strict";
 
 module.exports = function inIframe(win) {
   win = win || window;
@@ -1783,21 +1829,21 @@ module.exports = function inIframe(win) {
   }
 };
 
-},{}],59:[function(_dereq_,module,exports){
-'use strict';
+},{}],60:[function(_dereq_,module,exports){
+"use strict";
 
 var parser;
 var legalHosts = {
-  'paypal.com': 1,
-  'braintreepayments.com': 1,
-  'braintreegateway.com': 1,
-  'braintree-api.com': 1
+  "paypal.com": 1,
+  "braintreepayments.com": 1,
+  "braintreegateway.com": 1,
+  "braintree-api.com": 1,
 };
 
 // endRemoveIf(production)
 
 function stripSubdomains(domain) {
-  return domain.split('.').slice(-2).join('.');
+  return domain.split(".").slice(-2).join(".");
 }
 
 function isVerifiedDomain(url) {
@@ -1809,7 +1855,7 @@ function isVerifiedDomain(url) {
     return false;
   }
 
-  parser = parser || document.createElement('a');
+  parser = parser || document.createElement("a");
   parser.href = url;
   mainDomain = stripSubdomains(parser.hostname);
 
@@ -1818,44 +1864,46 @@ function isVerifiedDomain(url) {
 
 module.exports = isVerifiedDomain;
 
-},{}],60:[function(_dereq_,module,exports){
-'use strict';
+},{}],61:[function(_dereq_,module,exports){
+"use strict";
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],61:[function(_dereq_,module,exports){
-'use strict';
+},{}],62:[function(_dereq_,module,exports){
+"use strict";
 
 module.exports = function (obj) {
   return Object.keys(obj).filter(function (key) {
-    return typeof obj[key] === 'function';
+    return typeof obj[key] === "function";
   });
 };
 
-},{}],62:[function(_dereq_,module,exports){
-'use strict';
+},{}],63:[function(_dereq_,module,exports){
+"use strict";
 
-var PromisePolyfill = _dereq_('promise-polyfill');
-var ExtendedPromise = _dereq_('@braintree/extended-promise');
+var PromisePolyfill = _dereq_("promise-polyfill");
+var ExtendedPromise = _dereq_("@braintree/extended-promise");
 
 // eslint-disable-next-line no-undef
-var PromiseGlobal = typeof Promise !== 'undefined' ? Promise : PromisePolyfill;
+var PromiseGlobal = typeof Promise !== "undefined" ? Promise : PromisePolyfill;
 
 ExtendedPromise.suppressUnhandledPromiseMessage = true;
 ExtendedPromise.setPromise(PromiseGlobal);
 
 module.exports = PromiseGlobal;
 
-},{"@braintree/extended-promise":21,"promise-polyfill":45}],63:[function(_dereq_,module,exports){
-'use strict';
+},{"@braintree/extended-promise":22,"promise-polyfill":46}],64:[function(_dereq_,module,exports){
+"use strict";
 
 function _notEmpty(obj) {
   var key;
 
   for (key in obj) {
-    if (obj.hasOwnProperty(key)) { return true; }
+    if (obj.hasOwnProperty(key)) {
+      return true;
+    }
   }
 
   return false;
@@ -1863,8 +1911,13 @@ function _notEmpty(obj) {
 
 /* eslint-disable no-mixed-operators */
 function _isArray(value) {
-  return value && typeof value === 'object' && typeof value.length === 'number' &&
-    Object.prototype.toString.call(value) === '[object Array]' || false;
+  return (
+    (value &&
+      typeof value === "object" &&
+      typeof value.length === "number" &&
+      Object.prototype.toString.call(value) === "[object Array]") ||
+    false
+  );
 }
 /* eslint-enable no-mixed-operators */
 
@@ -1883,10 +1936,11 @@ function parse(url) {
     return {};
   }
 
-  query = url.replace(/#.*$/, '').replace(/^.*\?/, '').split('&');
+  query = url.split("?")[1] || "";
+  query = query.replace(/#.*$/, "").split("&");
 
   params = query.reduce(function (toReturn, keyValue) {
-    var parts = keyValue.split('=');
+    var parts = keyValue.split("=");
     var key = decodeURIComponent(parts[0]);
     var value = decodeURIComponent(parts[1]);
 
@@ -1911,29 +1965,29 @@ function stringify(params, namespace) {
 
     if (namespace) {
       if (_isArray(params)) {
-        k = namespace + '[]';
+        k = namespace + "[]";
       } else {
-        k = namespace + '[' + p + ']';
+        k = namespace + "[" + p + "]";
       }
     } else {
       k = p;
     }
-    if (typeof v === 'object') {
+    if (typeof v === "object") {
       query.push(stringify(v, k));
     } else {
-      query.push(encodeURIComponent(k) + '=' + encodeURIComponent(v));
+      query.push(encodeURIComponent(k) + "=" + encodeURIComponent(v));
     }
   }
 
-  return query.join('&');
+  return query.join("&");
 }
 
 function queryify(url, params) {
-  url = url || '';
+  url = url || "";
 
-  if (params != null && typeof params === 'object' && _notEmpty(params)) {
-    url += url.indexOf('?') === -1 ? '?' : '';
-    url += url.indexOf('=') !== -1 ? '&' : '';
+  if (params != null && typeof params === "object" && _notEmpty(params)) {
+    url += url.indexOf("?") === -1 ? "?" : "";
+    url += url.indexOf("=") !== -1 ? "&" : "";
     url += stringify(params);
   }
 
@@ -1944,25 +1998,28 @@ module.exports = {
   parse: parse,
   stringify: stringify,
   queryify: queryify,
-  hasQueryParams: hasQueryParams
+  hasQueryParams: hasQueryParams,
 };
 
-},{}],64:[function(_dereq_,module,exports){
-'use strict';
+},{}],65:[function(_dereq_,module,exports){
+"use strict";
 
 // NEXT_MAJOR_VERSION old versions of IE don't have atob, in the
 // next major version, we're dropping support for those versions
 // so we can eliminate the need to have this atob polyfill
-var atobNormalized = typeof atob === 'function' ? atob : atobPolyfill;
+var atobNormalized = typeof atob === "function" ? atob : atobPolyfill;
 
 function atobPolyfill(base64String) {
   var a, b, c, b1, b2, b3, b4, i;
-  var base64Matcher = new RegExp('^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})([=]{1,2})?$');
-  var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
-  var result = '';
+  var base64Matcher = new RegExp(
+    "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})([=]{1,2})?$"
+  );
+  var characters =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+  var result = "";
 
   if (!base64Matcher.test(base64String)) {
-    throw new Error('Non base64 encoded input passed to window.atob polyfill');
+    throw new Error("Non base64 encoded input passed to window.atob polyfill");
   }
 
   i = 0;
@@ -1972,11 +2029,14 @@ function atobPolyfill(base64String) {
     b3 = characters.indexOf(base64String.charAt(i++));
     b4 = characters.indexOf(base64String.charAt(i++));
 
-    a = (b1 & 0x3F) << 2 | b2 >> 4 & 0x3;
-    b = (b2 & 0xF) << 4 | b3 >> 2 & 0xF;
-    c = (b3 & 0x3) << 6 | b4 & 0x3F;
+    a = ((b1 & 0x3f) << 2) | ((b2 >> 4) & 0x3);
+    b = ((b2 & 0xf) << 4) | ((b3 >> 2) & 0xf);
+    c = ((b3 & 0x3) << 6) | (b4 & 0x3f);
 
-    result += String.fromCharCode(a) + (b ? String.fromCharCode(b) : '') + (c ? String.fromCharCode(c) : '');
+    result +=
+      String.fromCharCode(a) +
+      (b ? String.fromCharCode(b) : "") +
+      (c ? String.fromCharCode(c) : "");
   } while (i < base64String.length);
 
   return result;
@@ -1986,47 +2046,67 @@ module.exports = {
   atob: function (base64String) {
     return atobNormalized.call(window, base64String);
   },
-  _atob: atobPolyfill
+  _atob: atobPolyfill,
 };
 
-},{}],65:[function(_dereq_,module,exports){
+},{}],66:[function(_dereq_,module,exports){
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
+var __importDefault =
+  (this && this.__importDefault) ||
+  function (mod) {
+    return mod && mod.__esModule ? mod : { default: mod };
+  };
 var venmo_desktop_1 = __importDefault(_dereq_("./venmo-desktop"));
 module.exports = function createVenmoDesktop(options) {
-    var instance = new venmo_desktop_1.default(options);
-    return instance.initialize();
+  var instance = new venmo_desktop_1.default(options);
+  return instance.initialize();
 };
 
-},{"./venmo-desktop":67}],66:[function(_dereq_,module,exports){
+},{"./venmo-desktop":68}],67:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.VENMO_PAYMENT_CONTEXT_STATUS_QUERY = exports.LEGACY_VENMO_PAYMENT_CONTEXT_STATUS_QUERY = exports.UPDATE_PAYMENT_CONTEXT_QUERY = exports.LEGACY_UPDATE_PAYMENT_CONTEXT_QUERY = exports.CREATE_PAYMENT_CONTEXT_QUERY = exports.LEGACY_CREATE_PAYMENT_CONTEXT_QUERY = void 0;
-exports.LEGACY_CREATE_PAYMENT_CONTEXT_QUERY = "mutation CreateVenmoQRCodePaymentContext($input: CreateVenmoQRCodePaymentContextInput!) {\n  createVenmoQRCodePaymentContext(input: $input) {\n    clientMutationId\n    venmoQRCodePaymentContext {\n      id\n      merchantId\n      createdAt\n      expiresAt\n    }\n  }\n}";
-exports.CREATE_PAYMENT_CONTEXT_QUERY = "mutation CreateVenmoPaymentContext($input: CreateVenmoPaymentContextInput!) {\n  createVenmoPaymentContext(input: $input) {\n    clientMutationId\n    venmoPaymentContext {\n      id\n      merchantId\n      createdAt\n      expiresAt\n    }\n  }\n}";
-exports.LEGACY_UPDATE_PAYMENT_CONTEXT_QUERY = "mutation UpdateVenmoQRCodePaymentContext($input: UpdateVenmoQRCodePaymentContextInput!) {\n  updateVenmoQRCodePaymentContext(input: $input) {\n    clientMutationId\n  }\n}";
-exports.UPDATE_PAYMENT_CONTEXT_QUERY = "mutation UpdateVenmoPaymentContextStatus($input: UpdateVenmoPaymentContextStatusInput!) {\n  updateVenmoPaymentContextStatus(input: $input) {\n    clientMutationId\n  }\n}";
-exports.LEGACY_VENMO_PAYMENT_CONTEXT_STATUS_QUERY = "query PaymentContext($id: ID!) {\n  node(id: $id) {\n    ... on VenmoQRCodePaymentContext {\n      status\n      paymentMethodId\n      userName\n    }\n  }\n}";
-exports.VENMO_PAYMENT_CONTEXT_STATUS_QUERY = "query PaymentContext($id: ID!) {\n  node(id: $id) {\n    ... on VenmoPaymentContext {\n      status\n      paymentMethodId\n      userName\n      payerInfo {\n        firstName\n        lastName\n        phoneNumber\n        email\n        externalId\n        userName\n      }\n    }\n  }\n}";
+exports.VENMO_PAYMENT_CONTEXT_STATUS_QUERY =
+  exports.LEGACY_VENMO_PAYMENT_CONTEXT_STATUS_QUERY =
+  exports.UPDATE_PAYMENT_CONTEXT_QUERY =
+  exports.LEGACY_UPDATE_PAYMENT_CONTEXT_QUERY =
+  exports.CREATE_PAYMENT_CONTEXT_QUERY =
+  exports.LEGACY_CREATE_PAYMENT_CONTEXT_QUERY =
+    void 0;
+exports.LEGACY_CREATE_PAYMENT_CONTEXT_QUERY =
+  "mutation CreateVenmoQRCodePaymentContext($input: CreateVenmoQRCodePaymentContextInput!) {\n  createVenmoQRCodePaymentContext(input: $input) {\n    clientMutationId\n    venmoQRCodePaymentContext {\n      id\n      merchantId\n      createdAt\n      expiresAt\n    }\n  }\n}";
+exports.CREATE_PAYMENT_CONTEXT_QUERY =
+  "mutation CreateVenmoPaymentContext($input: CreateVenmoPaymentContextInput!) {\n  createVenmoPaymentContext(input: $input) {\n    clientMutationId\n    venmoPaymentContext {\n      id\n      merchantId\n      createdAt\n      expiresAt\n    }\n  }\n}";
+exports.LEGACY_UPDATE_PAYMENT_CONTEXT_QUERY =
+  "mutation UpdateVenmoQRCodePaymentContext($input: UpdateVenmoQRCodePaymentContextInput!) {\n  updateVenmoQRCodePaymentContext(input: $input) {\n    clientMutationId\n  }\n}";
+exports.UPDATE_PAYMENT_CONTEXT_QUERY =
+  "mutation UpdateVenmoPaymentContextStatus($input: UpdateVenmoPaymentContextStatusInput!) {\n  updateVenmoPaymentContextStatus(input: $input) {\n    clientMutationId\n  }\n}";
+exports.LEGACY_VENMO_PAYMENT_CONTEXT_STATUS_QUERY =
+  "query PaymentContext($id: ID!) {\n  node(id: $id) {\n    ... on VenmoQRCodePaymentContext {\n      status\n      paymentMethodId\n      userName\n    }\n  }\n}";
+exports.VENMO_PAYMENT_CONTEXT_STATUS_QUERY =
+  "query PaymentContext($id: ID!) {\n  node(id: $id) {\n    ... on VenmoPaymentContext {\n      status\n      paymentMethodId\n      userName\n      payerInfo {\n        firstName\n        lastName\n        phoneNumber\n        email\n        externalId\n        userName\n      }\n    }\n  }\n}";
 
-},{}],67:[function(_dereq_,module,exports){
+},{}],68:[function(_dereq_,module,exports){
 "use strict";
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
+var __assign =
+  (this && this.__assign) ||
+  function () {
+    __assign =
+      Object.assign ||
+      function (t) {
         for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
+          s = arguments[i];
+          for (var p in s)
+            if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
         }
         return t;
-    };
+      };
     return __assign.apply(this, arguments);
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
+  };
+var __importDefault =
+  (this && this.__importDefault) ||
+  function (mod) {
+    return mod && mod.__esModule ? mod : { default: mod };
+  };
 Object.defineProperty(exports, "__esModule", { value: true });
 var framebus_1 = __importDefault(_dereq_("framebus"));
 var iframer_1 = __importDefault(_dereq_("@braintree/iframer"));
@@ -2036,372 +2116,402 @@ var queries_1 = _dereq_("./queries");
 var VENMO_DESKTOP_POLLING_INTERVAL = 1000; // 1 second
 var VISUAL_DELAY_BEFORE_SIGNALLING_COMPLETION = 2000; // 2 seconds
 var VenmoDesktop = /** @class */ (function () {
-    function VenmoDesktop(options) {
-        this.isHidden = true;
-        this.env = options.environment;
-        this.id = uuid_1.default();
-        this.profileId = options.profileId;
-        this.displayName = options.displayName;
-        this.paymentMethodUsage = options.paymentMethodUsage;
-        this.shouldUseLegacyQRCodeMutation = !this.paymentMethodUsage;
-        var frameUrl = options.url + "#" + this.env + "_" + this.id;
-        this.bus = new framebus_1.default({
-            channel: this.id,
-            verifyDomain: options.verifyDomain,
+  function VenmoDesktop(options) {
+    this.isHidden = true;
+    this.env = options.environment;
+    this.id = uuid_1.default();
+    this.profileId = options.profileId;
+    this.displayName = options.displayName;
+    this.paymentMethodUsage = options.paymentMethodUsage;
+    this.shouldUseLegacyQRCodeMutation = !this.paymentMethodUsage;
+    var frameUrl = options.url + "#" + this.env + "_" + this.id;
+    this.bus = new framebus_1.default({
+      channel: this.id,
+      verifyDomain: options.verifyDomain,
+    });
+    this.apiRequest = options.apiRequest;
+    this.sendEvent = options.sendEvent;
+    this.Promise = options.Promise;
+    this.alertBox = document.createElement("div");
+    this.alertBox.setAttribute("data-venmo-desktop-id", this.id);
+    this.alertBox.setAttribute("role", "alert");
+    this.alertBox.style.position = "fixed";
+    this.alertBox.style.display = "none";
+    this.alertBox.style.height = "1px";
+    this.alertBox.style.width = "1px";
+    this.alertBox.style.overflow = "hidden";
+    this.alertBox.style.zIndex = "0";
+    this.iframe = iframer_1.default({
+      src: frameUrl,
+      name: "venmo-desktop-iframe",
+      style: {
+        display: "none",
+        position: "fixed",
+        top: "0",
+        bottom: "0",
+        right: "0",
+        left: "0",
+        height: "100%",
+        width: "100%",
+        zIndex: "9999999",
+      },
+      title: "Venmo Desktop",
+    });
+  }
+  VenmoDesktop.prototype.initialize = function () {
+    var _this = this;
+    return new this.Promise(function (resolve) {
+      _this.bus.on(events_1.VENMO_DESKTOP_IFRAME_READY, function () {
+        resolve(_this);
+      });
+      _this.bus.on(events_1.VENMO_DESKTOP_REQUEST_NEW_QR_CODE, function () {
+        _this.sendEvent("venmo.tokenize.desktop.restarted-from-error-view");
+        _this.startPolling();
+      });
+      document.body.appendChild(_this.iframe);
+      document.body.appendChild(_this.alertBox);
+    });
+  };
+  VenmoDesktop.prototype.launchDesktopFlow = function () {
+    var _this = this;
+    this.isHidden = false;
+    var promise = new this.Promise(function (resolve, reject) {
+      _this.launchDesktopPromiseRejectFunction = reject;
+      var removeListeners = function () {
+        /* eslint-disable @typescript-eslint/no-use-before-define */
+        _this.bus.off(
+          events_1.VENMO_DESKTOP_CUSTOMER_CANCELED,
+          customerCancelledHandler
+        );
+        _this.bus.off(
+          events_1.VENMO_DESKTOP_AUTHORIZATION_COMPLETED,
+          completedHandler
+        );
+        _this.bus.off(
+          events_1.VENMO_DESKTOP_UNKNOWN_ERROR,
+          unknownErrorHandler
+        );
+        /* eslint-enable @typescript-eslint/no-use-before-define */
+      };
+      var unknownErrorHandler = function (err) {
+        removeListeners();
+        _this.sendEvent("venmo.tokenize.desktop.unknown-error");
+        reject({
+          allowUIToHandleError: false,
+          reason: "UNKNOWN_ERROR",
+          err: err,
         });
-        this.apiRequest = options.apiRequest;
-        this.sendEvent = options.sendEvent;
-        this.Promise = options.Promise;
-        this.alertBox = document.createElement("div");
-        this.alertBox.setAttribute("data-venmo-desktop-id", this.id);
-        this.alertBox.setAttribute("role", "alert");
-        this.alertBox.style.position = "fixed";
-        this.alertBox.style.display = "none";
-        this.alertBox.style.height = "1px";
-        this.alertBox.style.width = "1px";
-        this.alertBox.style.overflow = "hidden";
-        this.alertBox.style.zIndex = "0";
-        this.iframe = iframer_1.default({
-            src: frameUrl,
-            name: "venmo-desktop-iframe",
-            style: {
-                display: "none",
-                position: "fixed",
-                top: "0",
-                bottom: "0",
-                right: "0",
-                left: "0",
-                height: "100%",
-                width: "100%",
-                zIndex: "9999999",
-            },
-            title: "Venmo Desktop",
+      };
+      var customerCancelledHandler = function () {
+        removeListeners();
+        _this.updateVenmoDesktopPaymentContext("CANCELED");
+        _this.sendEvent(
+          "venmo.tokenize.desktop.status-change.canceled-from-modal"
+        );
+        reject({
+          allowUIToHandleError: false,
+          reason: "CUSTOMER_CANCELED",
         });
+      };
+      var completedHandler = function (payload) {
+        removeListeners();
+        resolve(payload);
+      };
+      _this.bus.on(
+        events_1.VENMO_DESKTOP_CUSTOMER_CANCELED,
+        customerCancelledHandler
+      );
+      _this.bus.on(
+        events_1.VENMO_DESKTOP_AUTHORIZATION_COMPLETED,
+        completedHandler
+      );
+      _this.bus.on(events_1.VENMO_DESKTOP_UNKNOWN_ERROR, unknownErrorHandler);
+    });
+    this.iframe.style.display = "block";
+    this.setAlert("Generating a QR code, get your Venmo app ready");
+    this.iframe.focus();
+    this.startPolling();
+    return promise
+      .then(function (result) {
+        delete _this.venmoContextId;
+        delete _this.launchDesktopPromiseRejectFunction;
+        return result;
+      })
+      .catch(function (err) {
+        delete _this.venmoContextId;
+        delete _this.launchDesktopPromiseRejectFunction;
+        return _this.Promise.reject(err);
+      });
+  };
+  VenmoDesktop.prototype.triggerCompleted = function (result) {
+    var _this = this;
+    if (this.isHidden) {
+      return;
     }
-    VenmoDesktop.prototype.initialize = function () {
-        var _this = this;
-        return new this.Promise(function (resolve) {
-            _this.bus.on(events_1.VENMO_DESKTOP_IFRAME_READY, function () {
-                resolve(_this);
-            });
-            _this.bus.on(events_1.VENMO_DESKTOP_REQUEST_NEW_QR_CODE, function () {
-                _this.sendEvent("venmo.tokenize.desktop.restarted-from-error-view");
-                _this.startPolling();
-            });
-            document.body.appendChild(_this.iframe);
-            document.body.appendChild(_this.alertBox);
-        });
-    };
-    VenmoDesktop.prototype.launchDesktopFlow = function () {
-        var _this = this;
-        this.isHidden = false;
-        var promise = new this.Promise(function (resolve, reject) {
-            _this.launchDesktopPromiseRejectFunction = reject;
-            var removeListeners = function () {
-                /* eslint-disable @typescript-eslint/no-use-before-define */
-                _this.bus.off(events_1.VENMO_DESKTOP_CUSTOMER_CANCELED, customerCancelledHandler);
-                _this.bus.off(events_1.VENMO_DESKTOP_AUTHORIZATION_COMPLETED, completedHandler);
-                _this.bus.off(events_1.VENMO_DESKTOP_UNKNOWN_ERROR, unknownErrorHandler);
-                /* eslint-enable @typescript-eslint/no-use-before-define */
-            };
-            var unknownErrorHandler = function (err) {
-                removeListeners();
-                _this.sendEvent("venmo.tokenize.desktop.unknown-error");
-                reject({
-                    allowUIToHandleError: false,
-                    reason: "UNKNOWN_ERROR",
-                    err: err,
-                });
-            };
-            var customerCancelledHandler = function () {
-                removeListeners();
-                _this.updateVenmoDesktopPaymentContext("CANCELED");
-                _this.sendEvent("venmo.tokenize.desktop.status-change.canceled-from-modal");
-                reject({
-                    allowUIToHandleError: false,
-                    reason: "CUSTOMER_CANCELED",
-                });
-            };
-            var completedHandler = function (payload) {
-                removeListeners();
-                resolve(payload);
-            };
-            _this.bus.on(events_1.VENMO_DESKTOP_CUSTOMER_CANCELED, customerCancelledHandler);
-            _this.bus.on(events_1.VENMO_DESKTOP_AUTHORIZATION_COMPLETED, completedHandler);
-            _this.bus.on(events_1.VENMO_DESKTOP_UNKNOWN_ERROR, unknownErrorHandler);
-        });
-        this.iframe.style.display = "block";
-        this.setAlert("Generating a QR code, get your Venmo app ready");
-        this.iframe.focus();
-        this.startPolling();
-        return promise
-            .then(function (result) {
-            delete _this.venmoContextId;
-            delete _this.launchDesktopPromiseRejectFunction;
-            return result;
-        })
-            .catch(function (err) {
-            delete _this.venmoContextId;
-            delete _this.launchDesktopPromiseRejectFunction;
-            return _this.Promise.reject(err);
-        });
-    };
-    VenmoDesktop.prototype.triggerCompleted = function (result) {
-        var _this = this;
-        if (this.isHidden) {
-            return;
+    setTimeout(function () {
+      _this.bus.emit(events_1.VENMO_DESKTOP_AUTHORIZATION_COMPLETED, result);
+    }, VISUAL_DELAY_BEFORE_SIGNALLING_COMPLETION);
+  };
+  VenmoDesktop.prototype.triggerRejected = function (err) {
+    if (this.launchDesktopPromiseRejectFunction) {
+      this.launchDesktopPromiseRejectFunction(err);
+    }
+  };
+  VenmoDesktop.prototype.hideDesktopFlow = function () {
+    this.setAlert("");
+    this.iframe.style.display = "none";
+    this.bus.emit(events_1.VENMO_DESKTOP_CLOSED_FROM_PARENT);
+    this.isHidden = true;
+  };
+  VenmoDesktop.prototype.displayError = function (message) {
+    if (this.isHidden) {
+      return;
+    }
+    this.bus.emit(events_1.VENMO_DESKTOP_DISPLAY_ERROR, {
+      message: message,
+    });
+    this.setAlert(message);
+  };
+  VenmoDesktop.prototype.displayQRCode = function (id, merchantId) {
+    if (this.isHidden) {
+      return;
+    }
+    this.bus.emit(events_1.VENMO_DESKTOP_DISPLAY_QR_CODE, {
+      id: id,
+      merchantId: merchantId,
+    });
+    this.setAlert("To scan the QR code, open your Venmo app");
+  };
+  VenmoDesktop.prototype.authorize = function () {
+    if (this.isHidden) {
+      return;
+    }
+    this.bus.emit(events_1.VENMO_DESKTOP_AUTHORIZE);
+    this.setAlert("Venmo account authorized");
+  };
+  VenmoDesktop.prototype.authorizing = function () {
+    if (this.isHidden) {
+      return;
+    }
+    this.bus.emit(events_1.VENMO_DESKTOP_AUTHORIZING);
+    this.setAlert("Authorize on your Venmo app");
+  };
+  VenmoDesktop.prototype.startPolling = function () {
+    var _this = this;
+    return this.createVenmoDesktopPaymentContext()
+      .then(function (result) {
+        var expiresIn =
+          new Date(result.expiresAt).getTime() -
+          new Date(result.createdAt).getTime();
+        var expiredTime = Date.now() + expiresIn;
+        _this.displayQRCode(result.id, result.merchantId);
+        return _this.pollForStatusChange(result.status, expiredTime);
+      })
+      .then(function (result) {
+        if (!result) {
+          return;
         }
+        // since we are manually adding a prepended @ sign
+        // we want to make sure that the username does not
+        // start giving us the @ sign up front in the future
+        var username = result.userName || "";
+        username = "@" + username.replace("@", "");
+        _this.triggerCompleted({
+          paymentMethodNonce: result.paymentMethodId,
+          username: username,
+          payerInfo: result.payerInfo,
+          id: _this.venmoContextId || "",
+        });
+      })
+      .catch(function (err) {
+        if (err.allowUIToHandleError) {
+          // noop here and let the UI handle the customer error
+          return;
+        }
+        _this.sendEvent("venmo.tokenize.desktop.unhandled-error");
+        _this.triggerRejected(err);
+      });
+  };
+  VenmoDesktop.prototype.pollForStatusChange = function (status, expiredTime) {
+    var _this = this;
+    if (!this.venmoContextId) {
+      return this.Promise.resolve();
+    }
+    if (Date.now() > expiredTime) {
+      return this.updateVenmoDesktopPaymentContext("EXPIRED").then(function () {
+        _this.displayError("Something went wrong");
+        _this.sendEvent("venmo.tokenize.desktop.status-change.sdk-timeout");
+        return _this.Promise.reject({
+          allowUIToHandleError: true,
+          reason: "TIMEOUT",
+        });
+      });
+    }
+    return this.lookupVenmoDesktopPaymentContext().then(function (response) {
+      if (!_this.venmoContextId || !response) {
+        return _this.Promise.resolve();
+      }
+      var newStatus = response.status;
+      if (newStatus !== status) {
+        status = newStatus;
+        _this.sendEvent(
+          "venmo.tokenize.desktop.status-change." + status.toLowerCase()
+        );
+        switch (status) {
+          case "CREATED":
+            // noop, no need to do anything here
+            // should never be able to get to this point
+            // but we'll keep it in to enumerate the statuses
+            break;
+          case "EXPIRED":
+          case "FAILED":
+          case "CANCELED":
+            var message =
+              status === "CANCELED"
+                ? "The authorization was canceled"
+                : "Something went wrong";
+            _this.displayError(message);
+            // these are all terminal states, so we end it here
+            return _this.Promise.reject({
+              allowUIToHandleError: true,
+              reason: status,
+            });
+          case "SCANNED":
+            _this.authorizing();
+            break;
+          case "APPROVED":
+            _this.authorize();
+            return _this.Promise.resolve(response);
+          default:
+          // any other statuses are irrelevant to the polling
+          // and can just be ignored
+        }
+      }
+      return new _this.Promise(function (resolve, reject) {
         setTimeout(function () {
-            _this.bus.emit(events_1.VENMO_DESKTOP_AUTHORIZATION_COMPLETED, result);
-        }, VISUAL_DELAY_BEFORE_SIGNALLING_COMPLETION);
+          _this
+            .pollForStatusChange(status, expiredTime)
+            .then(resolve)
+            .catch(reject);
+        }, VENMO_DESKTOP_POLLING_INTERVAL);
+      });
+    });
+  };
+  VenmoDesktop.prototype.teardown = function () {
+    this.bus.teardown();
+    if (this.iframe.parentNode) {
+      this.iframe.parentNode.removeChild(this.iframe);
+    }
+    if (this.alertBox.parentNode) {
+      this.alertBox.parentNode.removeChild(this.alertBox);
+    }
+  };
+  VenmoDesktop.prototype.setAlert = function (message) {
+    this.alertBox.style.display = message ? "block" : "none";
+    this.alertBox.textContent = message;
+  };
+  VenmoDesktop.prototype.createPaymentContextFromGraphqlLegacyQRCodeMutation =
+    function (intent) {
+      return this.apiRequest(queries_1.LEGACY_CREATE_PAYMENT_CONTEXT_QUERY, {
+        input: {
+          environment: this.env,
+          intent: intent,
+        },
+      }).then(function (response) {
+        return response
+          .createVenmoQRCodePaymentContext.venmoQRCodePaymentContext;
+      });
     };
-    VenmoDesktop.prototype.triggerRejected = function (err) {
-        if (this.launchDesktopPromiseRejectFunction) {
-            this.launchDesktopPromiseRejectFunction(err);
-        }
+  VenmoDesktop.prototype.createPaymentContextFromGraphQL = function (intent) {
+    var input = {
+      intent: intent,
+      paymentMethodUsage: this.paymentMethodUsage,
+      customerClient: "DESKTOP",
     };
-    VenmoDesktop.prototype.hideDesktopFlow = function () {
-        this.setAlert("");
-        this.iframe.style.display = "none";
-        this.bus.emit(events_1.VENMO_DESKTOP_CLOSED_FROM_PARENT);
-        this.isHidden = true;
+    if (this.profileId) {
+      input.merchantProfileId = this.profileId;
+    }
+    if (this.displayName) {
+      input.displayName = this.displayName;
+    }
+    return this.apiRequest(queries_1.CREATE_PAYMENT_CONTEXT_QUERY, {
+      input: input,
+    }).then(function (response) {
+      return response.createVenmoPaymentContext.venmoPaymentContext;
+    });
+  };
+  VenmoDesktop.prototype.createVenmoDesktopPaymentContext = function () {
+    var _this = this;
+    var contextPromise = this.shouldUseLegacyQRCodeMutation
+      ? this.createPaymentContextFromGraphqlLegacyQRCodeMutation("PAY_FROM_APP")
+      : this.createPaymentContextFromGraphQL("PAY_FROM_APP");
+    return contextPromise.then(function (context) {
+      _this.venmoContextId = context.id;
+      var merchantId = _this.profileId || context.merchantId;
+      return {
+        id: context.id,
+        status: context.status,
+        merchantId: merchantId,
+        createdAt: context.createdAt,
+        expiresAt: context.expiresAt,
+      };
+    });
+  };
+  VenmoDesktop.prototype.updateVenmoDesktopPaymentContext = function (
+    status,
+    additionalOptions
+  ) {
+    if (additionalOptions === void 0) {
+      additionalOptions = {};
+    }
+    if (!this.venmoContextId) {
+      return this.Promise.resolve();
+    }
+    var data = {
+      input: __assign(
+        { id: this.venmoContextId, status: status },
+        additionalOptions
+      ),
     };
-    VenmoDesktop.prototype.displayError = function (message) {
-        if (this.isHidden) {
-            return;
-        }
-        this.bus.emit(events_1.VENMO_DESKTOP_DISPLAY_ERROR, {
-            message: message,
-        });
-        this.setAlert(message);
-    };
-    VenmoDesktop.prototype.displayQRCode = function (id, merchantId) {
-        if (this.isHidden) {
-            return;
-        }
-        this.bus.emit(events_1.VENMO_DESKTOP_DISPLAY_QR_CODE, {
-            id: id,
-            merchantId: merchantId,
-        });
-        this.setAlert("To scan the QR code, open your Venmo app");
-    };
-    VenmoDesktop.prototype.authorize = function () {
-        if (this.isHidden) {
-            return;
-        }
-        this.bus.emit(events_1.VENMO_DESKTOP_AUTHORIZE);
-        this.setAlert("Venmo account authorized");
-    };
-    VenmoDesktop.prototype.authorizing = function () {
-        if (this.isHidden) {
-            return;
-        }
-        this.bus.emit(events_1.VENMO_DESKTOP_AUTHORIZING);
-        this.setAlert("Authorize on your Venmo app");
-    };
-    VenmoDesktop.prototype.startPolling = function () {
-        var _this = this;
-        return this.createVenmoDesktopPaymentContext()
-            .then(function (result) {
-            var expiresIn = new Date(result.expiresAt).getTime() -
-                new Date(result.createdAt).getTime();
-            var expiredTime = Date.now() + expiresIn;
-            _this.displayQRCode(result.id, result.merchantId);
-            return _this.pollForStatusChange(result.status, expiredTime);
-        })
-            .then(function (result) {
-            if (!result) {
-                return;
-            }
-            // since we are manually adding a prepended @ sign
-            // we want to make sure that the username does not
-            // start giving us the @ sign up front in the future
-            var username = result.userName || "";
-            username = "@" + username.replace("@", "");
-            _this.triggerCompleted({
-                paymentMethodNonce: result.paymentMethodId,
-                username: username,
-                payerInfo: result.payerInfo,
-                id: _this.venmoContextId || "",
-            });
-        })
-            .catch(function (err) {
-            if (err.allowUIToHandleError) {
-                // noop here and let the UI handle the customer error
-                return;
-            }
-            _this.sendEvent("venmo.tokenize.desktop.unhandled-error");
-            _this.triggerRejected(err);
-        });
-    };
-    VenmoDesktop.prototype.pollForStatusChange = function (status, expiredTime) {
-        var _this = this;
-        if (!this.venmoContextId) {
-            return this.Promise.resolve();
-        }
-        if (Date.now() > expiredTime) {
-            return this.updateVenmoDesktopPaymentContext("EXPIRED").then(function () {
-                _this.displayError("Something went wrong");
-                _this.sendEvent("venmo.tokenize.desktop.status-change.sdk-timeout");
-                return _this.Promise.reject({
-                    allowUIToHandleError: true,
-                    reason: "TIMEOUT",
-                });
-            });
-        }
-        return this.lookupVenmoDesktopPaymentContext().then(function (response) {
-            if (!_this.venmoContextId || !response) {
-                return _this.Promise.resolve();
-            }
-            var newStatus = response.status;
-            if (newStatus !== status) {
-                status = newStatus;
-                _this.sendEvent("venmo.tokenize.desktop.status-change." + status.toLowerCase());
-                switch (status) {
-                    case "CREATED":
-                        // noop, no need to do anything here
-                        // should never be able to get to this point
-                        // but we'll keep it in to enumerate the statuses
-                        break;
-                    case "EXPIRED":
-                    case "FAILED":
-                    case "CANCELED":
-                        var message = status === "CANCELED"
-                            ? "The authorization was canceled"
-                            : "Something went wrong";
-                        _this.displayError(message);
-                        // these are all terminal states, so we end it here
-                        return _this.Promise.reject({
-                            allowUIToHandleError: true,
-                            reason: status,
-                        });
-                    case "SCANNED":
-                        _this.authorizing();
-                        break;
-                    case "APPROVED":
-                        _this.authorize();
-                        return _this.Promise.resolve(response);
-                    default:
-                    // any other statuses are irrelevant to the polling
-                    // and can just be ignored
-                }
-            }
-            return new _this.Promise(function (resolve, reject) {
-                setTimeout(function () {
-                    _this.pollForStatusChange(status, expiredTime)
-                        .then(resolve)
-                        .catch(reject);
-                }, VENMO_DESKTOP_POLLING_INTERVAL);
-            });
-        });
-    };
-    VenmoDesktop.prototype.teardown = function () {
-        this.bus.teardown();
-        if (this.iframe.parentNode) {
-            this.iframe.parentNode.removeChild(this.iframe);
-        }
-        if (this.alertBox.parentNode) {
-            this.alertBox.parentNode.removeChild(this.alertBox);
-        }
-    };
-    VenmoDesktop.prototype.setAlert = function (message) {
-        this.alertBox.style.display = message ? "block" : "none";
-        this.alertBox.textContent = message;
-    };
-    VenmoDesktop.prototype.createPaymentContextFromGraphqlLegacyQRCodeMutation = function (intent) {
-        return this.apiRequest(queries_1.LEGACY_CREATE_PAYMENT_CONTEXT_QUERY, {
-            input: {
-                environment: this.env,
-                intent: intent,
-            },
-        }).then(function (response) {
-            return response.createVenmoQRCodePaymentContext
-                .venmoQRCodePaymentContext;
-        });
-    };
-    VenmoDesktop.prototype.createPaymentContextFromGraphQL = function (intent) {
-        var input = {
-            intent: intent,
-            paymentMethodUsage: this.paymentMethodUsage,
-            customerClient: "DESKTOP",
-        };
-        if (this.profileId) {
-            input.merchantProfileId = this.profileId;
-        }
-        if (this.displayName) {
-            input.displayName = this.displayName;
-        }
-        return this.apiRequest(queries_1.CREATE_PAYMENT_CONTEXT_QUERY, {
-            input: input,
-        }).then(function (response) {
-            return response.createVenmoPaymentContext
-                .venmoPaymentContext;
-        });
-    };
-    VenmoDesktop.prototype.createVenmoDesktopPaymentContext = function () {
-        var _this = this;
-        var contextPromise = this.shouldUseLegacyQRCodeMutation
-            ? this.createPaymentContextFromGraphqlLegacyQRCodeMutation("PAY_FROM_APP")
-            : this.createPaymentContextFromGraphQL("PAY_FROM_APP");
-        return contextPromise.then(function (context) {
-            _this.venmoContextId = context.id;
-            var merchantId = _this.profileId || context.merchantId;
-            return {
-                id: context.id,
-                status: context.status,
-                merchantId: merchantId,
-                createdAt: context.createdAt,
-                expiresAt: context.expiresAt,
-            };
-        });
-    };
-    VenmoDesktop.prototype.updateVenmoDesktopPaymentContext = function (status, additionalOptions) {
-        if (additionalOptions === void 0) { additionalOptions = {}; }
-        if (!this.venmoContextId) {
-            return this.Promise.resolve();
-        }
-        var data = {
-            input: __assign({ id: this.venmoContextId, status: status }, additionalOptions),
-        };
-        var query = this.shouldUseLegacyQRCodeMutation
-            ? queries_1.LEGACY_UPDATE_PAYMENT_CONTEXT_QUERY
-            : queries_1.UPDATE_PAYMENT_CONTEXT_QUERY;
-        return this.apiRequest(query, data).then(function () {
-            // noop so we can resolve without any data to match the type
-        });
-    };
-    VenmoDesktop.prototype.lookupVenmoDesktopPaymentContext = function () {
-        if (!this.venmoContextId) {
-            return this.Promise.resolve();
-        }
-        var query = this.shouldUseLegacyQRCodeMutation
-            ? queries_1.LEGACY_VENMO_PAYMENT_CONTEXT_STATUS_QUERY
-            : queries_1.VENMO_PAYMENT_CONTEXT_STATUS_QUERY;
-        return this.apiRequest(query, {
-            id: this.venmoContextId,
-        }).then(function (response) {
-            return response.node;
-        });
-    };
-    return VenmoDesktop;
-}());
+    var query = this.shouldUseLegacyQRCodeMutation
+      ? queries_1.LEGACY_UPDATE_PAYMENT_CONTEXT_QUERY
+      : queries_1.UPDATE_PAYMENT_CONTEXT_QUERY;
+    return this.apiRequest(query, data).then(function () {
+      // noop so we can resolve without any data to match the type
+    });
+  };
+  VenmoDesktop.prototype.lookupVenmoDesktopPaymentContext = function () {
+    if (!this.venmoContextId) {
+      return this.Promise.resolve();
+    }
+    var query = this.shouldUseLegacyQRCodeMutation
+      ? queries_1.LEGACY_VENMO_PAYMENT_CONTEXT_STATUS_QUERY
+      : queries_1.VENMO_PAYMENT_CONTEXT_STATUS_QUERY;
+    return this.apiRequest(query, {
+      id: this.venmoContextId,
+    }).then(function (response) {
+      return response.node;
+    });
+  };
+  return VenmoDesktop;
+})();
 exports.default = VenmoDesktop;
 
-},{"../shared/events":72,"./queries":66,"@braintree/iframer":22,"@braintree/uuid":26,"framebus":32}],68:[function(_dereq_,module,exports){
-'use strict';
+},{"../shared/events":73,"./queries":67,"@braintree/iframer":23,"@braintree/uuid":27,"framebus":33}],69:[function(_dereq_,module,exports){
+"use strict";
 /** @module braintree-web/venmo */
 
-var analytics = _dereq_('../lib/analytics');
-var basicComponentVerification = _dereq_('../lib/basic-component-verification');
-var createDeferredClient = _dereq_('../lib/create-deferred-client');
-var createAssetsUrl = _dereq_('../lib/create-assets-url');
-var errors = _dereq_('./shared/errors');
-var wrapPromise = _dereq_('@braintree/wrap-promise');
-var BraintreeError = _dereq_('../lib/braintree-error');
-var Venmo = _dereq_('./venmo');
-var Promise = _dereq_('../lib/promise');
-var supportsVenmo = _dereq_('./shared/supports-venmo');
-var VERSION = "3.85.2";
+var analytics = _dereq_("../lib/analytics");
+var basicComponentVerification = _dereq_("../lib/basic-component-verification");
+var createDeferredClient = _dereq_("../lib/create-deferred-client");
+var createAssetsUrl = _dereq_("../lib/create-assets-url");
+var errors = _dereq_("./shared/errors");
+var wrapPromise = _dereq_("@braintree/wrap-promise");
+var BraintreeError = _dereq_("../lib/braintree-error");
+var Venmo = _dereq_("./venmo");
+var Promise = _dereq_("../lib/promise");
+var supportsVenmo = _dereq_("./shared/supports-venmo");
+var VERSION = "3.85.3";
 
 /**
  * @static
@@ -2448,50 +2558,61 @@ var VERSION = "3.85.2";
  * @returns {(Promise|void)} Returns the Venmo instance.
  */
 function create(options) {
-  var name = 'Venmo';
+  var name = "Venmo";
 
-  return basicComponentVerification.verify({
-    name: name,
-    client: options.client,
-    authorization: options.authorization
-  }).then(function () {
-    var createPromise, instance;
-
-    if (options.profileId && typeof options.profileId !== 'string') {
-      return Promise.reject(new BraintreeError(errors.VENMO_INVALID_PROFILE_ID));
-    }
-
-    if (options.deepLinkReturnUrl && typeof options.deepLinkReturnUrl !== 'string') {
-      return Promise.reject(new BraintreeError(errors.VENMO_INVALID_DEEP_LINK_RETURN_URL));
-    }
-
-    createPromise = createDeferredClient.create({
-      authorization: options.authorization,
+  return basicComponentVerification
+    .verify({
+      name: name,
       client: options.client,
-      debug: options.debug,
-      assetsUrl: createAssetsUrl.create(options.authorization),
-      name: name
-    }).then(function (client) {
-      var configuration = client.getConfiguration();
+      authorization: options.authorization,
+    })
+    .then(function () {
+      var createPromise, instance;
 
-      options.client = client;
-
-      if (!configuration.gatewayConfiguration.payWithVenmo) {
-        return Promise.reject(new BraintreeError(errors.VENMO_NOT_ENABLED));
+      if (options.profileId && typeof options.profileId !== "string") {
+        return Promise.reject(
+          new BraintreeError(errors.VENMO_INVALID_PROFILE_ID)
+        );
       }
 
-      return client;
+      if (
+        options.deepLinkReturnUrl &&
+        typeof options.deepLinkReturnUrl !== "string"
+      ) {
+        return Promise.reject(
+          new BraintreeError(errors.VENMO_INVALID_DEEP_LINK_RETURN_URL)
+        );
+      }
+
+      createPromise = createDeferredClient
+        .create({
+          authorization: options.authorization,
+          client: options.client,
+          debug: options.debug,
+          assetsUrl: createAssetsUrl.create(options.authorization),
+          name: name,
+        })
+        .then(function (client) {
+          var configuration = client.getConfiguration();
+
+          options.client = client;
+
+          if (!configuration.gatewayConfiguration.payWithVenmo) {
+            return Promise.reject(new BraintreeError(errors.VENMO_NOT_ENABLED));
+          }
+
+          return client;
+        });
+
+      options.createPromise = createPromise;
+      instance = new Venmo(options);
+
+      analytics.sendEvent(createPromise, "venmo.initialized");
+
+      return createPromise.then(function () {
+        return instance;
+      });
     });
-
-    options.createPromise = createPromise;
-    instance = new Venmo(options);
-
-    analytics.sendEvent(createPromise, 'venmo.initialized');
-
-    return createPromise.then(function () {
-      return instance;
-    });
-  });
 }
 
 /**
@@ -2529,20 +2650,23 @@ module.exports = {
    * @description The current version of the SDK, i.e. `{@pkg version}`.
    * @type {string}
    */
-  VERSION: VERSION
+  VERSION: VERSION,
 };
 
-},{"../lib/analytics":47,"../lib/basic-component-verification":49,"../lib/braintree-error":50,"../lib/create-assets-url":53,"../lib/create-deferred-client":55,"../lib/promise":62,"./shared/errors":71,"./shared/supports-venmo":73,"./venmo":74,"@braintree/wrap-promise":30}],69:[function(_dereq_,module,exports){
-'use strict';
+},{"../lib/analytics":48,"../lib/basic-component-verification":50,"../lib/braintree-error":51,"../lib/create-assets-url":54,"../lib/create-deferred-client":56,"../lib/promise":63,"./shared/errors":72,"./shared/supports-venmo":74,"./venmo":75,"@braintree/wrap-promise":31}],70:[function(_dereq_,module,exports){
+"use strict";
 
-var isAndroid = _dereq_('@braintree/browser-detection/is-android');
-var isChrome = _dereq_('@braintree/browser-detection/is-chrome');
-var isIos = _dereq_('@braintree/browser-detection/is-ios');
-var isIosSafari = _dereq_('@braintree/browser-detection/is-ios-safari');
-var isIosWebview = _dereq_('@braintree/browser-detection/is-ios-webview');
+var isAndroid = _dereq_("@braintree/browser-detection/is-android");
+var isChrome = _dereq_("@braintree/browser-detection/is-chrome");
+var isIos = _dereq_("@braintree/browser-detection/is-ios");
+var isIosSafari = _dereq_("@braintree/browser-detection/is-ios-safari");
+var isIosWebview = _dereq_("@braintree/browser-detection/is-ios-webview");
+var isSamsung = _dereq_("@braintree/browser-detection/is-samsung");
 
 function isAndroidWebview() {
-  return isAndroid() && window.navigator.userAgent.toLowerCase().indexOf('wv') > -1;
+  return (
+    isAndroid() && window.navigator.userAgent.toLowerCase().indexOf("wv") > -1
+  );
 }
 
 function doesNotSupportWindowOpenInIos() {
@@ -2557,7 +2681,7 @@ function isFacebookOwnedBrowserOnAndroid() {
   var ua = window.navigator.userAgent.toLowerCase();
 
   // Huawei's Facebook useragent does not include Android
-  if (ua.indexOf('huawei') > -1 && ua.indexOf('fban') > -1) {
+  if (ua.indexOf("huawei") > -1 && ua.indexOf("fban") > -1) {
     return true;
   }
 
@@ -2565,7 +2689,7 @@ function isFacebookOwnedBrowserOnAndroid() {
     return false;
   }
 
-  return ua.indexOf('fb_iab') > -1 || ua.indexOf('instagram') > -1;
+  return ua.indexOf("fb_iab") > -1 || ua.indexOf("instagram") > -1;
 }
 
 // iOS chrome used to work with Venmo, but now it does not
@@ -2584,23 +2708,24 @@ module.exports = {
   isChrome: isChrome,
   isIos: isIos,
   isIosChrome: isIosChrome,
+  isSamsung: isSamsung,
   isIosSafari: isIosSafari,
   isIosWebview: isIosWebview,
   isFacebookOwnedBrowserOnAndroid: isFacebookOwnedBrowserOnAndroid,
-  doesNotSupportWindowOpenInIos: doesNotSupportWindowOpenInIos
+  doesNotSupportWindowOpenInIos: doesNotSupportWindowOpenInIos,
 };
 
-},{"@braintree/browser-detection/is-android":16,"@braintree/browser-detection/is-chrome":17,"@braintree/browser-detection/is-ios":20,"@braintree/browser-detection/is-ios-safari":18,"@braintree/browser-detection/is-ios-webview":19}],70:[function(_dereq_,module,exports){
-'use strict';
+},{"@braintree/browser-detection/is-android":16,"@braintree/browser-detection/is-chrome":17,"@braintree/browser-detection/is-ios":20,"@braintree/browser-detection/is-ios-safari":18,"@braintree/browser-detection/is-ios-webview":19,"@braintree/browser-detection/is-samsung":21}],71:[function(_dereq_,module,exports){
+"use strict";
 
 module.exports = {
   DOCUMENT_VISIBILITY_CHANGE_EVENT_DELAY: 500,
   DEFAULT_PROCESS_RESULTS_DELAY: 1000,
-  VENMO_OPEN_URL: 'https://venmo.com/braintree/checkout'
+  VENMO_OPEN_URL: "https://venmo.com/braintree/checkout",
 };
 
-},{}],71:[function(_dereq_,module,exports){
-'use strict';
+},{}],72:[function(_dereq_,module,exports){
+"use strict";
 
 /**
  * @name BraintreeError.Venmo - Creation Error Codes
@@ -2629,104 +2754,119 @@ module.exports = {
  * @property {UNKNOWN} VENMO_MOBILE_POLLING_TOKENIZATION_FAILED Occurs if there is an unknown error during the mobile polling process.
  */
 
-var BraintreeError = _dereq_('../../lib/braintree-error');
+var BraintreeError = _dereq_("../../lib/braintree-error");
 
 module.exports = {
   VENMO_NOT_ENABLED: {
     type: BraintreeError.types.MERCHANT,
-    code: 'VENMO_NOT_ENABLED',
-    message: 'Venmo is not enabled for this merchant.'
+    code: "VENMO_NOT_ENABLED",
+    message: "Venmo is not enabled for this merchant.",
   },
   VENMO_TOKENIZATION_REQUEST_ACTIVE: {
     type: BraintreeError.types.MERCHANT,
-    code: 'VENMO_TOKENIZATION_REQUEST_ACTIVE',
-    message: 'Another tokenization request is active.'
+    code: "VENMO_TOKENIZATION_REQUEST_ACTIVE",
+    message: "Another tokenization request is active.",
   },
   VENMO_TOKENIZATION_REQUEST_NOT_ACTIVE: {
     type: BraintreeError.types.MERCHANT,
-    code: 'VENMO_TOKENIZATION_REQUEST_NOT_ACTIVE',
-    message: 'No tokenization in progress.'
+    code: "VENMO_TOKENIZATION_REQUEST_NOT_ACTIVE",
+    message: "No tokenization in progress.",
   },
   VENMO_APP_FAILED: {
     type: BraintreeError.types.UNKNOWN,
-    code: 'VENMO_APP_FAILED',
-    message: 'Venmo app encountered a problem.'
+    code: "VENMO_APP_FAILED",
+    message: "Venmo app encountered a problem.",
   },
   VENMO_APP_CANCELED: {
     type: BraintreeError.types.CUSTOMER,
-    code: 'VENMO_APP_CANCELED',
-    message: 'Venmo app authorization was canceled.'
+    code: "VENMO_APP_CANCELED",
+    message: "Venmo app authorization was canceled.",
   },
   VENMO_CANCELED: {
     type: BraintreeError.types.CUSTOMER,
-    code: 'VENMO_CANCELED',
-    message: 'User canceled Venmo authorization, or Venmo app is not available.'
+    code: "VENMO_CANCELED",
+    message:
+      "User canceled Venmo authorization, or Venmo app is not available.",
   },
   VENMO_DESKTOP_CANCELED: {
     type: BraintreeError.types.CUSTOMER,
-    code: 'VENMO_DESKTOP_CANCELED',
-    message: 'User canceled Venmo authorization by closing the Venmo Desktop modal.'
+    code: "VENMO_DESKTOP_CANCELED",
+    message:
+      "User canceled Venmo authorization by closing the Venmo Desktop modal.",
   },
   VENMO_TOKENIZATION_CANCELED_BY_MERCHANT: {
     type: BraintreeError.types.MERCHANT,
-    code: 'VENMO_TOKENIZATION_CANCELED_BY_MERCHANT',
-    message: 'The Venmo tokenization was canceled by the merchant.'
+    code: "VENMO_TOKENIZATION_CANCELED_BY_MERCHANT",
+    message: "The Venmo tokenization was canceled by the merchant.",
   },
   VENMO_DESKTOP_UNKNOWN_ERROR: {
     type: BraintreeError.types.UNKNOWN,
-    code: 'VENMO_DESKTOP_UNKNOWN_ERROR',
-    message: 'Something went wrong with the Venmo Desktop flow.'
+    code: "VENMO_DESKTOP_UNKNOWN_ERROR",
+    message: "Something went wrong with the Venmo Desktop flow.",
   },
   VENMO_MOBILE_PAYMENT_CONTEXT_SETUP_FAILED: {
     type: BraintreeError.types.NETWORK,
-    code: 'VENMO_MOBILE_PAYMENT_CONTEXT_SETUP_FAILED',
-    message: 'Something went wrong creating the Venmo Payment Context.'
+    code: "VENMO_MOBILE_PAYMENT_CONTEXT_SETUP_FAILED",
+    message: "Something went wrong creating the Venmo Payment Context.",
   },
   VENMO_MOBILE_POLLING_TOKENIZATION_NETWORK_ERROR: {
     type: BraintreeError.types.UNKNOWN,
-    code: 'VENMO_MOBILE_POLLING_TOKENIZATION_NETWORK_ERROR',
-    message: 'Something went wrong during mobile polling.'
+    code: "VENMO_MOBILE_POLLING_TOKENIZATION_NETWORK_ERROR",
+    message: "Something went wrong during mobile polling.",
   },
   VENMO_MOBILE_POLLING_TOKENIZATION_EXPIRED: {
     type: BraintreeError.types.CUSTOMER,
-    code: 'VENMO_MOBILE_POLLING_TOKENIZATION_EXPIRED',
-    message: 'The Venmo authorization request is expired.'
+    code: "VENMO_MOBILE_POLLING_TOKENIZATION_EXPIRED",
+    message: "The Venmo authorization request is expired.",
   },
   VENMO_MOBILE_POLLING_TOKENIZATION_CANCELED: {
     type: BraintreeError.types.CUSTOMER,
-    code: 'VENMO_MOBILE_POLLING_TOKENIZATION_CANCELED',
-    message: 'The Venmo authorization was canceled'
+    code: "VENMO_MOBILE_POLLING_TOKENIZATION_CANCELED",
+    message: "The Venmo authorization was canceled",
   },
   VENMO_MOBILE_POLLING_TOKENIZATION_TIMEOUT: {
     type: BraintreeError.types.CUSTOMER,
-    code: 'VENMO_MOBILE_POLLING_TOKENIZATION_TIMEOUT',
-    message: 'Customer took too long to authorize Venmo payment.'
+    code: "VENMO_MOBILE_POLLING_TOKENIZATION_TIMEOUT",
+    message: "Customer took too long to authorize Venmo payment.",
   },
   VENMO_MOBILE_POLLING_TOKENIZATION_FAILED: {
     type: BraintreeError.types.UNKNOWN,
-    code: 'VENMO_MOBILE_POLLING_TOKENIZATION_FAILED',
-    message: 'The Venmo authorization failed.'
+    code: "VENMO_MOBILE_POLLING_TOKENIZATION_FAILED",
+    message: "The Venmo authorization failed.",
   },
   VENMO_INVALID_PROFILE_ID: {
     type: BraintreeError.types.MERCHANT,
-    code: 'VENMO_INVALID_PROFILE_ID',
-    message: 'Venmo profile ID is invalid.'
+    code: "VENMO_INVALID_PROFILE_ID",
+    message: "Venmo profile ID is invalid.",
   },
   VENMO_INVALID_DEEP_LINK_RETURN_URL: {
     type: BraintreeError.types.MERCHANT,
-    code: 'VENMO_INVALID_DEEP_LINK_RETURN_URL',
-    message: 'Venmo deep link return URL is invalid.'
-  }
+    code: "VENMO_INVALID_DEEP_LINK_RETURN_URL",
+    message: "Venmo deep link return URL is invalid.",
+  },
 };
 
-},{"../../lib/braintree-error":50}],72:[function(_dereq_,module,exports){
+},{"../../lib/braintree-error":51}],73:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.VENMO_DESKTOP_UNKNOWN_ERROR = exports.VENMO_DESKTOP_REQUEST_NEW_QR_CODE = exports.VENMO_DESKTOP_CLOSED_FROM_PARENT = exports.VENMO_DESKTOP_IFRAME_READY = exports.VENMO_DESKTOP_DISPLAY_QR_CODE = exports.VENMO_DESKTOP_DISPLAY_ERROR = exports.VENMO_DESKTOP_CUSTOMER_CANCELED = exports.VENMO_DESKTOP_AUTHORIZATION_COMPLETED = exports.VENMO_DESKTOP_AUTHORIZING = exports.VENMO_DESKTOP_AUTHORIZE = exports.VENMO_DESKTOP_AUTHORIZATION_TIMED_OUT = void 0;
-exports.VENMO_DESKTOP_AUTHORIZATION_TIMED_OUT = "VENMO_DESKTOP_AUTHORIZATION_TIMED_OUT";
+exports.VENMO_DESKTOP_UNKNOWN_ERROR =
+  exports.VENMO_DESKTOP_REQUEST_NEW_QR_CODE =
+  exports.VENMO_DESKTOP_CLOSED_FROM_PARENT =
+  exports.VENMO_DESKTOP_IFRAME_READY =
+  exports.VENMO_DESKTOP_DISPLAY_QR_CODE =
+  exports.VENMO_DESKTOP_DISPLAY_ERROR =
+  exports.VENMO_DESKTOP_CUSTOMER_CANCELED =
+  exports.VENMO_DESKTOP_AUTHORIZATION_COMPLETED =
+  exports.VENMO_DESKTOP_AUTHORIZING =
+  exports.VENMO_DESKTOP_AUTHORIZE =
+  exports.VENMO_DESKTOP_AUTHORIZATION_TIMED_OUT =
+    void 0;
+exports.VENMO_DESKTOP_AUTHORIZATION_TIMED_OUT =
+  "VENMO_DESKTOP_AUTHORIZATION_TIMED_OUT";
 exports.VENMO_DESKTOP_AUTHORIZE = "VENMO_DESKTOP_AUTHORIZE";
 exports.VENMO_DESKTOP_AUTHORIZING = "VENMO_DESKTOP_AUTHORIZING";
-exports.VENMO_DESKTOP_AUTHORIZATION_COMPLETED = "VENMO_DESKTOP_AUTHORIZATION_COMPLETED";
+exports.VENMO_DESKTOP_AUTHORIZATION_COMPLETED =
+  "VENMO_DESKTOP_AUTHORIZATION_COMPLETED";
 exports.VENMO_DESKTOP_CUSTOMER_CANCELED = "VENMO_DESKTOP_CUSTOMER_CANCELED";
 exports.VENMO_DESKTOP_DISPLAY_ERROR = "VENMO_DESKTOP_DISPLAY_ERROR";
 exports.VENMO_DESKTOP_DISPLAY_QR_CODE = "VENMO_DESKTOP_DISPLAY_QR_CODE";
@@ -2735,36 +2875,51 @@ exports.VENMO_DESKTOP_CLOSED_FROM_PARENT = "VENMO_DESKTOP_CLOSED_FROM_PARENT";
 exports.VENMO_DESKTOP_REQUEST_NEW_QR_CODE = "VENMO_DESKTOP_REQUEST_NEW_QR_CODE";
 exports.VENMO_DESKTOP_UNKNOWN_ERROR = "VENMO_DESKTOP_UNKNOWN_ERROR";
 
-},{}],73:[function(_dereq_,module,exports){
-'use strict';
+},{}],74:[function(_dereq_,module,exports){
+"use strict";
 
-var browserDetection = _dereq_('./browser-detection');
+var browserDetection = _dereq_("./browser-detection");
 
 function isBrowserSupported(options) {
-  var merchantAllowsReturningToNewBrowserTab, merchantAllowsWebviews, merchantAllowsDesktopBrowsers;
+  var merchantAllowsReturningToNewBrowserTab,
+    merchantAllowsWebviews,
+    merchantAllowsDesktopBrowsers;
   var isAndroid = browserDetection.isAndroid();
   var isMobileDevice = isAndroid || browserDetection.isIos();
   var isAndroidChrome = isAndroid && browserDetection.isChrome();
-  var isMobileDeviceThatSupportsReturnToSameTab = browserDetection.isIosSafari() || isAndroidChrome;
-  var isKnownUnsupportedMobileBrowser = browserDetection.isIosChrome() || browserDetection.isFacebookOwnedBrowserOnAndroid();
+  var isMobileDeviceThatSupportsReturnToSameTab =
+    browserDetection.isIosSafari() || isAndroidChrome;
+  var isKnownUnsupportedMobileBrowser =
+    browserDetection.isIosChrome() ||
+    browserDetection.isFacebookOwnedBrowserOnAndroid() ||
+    browserDetection.isSamsung();
 
   options = options || {};
   // NEXT_MAJOR_VERSION allowDesktop will default to true, but can be opted out
   merchantAllowsDesktopBrowsers = options.allowDesktop === true;
-  merchantAllowsReturningToNewBrowserTab = options.hasOwnProperty('allowNewBrowserTab') ? options.allowNewBrowserTab : true;
+  merchantAllowsReturningToNewBrowserTab = options.hasOwnProperty(
+    "allowNewBrowserTab"
+  )
+    ? options.allowNewBrowserTab
+    : true;
   // NEXT_MAJOR_VERSION webviews are not supported, except for the case where
   // the merchant themselves is presenting venmo in a webview using the deep
   // link url to get back to their app. For the next major version, we should
   // just not have this option and instead require the merchant to determine
   // if the venmo button should be displayed when presenting it in the
   // merchant's app via a webview.
-  merchantAllowsWebviews = options.hasOwnProperty('allowWebviews') ? options.allowWebviews : true;
+  merchantAllowsWebviews = options.hasOwnProperty("allowWebviews")
+    ? options.allowWebviews
+    : true;
 
   if (isKnownUnsupportedMobileBrowser) {
     return false;
   }
 
-  if (!merchantAllowsWebviews && (browserDetection.isAndroidWebview() || browserDetection.isIosWebview())) {
+  if (
+    !merchantAllowsWebviews &&
+    (browserDetection.isAndroidWebview() || browserDetection.isIosWebview())
+  ) {
     return false;
   }
 
@@ -2780,34 +2935,34 @@ function isBrowserSupported(options) {
 }
 
 module.exports = {
-  isBrowserSupported: isBrowserSupported
+  isBrowserSupported: isBrowserSupported,
 };
 
-},{"./browser-detection":69}],74:[function(_dereq_,module,exports){
-'use strict';
+},{"./browser-detection":70}],75:[function(_dereq_,module,exports){
+"use strict";
 
-var analytics = _dereq_('../lib/analytics');
-var isBrowserSupported = _dereq_('./shared/supports-venmo');
-var browserDetection = _dereq_('./shared/browser-detection');
-var constants = _dereq_('./shared/constants');
-var errors = _dereq_('./shared/errors');
-var querystring = _dereq_('../lib/querystring');
-var isVerifiedDomain = _dereq_('../lib/is-verified-domain');
-var methods = _dereq_('../lib/methods');
-var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
-var wrapPromise = _dereq_('@braintree/wrap-promise');
-var BraintreeError = _dereq_('../lib/braintree-error');
-var inIframe = _dereq_('../lib/in-iframe');
-var Promise = _dereq_('../lib/promise');
-var ExtendedPromise = _dereq_('@braintree/extended-promise');
+var analytics = _dereq_("../lib/analytics");
+var isBrowserSupported = _dereq_("./shared/supports-venmo");
+var browserDetection = _dereq_("./shared/browser-detection");
+var constants = _dereq_("./shared/constants");
+var errors = _dereq_("./shared/errors");
+var querystring = _dereq_("../lib/querystring");
+var isVerifiedDomain = _dereq_("../lib/is-verified-domain");
+var methods = _dereq_("../lib/methods");
+var convertMethodsToError = _dereq_("../lib/convert-methods-to-error");
+var wrapPromise = _dereq_("@braintree/wrap-promise");
+var BraintreeError = _dereq_("../lib/braintree-error");
+var inIframe = _dereq_("../lib/in-iframe");
+var Promise = _dereq_("../lib/promise");
+var ExtendedPromise = _dereq_("@braintree/extended-promise");
 // NEXT_MAJOR_VERSION the source code for this is actually in a
 // typescript repo called venmo-desktop, once the SDK is migrated
 // to typescript, we can move the TS files out of that separate
 // repo and into the web SDK properly
-var createVenmoDesktop = _dereq_('./external/');
-var graphqlQueries = _dereq_('./external/queries');
+var createVenmoDesktop = _dereq_("./external/");
+var graphqlQueries = _dereq_("./external/queries");
 
-var VERSION = "3.85.2";
+var VERSION = "3.85.3";
 var DEFAULT_MOBILE_POLLING_INTERVAL = 250; // 1/4 second
 var DEFAULT_MOBILE_EXPIRING_THRESHOLD = 300000; // 5 minutes
 
@@ -2840,13 +2995,17 @@ function Venmo(options) {
   this._displayName = options.displayName;
   this._deepLinkReturnUrl = options.deepLinkReturnUrl;
   this._ignoreHistoryChanges = options.ignoreHistoryChanges;
-  this._paymentMethodUsage = (options.paymentMethodUsage || '').toUpperCase();
+  this._paymentMethodUsage = (options.paymentMethodUsage || "").toUpperCase();
   this._shouldUseLegacyFlow = !this._paymentMethodUsage;
   this._useDesktopFlow = this._allowDesktop && this._isDesktop();
   this._cannotHaveReturnUrls = inIframe() || this._requireManualReturn;
-  this._shouldCreateVenmoPaymentContext = this._cannotHaveReturnUrls || !this._shouldUseLegacyFlow;
+  this._shouldCreateVenmoPaymentContext =
+    this._cannotHaveReturnUrls || !this._shouldUseLegacyFlow;
 
-  analytics.sendEvent(this._createPromise, 'venmo.desktop-flow.configured.' + String(Boolean(this._allowDesktop)));
+  analytics.sendEvent(
+    this._createPromise,
+    "venmo.desktop-flow.configured." + String(Boolean(this._allowDesktop))
+  );
 
   // if the url has a tokenization result, that indicates
   // that it cannot be the desktop flow or the manual return
@@ -2856,44 +3015,62 @@ function Venmo(options) {
   // processed. For the hash change flow without paymentMethodUsage,
   // no further actions are needed.
   if (this.hasTokenizationResult()) {
-    analytics.sendEvent(this._createPromise, 'venmo.appswitch.return-in-new-tab');
+    analytics.sendEvent(
+      this._createPromise,
+      "venmo.appswitch.return-in-new-tab"
+    );
   } else if (this._useDesktopFlow) {
     this._createPromise = this._createPromise.then(function (client) {
       var config = client.getConfiguration().gatewayConfiguration;
 
       return createVenmoDesktop({
-        url: config.assetsUrl + '/web/' + VERSION + '/html/venmo-desktop-frame.html',
-        environment: config.environment === 'production' ? 'PRODUCTION' : 'SANDBOX',
+        url:
+          config.assetsUrl +
+          "/web/" +
+          VERSION +
+          "/html/venmo-desktop-frame.html",
+        environment:
+          config.environment === "production" ? "PRODUCTION" : "SANDBOX",
         profileId: self._profileId || config.payWithVenmo.merchantId,
         paymentMethodUsage: self._paymentMethodUsage,
         displayName: self._displayName,
         Promise: Promise,
         apiRequest: function (query, data) {
-          return client.request({
-            api: 'graphQLApi',
-            data: {
-              query: query,
-              variables: data
-            }
-          }).then(function (response) {
-            return response.data;
-          });
+          return client
+            .request({
+              api: "graphQLApi",
+              data: {
+                query: query,
+                variables: data,
+              },
+            })
+            .then(function (response) {
+              return response.data;
+            });
         },
         sendEvent: function (eventName) {
           analytics.sendEvent(self._createPromise, eventName);
         },
-        verifyDomain: isVerifiedDomain
-      }).then(function (venmoDesktopInstance) {
-        self._venmoDesktopInstance = venmoDesktopInstance;
-        analytics.sendEvent(self._createPromise, 'venmo.desktop-flow.presented');
+        verifyDomain: isVerifiedDomain,
+      })
+        .then(function (venmoDesktopInstance) {
+          self._venmoDesktopInstance = venmoDesktopInstance;
+          analytics.sendEvent(
+            self._createPromise,
+            "venmo.desktop-flow.presented"
+          );
 
-        return client;
-      }).catch(function () {
-        analytics.sendEvent(self._createPromise, 'venmo.desktop-flow.setup-failed');
-        self._useDesktopFlow = false;
+          return client;
+        })
+        .catch(function () {
+          analytics.sendEvent(
+            self._createPromise,
+            "venmo.desktop-flow.setup-failed"
+          );
+          self._useDesktopFlow = false;
 
-        return client;
-      });
+          return client;
+        });
     });
   } else if (this._shouldCreateVenmoPaymentContext) {
     // these variables are only relevant for the manual return flow
@@ -2903,33 +3080,48 @@ function Venmo(options) {
     this._mobilePollingExpiresThreshold = DEFAULT_MOBILE_EXPIRING_THRESHOLD;
 
     this._createPromise = this._createPromise.then(function (client) {
-      var analyticsCategory = self._cannotHaveReturnUrls ?
-        'manual-return' : 'mobile-payment-context';
+      var analyticsCategory = self._cannotHaveReturnUrls
+        ? "manual-return"
+        : "mobile-payment-context";
       var config = client.getConfiguration().gatewayConfiguration;
 
       self._mobilePollingContextEnvironment = config.environment.toUpperCase();
 
-      return self._createVenmoPaymentContext(client).then(function () {
-        analytics.sendEvent(self._createPromise, 'venmo.' + analyticsCategory + '.presented');
+      return self
+        ._createVenmoPaymentContext(client)
+        .then(function () {
+          analytics.sendEvent(
+            self._createPromise,
+            "venmo." + analyticsCategory + ".presented"
+          );
 
-        return client;
-      }).catch(function (err) {
-        analytics.sendEvent(self._createPromise, 'venmo.' + analyticsCategory + '.setup-failed');
+          return client;
+        })
+        .catch(function (err) {
+          analytics.sendEvent(
+            self._createPromise,
+            "venmo." + analyticsCategory + ".setup-failed"
+          );
 
-        return Promise.reject(new BraintreeError({
-          type: errors.VENMO_MOBILE_PAYMENT_CONTEXT_SETUP_FAILED.type,
-          code: errors.VENMO_MOBILE_PAYMENT_CONTEXT_SETUP_FAILED.code,
-          message: errors.VENMO_MOBILE_PAYMENT_CONTEXT_SETUP_FAILED.message,
-          details: {
-            originalError: err
-          }
-        }));
-      });
+          return Promise.reject(
+            new BraintreeError({
+              type: errors.VENMO_MOBILE_PAYMENT_CONTEXT_SETUP_FAILED.type,
+              code: errors.VENMO_MOBILE_PAYMENT_CONTEXT_SETUP_FAILED.code,
+              message: errors.VENMO_MOBILE_PAYMENT_CONTEXT_SETUP_FAILED.message,
+              details: {
+                originalError: err,
+              },
+            })
+          );
+        });
     });
   }
 }
 
-Venmo.prototype._createVenmoPaymentContext = function (client, cancelIfTokenizationInProgress) {
+Venmo.prototype._createVenmoPaymentContext = function (
+  client,
+  cancelIfTokenizationInProgress
+) {
   var self = this;
   var promise;
 
@@ -2938,37 +3130,42 @@ Venmo.prototype._createVenmoPaymentContext = function (client, cancelIfTokenizat
   }
 
   if (this._shouldUseLegacyFlow) {
-    promise = client.request({
-      api: 'graphQLApi',
-      data: {
-        query: graphqlQueries.LEGACY_CREATE_PAYMENT_CONTEXT_QUERY,
-        variables: {
-          input: {
-            environment: this._mobilePollingContextEnvironment,
-            intent: 'PAY_FROM_APP'
-          }
-        }
-      }
-    }).then(function (response) {
-      return response.data.createVenmoQRCodePaymentContext.venmoQRCodePaymentContext;
-    });
+    promise = client
+      .request({
+        api: "graphQLApi",
+        data: {
+          query: graphqlQueries.LEGACY_CREATE_PAYMENT_CONTEXT_QUERY,
+          variables: {
+            input: {
+              environment: this._mobilePollingContextEnvironment,
+              intent: "PAY_FROM_APP",
+            },
+          },
+        },
+      })
+      .then(function (response) {
+        return response
+          .data.createVenmoQRCodePaymentContext.venmoQRCodePaymentContext;
+      });
   } else {
-    promise = client.request({
-      api: 'graphQLApi',
-      data: {
-        query: graphqlQueries.CREATE_PAYMENT_CONTEXT_QUERY,
-        variables: {
-          input: {
-            paymentMethodUsage: this._paymentMethodUsage,
-            intent: 'CONTINUE',
-            customerClient: 'MOBILE_WEB',
-            displayName: this._displayName
-          }
-        }
-      }
-    }).then(function (response) {
-      return response.data.createVenmoPaymentContext.venmoPaymentContext;
-    });
+    promise = client
+      .request({
+        api: "graphQLApi",
+        data: {
+          query: graphqlQueries.CREATE_PAYMENT_CONTEXT_QUERY,
+          variables: {
+            input: {
+              paymentMethodUsage: this._paymentMethodUsage,
+              intent: "CONTINUE",
+              customerClient: "MOBILE_WEB",
+              displayName: this._displayName,
+            },
+          },
+        },
+      })
+      .then(function (response) {
+        return response.data.createVenmoPaymentContext.venmoPaymentContext;
+      });
   }
 
   return promise.then(function (context) {
@@ -2998,20 +3195,32 @@ Venmo.prototype._createVenmoPaymentContext = function (client, cancelIfTokenizat
 Venmo.prototype.appSwitch = function (url) {
   if (this._deepLinkReturnUrl) {
     if (isIosWebviewInDeepLinkReturnUrlFlow()) {
-      analytics.sendEvent(this._createPromise, 'venmo.appswitch.start.ios-webview');
+      analytics.sendEvent(
+        this._createPromise,
+        "venmo.appswitch.start.ios-webview"
+      );
       // Deep link URLs do not launch iOS apps from a webview when using window.open or PopupBridge.open.
       window.location.href = url;
-    } else if (window.popupBridge && typeof window.popupBridge.open === 'function') {
-      analytics.sendEvent(this._createPromise, 'venmo.appswitch.start.popup-bridge');
+    } else if (
+      window.popupBridge &&
+      typeof window.popupBridge.open === "function"
+    ) {
+      analytics.sendEvent(
+        this._createPromise,
+        "venmo.appswitch.start.popup-bridge"
+      );
       window.popupBridge.open(url);
     } else {
-      analytics.sendEvent(this._createPromise, 'venmo.appswitch.start.webview');
+      analytics.sendEvent(this._createPromise, "venmo.appswitch.start.webview");
       window.open(url);
     }
   } else {
-    analytics.sendEvent(this._createPromise, 'venmo.appswitch.start.browser');
+    analytics.sendEvent(this._createPromise, "venmo.appswitch.start.browser");
 
-    if (browserDetection.doesNotSupportWindowOpenInIos() || this._shouldUseRedirectStrategy()) {
+    if (
+      browserDetection.doesNotSupportWindowOpenInIos() ||
+      this._shouldUseRedirectStrategy()
+    ) {
       window.location.href = url;
     } else {
       window.open(url);
@@ -3020,55 +3229,60 @@ Venmo.prototype.appSwitch = function (url) {
 };
 
 Venmo.prototype.getUrl = function () {
-  return this._createPromise.then(function (client) {
-    var configuration = client.getConfiguration();
-    var params = {};
-    var currentUrl = this._deepLinkReturnUrl || window.location.href.replace(window.location.hash, '');
-    var venmoConfiguration = configuration.gatewayConfiguration.payWithVenmo;
-    var analyticsMetadata = configuration.analyticsMetadata;
-    var accessToken = venmoConfiguration.accessToken;
-    var braintreeData = {
-      _meta: {
-        version: analyticsMetadata.sdkVersion,
-        integration: analyticsMetadata.integration,
-        platform: analyticsMetadata.platform,
-        sessionId: analyticsMetadata.sessionId
+  return this._createPromise.then(
+    function (client) {
+      var configuration = client.getConfiguration();
+      var params = {};
+      var currentUrl =
+        this._deepLinkReturnUrl ||
+        window.location.href.replace(window.location.hash, "");
+      var venmoConfiguration = configuration.gatewayConfiguration.payWithVenmo;
+      var analyticsMetadata = configuration.analyticsMetadata;
+      var accessToken = venmoConfiguration.accessToken;
+      var braintreeData = {
+        _meta: {
+          version: analyticsMetadata.sdkVersion,
+          integration: analyticsMetadata.integration,
+          platform: analyticsMetadata.platform,
+          sessionId: analyticsMetadata.sessionId,
+        },
+      };
+
+      currentUrl = currentUrl.replace(/#*$/, "");
+
+      /* eslint-disable camelcase */
+      if (this._venmoPaymentContextId) {
+        if (this._shouldUseLegacyFlow) {
+          // NEXT_MAJOR_VERSION stop adding the context id to the access token.
+          // the context id is placed here for backwards compatiblity
+          // with versions of the venmo app that did not support
+          // pulling the resource id off of the query params
+          accessToken += "|pcid:" + this._venmoPaymentContextId;
+        } else {
+          params.resource_id = this._venmoPaymentContextId;
+        }
       }
-    };
 
-    currentUrl = currentUrl.replace(/#*$/, '');
-
-    /* eslint-disable camelcase */
-    if (this._venmoPaymentContextId) {
-      if (this._shouldUseLegacyFlow) {
-        // NEXT_MAJOR_VERSION stop adding the context id to the access token.
-        // the context id is placed here for backwards compatiblity
-        // with versions of the venmo app that did not support
-        // pulling the resource id off of the query params
-        accessToken += '|pcid:' + this._venmoPaymentContextId;
+      if (this._shouldIncludeReturnUrls()) {
+        params["x-success"] = currentUrl + "#venmoSuccess=1";
+        params["x-cancel"] = currentUrl + "#venmoCancel=1";
+        params["x-error"] = currentUrl + "#venmoError=1";
       } else {
-        params.resource_id = this._venmoPaymentContextId;
+        params["x-success"] = "NOOP";
+        params["x-cancel"] = "NOOP";
+        params["x-error"] = "NOOP";
       }
-    }
+      params.ua = window.navigator.userAgent;
+      params.braintree_merchant_id =
+        this._profileId || venmoConfiguration.merchantId;
+      params.braintree_access_token = accessToken;
+      params.braintree_environment = venmoConfiguration.environment;
+      params.braintree_sdk_data = btoa(JSON.stringify(braintreeData));
+      /* eslint-enable camelcase */
 
-    if (this._shouldIncludeReturnUrls()) {
-      params['x-success'] = currentUrl + '#venmoSuccess=1';
-      params['x-cancel'] = currentUrl + '#venmoCancel=1';
-      params['x-error'] = currentUrl + '#venmoError=1';
-    } else {
-      params['x-success'] = 'NOOP';
-      params['x-cancel'] = 'NOOP';
-      params['x-error'] = 'NOOP';
-    }
-    params.ua = window.navigator.userAgent;
-    params.braintree_merchant_id = this._profileId || venmoConfiguration.merchantId;
-    params.braintree_access_token = accessToken;
-    params.braintree_environment = venmoConfiguration.environment;
-    params.braintree_sdk_data = btoa(JSON.stringify(braintreeData));
-    /* eslint-enable camelcase */
-
-    return constants.VENMO_OPEN_URL + '?' + querystring.stringify(params);
-  }.bind(this));
+      return constants.VENMO_OPEN_URL + "?" + querystring.stringify(params);
+    }.bind(this)
+  );
 };
 
 /**
@@ -3083,7 +3297,7 @@ Venmo.prototype.isBrowserSupported = function () {
   return isBrowserSupported.isBrowserSupported({
     allowNewBrowserTab: this._allowNewBrowserTab,
     allowWebviews: this._allowWebviews,
-    allowDesktop: this._allowDesktop
+    allowDesktop: this._allowDesktop,
   });
 };
 
@@ -3104,7 +3318,10 @@ Venmo.prototype.hasTokenizationResult = function () {
 Venmo.prototype._hasTokenizationResult = function (hash) {
   var params = getFragmentParameters(hash);
 
-  return typeof (params.venmoSuccess || params.venmoError || params.venmoCancel) !== 'undefined';
+  return (
+    typeof (params.venmoSuccess || params.venmoError || params.venmoCancel) !==
+    "undefined"
+  );
 };
 
 Venmo.prototype._shouldIncludeReturnUrls = function () {
@@ -3172,7 +3389,9 @@ Venmo.prototype.tokenize = function (options) {
   options = options || {};
 
   if (this._tokenizationInProgress === true) {
-    return Promise.reject(new BraintreeError(errors.VENMO_TOKENIZATION_REQUEST_ACTIVE));
+    return Promise.reject(
+      new BraintreeError(errors.VENMO_TOKENIZATION_REQUEST_ACTIVE)
+    );
   }
 
   this._tokenizationInProgress = true;
@@ -3213,26 +3432,33 @@ Venmo.prototype.tokenize = function (options) {
     // Once we get a succesful return, we ping the payment
     // context query to get any additional data needed
     // to send back to the merchant.
-    tokenizationPromise = this._tokenizeForMobileWithHashChangeListeners(options);
+    tokenizationPromise =
+      this._tokenizeForMobileWithHashChangeListeners(options);
   }
 
-  return tokenizationPromise.then(function (payload) {
-    return self._createPromise.then(function (client) {
-      return self._createVenmoPaymentContext(client);
-    }).then(function () {
-      self._tokenizationInProgress = false;
+  return tokenizationPromise
+    .then(function (payload) {
+      return self._createPromise
+        .then(function (client) {
+          return self._createVenmoPaymentContext(client);
+        })
+        .then(function () {
+          self._tokenizationInProgress = false;
 
-      return formatTokenizePayload(payload);
-    });
-  }).catch(function (err) {
-    return self._createPromise.then(function (client) {
-      return self._createVenmoPaymentContext(client);
-    }).then(function () {
-      self._tokenizationInProgress = false;
+          return formatTokenizePayload(payload);
+        });
+    })
+    .catch(function (err) {
+      return self._createPromise
+        .then(function (client) {
+          return self._createVenmoPaymentContext(client);
+        })
+        .then(function () {
+          self._tokenizationInProgress = false;
 
-      return Promise.reject(err);
+          return Promise.reject(err);
+        });
     });
-  });
 };
 
 /**
@@ -3264,7 +3490,9 @@ Venmo.prototype.tokenize = function (options) {
  */
 Venmo.prototype.cancelTokenization = function () {
   if (!this._tokenizationInProgress) {
-    return Promise.reject(new BraintreeError(errors.VENMO_TOKENIZATION_REQUEST_NOT_ACTIVE));
+    return Promise.reject(
+      new BraintreeError(errors.VENMO_TOKENIZATION_REQUEST_NOT_ACTIVE)
+    );
   }
 
   this._removeVisibilityEventListener();
@@ -3274,108 +3502,137 @@ Venmo.prototype.cancelTokenization = function () {
   // rather than a customer canceled error in the mobile
   // polling and desktop flows
   if (this._tokenizePromise) {
-    this._tokenizePromise.reject(new BraintreeError(errors.VENMO_TOKENIZATION_CANCELED_BY_MERCHANT));
+    this._tokenizePromise.reject(
+      new BraintreeError(errors.VENMO_TOKENIZATION_CANCELED_BY_MERCHANT)
+    );
   }
 
   return Promise.all([
     this._cancelMobilePaymentContext(),
-    this._cancelVenmoDesktopContext()
+    this._cancelVenmoDesktopContext(),
   ]);
 };
 
 Venmo.prototype._queryPaymentContextStatus = function (id) {
   var self = this;
 
-  return this._createPromise.then(function (client) {
-    var query = self._shouldUseLegacyFlow ?
-      graphqlQueries.LEGACY_VENMO_PAYMENT_CONTEXT_STATUS_QUERY :
-      graphqlQueries.VENMO_PAYMENT_CONTEXT_STATUS_QUERY;
+  return this._createPromise
+    .then(function (client) {
+      var query = self._shouldUseLegacyFlow
+        ? graphqlQueries.LEGACY_VENMO_PAYMENT_CONTEXT_STATUS_QUERY
+        : graphqlQueries.VENMO_PAYMENT_CONTEXT_STATUS_QUERY;
 
-    return client.request({
-      api: 'graphQLApi',
-      data: {
-        query: query,
-        variables: {
-          id: id
-        }
-      }
+      return client.request({
+        api: "graphQLApi",
+        data: {
+          query: query,
+          variables: {
+            id: id,
+          },
+        },
+      });
+    })
+    .then(function (response) {
+      return response.data.node;
     });
-  }).then(function (response) {
-    return response.data.node;
-  });
 };
 
 Venmo.prototype._pollForStatusChange = function () {
   var self = this;
 
   if (Date.now() > self._mobilePollingContextExpiresIn) {
-    return Promise.reject(new BraintreeError(errors.VENMO_MOBILE_POLLING_TOKENIZATION_TIMEOUT));
+    return Promise.reject(
+      new BraintreeError(errors.VENMO_MOBILE_POLLING_TOKENIZATION_TIMEOUT)
+    );
   }
 
-  return this._queryPaymentContextStatus(this._venmoPaymentContextId).catch(function (networkError) {
-    return Promise.reject(new BraintreeError({
-      type: errors.VENMO_MOBILE_POLLING_TOKENIZATION_NETWORK_ERROR.type,
-      code: errors.VENMO_MOBILE_POLLING_TOKENIZATION_NETWORK_ERROR.code,
-      message: errors.VENMO_MOBILE_POLLING_TOKENIZATION_NETWORK_ERROR.message,
-      details: {
-        originalError: networkError
-      }
-    }));
-  }).then(function (node) {
-    var newStatus = node.status;
+  return this._queryPaymentContextStatus(this._venmoPaymentContextId)
+    .catch(function (networkError) {
+      return Promise.reject(
+        new BraintreeError({
+          type: errors.VENMO_MOBILE_POLLING_TOKENIZATION_NETWORK_ERROR.type,
+          code: errors.VENMO_MOBILE_POLLING_TOKENIZATION_NETWORK_ERROR.code,
+          message:
+            errors.VENMO_MOBILE_POLLING_TOKENIZATION_NETWORK_ERROR.message,
+          details: {
+            originalError: networkError,
+          },
+        })
+      );
+    })
+    .then(function (node) {
+      var newStatus = node.status;
 
-    if (newStatus !== self._venmoPaymentContextStatus) {
-      self._venmoPaymentContextStatus = newStatus;
+      if (newStatus !== self._venmoPaymentContextStatus) {
+        self._venmoPaymentContextStatus = newStatus;
 
-      analytics.sendEvent(self._createPromise, 'venmo.tokenize.manual-return.status-change.' + newStatus.toLowerCase());
+        analytics.sendEvent(
+          self._createPromise,
+          "venmo.tokenize.manual-return.status-change." +
+            newStatus.toLowerCase()
+        );
 
-      switch (newStatus) {
-        case 'EXPIRED':
-        case 'FAILED':
-        case 'CANCELED':
-          return Promise.reject(new BraintreeError(errors['VENMO_MOBILE_POLLING_TOKENIZATION_' + newStatus]));
-        case 'APPROVED':
-          return Promise.resolve(node);
-        case 'CREATED':
-        case 'SCANNED':
-        default:
+        switch (newStatus) {
+          case "EXPIRED":
+          case "FAILED":
+          case "CANCELED":
+            return Promise.reject(
+              new BraintreeError(
+                errors["VENMO_MOBILE_POLLING_TOKENIZATION_" + newStatus]
+              )
+            );
+          case "APPROVED":
+            return Promise.resolve(node);
+          case "CREATED":
+          case "SCANNED":
+          default:
           // any other statuses are irrelevant to the polling
           // and can just be ignored
+        }
       }
-    }
 
-    return new Promise(function (resolve, reject) {
-      setTimeout(function () {
-        self._pollForStatusChange()
-          .then(resolve)
-          .catch(reject);
-      }, self._mobilePollingInterval);
+      return new Promise(function (resolve, reject) {
+        setTimeout(function () {
+          self._pollForStatusChange().then(resolve).catch(reject);
+        }, self._mobilePollingInterval);
+      });
     });
-  });
 };
 
 Venmo.prototype._tokenizeForMobileWithManualReturn = function () {
   var self = this;
 
-  analytics.sendEvent(this._createPromise, 'venmo.tokenize.manual-return.start');
+  analytics.sendEvent(
+    this._createPromise,
+    "venmo.tokenize.manual-return.start"
+  );
 
-  this._mobilePollingContextExpiresIn = Date.now() + this._mobilePollingExpiresThreshold;
+  this._mobilePollingContextExpiresIn =
+    Date.now() + this._mobilePollingExpiresThreshold;
   this._tokenizePromise = new ExtendedPromise();
 
-  this._pollForStatusChange().then(function (payload) {
-    analytics.sendEvent(self._createPromise, 'venmo.tokenize.manual-return.success');
+  this._pollForStatusChange()
+    .then(function (payload) {
+      analytics.sendEvent(
+        self._createPromise,
+        "venmo.tokenize.manual-return.success"
+      );
 
-    self._tokenizePromise.resolve({
-      paymentMethodNonce: payload.paymentMethodId,
-      username: payload.userName,
-      payerInfo: payload.payerInfo,
-      id: self._venmoPaymentContextId
+      self._tokenizePromise.resolve({
+        paymentMethodNonce: payload.paymentMethodId,
+        username: payload.userName,
+        payerInfo: payload.payerInfo,
+        id: self._venmoPaymentContextId,
+      });
+    })
+    .catch(function (err) {
+      analytics.sendEvent(
+        self._createPromise,
+        "venmo.tokenize.manual-return.failure"
+      );
+
+      self._tokenizePromise.reject(err);
     });
-  }).catch(function (err) {
-    analytics.sendEvent(self._createPromise, 'venmo.tokenize.manual-return.failure');
-
-    self._tokenizePromise.reject(err);
-  });
 
   return this.getUrl().then(function (url) {
     self.appSwitch(url);
@@ -3400,7 +3657,7 @@ Venmo.prototype._tokenizeForMobileWithHashChangeListeners = function (options) {
     return this.processResultsFromHash();
   }
 
-  analytics.sendEvent(this._createPromise, 'venmo.tokenize.mobile.start');
+  analytics.sendEvent(this._createPromise, "venmo.tokenize.mobile.start");
   this._tokenizePromise = new ExtendedPromise();
 
   this._previousHash = window.location.hash;
@@ -3408,27 +3665,33 @@ Venmo.prototype._tokenizeForMobileWithHashChangeListeners = function (options) {
   function completeFlow(hash) {
     var error;
 
-    self.processResultsFromHash(hash).catch(function (err) {
-      error = err;
-    }).then(function (res) {
-      if (!self._ignoreHistoryChanges && window.location.hash !== self._previousHash) {
-        window.location.hash = self._previousHash;
-      }
-      self._removeVisibilityEventListener();
+    self
+      .processResultsFromHash(hash)
+      .catch(function (err) {
+        error = err;
+      })
+      .then(function (res) {
+        if (
+          !self._ignoreHistoryChanges &&
+          window.location.hash !== self._previousHash
+        ) {
+          window.location.hash = self._previousHash;
+        }
+        self._removeVisibilityEventListener();
 
-      if (error) {
-        self._tokenizePromise.reject(error);
-      } else {
-        self._tokenizePromise.resolve(res);
-      }
-      delete self._tokenizePromise;
-    });
+        if (error) {
+          self._tokenizePromise.reject(error);
+        } else {
+          self._tokenizePromise.resolve(res);
+        }
+        delete self._tokenizePromise;
+      });
   }
 
   // The Venmo SDK app switches back with the results of the
   // tokenization encoded in the hash
   this._onHashChangeListener = function (e) {
-    var hash = e.newURL.split('#')[1];
+    var hash = e.newURL.split("#")[1];
 
     if (!self._hasTokenizationResult(hash)) {
       return;
@@ -3439,13 +3702,14 @@ Venmo.prototype._tokenizeForMobileWithHashChangeListeners = function (options) {
     completeFlow(hash);
   };
 
-  window.addEventListener('hashchange', this._onHashChangeListener, false);
+  window.addEventListener("hashchange", this._onHashChangeListener, false);
 
   // Subscribe to document visibility change events to detect when app switch
   // has returned. Acts as a fallback for the hashchange listener and catches
   // the cancel case via manual app switch back
   this._visibilityChangeListener = function () {
-    var delay = options.processResultsDelay || constants.DEFAULT_PROCESS_RESULTS_DELAY;
+    var delay =
+      options.processResultsDelay || constants.DEFAULT_PROCESS_RESULTS_DELAY;
 
     if (!window.document.hidden) {
       if (!resultProcessingInProgress) {
@@ -3459,7 +3723,10 @@ Venmo.prototype._tokenizeForMobileWithHashChangeListeners = function (options) {
 
     // Add a brief delay to ignore visibility change events that occur right before app switch
     setTimeout(function () {
-      window.document.addEventListener(documentVisibilityChangeEventName(), self._visibilityChangeListener);
+      window.document.addEventListener(
+        documentVisibilityChangeEventName(),
+        self._visibilityChangeListener
+      );
     }, constants.DOCUMENT_VISIBILITY_CHANGE_EVENT_DELAY);
 
     return self._tokenizePromise;
@@ -3469,47 +3736,63 @@ Venmo.prototype._tokenizeForMobileWithHashChangeListeners = function (options) {
 Venmo.prototype._tokenizeForDesktop = function () {
   var self = this;
 
-  analytics.sendEvent(this._createPromise, 'venmo.tokenize.desktop.start');
+  analytics.sendEvent(this._createPromise, "venmo.tokenize.desktop.start");
 
   this._tokenizePromise = new ExtendedPromise();
 
-  this._createPromise.then(function () {
-    return self._venmoDesktopInstance.launchDesktopFlow();
-  }).then(function (payload) {
-    self._venmoDesktopInstance.hideDesktopFlow();
-
-    analytics.sendEvent(self._createPromise, 'venmo.tokenize.desktop.success');
-
-    self._tokenizePromise.resolve(payload);
-  }).catch(function (err) {
-    analytics.sendEvent(self._createPromise, 'venmo.tokenize.desktop.failure');
-
-    if (self._venmoDesktopInstance) {
+  this._createPromise
+    .then(function () {
+      return self._venmoDesktopInstance.launchDesktopFlow();
+    })
+    .then(function (payload) {
       self._venmoDesktopInstance.hideDesktopFlow();
-    }
 
-    if (err && err.reason === 'CUSTOMER_CANCELED') {
-      self._tokenizePromise.reject(new BraintreeError(errors.VENMO_DESKTOP_CANCELED));
+      analytics.sendEvent(
+        self._createPromise,
+        "venmo.tokenize.desktop.success"
+      );
 
-      return;
-    }
+      self._tokenizePromise.resolve(payload);
+    })
+    .catch(function (err) {
+      analytics.sendEvent(
+        self._createPromise,
+        "venmo.tokenize.desktop.failure"
+      );
 
-    self._tokenizePromise.reject(new BraintreeError({
-      type: errors.VENMO_DESKTOP_UNKNOWN_ERROR.type,
-      code: errors.VENMO_DESKTOP_UNKNOWN_ERROR.code,
-      message: errors.VENMO_DESKTOP_UNKNOWN_ERROR.message,
-      details: {
-        originalError: err
+      if (self._venmoDesktopInstance) {
+        self._venmoDesktopInstance.hideDesktopFlow();
       }
-    }));
-  });
+
+      if (err && err.reason === "CUSTOMER_CANCELED") {
+        self._tokenizePromise.reject(
+          new BraintreeError(errors.VENMO_DESKTOP_CANCELED)
+        );
+
+        return;
+      }
+
+      self._tokenizePromise.reject(
+        new BraintreeError({
+          type: errors.VENMO_DESKTOP_UNKNOWN_ERROR.type,
+          code: errors.VENMO_DESKTOP_UNKNOWN_ERROR.code,
+          message: errors.VENMO_DESKTOP_UNKNOWN_ERROR.message,
+          details: {
+            originalError: err,
+          },
+        })
+      );
+    });
 
   return this._tokenizePromise;
 };
 
 // TODO remove this once initial testing is done
 Venmo.prototype._updateVenmoDesktopPaymentContext = function (status, options) {
-  return this._venmoDesktopInstance.updateVenmoDesktopPaymentContext(status, options);
+  return this._venmoDesktopInstance.updateVenmoDesktopPaymentContext(
+    status,
+    options
+  );
 };
 
 Venmo.prototype._cancelMobilePaymentContext = function () {
@@ -3519,21 +3802,21 @@ Venmo.prototype._cancelMobilePaymentContext = function () {
     var query;
 
     if (self._venmoPaymentContextId) {
-      query = self._shouldUseLegacyFlow ?
-        graphqlQueries.LEGACY_UPDATE_PAYMENT_CONTEXT_QUERY :
-        graphqlQueries.UPDATE_PAYMENT_CONTEXT_QUERY;
+      query = self._shouldUseLegacyFlow
+        ? graphqlQueries.LEGACY_UPDATE_PAYMENT_CONTEXT_QUERY
+        : graphqlQueries.UPDATE_PAYMENT_CONTEXT_QUERY;
 
       return client.request({
-        api: 'graphQLApi',
+        api: "graphQLApi",
         data: {
           query: query,
           variables: {
             input: {
               id: self._venmoPaymentContextId,
-              status: 'CANCELED'
-            }
-          }
-        }
+              status: "CANCELED",
+            },
+          },
+        },
       });
     }
 
@@ -3546,7 +3829,7 @@ Venmo.prototype._cancelVenmoDesktopContext = function () {
 
   return this._createPromise.then(function () {
     if (self._venmoDesktopInstance) {
-      self._venmoDesktopInstance.updateVenmoDesktopPaymentContext('CANCELED');
+      self._venmoDesktopInstance.updateVenmoDesktopPaymentContext("CANCELED");
     }
 
     return Promise.resolve();
@@ -3570,21 +3853,26 @@ Venmo.prototype.teardown = function () {
 
   this._removeVisibilityEventListener();
 
-  return this._createPromise.then(function () {
-    if (self._venmoDesktopInstance) {
-      self._venmoDesktopInstance.teardown();
-    }
+  return this._createPromise.then(
+    function () {
+      if (self._venmoDesktopInstance) {
+        self._venmoDesktopInstance.teardown();
+      }
 
-    clearTimeout(self._refreshPaymentContextTimeout);
-    self._cancelMobilePaymentContext();
+      clearTimeout(self._refreshPaymentContextTimeout);
+      self._cancelMobilePaymentContext();
 
-    convertMethodsToError(this, methods(Venmo.prototype));
-  }.bind(this));
+      convertMethodsToError(this, methods(Venmo.prototype));
+    }.bind(this)
+  );
 };
 
 Venmo.prototype._removeVisibilityEventListener = function () {
-  window.removeEventListener('hashchange', this._onHashChangeListener);
-  window.document.removeEventListener(documentVisibilityChangeEventName(), this._visibilityChangeListener);
+  window.removeEventListener("hashchange", this._onHashChangeListener);
+  window.document.removeEventListener(
+    documentVisibilityChangeEventName(),
+    this._visibilityChangeListener
+  );
 
   delete this._visibilityChangeListener;
   delete this._onHashChangeListener;
@@ -3596,48 +3884,66 @@ Venmo.prototype.processResultsFromHash = function (hash) {
 
   return new Promise(function (resolve, reject) {
     if (params.venmoSuccess) {
-      analytics.sendEvent(self._createPromise, 'venmo.appswitch.handle.success');
+      analytics.sendEvent(
+        self._createPromise,
+        "venmo.appswitch.handle.success"
+      );
 
       if (params.resource_id && !self._shouldUseLegacyFlow) {
-        self._queryPaymentContextStatus(params.resource_id).then(function (result) {
-          if (result.status !== 'APPROVED') {
-            analytics.sendEvent(self._createPromise, 'venmo.process-results.unexpected-payment-context-status.' + result.status.toLowerCase());
-            resolve(params);
+        self
+          ._queryPaymentContextStatus(params.resource_id)
+          .then(function (result) {
+            if (result.status !== "APPROVED") {
+              analytics.sendEvent(
+                self._createPromise,
+                "venmo.process-results.unexpected-payment-context-status." +
+                  result.status.toLowerCase()
+              );
+              resolve(params);
 
-            return;
-          }
-          resolve({
-            paymentMethodNonce: result.paymentMethodId,
-            username: result.userName,
-            payerInfo: result.payerInfo,
-            id: params.resource_id
+              return;
+            }
+            resolve({
+              paymentMethodNonce: result.paymentMethodId,
+              username: result.userName,
+              payerInfo: result.payerInfo,
+              id: params.resource_id,
+            });
+          })
+          .catch(function () {
+            analytics.sendEvent(
+              self._createPromise,
+              "venmo.process-results.payment-context-status-query-failed"
+            );
+            resolve(params);
           });
-        }).catch(function () {
-          analytics.sendEvent(self._createPromise, 'venmo.process-results.payment-context-status-query-failed');
-          resolve(params);
-        });
       } else {
         resolve(params);
       }
     } else if (params.venmoError) {
-      analytics.sendEvent(self._createPromise, 'venmo.appswitch.handle.error');
-      reject(new BraintreeError({
-        type: errors.VENMO_APP_FAILED.type,
-        code: errors.VENMO_APP_FAILED.code,
-        message: errors.VENMO_APP_FAILED.message,
-        details: {
-          originalError: {
-            message: decodeURIComponent(params.errorMessage),
-            code: params.errorCode
-          }
-        }
-      }));
+      analytics.sendEvent(self._createPromise, "venmo.appswitch.handle.error");
+      reject(
+        new BraintreeError({
+          type: errors.VENMO_APP_FAILED.type,
+          code: errors.VENMO_APP_FAILED.code,
+          message: errors.VENMO_APP_FAILED.message,
+          details: {
+            originalError: {
+              message: decodeURIComponent(params.errorMessage),
+              code: params.errorCode,
+            },
+          },
+        })
+      );
     } else if (params.venmoCancel) {
-      analytics.sendEvent(self._createPromise, 'venmo.appswitch.handle.cancel');
+      analytics.sendEvent(self._createPromise, "venmo.appswitch.handle.cancel");
       reject(new BraintreeError(errors.VENMO_APP_CANCELED));
     } else {
       // User has either manually switched back to browser, or app is not available for app switch
-      analytics.sendEvent(self._createPromise, 'venmo.appswitch.cancel-or-unavailable');
+      analytics.sendEvent(
+        self._createPromise,
+        "venmo.appswitch.cancel-or-unavailable"
+      );
       reject(new BraintreeError(errors.VENMO_CANCELED));
     }
 
@@ -3650,21 +3956,28 @@ Venmo.prototype._clearFragmentParameters = function () {
     return;
   }
 
-  if (typeof window.history.replaceState === 'function' && window.location.hash) {
-    history.pushState({}, '', window.location.href.slice(0, window.location.href.indexOf('#')));
+  if (
+    typeof window.history.replaceState === "function" &&
+    window.location.hash
+  ) {
+    history.pushState(
+      {},
+      "",
+      window.location.href.slice(0, window.location.href.indexOf("#"))
+    );
   }
 };
 
 function getFragmentParameters(hash) {
-  var keyValuesArray = (hash || window.location.hash.substring(1)).split('&');
+  var keyValuesArray = (hash || window.location.hash.substring(1)).split("&");
 
   return keyValuesArray.reduce(function (toReturn, keyValue) {
-    var parts = keyValue.split('=');
+    var parts = keyValue.split("=");
     // some Single Page Apps may pre-pend a / to the first value
     // in the hash, assuming it's a route in their app
     // instead of information from Venmo, this removes all
     // non-alphanumeric characters from the keys in the params
-    var key = decodeURIComponent(parts[0]).replace(/\W/g, '');
+    var key = decodeURIComponent(parts[0]).replace(/\W/g, "");
     var value = decodeURIComponent(parts[1]);
 
     toReturn[key] = value;
@@ -3674,26 +3987,28 @@ function getFragmentParameters(hash) {
 }
 
 function formatUserName(username) {
-  username = username || '';
+  username = username || "";
 
   // NEXT_MAJOR_VERSION the web sdks have a prepended @ sign
   // but the ios and android ones do not. This should be standardized
-  return '@' + username.replace('@', '');
+  return "@" + username.replace("@", "");
 }
 
 function formatTokenizePayload(payload) {
   var formattedPayload = {
     nonce: payload.paymentMethodNonce,
-    type: 'VenmoAccount',
+    type: "VenmoAccount",
     details: {
       username: formatUserName(payload.username),
-      paymentContextId: payload.id
-    }
+      paymentContextId: payload.id,
+    },
   };
 
   if (payload.payerInfo) {
     formattedPayload.details.payerInfo = payload.payerInfo;
-    formattedPayload.details.payerInfo.userName = formatUserName(payload.payerInfo.userName);
+    formattedPayload.details.payerInfo.userName = formatUserName(
+      payload.payerInfo.userName
+    );
   }
 
   return formattedPayload;
@@ -3703,12 +4018,13 @@ function formatTokenizePayload(payload) {
 function documentVisibilityChangeEventName() {
   var visibilityChange;
 
-  if (typeof window.document.hidden !== 'undefined') { // Opera 12.10 and Firefox 18 and later support
-    visibilityChange = 'visibilitychange';
-  } else if (typeof window.document.msHidden !== 'undefined') {
-    visibilityChange = 'msvisibilitychange';
-  } else if (typeof window.document.webkitHidden !== 'undefined') {
-    visibilityChange = 'webkitvisibilitychange';
+  if (typeof window.document.hidden !== "undefined") {
+    // Opera 12.10 and Firefox 18 and later support
+    visibilityChange = "visibilitychange";
+  } else if (typeof window.document.msHidden !== "undefined") {
+    visibilityChange = "msvisibilitychange";
+  } else if (typeof window.document.webkitHidden !== "undefined") {
+    visibilityChange = "webkitvisibilitychange";
   }
 
   return visibilityChange;
@@ -3718,11 +4034,13 @@ function isIosWebviewInDeepLinkReturnUrlFlow() {
   // we know it's a webview because this flow only gets
   // used when checking the deep link flow
   // test the platform here to get around custom useragents
-  return window.navigator.platform &&
-    /iPhone|iPad|iPod/.test(window.navigator.platform);
+  return (
+    window.navigator.platform &&
+    /iPhone|iPad|iPod/.test(window.navigator.platform)
+  );
 }
 
 module.exports = wrapPromise.wrapPrototype(Venmo);
 
-},{"../lib/analytics":47,"../lib/braintree-error":50,"../lib/convert-methods-to-error":52,"../lib/in-iframe":58,"../lib/is-verified-domain":59,"../lib/methods":61,"../lib/promise":62,"../lib/querystring":63,"./external/":65,"./external/queries":66,"./shared/browser-detection":69,"./shared/constants":70,"./shared/errors":71,"./shared/supports-venmo":73,"@braintree/extended-promise":21,"@braintree/wrap-promise":30}]},{},[68])(68)
+},{"../lib/analytics":48,"../lib/braintree-error":51,"../lib/convert-methods-to-error":53,"../lib/in-iframe":59,"../lib/is-verified-domain":60,"../lib/methods":62,"../lib/promise":63,"../lib/querystring":64,"./external/":66,"./external/queries":67,"./shared/browser-detection":70,"./shared/constants":71,"./shared/errors":72,"./shared/supports-venmo":74,"@braintree/extended-promise":22,"@braintree/wrap-promise":31}]},{},[69])(69)
 });

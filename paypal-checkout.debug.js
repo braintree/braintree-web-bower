@@ -1100,8 +1100,6 @@ function allSettled(arr) {
 // Store setTimeout reference so promise-polyfill will be unaffected by
 // other code modifying setTimeout (like sinon.useFakeTimers())
 var setTimeoutFunc = setTimeout;
-// @ts-ignore
-var setImmediateFunc = typeof setImmediate !== 'undefined' ? setImmediate : null;
 
 function isArray(x) {
   return Boolean(x && typeof x.length !== 'undefined');
@@ -1335,10 +1333,10 @@ Promise.race = function(arr) {
 // Use polyfill for setImmediate for performance gains
 Promise._immediateFn =
   // @ts-ignore
-  (typeof setImmediateFunc === 'function' &&
+  (typeof setImmediate === 'function' &&
     function(fn) {
       // @ts-ignore
-      setImmediateFunc(fn);
+      setImmediate(fn);
     }) ||
   function(fn) {
     setTimeoutFunc(fn, 0);
@@ -1353,11 +1351,11 @@ Promise._unhandledRejectionFn = function _unhandledRejectionFn(err) {
 module.exports = Promise;
 
 },{}],48:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var createAuthorizationData = _dereq_('./create-authorization-data');
-var jsonClone = _dereq_('./json-clone');
-var constants = _dereq_('./constants');
+var createAuthorizationData = _dereq_("./create-authorization-data");
+var jsonClone = _dereq_("./json-clone");
+var constants = _dereq_("./constants");
 
 function addMetadata(configuration, data) {
   var key;
@@ -1387,64 +1385,74 @@ function addMetadata(configuration, data) {
 module.exports = addMetadata;
 
 },{"./constants":54,"./create-authorization-data":58,"./json-clone":74}],49:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var Promise = _dereq_('./promise');
-var constants = _dereq_('./constants');
-var addMetadata = _dereq_('./add-metadata');
+var Promise = _dereq_("./promise");
+var constants = _dereq_("./constants");
+var addMetadata = _dereq_("./add-metadata");
 
 function sendAnalyticsEvent(clientInstanceOrPromise, kind, callback) {
   var timestamp = Date.now(); // milliseconds
 
-  return Promise.resolve(clientInstanceOrPromise).then(function (client) {
-    var timestampInPromise = Date.now();
-    var configuration = client.getConfiguration();
-    var request = client._request;
-    var url = configuration.gatewayConfiguration.analytics.url;
-    var data = {
-      analytics: [{
-        kind: constants.ANALYTICS_PREFIX + kind,
-        isAsync: Math.floor(timestampInPromise / 1000) !== Math.floor(timestamp / 1000),
-        timestamp: timestamp
-      }]
-    };
+  return Promise.resolve(clientInstanceOrPromise)
+    .then(function (client) {
+      var timestampInPromise = Date.now();
+      var configuration = client.getConfiguration();
+      var request = client._request;
+      var url = configuration.gatewayConfiguration.analytics.url;
+      var data = {
+        analytics: [
+          {
+            kind: constants.ANALYTICS_PREFIX + kind,
+            isAsync:
+              Math.floor(timestampInPromise / 1000) !==
+              Math.floor(timestamp / 1000),
+            timestamp: timestamp,
+          },
+        ],
+      };
 
-    request({
-      url: url,
-      method: 'post',
-      data: addMetadata(configuration, data),
-      timeout: constants.ANALYTICS_REQUEST_TIMEOUT_MS
-    }, callback);
-  }).catch(function (err) {
-    // for all non-test cases, we don't provide a callback,
-    // so this error will always be swallowed. In this case,
-    // that's fine, it should only error when the deferred
-    // client fails to set up, in which case we don't want
-    // that error to report over and over again via these
-    // deferred analytics events
-    if (callback) {
-      callback(err);
-    }
-  });
+      request(
+        {
+          url: url,
+          method: "post",
+          data: addMetadata(configuration, data),
+          timeout: constants.ANALYTICS_REQUEST_TIMEOUT_MS,
+        },
+        callback
+      );
+    })
+    .catch(function (err) {
+      // for all non-test cases, we don't provide a callback,
+      // so this error will always be swallowed. In this case,
+      // that's fine, it should only error when the deferred
+      // client fails to set up, in which case we don't want
+      // that error to report over and over again via these
+      // deferred analytics events
+      if (callback) {
+        callback(err);
+      }
+    });
 }
 
 module.exports = {
-  sendEvent: sendAnalyticsEvent
+  sendEvent: sendAnalyticsEvent,
 };
 
 },{"./add-metadata":48,"./constants":54,"./promise":76}],50:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var loadScript = _dereq_('@braintree/asset-loader/load-script');
+var loadScript = _dereq_("@braintree/asset-loader/load-script");
 
 module.exports = {
-  loadScript: loadScript
+  loadScript: loadScript,
 };
 
 },{"@braintree/asset-loader/load-script":3}],51:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var assignNormalized = typeof Object.assign === 'function' ? Object.assign : assignPolyfill;
+var assignNormalized =
+  typeof Object.assign === "function" ? Object.assign : assignPolyfill;
 
 function assignPolyfill(destination) {
   var i, source, key;
@@ -1463,26 +1471,29 @@ function assignPolyfill(destination) {
 
 module.exports = {
   assign: assignNormalized,
-  _assign: assignPolyfill
+  _assign: assignPolyfill,
 };
 
 },{}],52:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var BraintreeError = _dereq_('./braintree-error');
-var Promise = _dereq_('./promise');
-var sharedErrors = _dereq_('./errors');
-var VERSION = "3.85.2";
+var BraintreeError = _dereq_("./braintree-error");
+var Promise = _dereq_("./promise");
+var sharedErrors = _dereq_("./errors");
+var VERSION = "3.85.3";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
 
   if (!options) {
-    return Promise.reject(new BraintreeError({
-      type: sharedErrors.INVALID_USE_OF_INTERNAL_FUNCTION.type,
-      code: sharedErrors.INVALID_USE_OF_INTERNAL_FUNCTION.code,
-      message: 'Options must be passed to basicComponentVerification function.'
-    }));
+    return Promise.reject(
+      new BraintreeError({
+        type: sharedErrors.INVALID_USE_OF_INTERNAL_FUNCTION.type,
+        code: sharedErrors.INVALID_USE_OF_INTERNAL_FUNCTION.code,
+        message:
+          "Options must be passed to basicComponentVerification function.",
+      })
+    );
   }
 
   name = options.name;
@@ -1490,34 +1501,45 @@ function basicComponentVerification(options) {
   authorization = options.authorization;
 
   if (!client && !authorization) {
-    return Promise.reject(new BraintreeError({
-      type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
-      code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
-      // NEXT_MAJOR_VERSION in major version, we expose passing in authorization for all components
-      // instead of passing in a client instance. Leave this a silent feature for now.
-      message: 'options.client is required when instantiating ' + name + '.'
-    }));
+    return Promise.reject(
+      new BraintreeError({
+        type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
+        code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
+        // NEXT_MAJOR_VERSION in major version, we expose passing in authorization for all components
+        // instead of passing in a client instance. Leave this a silent feature for now.
+        message: "options.client is required when instantiating " + name + ".",
+      })
+    );
   }
 
   if (!authorization && client.getVersion() !== VERSION) {
-    return Promise.reject(new BraintreeError({
-      type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
-      code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
-      message: 'Client (version ' + client.getVersion() + ') and ' + name + ' (version ' + VERSION + ') components must be from the same SDK version.'
-    }));
+    return Promise.reject(
+      new BraintreeError({
+        type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
+        code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
+        message:
+          "Client (version " +
+          client.getVersion() +
+          ") and " +
+          name +
+          " (version " +
+          VERSION +
+          ") components must be from the same SDK version.",
+      })
+    );
   }
 
   return Promise.resolve();
 }
 
 module.exports = {
-  verify: basicComponentVerification
+  verify: basicComponentVerification,
 };
 
 },{"./braintree-error":53,"./errors":61,"./promise":76}],53:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var enumerate = _dereq_('./enumerate');
+var enumerate = _dereq_("./enumerate");
 
 /**
  * @class
@@ -1528,18 +1550,18 @@ var enumerate = _dereq_('./enumerate');
  */
 function BraintreeError(options) {
   if (!BraintreeError.types.hasOwnProperty(options.type)) {
-    throw new Error(options.type + ' is not a valid type.');
+    throw new Error(options.type + " is not a valid type.");
   }
 
   if (!options.code) {
-    throw new Error('Error code required.');
+    throw new Error("Error code required.");
   }
 
   if (!options.message) {
-    throw new Error('Error message required.');
+    throw new Error("Error message required.");
   }
 
-  this.name = 'BraintreeError';
+  this.name = "BraintreeError";
 
   /**
    * @type {string}
@@ -1582,15 +1604,19 @@ BraintreeError.prototype.constructor = BraintreeError;
  * @property {string} UNKNOWN An error where the origin is unknown.
  */
 BraintreeError.types = enumerate([
-  'CUSTOMER',
-  'MERCHANT',
-  'NETWORK',
-  'INTERNAL',
-  'UNKNOWN'
+  "CUSTOMER",
+  "MERCHANT",
+  "NETWORK",
+  "INTERNAL",
+  "UNKNOWN",
 ]);
 
 BraintreeError.findRootError = function (err) {
-  if (err instanceof BraintreeError && err.details && err.details.originalError) {
+  if (
+    err instanceof BraintreeError &&
+    err.details &&
+    err.details.originalError
+  ) {
     return BraintreeError.findRootError(err.details.originalError);
   }
 
@@ -1600,51 +1626,51 @@ BraintreeError.findRootError = function (err) {
 module.exports = BraintreeError;
 
 },{"./enumerate":60}],54:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var VERSION = "3.85.2";
-var PLATFORM = 'web';
+var VERSION = "3.85.3";
+var PLATFORM = "web";
 
 var CLIENT_API_URLS = {
-  production: 'https://api.braintreegateway.com:443',
-  sandbox: 'https://api.sandbox.braintreegateway.com:443'
+  production: "https://api.braintreegateway.com:443",
+  sandbox: "https://api.sandbox.braintreegateway.com:443",
 };
 
 var ASSETS_URLS = {
-  production: 'https://assets.braintreegateway.com',
-  sandbox: 'https://assets.braintreegateway.com'
+  production: "https://assets.braintreegateway.com",
+  sandbox: "https://assets.braintreegateway.com",
 };
 
 var GRAPHQL_URLS = {
-  production: 'https://payments.braintree-api.com/graphql',
-  sandbox: 'https://payments.sandbox.braintree-api.com/graphql'
+  production: "https://payments.braintree-api.com/graphql",
+  sandbox: "https://payments.sandbox.braintree-api.com/graphql",
 };
 
 // endRemoveIf(production)
 
 module.exports = {
-  ANALYTICS_PREFIX: PLATFORM + '.',
+  ANALYTICS_PREFIX: PLATFORM + ".",
   ANALYTICS_REQUEST_TIMEOUT_MS: 2000,
   ASSETS_URLS: ASSETS_URLS,
   CLIENT_API_URLS: CLIENT_API_URLS,
-  FRAUDNET_SOURCE: 'BRAINTREE_SIGNIN',
-  FRAUDNET_FNCLS: 'fnparams-dede7cc5-15fd-4c75-a9f4-36c430ee3a99',
-  FRAUDNET_URL: 'https://c.paypal.com/da/r/fb.js',
-  BUS_CONFIGURATION_REQUEST_EVENT: 'BUS_CONFIGURATION_REQUEST',
+  FRAUDNET_SOURCE: "BRAINTREE_SIGNIN",
+  FRAUDNET_FNCLS: "fnparams-dede7cc5-15fd-4c75-a9f4-36c430ee3a99",
+  FRAUDNET_URL: "https://c.paypal.com/da/r/fb.js",
+  BUS_CONFIGURATION_REQUEST_EVENT: "BUS_CONFIGURATION_REQUEST",
   GRAPHQL_URLS: GRAPHQL_URLS,
   INTEGRATION_TIMEOUT_MS: 60000,
   VERSION: VERSION,
-  INTEGRATION: 'custom',
-  SOURCE: 'client',
+  INTEGRATION: "custom",
+  SOURCE: "client",
   PLATFORM: PLATFORM,
-  BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
+  BRAINTREE_LIBRARY_VERSION: "braintree/" + PLATFORM + "/" + VERSION,
 };
 
 },{}],55:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var BraintreeError = _dereq_('./braintree-error');
-var sharedErrors = _dereq_('./errors');
+var BraintreeError = _dereq_("./braintree-error");
+var sharedErrors = _dereq_("./errors");
 
 module.exports = function (instance, methodNames) {
   methodNames.forEach(function (methodName) {
@@ -1652,16 +1678,16 @@ module.exports = function (instance, methodNames) {
       throw new BraintreeError({
         type: sharedErrors.METHOD_CALLED_AFTER_TEARDOWN.type,
         code: sharedErrors.METHOD_CALLED_AFTER_TEARDOWN.code,
-        message: methodName + ' cannot be called after teardown.'
+        message: methodName + " cannot be called after teardown.",
       });
     };
   });
 };
 
 },{"./braintree-error":53,"./errors":61}],56:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var BraintreeError = _dereq_('./braintree-error');
+var BraintreeError = _dereq_("./braintree-error");
 
 function convertToBraintreeError(originalErr, btErrorObject) {
   if (originalErr instanceof BraintreeError) {
@@ -1673,18 +1699,18 @@ function convertToBraintreeError(originalErr, btErrorObject) {
     code: btErrorObject.code,
     message: btErrorObject.message,
     details: {
-      originalError: originalErr
-    }
+      originalError: originalErr,
+    },
   });
 }
 
 module.exports = convertToBraintreeError;
 
 },{"./braintree-error":53}],57:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
 // endRemoveIf(production)
-var ASSETS_URLS = _dereq_('./constants').ASSETS_URLS;
+var ASSETS_URLS = _dereq_("./constants").ASSETS_URLS;
 
 function createAssetsUrl(authorization) {
   // endRemoveIf(production)
@@ -1694,27 +1720,27 @@ function createAssetsUrl(authorization) {
 /* eslint-enable */
 
 module.exports = {
-  create: createAssetsUrl
+  create: createAssetsUrl,
 };
 
 },{"./constants":54}],58:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var atob = _dereq_('../lib/vendor/polyfill').atob;
-var CLIENT_API_URLS = _dereq_('../lib/constants').CLIENT_API_URLS;
+var atob = _dereq_("../lib/vendor/polyfill").atob;
+var CLIENT_API_URLS = _dereq_("../lib/constants").CLIENT_API_URLS;
 
 function _isTokenizationKey(str) {
   return /^[a-zA-Z0-9]+_[a-zA-Z0-9]+_[a-zA-Z0-9_]+$/.test(str);
 }
 
 function _parseTokenizationKey(tokenizationKey) {
-  var tokens = tokenizationKey.split('_');
+  var tokens = tokenizationKey.split("_");
   var environment = tokens[0];
-  var merchantId = tokens.slice(2).join('_');
+  var merchantId = tokens.slice(2).join("_");
 
   return {
     merchantId: merchantId,
-    environment: environment
+    environment: environment,
   };
 }
 
@@ -1722,18 +1748,23 @@ function createAuthorizationData(authorization) {
   var parsedClientToken, parsedTokenizationKey;
   var data = {
     attrs: {},
-    configUrl: ''
+    configUrl: "",
   };
 
   if (_isTokenizationKey(authorization)) {
     parsedTokenizationKey = _parseTokenizationKey(authorization);
     data.environment = parsedTokenizationKey.environment;
     data.attrs.tokenizationKey = authorization;
-    data.configUrl = CLIENT_API_URLS[parsedTokenizationKey.environment] + '/merchants/' + parsedTokenizationKey.merchantId + '/client_api/v1/configuration';
+    data.configUrl =
+      CLIENT_API_URLS[parsedTokenizationKey.environment] +
+      "/merchants/" +
+      parsedTokenizationKey.merchantId +
+      "/client_api/v1/configuration";
   } else {
     parsedClientToken = JSON.parse(atob(authorization));
     data.environment = parsedClientToken.environment;
-    data.attrs.authorizationFingerprint = parsedClientToken.authorizationFingerprint;
+    data.attrs.authorizationFingerprint =
+      parsedClientToken.authorizationFingerprint;
     data.configUrl = parsedClientToken.configUrl;
     data.graphQL = parsedClientToken.graphQL;
   }
@@ -1744,14 +1775,14 @@ function createAuthorizationData(authorization) {
 module.exports = createAuthorizationData;
 
 },{"../lib/constants":54,"../lib/vendor/polyfill":79}],59:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var BraintreeError = _dereq_('./braintree-error');
-var Promise = _dereq_('./promise');
-var assets = _dereq_('./assets');
-var sharedErrors = _dereq_('./errors');
+var BraintreeError = _dereq_("./braintree-error");
+var Promise = _dereq_("./promise");
+var assets = _dereq_("./assets");
+var sharedErrors = _dereq_("./errors");
 
-var VERSION = "3.85.2";
+var VERSION = "3.85.3";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1761,45 +1792,58 @@ function createDeferredClient(options) {
   }
 
   if (!(window.braintree && window.braintree.client)) {
-    promise = assets.loadScript({
-      src: options.assetsUrl + '/web/' + VERSION + '/js/client.min.js'
-    }).catch(function (err) {
-      return Promise.reject(new BraintreeError({
-        type: sharedErrors.CLIENT_SCRIPT_FAILED_TO_LOAD.type,
-        code: sharedErrors.CLIENT_SCRIPT_FAILED_TO_LOAD.code,
-        message: sharedErrors.CLIENT_SCRIPT_FAILED_TO_LOAD.message,
-        details: {
-          originalError: err
-        }
-      }));
-    });
+    promise = assets
+      .loadScript({
+        src: options.assetsUrl + "/web/" + VERSION + "/js/client.min.js",
+      })
+      .catch(function (err) {
+        return Promise.reject(
+          new BraintreeError({
+            type: sharedErrors.CLIENT_SCRIPT_FAILED_TO_LOAD.type,
+            code: sharedErrors.CLIENT_SCRIPT_FAILED_TO_LOAD.code,
+            message: sharedErrors.CLIENT_SCRIPT_FAILED_TO_LOAD.message,
+            details: {
+              originalError: err,
+            },
+          })
+        );
+      });
   }
 
   return promise.then(function () {
     if (window.braintree.client.VERSION !== VERSION) {
-      return Promise.reject(new BraintreeError({
-        type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
-        code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
-        message: 'Client (version ' + window.braintree.client.VERSION + ') and ' + options.name + ' (version ' + VERSION + ') components must be from the same SDK version.'
-      }));
+      return Promise.reject(
+        new BraintreeError({
+          type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
+          code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
+          message:
+            "Client (version " +
+            window.braintree.client.VERSION +
+            ") and " +
+            options.name +
+            " (version " +
+            VERSION +
+            ") components must be from the same SDK version.",
+        })
+      );
     }
 
     return window.braintree.client.create({
       authorization: options.authorization,
-      debug: options.debug
+      debug: options.debug,
     });
   });
 }
 
 module.exports = {
-  create: createDeferredClient
+  create: createDeferredClient,
 };
 
 },{"./assets":50,"./braintree-error":53,"./errors":61,"./promise":76}],60:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
 function enumerate(values, prefix) {
-  prefix = prefix == null ? '' : prefix;
+  prefix = prefix == null ? "" : prefix;
 
   return values.reduce(function (enumeration, value) {
     enumeration[value] = prefix + value;
@@ -1811,7 +1855,7 @@ function enumerate(values, prefix) {
 module.exports = enumerate;
 
 },{}],61:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
 /**
  * @name BraintreeError.Shared Internal Error Codes
@@ -1834,91 +1878,88 @@ module.exports = enumerate;
  * @property {MERCHANT} METHOD_CALLED_AFTER_TEARDOWN Occurs when a method is called on a component instance after it has been torn down.
  */
 
-var BraintreeError = _dereq_('./braintree-error');
+var BraintreeError = _dereq_("./braintree-error");
 
 module.exports = {
   INVALID_USE_OF_INTERNAL_FUNCTION: {
     type: BraintreeError.types.INTERNAL,
-    code: 'INVALID_USE_OF_INTERNAL_FUNCTION'
+    code: "INVALID_USE_OF_INTERNAL_FUNCTION",
   },
   INSTANTIATION_OPTION_REQUIRED: {
     type: BraintreeError.types.MERCHANT,
-    code: 'INSTANTIATION_OPTION_REQUIRED'
+    code: "INSTANTIATION_OPTION_REQUIRED",
   },
   INCOMPATIBLE_VERSIONS: {
     type: BraintreeError.types.MERCHANT,
-    code: 'INCOMPATIBLE_VERSIONS'
+    code: "INCOMPATIBLE_VERSIONS",
   },
   CLIENT_SCRIPT_FAILED_TO_LOAD: {
     type: BraintreeError.types.NETWORK,
-    code: 'CLIENT_SCRIPT_FAILED_TO_LOAD',
-    message: 'Braintree client script could not be loaded.'
+    code: "CLIENT_SCRIPT_FAILED_TO_LOAD",
+    message: "Braintree client script could not be loaded.",
   },
   METHOD_CALLED_AFTER_TEARDOWN: {
     type: BraintreeError.types.MERCHANT,
-    code: 'METHOD_CALLED_AFTER_TEARDOWN'
-  }
+    code: "METHOD_CALLED_AFTER_TEARDOWN",
+  },
 };
 
 },{"./braintree-error":53}],62:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var Popup = _dereq_('./strategies/popup');
-var PopupBridge = _dereq_('./strategies/popup-bridge');
-var Modal = _dereq_('./strategies/modal');
-var Bus = _dereq_('framebus');
-var events = _dereq_('../shared/events');
-var errors = _dereq_('../shared/errors');
-var constants = _dereq_('../shared/constants');
-var uuid = _dereq_('@braintree/uuid');
-var iFramer = _dereq_('@braintree/iframer');
-var BraintreeError = _dereq_('../../braintree-error');
-var browserDetection = _dereq_('../shared/browser-detection');
-var isHTTPS = _dereq_('../../is-https');
-var assign = _dereq_('./../../assign').assign;
-var BUS_CONFIGURATION_REQUEST_EVENT = _dereq_('../../constants').BUS_CONFIGURATION_REQUEST_EVENT;
+var Popup = _dereq_("./strategies/popup");
+var PopupBridge = _dereq_("./strategies/popup-bridge");
+var Modal = _dereq_("./strategies/modal");
+var Bus = _dereq_("framebus");
+var events = _dereq_("../shared/events");
+var errors = _dereq_("../shared/errors");
+var constants = _dereq_("../shared/constants");
+var uuid = _dereq_("@braintree/uuid");
+var iFramer = _dereq_("@braintree/iframer");
+var BraintreeError = _dereq_("../../braintree-error");
+var browserDetection = _dereq_("../shared/browser-detection");
+var isHTTPS = _dereq_("../../is-https");
+var assign = _dereq_("./../../assign").assign;
+var BUS_CONFIGURATION_REQUEST_EVENT =
+  _dereq_("../../constants").BUS_CONFIGURATION_REQUEST_EVENT;
 
-var REQUIRED_CONFIG_KEYS = [
-  'name',
-  'dispatchFrameUrl',
-  'openFrameUrl'
-];
+var REQUIRED_CONFIG_KEYS = ["name", "dispatchFrameUrl", "openFrameUrl"];
 
 function noop() {}
 
 function _validateFrameConfiguration(options) {
   if (!options) {
-    throw new Error('Valid configuration is required');
+    throw new Error("Valid configuration is required");
   }
 
   REQUIRED_CONFIG_KEYS.forEach(function (key) {
     if (!options.hasOwnProperty(key)) {
-      throw new Error('A valid frame ' + key + ' must be provided');
+      throw new Error("A valid frame " + key + " must be provided");
     }
   });
 
   if (!/^[\w_]+$/.test(options.name)) {
-    throw new Error('A valid frame name must be provided');
+    throw new Error("A valid frame name must be provided");
   }
 }
 
 function FrameService(options) {
   _validateFrameConfiguration(options);
 
-  this._serviceId = uuid().replace(/-/g, '');
+  this._serviceId = uuid().replace(/-/g, "");
 
   this._options = {
-    name: options.name + '_' + this._serviceId,
+    name: options.name + "_" + this._serviceId,
     dispatchFrameUrl: options.dispatchFrameUrl,
     openFrameUrl: options.openFrameUrl,
     height: options.height,
     width: options.width,
     top: options.top,
-    left: options.left
+    left: options.left,
   };
   this.state = options.state || {};
 
-  this._bus = new Bus({channel: this._serviceId});
+  this._bus = new Bus({ channel: this._serviceId });
   this._setBusEvents();
 }
 
@@ -1933,43 +1974,49 @@ FrameService.prototype.initialize = function (callback) {
 };
 
 FrameService.prototype._writeDispatchFrame = function () {
-  var frameName = constants.DISPATCH_FRAME_NAME + '_' + this._serviceId;
+  var frameName = constants.DISPATCH_FRAME_NAME + "_" + this._serviceId;
   var frameSrc = this._options.dispatchFrameUrl;
 
   this._dispatchFrame = iFramer({
-    'aria-hidden': true,
+    "aria-hidden": true,
     name: frameName,
     title: frameName,
     src: frameSrc,
-    'class': constants.DISPATCH_FRAME_CLASS,
+    class: constants.DISPATCH_FRAME_CLASS,
     height: 0,
     width: 0,
     style: {
-      position: 'absolute',
-      left: '-9999px'
-    }
+      position: "absolute",
+      left: "-9999px",
+    },
   });
 
   document.body.appendChild(this._dispatchFrame);
 };
 
 FrameService.prototype._setBusEvents = function () {
-  this._bus.on(events.DISPATCH_FRAME_REPORT, function (res, reply) {
-    if (this._onCompleteCallback) {
-      this._onCompleteCallback.call(null, res.err, res.payload);
-    }
-    this._frame.close();
+  this._bus.on(
+    events.DISPATCH_FRAME_REPORT,
+    function (res, reply) {
+      if (this._onCompleteCallback) {
+        this._onCompleteCallback.call(null, res.err, res.payload);
+      }
+      this._frame.close();
 
-    this._onCompleteCallback = null;
+      this._onCompleteCallback = null;
 
-    if (reply) {
-      reply();
-    }
-  }.bind(this));
+      if (reply) {
+        reply();
+      }
+    }.bind(this)
+  );
 
-  this._bus.on(BUS_CONFIGURATION_REQUEST_EVENT, function (reply) {
-    reply(this.state);
-  }.bind(this));
+  this._bus.on(
+    BUS_CONFIGURATION_REQUEST_EVENT,
+    function (reply) {
+      reply(this.state);
+    }.bind(this)
+  );
 };
 
 FrameService.prototype.open = function (options, callback) {
@@ -1993,7 +2040,9 @@ FrameService.prototype.open = function (options, callback) {
     this._cleanupFrame();
     if (callback) {
       if (browserDetection.isIE() && !isHTTPS.isHTTPS()) {
-        error = new BraintreeError(errors.FRAME_SERVICE_FRAME_OPEN_FAILED_IE_BUG);
+        error = new BraintreeError(
+          errors.FRAME_SERVICE_FRAME_OPEN_FAILED_IE_BUG
+        );
       } else {
         error = new BraintreeError(errors.FRAME_SERVICE_FRAME_OPEN_FAILED);
       }
@@ -2040,14 +2089,14 @@ FrameService.prototype.createHandler = function (options) {
       }
 
       this.focus();
-    }.bind(this)
+    }.bind(this),
   };
 };
 
 FrameService.prototype.createNoopHandler = function () {
   return {
     close: noop,
-    focus: noop
+    focus: noop,
   };
 };
 
@@ -2069,14 +2118,19 @@ FrameService.prototype._cleanupFrame = function () {
 };
 
 FrameService.prototype._pollForPopupClose = function () {
-  this._popupInterval = setInterval(function () {
-    if (this.isFrameClosed()) {
-      this._cleanupFrame();
-      if (this._onCompleteCallback) {
-        this._onCompleteCallback(new BraintreeError(errors.FRAME_SERVICE_FRAME_CLOSED));
+  this._popupInterval = setInterval(
+    function () {
+      if (this.isFrameClosed()) {
+        this._cleanupFrame();
+        if (this._onCompleteCallback) {
+          this._onCompleteCallback(
+            new BraintreeError(errors.FRAME_SERVICE_FRAME_CLOSED)
+          );
+        }
       }
-    }
-  }.bind(this), constants.POPUP_POLL_INTERVAL);
+    }.bind(this),
+    constants.POPUP_POLL_INTERVAL
+  );
 
   return this._popupInterval;
 };
@@ -2099,9 +2153,9 @@ FrameService.prototype._getFrameForEnvironment = function (options) {
 module.exports = FrameService;
 
 },{"../../braintree-error":53,"../../constants":54,"../../is-https":73,"../shared/browser-detection":69,"../shared/constants":70,"../shared/errors":71,"../shared/events":72,"./../../assign":51,"./strategies/modal":64,"./strategies/popup":67,"./strategies/popup-bridge":65,"@braintree/iframer":24,"@braintree/uuid":28,"framebus":34}],63:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var FrameService = _dereq_('./frame-service');
+var FrameService = _dereq_("./frame-service");
 
 module.exports = {
   create: function createFrameService(options, callback) {
@@ -2110,27 +2164,27 @@ module.exports = {
     frameService.initialize(function () {
       callback(frameService);
     });
-  }
+  },
 };
 
 },{"./frame-service":62}],64:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var iFramer = _dereq_('@braintree/iframer');
-var assign = _dereq_('../../../assign').assign;
-var browserDetection = _dereq_('../../shared/browser-detection');
+var iFramer = _dereq_("@braintree/iframer");
+var assign = _dereq_("../../../assign").assign;
+var browserDetection = _dereq_("../../shared/browser-detection");
 
 var ELEMENT_STYLES = {
-  position: 'fixed',
+  position: "fixed",
   top: 0,
   left: 0,
   bottom: 0,
   padding: 0,
   margin: 0,
   border: 0,
-  outline: 'none',
+  outline: "none",
   zIndex: 20001,
-  background: '#FFFFFF'
+  background: "#FFFFFF",
 };
 
 function noop() {}
@@ -2148,11 +2202,11 @@ Modal.prototype.open = function () {
   var iframerConfig = {
     src: this._options.openFrameUrl,
     name: this._options.name,
-    scrolling: 'yes',
-    height: '100%',
-    width: '100%',
+    scrolling: "yes",
+    height: "100%",
+    width: "100%",
     style: assign({}, ELEMENT_STYLES),
-    title: 'Lightbox Frame'
+    title: "Lightbox Frame",
   };
 
   if (browserDetection.isIos()) {
@@ -2164,13 +2218,13 @@ Modal.prototype.open = function () {
       iframerConfig.style = {};
     }
 
-    this._el = document.createElement('div');
+    this._el = document.createElement("div");
 
     assign(this._el.style, ELEMENT_STYLES, {
-      height: '100%',
-      width: '100%',
-      overflow: 'auto',
-      '-webkit-overflow-scrolling': 'touch'
+      height: "100%",
+      width: "100%",
+      overflow: "auto",
+      "-webkit-overflow-scrolling": "touch",
     });
 
     this._frame = iFramer(iframerConfig);
@@ -2205,7 +2259,10 @@ Modal.prototype.redirect = function (redirectUrl) {
 Modal.prototype._unlockScrolling = function () {
   document.body.style.overflow = this._savedBodyProperties.overflowStyle;
   document.body.style.position = this._savedBodyProperties.positionStyle;
-  window.scrollTo(this._savedBodyProperties.left, this._savedBodyProperties.top);
+  window.scrollTo(
+    this._savedBodyProperties.left,
+    this._savedBodyProperties.top
+  );
   delete this._savedBodyProperties;
 };
 
@@ -2217,20 +2274,20 @@ Modal.prototype._lockScrolling = function () {
     left: (window.pageXOffset || doc.scrollLeft) - (doc.clientLeft || 0),
     top: (window.pageYOffset || doc.scrollTop) - (doc.clientTop || 0),
     overflowStyle: document.body.style.overflow,
-    positionStyle: document.body.style.position
+    positionStyle: document.body.style.position,
   };
-  document.body.style.overflow = 'hidden';
-  document.body.style.position = 'fixed';
+  document.body.style.overflow = "hidden";
+  document.body.style.position = "fixed";
   window.scrollTo(0, 0);
 };
 
 module.exports = Modal;
 
 },{"../../../assign":51,"../../shared/browser-detection":69,"@braintree/iframer":24}],65:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var BraintreeError = _dereq_('../../../braintree-error');
-var errors = _dereq_('../../shared/errors');
+var BraintreeError = _dereq_("../../../braintree-error");
+var errors = _dereq_("../../shared/errors");
 
 function noop() {}
 
@@ -2277,19 +2334,19 @@ PopupBridge.prototype.isClosed = function () {
 };
 
 PopupBridge.prototype.redirect = function (redirectUrl) {
-  this.open({openFrameUrl: redirectUrl});
+  this.open({ openFrameUrl: redirectUrl });
 };
 
 module.exports = PopupBridge;
 
 },{"../../../braintree-error":53,"../../shared/errors":71}],66:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var constants = _dereq_('../../../shared/constants');
-var position = _dereq_('./position');
+var constants = _dereq_("../../../shared/constants");
+var position = _dereq_("./position");
 
 function calculatePosition(type, userDefinedPosition, size) {
-  if (typeof userDefinedPosition !== 'undefined') {
+  if (typeof userDefinedPosition !== "undefined") {
     return userDefinedPosition;
   }
 
@@ -2299,22 +2356,22 @@ function calculatePosition(type, userDefinedPosition, size) {
 module.exports = function composePopupOptions(options) {
   var height = options.height || constants.DEFAULT_POPUP_HEIGHT;
   var width = options.width || constants.DEFAULT_POPUP_WIDTH;
-  var top = calculatePosition('top', options.top, height);
-  var left = calculatePosition('left', options.left, width);
+  var top = calculatePosition("top", options.top, height);
+  var left = calculatePosition("left", options.left, width);
 
   return [
     constants.POPUP_BASE_OPTIONS,
-    'height=' + height,
-    'width=' + width,
-    'top=' + top,
-    'left=' + left
-  ].join(',');
+    "height=" + height,
+    "width=" + width,
+    "top=" + top,
+    "left=" + left,
+  ].join(",");
 };
 
 },{"../../../shared/constants":70,"./position":68}],67:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var composeOptions = _dereq_('./compose-options');
+var composeOptions = _dereq_("./compose-options");
 
 function noop() {}
 
@@ -2357,10 +2414,11 @@ Popup.prototype.redirect = function (redirectUrl) {
 module.exports = Popup;
 
 },{"./compose-options":66}],68:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
 function top(height) {
-  var windowHeight = window.outerHeight || document.documentElement.clientHeight;
+  var windowHeight =
+    window.outerHeight || document.documentElement.clientHeight;
   var windowTop = window.screenY == null ? window.screenTop : window.screenY;
 
   return center(windowHeight, height, windowTop);
@@ -2374,41 +2432,40 @@ function left(width) {
 }
 
 function center(windowMetric, popupMetric, offset) {
-  return ((windowMetric - popupMetric) / 2) + offset;
+  return (windowMetric - popupMetric) / 2 + offset;
 }
 
 module.exports = {
   top: top,
   left: left,
-  center: center
+  center: center,
 };
 
 },{}],69:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
 module.exports = {
-  isIos: _dereq_('@braintree/browser-detection/is-ios'),
-  isIosWKWebview: _dereq_('@braintree/browser-detection/is-ios-wkwebview'),
-  isIE: _dereq_('@braintree/browser-detection/is-ie'),
-  supportsPopups: _dereq_('@braintree/browser-detection/supports-popups')
+  isIos: _dereq_("@braintree/browser-detection/is-ios"),
+  isIosWKWebview: _dereq_("@braintree/browser-detection/is-ios-wkwebview"),
+  isIE: _dereq_("@braintree/browser-detection/is-ie"),
+  supportsPopups: _dereq_("@braintree/browser-detection/supports-popups"),
 };
 
-
 },{"@braintree/browser-detection/is-ie":19,"@braintree/browser-detection/is-ios":21,"@braintree/browser-detection/is-ios-wkwebview":20,"@braintree/browser-detection/supports-popups":22}],70:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
 module.exports = {
-  DISPATCH_FRAME_NAME: 'dispatch',
-  DISPATCH_FRAME_CLASS: 'braintree-dispatch-frame',
-  POPUP_BASE_OPTIONS: 'resizable,scrollbars',
+  DISPATCH_FRAME_NAME: "dispatch",
+  DISPATCH_FRAME_CLASS: "braintree-dispatch-frame",
+  POPUP_BASE_OPTIONS: "resizable,scrollbars",
   DEFAULT_POPUP_WIDTH: 450,
   DEFAULT_POPUP_HEIGHT: 535,
   POPUP_POLL_INTERVAL: 100,
-  POPUP_CLOSE_TIMEOUT: 100
+  POPUP_CLOSE_TIMEOUT: 100,
 };
 
 },{}],71:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
 /**
  * @name BraintreeError.Popup Related Error Codes
@@ -2419,73 +2476,74 @@ module.exports = {
  * @property {INTERNAL} FRAME_SERVICE_FRAME_OPEN_FAILED_IE_BUG - Occurs when the frame could not be opened because of a specific bug in Internet Explorer - https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/11324352/.
  */
 
-var BraintreeError = _dereq_('../../braintree-error');
+var BraintreeError = _dereq_("../../braintree-error");
 
 module.exports = {
   FRAME_SERVICE_FRAME_CLOSED: {
     type: BraintreeError.types.INTERNAL,
-    code: 'FRAME_SERVICE_FRAME_CLOSED',
-    message: 'Frame closed before tokenization could occur.'
+    code: "FRAME_SERVICE_FRAME_CLOSED",
+    message: "Frame closed before tokenization could occur.",
   },
   FRAME_SERVICE_FRAME_OPEN_FAILED: {
     type: BraintreeError.types.INTERNAL,
-    code: 'FRAME_SERVICE_FRAME_OPEN_FAILED',
-    message: 'Frame failed to open.'
+    code: "FRAME_SERVICE_FRAME_OPEN_FAILED",
+    message: "Frame failed to open.",
   },
   FRAME_SERVICE_FRAME_OPEN_FAILED_IE_BUG: {
     type: BraintreeError.types.INTERNAL,
-    code: 'FRAME_SERVICE_FRAME_OPEN_FAILED_IE_BUG',
-    message: 'Could not open frame. This may be due to a bug in IE browsers when attempting to open an HTTPS page from a HTTP page. https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/11324352/'
-  }
+    code: "FRAME_SERVICE_FRAME_OPEN_FAILED_IE_BUG",
+    message:
+      "Could not open frame. This may be due to a bug in IE browsers when attempting to open an HTTPS page from a HTTP page. https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/11324352/",
+  },
 };
 
 },{"../../braintree-error":53}],72:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var enumerate = _dereq_('../../enumerate');
+var enumerate = _dereq_("../../enumerate");
 
-module.exports = enumerate([
-  'DISPATCH_FRAME_READY',
-  'DISPATCH_FRAME_REPORT'
-], 'frameService:');
+module.exports = enumerate(
+  ["DISPATCH_FRAME_READY", "DISPATCH_FRAME_REPORT"],
+  "frameService:"
+);
 
 },{"../../enumerate":60}],73:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
 function isHTTPS(protocol) {
   protocol = protocol || window.location.protocol;
 
-  return protocol === 'https:';
+  return protocol === "https:";
 }
 
 module.exports = {
-  isHTTPS: isHTTPS
+  isHTTPS: isHTTPS,
 };
 
 },{}],74:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
 },{}],75:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
 module.exports = function (obj) {
   return Object.keys(obj).filter(function (key) {
-    return typeof obj[key] === 'function';
+    return typeof obj[key] === "function";
   });
 };
 
 },{}],76:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var PromisePolyfill = _dereq_('promise-polyfill');
-var ExtendedPromise = _dereq_('@braintree/extended-promise');
+var PromisePolyfill = _dereq_("promise-polyfill");
+var ExtendedPromise = _dereq_("@braintree/extended-promise");
 
 // eslint-disable-next-line no-undef
-var PromiseGlobal = typeof Promise !== 'undefined' ? Promise : PromisePolyfill;
+var PromiseGlobal = typeof Promise !== "undefined" ? Promise : PromisePolyfill;
 
 ExtendedPromise.suppressUnhandledPromiseMessage = true;
 ExtendedPromise.setPromise(PromiseGlobal);
@@ -2493,13 +2551,15 @@ ExtendedPromise.setPromise(PromiseGlobal);
 module.exports = PromiseGlobal;
 
 },{"@braintree/extended-promise":23,"promise-polyfill":47}],77:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
 function _notEmpty(obj) {
   var key;
 
   for (key in obj) {
-    if (obj.hasOwnProperty(key)) { return true; }
+    if (obj.hasOwnProperty(key)) {
+      return true;
+    }
   }
 
   return false;
@@ -2507,8 +2567,13 @@ function _notEmpty(obj) {
 
 /* eslint-disable no-mixed-operators */
 function _isArray(value) {
-  return value && typeof value === 'object' && typeof value.length === 'number' &&
-    Object.prototype.toString.call(value) === '[object Array]' || false;
+  return (
+    (value &&
+      typeof value === "object" &&
+      typeof value.length === "number" &&
+      Object.prototype.toString.call(value) === "[object Array]") ||
+    false
+  );
 }
 /* eslint-enable no-mixed-operators */
 
@@ -2527,10 +2592,11 @@ function parse(url) {
     return {};
   }
 
-  query = url.replace(/#.*$/, '').replace(/^.*\?/, '').split('&');
+  query = url.split("?")[1] || "";
+  query = query.replace(/#.*$/, "").split("&");
 
   params = query.reduce(function (toReturn, keyValue) {
-    var parts = keyValue.split('=');
+    var parts = keyValue.split("=");
     var key = decodeURIComponent(parts[0]);
     var value = decodeURIComponent(parts[1]);
 
@@ -2555,29 +2621,29 @@ function stringify(params, namespace) {
 
     if (namespace) {
       if (_isArray(params)) {
-        k = namespace + '[]';
+        k = namespace + "[]";
       } else {
-        k = namespace + '[' + p + ']';
+        k = namespace + "[" + p + "]";
       }
     } else {
       k = p;
     }
-    if (typeof v === 'object') {
+    if (typeof v === "object") {
       query.push(stringify(v, k));
     } else {
-      query.push(encodeURIComponent(k) + '=' + encodeURIComponent(v));
+      query.push(encodeURIComponent(k) + "=" + encodeURIComponent(v));
     }
   }
 
-  return query.join('&');
+  return query.join("&");
 }
 
 function queryify(url, params) {
-  url = url || '';
+  url = url || "";
 
-  if (params != null && typeof params === 'object' && _notEmpty(params)) {
-    url += url.indexOf('?') === -1 ? '?' : '';
-    url += url.indexOf('=') !== -1 ? '&' : '';
+  if (params != null && typeof params === "object" && _notEmpty(params)) {
+    url += url.indexOf("?") === -1 ? "?" : "";
+    url += url.indexOf("=") !== -1 ? "&" : "";
     url += stringify(params);
   }
 
@@ -2588,34 +2654,37 @@ module.exports = {
   parse: parse,
   stringify: stringify,
   queryify: queryify,
-  hasQueryParams: hasQueryParams
+  hasQueryParams: hasQueryParams,
 };
 
 },{}],78:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
 function useMin(isDebug) {
-  return isDebug ? '' : '.min';
+  return isDebug ? "" : ".min";
 }
 
 module.exports = useMin;
 
 },{}],79:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
 // NEXT_MAJOR_VERSION old versions of IE don't have atob, in the
 // next major version, we're dropping support for those versions
 // so we can eliminate the need to have this atob polyfill
-var atobNormalized = typeof atob === 'function' ? atob : atobPolyfill;
+var atobNormalized = typeof atob === "function" ? atob : atobPolyfill;
 
 function atobPolyfill(base64String) {
   var a, b, c, b1, b2, b3, b4, i;
-  var base64Matcher = new RegExp('^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})([=]{1,2})?$');
-  var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
-  var result = '';
+  var base64Matcher = new RegExp(
+    "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})([=]{1,2})?$"
+  );
+  var characters =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+  var result = "";
 
   if (!base64Matcher.test(base64String)) {
-    throw new Error('Non base64 encoded input passed to window.atob polyfill');
+    throw new Error("Non base64 encoded input passed to window.atob polyfill");
   }
 
   i = 0;
@@ -2625,11 +2694,14 @@ function atobPolyfill(base64String) {
     b3 = characters.indexOf(base64String.charAt(i++));
     b4 = characters.indexOf(base64String.charAt(i++));
 
-    a = (b1 & 0x3F) << 2 | b2 >> 4 & 0x3;
-    b = (b2 & 0xF) << 4 | b3 >> 2 & 0xF;
-    c = (b3 & 0x3) << 6 | b4 & 0x3F;
+    a = ((b1 & 0x3f) << 2) | ((b2 >> 4) & 0x3);
+    b = ((b2 & 0xf) << 4) | ((b3 >> 2) & 0xf);
+    c = ((b3 & 0x3) << 6) | (b4 & 0x3f);
 
-    result += String.fromCharCode(a) + (b ? String.fromCharCode(b) : '') + (c ? String.fromCharCode(c) : '');
+    result +=
+      String.fromCharCode(a) +
+      (b ? String.fromCharCode(b) : "") +
+      (c ? String.fromCharCode(c) : "");
   } while (i < base64String.length);
 
   return result;
@@ -2639,11 +2711,11 @@ module.exports = {
   atob: function (base64String) {
     return atobNormalized.call(window, base64String);
   },
-  _atob: atobPolyfill
+  _atob: atobPolyfill,
 };
 
 },{}],80:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
 /**
  * @name BraintreeError.PayPal Checkout - Creation Error Codes
@@ -2676,76 +2748,78 @@ module.exports = {
  * @property {NETWORK} PAYPAL_ACCOUNT_TOKENIZATION_FAILED Occurs when PayPal account could not be tokenized.
  */
 
-var BraintreeError = _dereq_('../lib/braintree-error');
+var BraintreeError = _dereq_("../lib/braintree-error");
 
 module.exports = {
   PAYPAL_NOT_ENABLED: {
     type: BraintreeError.types.MERCHANT,
-    code: 'PAYPAL_NOT_ENABLED',
-    message: 'PayPal is not enabled for this merchant.'
+    code: "PAYPAL_NOT_ENABLED",
+    message: "PayPal is not enabled for this merchant.",
   },
   PAYPAL_SANDBOX_ACCOUNT_NOT_LINKED: {
     type: BraintreeError.types.MERCHANT,
-    code: 'PAYPAL_SANDBOX_ACCOUNT_NOT_LINKED',
-    message: 'A linked PayPal Sandbox account is required to use PayPal Checkout in Sandbox. See https://developer.paypal.com/braintree/docs/guides/paypal/testing-go-live#linked-paypal-testing for details on linking your PayPal sandbox with Braintree.'
+    code: "PAYPAL_SANDBOX_ACCOUNT_NOT_LINKED",
+    message:
+      "A linked PayPal Sandbox account is required to use PayPal Checkout in Sandbox. See https://developer.paypal.com/braintree/docs/guides/paypal/testing-go-live#linked-paypal-testing for details on linking your PayPal sandbox with Braintree.",
   },
   PAYPAL_ACCOUNT_TOKENIZATION_FAILED: {
     type: BraintreeError.types.NETWORK,
-    code: 'PAYPAL_ACCOUNT_TOKENIZATION_FAILED',
-    message: 'Could not tokenize user\'s PayPal account.'
+    code: "PAYPAL_ACCOUNT_TOKENIZATION_FAILED",
+    message: "Could not tokenize user's PayPal account.",
   },
   PAYPAL_FLOW_FAILED: {
     type: BraintreeError.types.NETWORK,
-    code: 'PAYPAL_FLOW_FAILED',
-    message: 'Could not initialize PayPal flow.'
+    code: "PAYPAL_FLOW_FAILED",
+    message: "Could not initialize PayPal flow.",
   },
   PAYPAL_FLOW_OPTION_REQUIRED: {
     type: BraintreeError.types.MERCHANT,
-    code: 'PAYPAL_FLOW_OPTION_REQUIRED',
-    message: 'PayPal flow property is invalid or missing.'
+    code: "PAYPAL_FLOW_OPTION_REQUIRED",
+    message: "PayPal flow property is invalid or missing.",
   },
   PAYPAL_START_VAULT_INITIATED_CHECKOUT_PARAM_REQUIRED: {
     type: BraintreeError.types.MERCHANT,
-    code: 'PAYPAL_START_VAULT_INITIATED_CHECKOUT_PARAM_REQUIRED'
+    code: "PAYPAL_START_VAULT_INITIATED_CHECKOUT_PARAM_REQUIRED",
   },
   PAYPAL_START_VAULT_INITIATED_CHECKOUT_SETUP_FAILED: {
     type: BraintreeError.types.NETWORK,
-    code: 'PAYPAL_START_VAULT_INITIATED_CHECKOUT_SETUP_FAILED',
-    message: 'Something went wrong when setting up the checkout workflow.'
+    code: "PAYPAL_START_VAULT_INITIATED_CHECKOUT_SETUP_FAILED",
+    message: "Something went wrong when setting up the checkout workflow.",
   },
   PAYPAL_START_VAULT_INITIATED_CHECKOUT_POPUP_OPEN_FAILED: {
     type: BraintreeError.types.MERCHANT,
-    code: 'PAYPAL_START_VAULT_INITIATED_CHECKOUT_POPUP_OPEN_FAILED',
-    message: 'PayPal popup failed to open, make sure to initiate the vault checkout in response to a user action.'
+    code: "PAYPAL_START_VAULT_INITIATED_CHECKOUT_POPUP_OPEN_FAILED",
+    message:
+      "PayPal popup failed to open, make sure to initiate the vault checkout in response to a user action.",
   },
   PAYPAL_START_VAULT_INITIATED_CHECKOUT_CANCELED: {
     type: BraintreeError.types.CUSTOMER,
-    code: 'PAYPAL_START_VAULT_INITIATED_CHECKOUT_CANCELED',
-    message: 'Customer closed PayPal popup before authorizing.'
+    code: "PAYPAL_START_VAULT_INITIATED_CHECKOUT_CANCELED",
+    message: "Customer closed PayPal popup before authorizing.",
   },
   PAYPAL_START_VAULT_INITIATED_CHECKOUT_IN_PROGRESS: {
     type: BraintreeError.types.MERCHANT,
-    code: 'PAYPAL_START_VAULT_INITIATED_CHECKOUT_IN_PROGRESS',
-    message: 'Vault initiated checkout already in progress.'
+    code: "PAYPAL_START_VAULT_INITIATED_CHECKOUT_IN_PROGRESS",
+    message: "Vault initiated checkout already in progress.",
   },
   PAYPAL_INVALID_PAYMENT_OPTION: {
     type: BraintreeError.types.MERCHANT,
-    code: 'PAYPAL_INVALID_PAYMENT_OPTION',
-    message: 'PayPal payment options are invalid.'
-  }
+    code: "PAYPAL_INVALID_PAYMENT_OPTION",
+    message: "PayPal payment options are invalid.",
+  },
 };
 
 },{"../lib/braintree-error":53}],81:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 /**
  * @module braintree-web/paypal-checkout
  * @description A component to integrate with the [PayPal JS SDK](https://github.com/paypal/paypal-checkout-components).
  */
 
-var basicComponentVerification = _dereq_('../lib/basic-component-verification');
-var wrapPromise = _dereq_('@braintree/wrap-promise');
-var PayPalCheckout = _dereq_('./paypal-checkout');
-var VERSION = "3.85.2";
+var basicComponentVerification = _dereq_("../lib/basic-component-verification");
+var wrapPromise = _dereq_("@braintree/wrap-promise");
+var PayPalCheckout = _dereq_("./paypal-checkout");
+var VERSION = "3.85.3";
 
 /**
  * @static
@@ -2773,17 +2847,19 @@ var VERSION = "3.85.2";
  * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 function create(options) {
-  var name = 'PayPal Checkout';
+  var name = "PayPal Checkout";
 
-  return basicComponentVerification.verify({
-    name: name,
-    client: options.client,
-    authorization: options.authorization
-  }).then(function () {
-    var instance = new PayPalCheckout(options);
+  return basicComponentVerification
+    .verify({
+      name: name,
+      client: options.client,
+      authorization: options.authorization,
+    })
+    .then(function () {
+      var instance = new PayPalCheckout(options);
 
-    return instance._initialize(options);
-  });
+      return instance._initialize(options);
+    });
 }
 
 /**
@@ -2804,39 +2880,40 @@ module.exports = {
    * @description The current version of the SDK, i.e. `{@pkg version}`.
    * @type {string}
    */
-  VERSION: VERSION
+  VERSION: VERSION,
 };
 
 },{"../lib/basic-component-verification":52,"./paypal-checkout":82,"@braintree/wrap-promise":32}],82:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var analytics = _dereq_('../lib/analytics');
-var assign = _dereq_('../lib/assign').assign;
-var createDeferredClient = _dereq_('../lib/create-deferred-client');
-var createAssetsUrl = _dereq_('../lib/create-assets-url');
-var Promise = _dereq_('../lib/promise');
-var ExtendedPromise = _dereq_('@braintree/extended-promise');
-var wrapPromise = _dereq_('@braintree/wrap-promise');
-var BraintreeError = _dereq_('../lib/braintree-error');
-var convertToBraintreeError = _dereq_('../lib/convert-to-braintree-error');
-var errors = _dereq_('./errors');
-var constants = _dereq_('../paypal/shared/constants');
-var frameService = _dereq_('../lib/frame-service/external');
-var createAuthorizationData = _dereq_('../lib/create-authorization-data');
-var methods = _dereq_('../lib/methods');
-var useMin = _dereq_('../lib/use-min');
-var convertMethodsToError = _dereq_('../lib/convert-methods-to-error');
-var querystring = _dereq_('../lib/querystring');
-var VERSION = "3.85.2";
-var INTEGRATION_TIMEOUT_MS = _dereq_('../lib/constants').INTEGRATION_TIMEOUT_MS;
+var analytics = _dereq_("../lib/analytics");
+var assign = _dereq_("../lib/assign").assign;
+var createDeferredClient = _dereq_("../lib/create-deferred-client");
+var createAssetsUrl = _dereq_("../lib/create-assets-url");
+var Promise = _dereq_("../lib/promise");
+var ExtendedPromise = _dereq_("@braintree/extended-promise");
+var wrapPromise = _dereq_("@braintree/wrap-promise");
+var BraintreeError = _dereq_("../lib/braintree-error");
+var convertToBraintreeError = _dereq_("../lib/convert-to-braintree-error");
+var errors = _dereq_("./errors");
+var constants = _dereq_("../paypal/shared/constants");
+var frameService = _dereq_("../lib/frame-service/external");
+var createAuthorizationData = _dereq_("../lib/create-authorization-data");
+var methods = _dereq_("../lib/methods");
+var useMin = _dereq_("../lib/use-min");
+var convertMethodsToError = _dereq_("../lib/convert-methods-to-error");
+var querystring = _dereq_("../lib/querystring");
+var VERSION = "3.85.3";
+var INTEGRATION_TIMEOUT_MS = _dereq_("../lib/constants").INTEGRATION_TIMEOUT_MS;
 
 var REQUIRED_PARAMS_FOR_START_VAULT_INITIATED_CHECKOUT = [
-  'amount',
-  'currency',
-  'vaultInitiatedCheckoutPaymentMethodToken'
+  "amount",
+  "currency",
+  "vaultInitiatedCheckoutPaymentMethodToken",
 ];
 
-var PAYPAL_SDK_PRELOAD_URL = 'https://www.{ENV}paypal.com/smart/buttons/preload';
+var PAYPAL_SDK_PRELOAD_URL =
+  "https://www.{ENV}paypal.com/smart/buttons/preload";
 
 /**
  * PayPal Checkout tokenized payload. Returned in {@link PayPalCheckout#tokenizePayment}'s callback as the second argument, `data`.
@@ -3042,52 +3119,63 @@ PayPalCheckout.prototype._initialize = function (options) {
     config = options.client.getConfiguration();
     this._authorizationInformation = {
       fingerprint: config.authorizationFingerprint,
-      environment: config.gatewayConfiguration.environment
+      environment: config.gatewayConfiguration.environment,
     };
   } else {
     config = createAuthorizationData(options.authorization);
     this._authorizationInformation = {
       fingerprint: config.attrs.authorizationFingerprint,
-      environment: config.environment
+      environment: config.environment,
     };
   }
 
-  this._clientPromise = createDeferredClient.create({
-    authorization: options.authorization,
-    client: options.client,
-    debug: options.debug,
-    assetsUrl: createAssetsUrl.create(options.authorization),
-    name: 'PayPal Checkout'
-  }).then(function (client) {
-    this._configuration = client.getConfiguration();
+  this._clientPromise = createDeferredClient
+    .create({
+      authorization: options.authorization,
+      client: options.client,
+      debug: options.debug,
+      assetsUrl: createAssetsUrl.create(options.authorization),
+      name: "PayPal Checkout",
+    })
+    .then(
+      function (client) {
+        this._configuration = client.getConfiguration();
 
-    // we skip these checks if a merchant account id is
-    // passed in, because the default merchant account
-    // may not have paypal enabled
-    if (!this._merchantAccountId) {
-      if (!this._configuration.gatewayConfiguration.paypalEnabled) {
-        this._setupError = new BraintreeError(errors.PAYPAL_NOT_ENABLED);
-      } else if (this._configuration.gatewayConfiguration.paypal.environmentNoNetwork === true) {
-        this._setupError = new BraintreeError(errors.PAYPAL_SANDBOX_ACCOUNT_NOT_LINKED);
-      }
-    }
+        // we skip these checks if a merchant account id is
+        // passed in, because the default merchant account
+        // may not have paypal enabled
+        if (!this._merchantAccountId) {
+          if (!this._configuration.gatewayConfiguration.paypalEnabled) {
+            this._setupError = new BraintreeError(errors.PAYPAL_NOT_ENABLED);
+          } else if (
+            this._configuration.gatewayConfiguration.paypal
+              .environmentNoNetwork === true
+          ) {
+            this._setupError = new BraintreeError(
+              errors.PAYPAL_SANDBOX_ACCOUNT_NOT_LINKED
+            );
+          }
+        }
 
-    if (this._setupError) {
-      return Promise.reject(this._setupError);
-    }
+        if (this._setupError) {
+          return Promise.reject(this._setupError);
+        }
 
-    analytics.sendEvent(client, 'paypal-checkout.initialized');
-    this._frameServicePromise = this._setupFrameService(client);
+        analytics.sendEvent(client, "paypal-checkout.initialized");
+        this._frameServicePromise = this._setupFrameService(client);
 
-    return client;
-  }.bind(this));
+        return client;
+      }.bind(this)
+    );
 
   // if client was passed in, let config checks happen before
   // resolving the instance. Otherwise, just resolve the instance
   if (options.client) {
-    return this._clientPromise.then(function () {
-      return this;
-    }.bind(this));
+    return this._clientPromise.then(
+      function () {
+        return this;
+      }.bind(this)
+    );
   }
 
   return Promise.resolve(this);
@@ -3097,25 +3185,41 @@ PayPalCheckout.prototype._setupFrameService = function (client) {
   var frameServicePromise = new ExtendedPromise();
   var config = client.getConfiguration();
   var timeoutRef = setTimeout(function () {
-    analytics.sendEvent(client, 'paypal-checkout.frame-service.timed-out');
-    frameServicePromise.reject(new BraintreeError(errors.PAYPAL_START_VAULT_INITIATED_CHECKOUT_SETUP_FAILED));
+    analytics.sendEvent(client, "paypal-checkout.frame-service.timed-out");
+    frameServicePromise.reject(
+      new BraintreeError(
+        errors.PAYPAL_START_VAULT_INITIATED_CHECKOUT_SETUP_FAILED
+      )
+    );
   }, INTEGRATION_TIMEOUT_MS);
 
-  this._assetsUrl = config.gatewayConfiguration.paypal.assetsUrl + '/web/' + VERSION;
+  this._assetsUrl =
+    config.gatewayConfiguration.paypal.assetsUrl + "/web/" + VERSION;
   this._isDebug = config.isDebug;
   // Note: this is using the static landing frame that the deprecated PayPal component builds and uses
-  this._loadingFrameUrl = this._assetsUrl + '/html/paypal-landing-frame' + useMin(this._isDebug) + '.html';
+  this._loadingFrameUrl =
+    this._assetsUrl +
+    "/html/paypal-landing-frame" +
+    useMin(this._isDebug) +
+    ".html";
 
-  frameService.create({
-    name: 'braintreepaypallanding',
-    dispatchFrameUrl: this._assetsUrl + '/html/dispatch-frame' + useMin(this._isDebug) + '.html',
-    openFrameUrl: this._loadingFrameUrl
-  }, function (service) {
-    this._frameService = service;
-    clearTimeout(timeoutRef);
+  frameService.create(
+    {
+      name: "braintreepaypallanding",
+      dispatchFrameUrl:
+        this._assetsUrl +
+        "/html/dispatch-frame" +
+        useMin(this._isDebug) +
+        ".html",
+      openFrameUrl: this._loadingFrameUrl,
+    },
+    function (service) {
+      this._frameService = service;
+      clearTimeout(timeoutRef);
 
-    frameServicePromise.resolve();
-  }.bind(this));
+      frameServicePromise.resolve();
+    }.bind(this)
+  );
 
   return frameServicePromise;
 };
@@ -3265,15 +3369,17 @@ PayPalCheckout.prototype._setupFrameService = function (client) {
  */
 PayPalCheckout.prototype.createPayment = function (options) {
   if (!options || !constants.FLOW_ENDPOINTS.hasOwnProperty(options.flow)) {
-    return Promise.reject(new BraintreeError(errors.PAYPAL_FLOW_OPTION_REQUIRED));
+    return Promise.reject(
+      new BraintreeError(errors.PAYPAL_FLOW_OPTION_REQUIRED)
+    );
   }
 
-  analytics.sendEvent(this._clientPromise, 'paypal-checkout.createPayment');
+  analytics.sendEvent(this._clientPromise, "paypal-checkout.createPayment");
 
   return this._createPaymentResource(options).then(function (response) {
     var flowToken;
 
-    if (options.flow === 'checkout') {
+    if (options.flow === "checkout") {
       flowToken = response.paymentResource.redirectUrl.match(/EC-\w+/)[0];
     } else {
       flowToken = response.agreementSetup.tokenId;
@@ -3285,52 +3391,60 @@ PayPalCheckout.prototype.createPayment = function (options) {
 
 PayPalCheckout.prototype._createPaymentResource = function (options, config) {
   var self = this;
-  var endpoint = 'paypal_hermes/' + constants.FLOW_ENDPOINTS[options.flow];
+  var endpoint = "paypal_hermes/" + constants.FLOW_ENDPOINTS[options.flow];
 
   delete this.intentFromCreatePayment;
 
   config = config || {};
 
   if (options.offerCredit === true) {
-    analytics.sendEvent(this._clientPromise, 'paypal-checkout.credit.offered');
+    analytics.sendEvent(this._clientPromise, "paypal-checkout.credit.offered");
   }
 
-  return this._clientPromise.then(function (client) {
-    return client.request({
-      endpoint: endpoint,
-      method: 'post',
-      data: self._formatPaymentResourceData(options, config)
-    }).then(function (data) {
-      self.intentFromCreatePayment = options.intent;
+  return this._clientPromise
+    .then(function (client) {
+      return client
+        .request({
+          endpoint: endpoint,
+          method: "post",
+          data: self._formatPaymentResourceData(options, config),
+        })
+        .then(function (data) {
+          self.intentFromCreatePayment = options.intent;
 
-      return data;
+          return data;
+        });
+    })
+    .catch(function (err) {
+      var status;
+
+      if (self._setupError) {
+        return Promise.reject(self._setupError);
+      }
+
+      status = err.details && err.details.httpStatus;
+
+      if (status === 422) {
+        return Promise.reject(
+          new BraintreeError({
+            type: errors.PAYPAL_INVALID_PAYMENT_OPTION.type,
+            code: errors.PAYPAL_INVALID_PAYMENT_OPTION.code,
+            message: errors.PAYPAL_INVALID_PAYMENT_OPTION.message,
+            details: {
+              originalError: err,
+            },
+          })
+        );
+      }
+
+      return Promise.reject(
+        convertToBraintreeError(err, {
+          type: errors.PAYPAL_FLOW_FAILED.type,
+          code: errors.PAYPAL_FLOW_FAILED.code,
+          message: errors.PAYPAL_FLOW_FAILED.message,
+        })
+      );
     });
-  }).catch(function (err) {
-    var status;
-
-    if (self._setupError) {
-      return Promise.reject(self._setupError);
-    }
-
-    status = err.details && err.details.httpStatus;
-
-    if (status === 422) {
-      return Promise.reject(new BraintreeError({
-        type: errors.PAYPAL_INVALID_PAYMENT_OPTION.type,
-        code: errors.PAYPAL_INVALID_PAYMENT_OPTION.code,
-        message: errors.PAYPAL_INVALID_PAYMENT_OPTION.message,
-        details: {
-          originalError: err
-        }
-      }));
-    }
-
-    return Promise.reject(convertToBraintreeError(err, {
-      type: errors.PAYPAL_FLOW_FAILED.type,
-      code: errors.PAYPAL_FLOW_FAILED.code,
-      message: errors.PAYPAL_FLOW_FAILED.message
-    }));
-  });
 };
 
 /**
@@ -3367,9 +3481,16 @@ PayPalCheckout.prototype.startVaultInitiatedCheckout = function (options) {
   var self = this;
 
   if (this._vaultInitiatedCheckoutInProgress) {
-    analytics.sendEvent(this._clientPromise, 'paypal-checkout.startVaultInitiatedCheckout.error.already-in-progress');
+    analytics.sendEvent(
+      this._clientPromise,
+      "paypal-checkout.startVaultInitiatedCheckout.error.already-in-progress"
+    );
 
-    return Promise.reject(new BraintreeError(errors.PAYPAL_START_VAULT_INITIATED_CHECKOUT_IN_PROGRESS));
+    return Promise.reject(
+      new BraintreeError(
+        errors.PAYPAL_START_VAULT_INITIATED_CHECKOUT_IN_PROGRESS
+      )
+    );
   }
 
   REQUIRED_PARAMS_FOR_START_VAULT_INITIATED_CHECKOUT.forEach(function (param) {
@@ -3379,74 +3500,109 @@ PayPalCheckout.prototype.startVaultInitiatedCheckout = function (options) {
   });
 
   if (missingRequiredParam) {
-    return Promise.reject(new BraintreeError({
-      type: errors.PAYPAL_START_VAULT_INITIATED_CHECKOUT_PARAM_REQUIRED.type,
-      code: errors.PAYPAL_START_VAULT_INITIATED_CHECKOUT_PARAM_REQUIRED.code,
-      message: 'Required param ' + missingRequiredParam + ' is missing.'
-    }));
+    return Promise.reject(
+      new BraintreeError({
+        type: errors.PAYPAL_START_VAULT_INITIATED_CHECKOUT_PARAM_REQUIRED.type,
+        code: errors.PAYPAL_START_VAULT_INITIATED_CHECKOUT_PARAM_REQUIRED.code,
+        message: "Required param " + missingRequiredParam + " is missing.",
+      })
+    );
   }
 
   this._vaultInitiatedCheckoutInProgress = true;
   this._addModalBackdrop(options);
 
   options = assign({}, options, {
-    flow: 'checkout'
+    flow: "checkout",
   });
 
-  analytics.sendEvent(this._clientPromise, 'paypal-checkout.startVaultInitiatedCheckout.started');
+  analytics.sendEvent(
+    this._clientPromise,
+    "paypal-checkout.startVaultInitiatedCheckout.started"
+  );
 
-  return this._waitForVaultInitiatedCheckoutDependencies().then(function () {
-    var frameCommunicationPromise = new ExtendedPromise();
-    var startVaultInitiatedCheckoutPromise = self._createPaymentResource(options, {
-      returnUrl: self._constructVaultCheckutUrl('redirect-frame'),
-      cancelUrl: self._constructVaultCheckutUrl('cancel-frame')
-    }).then(function (response) {
-      var redirectUrl = response.paymentResource.redirectUrl;
+  return this._waitForVaultInitiatedCheckoutDependencies()
+    .then(function () {
+      var frameCommunicationPromise = new ExtendedPromise();
+      var startVaultInitiatedCheckoutPromise = self
+        ._createPaymentResource(options, {
+          returnUrl: self._constructVaultCheckutUrl("redirect-frame"),
+          cancelUrl: self._constructVaultCheckutUrl("cancel-frame"),
+        })
+        .then(function (response) {
+          var redirectUrl = response.paymentResource.redirectUrl;
 
-      self._frameService.redirect(redirectUrl);
+          self._frameService.redirect(redirectUrl);
 
-      return frameCommunicationPromise;
-    });
+          return frameCommunicationPromise;
+        });
 
-    self._frameService.open({}, self._createFrameServiceCallback(frameCommunicationPromise));
+      self._frameService.open(
+        {},
+        self._createFrameServiceCallback(frameCommunicationPromise)
+      );
 
-    return startVaultInitiatedCheckoutPromise;
-  }).catch(function (err) {
-    self._vaultInitiatedCheckoutInProgress = false;
-    self._removeModalBackdrop();
+      return startVaultInitiatedCheckoutPromise;
+    })
+    .catch(function (err) {
+      self._vaultInitiatedCheckoutInProgress = false;
+      self._removeModalBackdrop();
 
-    if (err.code === 'FRAME_SERVICE_FRAME_CLOSED') {
-      analytics.sendEvent(self._clientPromise, 'paypal-checkout.startVaultInitiatedCheckout.canceled.by-customer');
+      if (err.code === "FRAME_SERVICE_FRAME_CLOSED") {
+        analytics.sendEvent(
+          self._clientPromise,
+          "paypal-checkout.startVaultInitiatedCheckout.canceled.by-customer"
+        );
 
-      return Promise.reject(new BraintreeError(errors.PAYPAL_START_VAULT_INITIATED_CHECKOUT_CANCELED));
-    }
+        return Promise.reject(
+          new BraintreeError(
+            errors.PAYPAL_START_VAULT_INITIATED_CHECKOUT_CANCELED
+          )
+        );
+      }
 
-    if (self._frameService) {
+      if (self._frameService) {
+        self._frameService.close();
+      }
+
+      if (
+        err.code &&
+        err.code.indexOf("FRAME_SERVICE_FRAME_OPEN_FAILED") > -1
+      ) {
+        analytics.sendEvent(
+          self._clientPromise,
+          "paypal-checkout.startVaultInitiatedCheckout.failed.popup-not-opened"
+        );
+
+        return Promise.reject(
+          new BraintreeError({
+            code: errors.PAYPAL_START_VAULT_INITIATED_CHECKOUT_POPUP_OPEN_FAILED
+              .code,
+            type: errors.PAYPAL_START_VAULT_INITIATED_CHECKOUT_POPUP_OPEN_FAILED
+              .type,
+            message:
+              errors.PAYPAL_START_VAULT_INITIATED_CHECKOUT_POPUP_OPEN_FAILED
+                .message,
+            details: {
+              originalError: err,
+            },
+          })
+        );
+      }
+
+      return Promise.reject(err);
+    })
+    .then(function (response) {
       self._frameService.close();
-    }
+      self._vaultInitiatedCheckoutInProgress = false;
+      self._removeModalBackdrop();
+      analytics.sendEvent(
+        self._clientPromise,
+        "paypal-checkout.startVaultInitiatedCheckout.succeeded"
+      );
 
-    if (err.code && err.code.indexOf('FRAME_SERVICE_FRAME_OPEN_FAILED') > -1) {
-      analytics.sendEvent(self._clientPromise, 'paypal-checkout.startVaultInitiatedCheckout.failed.popup-not-opened');
-
-      return Promise.reject(new BraintreeError({
-        code: errors.PAYPAL_START_VAULT_INITIATED_CHECKOUT_POPUP_OPEN_FAILED.code,
-        type: errors.PAYPAL_START_VAULT_INITIATED_CHECKOUT_POPUP_OPEN_FAILED.type,
-        message: errors.PAYPAL_START_VAULT_INITIATED_CHECKOUT_POPUP_OPEN_FAILED.message,
-        details: {
-          originalError: err
-        }
-      }));
-    }
-
-    return Promise.reject(err);
-  }).then(function (response) {
-    self._frameService.close();
-    self._vaultInitiatedCheckoutInProgress = false;
-    self._removeModalBackdrop();
-    analytics.sendEvent(self._clientPromise, 'paypal-checkout.startVaultInitiatedCheckout.succeeded');
-
-    return Promise.resolve(response);
-  });
+      return Promise.resolve(response);
+    });
 };
 
 PayPalCheckout.prototype._addModalBackdrop = function (options) {
@@ -3455,19 +3611,25 @@ PayPalCheckout.prototype._addModalBackdrop = function (options) {
   }
 
   if (!this._modalBackdrop) {
-    this._modalBackdrop = document.createElement('div');
-    this._modalBackdrop.setAttribute('data-braintree-paypal-vault-initiated-checkout-modal', true);
-    this._modalBackdrop.style.position = 'fixed';
+    this._modalBackdrop = document.createElement("div");
+    this._modalBackdrop.setAttribute(
+      "data-braintree-paypal-vault-initiated-checkout-modal",
+      true
+    );
+    this._modalBackdrop.style.position = "fixed";
     this._modalBackdrop.style.top = 0;
     this._modalBackdrop.style.bottom = 0;
     this._modalBackdrop.style.left = 0;
     this._modalBackdrop.style.right = 0;
     this._modalBackdrop.style.zIndex = 9999;
-    this._modalBackdrop.style.background = 'black';
-    this._modalBackdrop.style.opacity = '0.7';
-    this._modalBackdrop.addEventListener('click', function () {
-      this.focusVaultInitiatedCheckoutWindow();
-    }.bind(this));
+    this._modalBackdrop.style.background = "black";
+    this._modalBackdrop.style.opacity = "0.7";
+    this._modalBackdrop.addEventListener(
+      "click",
+      function () {
+        this.focusVaultInitiatedCheckoutWindow();
+      }.bind(this)
+    );
   }
 
   document.body.appendChild(this._modalBackdrop);
@@ -3492,12 +3654,17 @@ PayPalCheckout.prototype._removeModalBackdrop = function () {
  */
 PayPalCheckout.prototype.closeVaultInitiatedCheckoutWindow = function () {
   if (this._vaultInitiatedCheckoutInProgress) {
-    analytics.sendEvent(this._clientPromise, 'paypal-checkout.startVaultInitiatedCheckout.canceled.by-merchant');
+    analytics.sendEvent(
+      this._clientPromise,
+      "paypal-checkout.startVaultInitiatedCheckout.canceled.by-merchant"
+    );
   }
 
-  return this._waitForVaultInitiatedCheckoutDependencies().then(function () {
-    this._frameService.close();
-  }.bind(this));
+  return this._waitForVaultInitiatedCheckoutDependencies().then(
+    function () {
+      this._frameService.close();
+    }.bind(this)
+  );
 };
 
 /**
@@ -3510,12 +3677,16 @@ PayPalCheckout.prototype.closeVaultInitiatedCheckoutWindow = function () {
  * @returns {(Promise|void)} Returns a promise if no callback is provided.
  */
 PayPalCheckout.prototype.focusVaultInitiatedCheckoutWindow = function () {
-  return this._waitForVaultInitiatedCheckoutDependencies().then(function () {
-    this._frameService.focus();
-  }.bind(this));
+  return this._waitForVaultInitiatedCheckoutDependencies().then(
+    function () {
+      this._frameService.focus();
+    }.bind(this)
+  );
 };
 
-PayPalCheckout.prototype._createFrameServiceCallback = function (frameCommunicationPromise) {
+PayPalCheckout.prototype._createFrameServiceCallback = function (
+  frameCommunicationPromise
+) {
   var self = this;
 
   // TODO when a merchant integrates an iOS or Android integration
@@ -3526,31 +3697,42 @@ PayPalCheckout.prototype._createFrameServiceCallback = function (frameCommunicat
       frameCommunicationPromise.reject(err);
     } else if (payload) {
       self._frameService.redirect(self._loadingFrameUrl);
-      self.tokenizePayment({
-        paymentToken: payload.token,
-        payerID: payload.PayerID,
-        paymentID: payload.paymentId
-      }).then(function (res) {
-        frameCommunicationPromise.resolve(res);
-      }).catch(function (tokenizationError) {
-        frameCommunicationPromise.reject(tokenizationError);
-      });
+      self
+        .tokenizePayment({
+          paymentToken: payload.token,
+          payerID: payload.PayerID,
+          paymentID: payload.paymentId,
+        })
+        .then(function (res) {
+          frameCommunicationPromise.resolve(res);
+        })
+        .catch(function (tokenizationError) {
+          frameCommunicationPromise.reject(tokenizationError);
+        });
     }
   };
 };
 
-PayPalCheckout.prototype._waitForVaultInitiatedCheckoutDependencies = function () {
-  var self = this;
+PayPalCheckout.prototype._waitForVaultInitiatedCheckoutDependencies =
+  function () {
+    var self = this;
 
-  return this._clientPromise.then(function () {
-    return self._frameServicePromise;
-  });
-};
+    return this._clientPromise.then(function () {
+      return self._frameServicePromise;
+    });
+  };
 
 PayPalCheckout.prototype._constructVaultCheckutUrl = function (frameName) {
   var serviceId = this._frameService._serviceId;
 
-  return this._assetsUrl + '/html/' + frameName + useMin(this._isDebug) + '.html?channel=' + serviceId;
+  return (
+    this._assetsUrl +
+    "/html/" +
+    frameName +
+    useMin(this._isDebug) +
+    ".html?channel=" +
+    serviceId
+  );
 };
 
 /**
@@ -3587,8 +3769,11 @@ PayPalCheckout.prototype.tokenizePayment = function (tokenizeOptions) {
   var shouldVault = true;
   var payload;
   var options = {
-    flow: tokenizeOptions.billingToken && !tokenizeOptions.paymentID ? 'vault' : 'checkout',
-    intent: tokenizeOptions.intent || this.intentFromCreatePayment
+    flow:
+      tokenizeOptions.billingToken && !tokenizeOptions.paymentID
+        ? "vault"
+        : "checkout",
+    intent: tokenizeOptions.intent || this.intentFromCreatePayment,
   };
   var params = {
     // The paymentToken provided by the PayPal JS SDK is the EC Token
@@ -3596,45 +3781,62 @@ PayPalCheckout.prototype.tokenizePayment = function (tokenizeOptions) {
     billingToken: tokenizeOptions.billingToken,
     payerId: tokenizeOptions.payerID,
     paymentId: tokenizeOptions.paymentID,
-    shippingOptionsId: tokenizeOptions.shippingOptionsId
+    shippingOptionsId: tokenizeOptions.shippingOptionsId,
   };
 
-  if (tokenizeOptions.hasOwnProperty('vault')) {
+  if (tokenizeOptions.hasOwnProperty("vault")) {
     shouldVault = tokenizeOptions.vault;
   }
 
   options.vault = shouldVault;
 
-  analytics.sendEvent(this._clientPromise, 'paypal-checkout.tokenization.started');
+  analytics.sendEvent(
+    this._clientPromise,
+    "paypal-checkout.tokenization.started"
+  );
 
-  return this._clientPromise.then(function (client) {
-    return client.request({
-      endpoint: 'payment_methods/paypal_accounts',
-      method: 'post',
-      data: self._formatTokenizeData(options, params)
+  return this._clientPromise
+    .then(function (client) {
+      return client.request({
+        endpoint: "payment_methods/paypal_accounts",
+        method: "post",
+        data: self._formatTokenizeData(options, params),
+      });
+    })
+    .then(function (response) {
+      payload = self._formatTokenizePayload(response);
+
+      analytics.sendEvent(
+        self._clientPromise,
+        "paypal-checkout.tokenization.success"
+      );
+      if (payload.creditFinancingOffered) {
+        analytics.sendEvent(
+          self._clientPromise,
+          "paypal-checkout.credit.accepted"
+        );
+      }
+
+      return payload;
+    })
+    .catch(function (err) {
+      if (self._setupError) {
+        return Promise.reject(self._setupError);
+      }
+
+      analytics.sendEvent(
+        self._clientPromise,
+        "paypal-checkout.tokenization.failed"
+      );
+
+      return Promise.reject(
+        convertToBraintreeError(err, {
+          type: errors.PAYPAL_ACCOUNT_TOKENIZATION_FAILED.type,
+          code: errors.PAYPAL_ACCOUNT_TOKENIZATION_FAILED.code,
+          message: errors.PAYPAL_ACCOUNT_TOKENIZATION_FAILED.message,
+        })
+      );
     });
-  }).then(function (response) {
-    payload = self._formatTokenizePayload(response);
-
-    analytics.sendEvent(self._clientPromise, 'paypal-checkout.tokenization.success');
-    if (payload.creditFinancingOffered) {
-      analytics.sendEvent(self._clientPromise, 'paypal-checkout.credit.accepted');
-    }
-
-    return payload;
-  }).catch(function (err) {
-    if (self._setupError) {
-      return Promise.reject(self._setupError);
-    }
-
-    analytics.sendEvent(self._clientPromise, 'paypal-checkout.tokenization.failed');
-
-    return Promise.reject(convertToBraintreeError(err, {
-      type: errors.PAYPAL_ACCOUNT_TOKENIZATION_FAILED.type,
-      code: errors.PAYPAL_ACCOUNT_TOKENIZATION_FAILED.code,
-      message: errors.PAYPAL_ACCOUNT_TOKENIZATION_FAILED.message
-    }));
-  });
 };
 
 /**
@@ -3725,13 +3927,16 @@ PayPalCheckout.prototype.loadPayPalSDK = function (options) {
   var idPromise, src;
   var loadPromise = new ExtendedPromise();
   var dataAttributes = (options && options.dataAttributes) || {};
-  var userIdToken = dataAttributes['user-id-token'] || dataAttributes['data-user-id-token'];
+  var userIdToken =
+    dataAttributes["user-id-token"] || dataAttributes["data-user-id-token"];
 
   if (!userIdToken) {
-    userIdToken = this._authorizationInformation.fingerprint && this._authorizationInformation.fingerprint.split('?')[0];
+    userIdToken =
+      this._authorizationInformation.fingerprint &&
+      this._authorizationInformation.fingerprint.split("?")[0];
   }
 
-  this._paypalScript = document.createElement('script');
+  this._paypalScript = document.createElement("script");
 
   // NEXT_MAJOR_VERSION
   // this options object should have 2 properties:
@@ -3740,9 +3945,13 @@ PayPalCheckout.prototype.loadPayPalSDK = function (options) {
   // should make organizing this better than squashing
   // all the query params at the top level and extracting
   // the data attributes
-  options = assign({}, {
-    components: 'buttons'
-  }, options);
+  options = assign(
+    {},
+    {
+      components: "buttons",
+    },
+    options
+  );
   delete options.dataAttributes;
 
   // NEXT_MAJOR_VERSION if merchant passes an explicit intent,
@@ -3751,50 +3960,62 @@ PayPalCheckout.prototype.loadPayPalSDK = function (options) {
   // createPayment to reduce the number of items that need to be
   // duplicated here and in createPayment
   if (options.vault) {
-    options.intent = options.intent || 'tokenize';
+    options.intent = options.intent || "tokenize";
   } else {
-    options.intent = options.intent || 'authorize';
-    options.currency = options.currency || 'USD';
+    options.intent = options.intent || "authorize";
+    options.currency = options.currency || "USD";
   }
 
-  src = 'https://www.paypal.com/sdk/js?';
+  src = "https://www.paypal.com/sdk/js?";
   this._paypalScript.onload = function () {
     loadPromise.resolve();
   };
 
-  Object.keys(dataAttributes).forEach(function (attribute) {
-    this._paypalScript.setAttribute('data-' + attribute.replace(/^data\-/, ''), dataAttributes[attribute]);
-  }.bind(this));
+  Object.keys(dataAttributes).forEach(
+    function (attribute) {
+      this._paypalScript.setAttribute(
+        "data-" + attribute.replace(/^data\-/, ""),
+        dataAttributes[attribute]
+      );
+    }.bind(this)
+  );
 
-  if (options['client-id']) {
-    idPromise = Promise.resolve(options['client-id']);
+  if (options["client-id"]) {
+    idPromise = Promise.resolve(options["client-id"]);
   } else {
     idPromise = this.getClientId();
   }
 
-  idPromise.then(function (id) {
-    options['client-id'] = id;
+  idPromise.then(
+    function (id) {
+      options["client-id"] = id;
 
-    if (this._autoSetDataUserIdToken && userIdToken) {
-      this._paypalScript.setAttribute('data-user-id-token', userIdToken);
+      if (this._autoSetDataUserIdToken && userIdToken) {
+        this._paypalScript.setAttribute("data-user-id-token", userIdToken);
 
-      // preloading improves the rendering time of the PayPal button
-      this._attachPreloadPixel({
-        id: id,
-        userIdToken: userIdToken,
-        amount: dataAttributes.amount,
-        currency: options.currency,
-        merchantId: options['merchant-id']
-      });
-    }
+        // preloading improves the rendering time of the PayPal button
+        this._attachPreloadPixel({
+          id: id,
+          userIdToken: userIdToken,
+          amount: dataAttributes.amount,
+          currency: options.currency,
+          merchantId: options["merchant-id"],
+        });
+      }
 
-    this._paypalScript.src = querystring.queryify(src, options);
-    document.head.insertBefore(this._paypalScript, document.head.firstElementChild);
-  }.bind(this));
+      this._paypalScript.src = querystring.queryify(src, options);
+      document.head.insertBefore(
+        this._paypalScript,
+        document.head.firstElementChild
+      );
+    }.bind(this)
+  );
 
-  return loadPromise.then(function () {
-    return this;
-  }.bind(this));
+  return loadPromise.then(
+    function () {
+      return this;
+    }.bind(this)
+  );
 };
 
 PayPalCheckout.prototype._attachPreloadPixel = function (options) {
@@ -3802,11 +4023,11 @@ PayPalCheckout.prototype._attachPreloadPixel = function (options) {
   var id = options.id;
   var userIdToken = options.userIdToken;
   var env = this._authorizationInformation.environment;
-  var subdomain = env === 'production' ? '' : 'sandbox.';
-  var url = PAYPAL_SDK_PRELOAD_URL.replace('{ENV}', subdomain);
+  var subdomain = env === "production" ? "" : "sandbox.";
+  var url = PAYPAL_SDK_PRELOAD_URL.replace("{ENV}", subdomain);
   var preloadOptions = {
-    'client-id': id,
-    'user-id-token': userIdToken
+    "client-id": id,
+    "user-id-token": userIdToken,
   };
 
   if (options.amount) {
@@ -3816,15 +4037,18 @@ PayPalCheckout.prototype._attachPreloadPixel = function (options) {
     preloadOptions.currency = options.currency;
   }
   if (options.merchantId) {
-    preloadOptions['merchant-id'] = options.merchantId;
+    preloadOptions["merchant-id"] = options.merchantId;
   }
 
   request = new XMLHttpRequest();
-  request.open('GET', querystring.queryify(url, preloadOptions));
+  request.open("GET", querystring.queryify(url, preloadOptions));
   request.send();
 };
 
-PayPalCheckout.prototype._formatPaymentResourceData = function (options, config) {
+PayPalCheckout.prototype._formatPaymentResourceData = function (
+  options,
+  config
+) {
   var key;
   var gatewayConfiguration = this._configuration.gatewayConfiguration;
   // NEXT_MAJOR_VERSION default value for intent in PayPal SDK is capture
@@ -3834,8 +4058,8 @@ PayPalCheckout.prototype._formatPaymentResourceData = function (options, config)
   var paymentResource = {
     // returnUrl and cancelUrl are required in hermes create_payment_resource route
     // but are not used by the PayPal sdk, except to redirect to an error page
-    returnUrl: config.returnUrl || 'https://www.paypal.com/checkoutnow/error',
-    cancelUrl: config.cancelUrl || 'https://www.paypal.com/checkoutnow/error',
+    returnUrl: config.returnUrl || "https://www.paypal.com/checkoutnow/error",
+    cancelUrl: config.cancelUrl || "https://www.paypal.com/checkoutnow/error",
     offerPaypalCredit: options.offerCredit === true,
     merchantAccountId: this._merchantAccountId,
     experienceProfile: {
@@ -3843,12 +4067,12 @@ PayPalCheckout.prototype._formatPaymentResourceData = function (options, config)
       localeCode: options.locale,
       noShipping: (!options.enableShippingAddress).toString(),
       addressOverride: options.shippingAddressEditable === false,
-      landingPageType: options.landingPageType
+      landingPageType: options.landingPageType,
     },
-    shippingOptions: options.shippingOptions
+    shippingOptions: options.shippingOptions,
   };
 
-  if (options.flow === 'checkout') {
+  if (options.flow === "checkout") {
     paymentResource.amount = options.amount;
     paymentResource.currencyIsoCode = options.currency;
     paymentResource.requestBillingAgreement = options.requestBillingAgreement;
@@ -3857,21 +4081,22 @@ PayPalCheckout.prototype._formatPaymentResourceData = function (options, config)
       // 'sale' has been changed to 'capture' in PayPal's backend, but
       // we use an old version with 'sale'. We provide capture as an alias
       // to match the PayPal SDK
-      if (intent === 'capture') {
-        intent = 'sale';
+      if (intent === "capture") {
+        intent = "sale";
       }
       paymentResource.intent = intent;
     }
 
-    if (options.hasOwnProperty('lineItems')) {
+    if (options.hasOwnProperty("lineItems")) {
       paymentResource.lineItems = options.lineItems;
     }
 
-    if (options.hasOwnProperty('vaultInitiatedCheckoutPaymentMethodToken')) {
-      paymentResource.vaultInitiatedCheckoutPaymentMethodToken = options.vaultInitiatedCheckoutPaymentMethodToken;
+    if (options.hasOwnProperty("vaultInitiatedCheckoutPaymentMethodToken")) {
+      paymentResource.vaultInitiatedCheckoutPaymentMethodToken =
+        options.vaultInitiatedCheckoutPaymentMethodToken;
     }
 
-    if (options.hasOwnProperty('shippingOptions')) {
+    if (options.hasOwnProperty("shippingOptions")) {
       paymentResource.shippingOptions = options.shippingOptions;
     }
 
@@ -3881,7 +4106,7 @@ PayPalCheckout.prototype._formatPaymentResourceData = function (options, config)
       }
     }
 
-    if (options.hasOwnProperty('billingAgreementDetails')) {
+    if (options.hasOwnProperty("billingAgreementDetails")) {
       paymentResource.billingAgreementDetails = options.billingAgreementDetails;
     }
   } else {
@@ -3908,16 +4133,18 @@ PayPalCheckout.prototype._formatPaymentResourceData = function (options, config)
 PayPalCheckout.prototype._formatTokenizeData = function (options, params) {
   var clientConfiguration = this._configuration;
   var gatewayConfiguration = clientConfiguration.gatewayConfiguration;
-  var isTokenizationKey = clientConfiguration.authorizationType === 'TOKENIZATION_KEY';
-  var isVaultFlow = options.flow === 'vault';
-  var correlationId = this._riskCorrelationId || params.billingToken || params.ecToken;
+  var isTokenizationKey =
+    clientConfiguration.authorizationType === "TOKENIZATION_KEY";
+  var isVaultFlow = options.flow === "vault";
+  var correlationId =
+    this._riskCorrelationId || params.billingToken || params.ecToken;
   var data = {
     paypalAccount: {
       correlationId: correlationId,
       options: {
-        validate: isVaultFlow && !isTokenizationKey && options.vault
-      }
-    }
+        validate: isVaultFlow && !isTokenizationKey && options.vault,
+      },
+    },
   };
 
   if (isVaultFlow) {
@@ -3925,7 +4152,8 @@ PayPalCheckout.prototype._formatTokenizeData = function (options, params) {
   } else {
     data.paypalAccount.paymentToken = params.paymentId;
     data.paypalAccount.payerId = params.payerId;
-    data.paypalAccount.unilateral = gatewayConfiguration.paypal.unvettedMerchant;
+    data.paypalAccount.unilateral =
+      gatewayConfiguration.paypal.unvettedMerchant;
 
     if (options.intent) {
       data.paypalAccount.intent = options.intent;
@@ -3950,7 +4178,7 @@ PayPalCheckout.prototype._formatTokenizePayload = function (response) {
   payload = {
     nonce: account.nonce,
     details: {},
-    type: account.type
+    type: account.type,
   };
 
   if (account.details && account.details.payerInfo) {
@@ -3993,28 +4221,30 @@ PayPalCheckout.prototype.teardown = function () {
     this._paypalScript.parentNode.removeChild(this._paypalScript);
   }
 
-  return this._frameServicePromise.catch(function () {
-    // no need to error in teardown for an error setting up the frame service
-  }).then(function () {
-    if (!self._frameService) {
-      return Promise.resolve();
-    }
+  return this._frameServicePromise
+    .catch(function () {
+      // no need to error in teardown for an error setting up the frame service
+    })
+    .then(function () {
+      if (!self._frameService) {
+        return Promise.resolve();
+      }
 
-    return self._frameService.teardown();
-  });
+      return self._frameService.teardown();
+    });
 };
 
 module.exports = wrapPromise.wrapPrototype(PayPalCheckout);
 
 },{"../lib/analytics":49,"../lib/assign":51,"../lib/braintree-error":53,"../lib/constants":54,"../lib/convert-methods-to-error":55,"../lib/convert-to-braintree-error":56,"../lib/create-assets-url":57,"../lib/create-authorization-data":58,"../lib/create-deferred-client":59,"../lib/frame-service/external":63,"../lib/methods":75,"../lib/promise":76,"../lib/querystring":77,"../lib/use-min":78,"../paypal/shared/constants":83,"./errors":80,"@braintree/extended-promise":23,"@braintree/wrap-promise":32}],83:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
 module.exports = {
-  LANDING_FRAME_NAME: 'braintreepaypallanding',
+  LANDING_FRAME_NAME: "braintreepaypallanding",
   FLOW_ENDPOINTS: {
-    checkout: 'create_payment_resource',
-    vault: 'setup_billing_agreement'
-  }
+    checkout: "create_payment_resource",
+    vault: "setup_billing_agreement",
+  },
 };
 
 },{}]},{},[81])(81)

@@ -1604,8 +1604,6 @@ function allSettled(arr) {
 // Store setTimeout reference so promise-polyfill will be unaffected by
 // other code modifying setTimeout (like sinon.useFakeTimers())
 var setTimeoutFunc = setTimeout;
-// @ts-ignore
-var setImmediateFunc = typeof setImmediate !== 'undefined' ? setImmediate : null;
 
 function isArray(x) {
   return Boolean(x && typeof x.length !== 'undefined');
@@ -1839,10 +1837,10 @@ Promise.race = function(arr) {
 // Use polyfill for setImmediate for performance gains
 Promise._immediateFn =
   // @ts-ignore
-  (typeof setImmediateFunc === 'function' &&
+  (typeof setImmediate === 'function' &&
     function(fn) {
       // @ts-ignore
-      setImmediateFunc(fn);
+      setImmediate(fn);
     }) ||
   function(fn) {
     setTimeoutFunc(fn, 0);
@@ -1906,18 +1904,18 @@ exports.isSamsungBrowser = isSamsungBrowser;
 var device_1 = _dereq_("./lib/device");
 module.exports = function supportsInputFormatting() {
     // Digits get dropped in samsung browser
-    return !device_1.isSamsungBrowser();
+    return !(0, device_1.isSamsungBrowser)();
 };
 
 },{"./lib/device":64}],66:[function(_dereq_,module,exports){
 module.exports = _dereq_("./dist/supports-input-formatting");
 
 },{"./dist/supports-input-formatting":65}],67:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var BraintreeError = _dereq_('../../lib/braintree-error');
-var errors = _dereq_('../shared/errors');
-var allowedAttributes = _dereq_('../shared/constants').allowedAttributes;
+var BraintreeError = _dereq_("../../lib/braintree-error");
+var errors = _dereq_("../shared/errors");
+var allowedAttributes = _dereq_("../shared/constants").allowedAttributes;
 
 function attributeValidationError(attribute, value) {
   var err;
@@ -1926,13 +1924,19 @@ function attributeValidationError(attribute, value) {
     err = new BraintreeError({
       type: errors.HOSTED_FIELDS_ATTRIBUTE_NOT_SUPPORTED.type,
       code: errors.HOSTED_FIELDS_ATTRIBUTE_NOT_SUPPORTED.code,
-      message: 'The "' + attribute + '" attribute is not supported in Hosted Fields.'
+      message:
+        'The "' + attribute + '" attribute is not supported in Hosted Fields.',
     });
   } else if (value != null && !_isValid(attribute, value)) {
     err = new BraintreeError({
       type: errors.HOSTED_FIELDS_ATTRIBUTE_VALUE_NOT_ALLOWED.type,
       code: errors.HOSTED_FIELDS_ATTRIBUTE_VALUE_NOT_ALLOWED.code,
-      message: 'Value "' + value + '" is not allowed for "' + attribute + '" attribute.'
+      message:
+        'Value "' +
+        value +
+        '" is not allowed for "' +
+        attribute +
+        '" attribute.',
     });
   }
 
@@ -1940,10 +1944,10 @@ function attributeValidationError(attribute, value) {
 }
 
 function _isValid(attribute, value) {
-  if (allowedAttributes[attribute] === 'string') {
-    return typeof value === 'string' || typeof value === 'number';
-  } else if (allowedAttributes[attribute] === 'boolean') {
-    return String(value) === 'true' || String(value) === 'false';
+  if (allowedAttributes[attribute] === "string") {
+    return typeof value === "string" || typeof value === "number";
+  } else if (allowedAttributes[attribute] === "boolean") {
+    return String(value) === "true" || String(value) === "false";
   }
 
   return false;
@@ -1952,44 +1956,54 @@ function _isValid(attribute, value) {
 module.exports = attributeValidationError;
 
 },{"../../lib/braintree-error":86,"../shared/constants":75,"../shared/errors":76}],68:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var constants = _dereq_('../shared/constants');
-var useMin = _dereq_('../../lib/use-min');
+var constants = _dereq_("../shared/constants");
+var useMin = _dereq_("../../lib/use-min");
 
 module.exports = function composeUrl(assetsUrl, componentId, isDebug) {
-  return assetsUrl +
-    '/web/' +
+  return (
+    assetsUrl +
+    "/web/" +
     constants.VERSION +
-    '/html/hosted-fields-frame' + useMin(isDebug) + '.html#' +
-    componentId;
+    "/html/hosted-fields-frame" +
+    useMin(isDebug) +
+    ".html#" +
+    componentId
+  );
 };
 
 },{"../../lib/use-min":102,"../shared/constants":75}],69:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var directions = _dereq_('../shared/constants').navigationDirections;
-var browserDetection = _dereq_('../shared/browser-detection');
-var focusIntercept = _dereq_('../shared/focus-intercept');
-var findParentTags = _dereq_('../shared/find-parent-tags');
-var userFocusableTagNames = [
-  'INPUT', 'SELECT', 'TEXTAREA'
-];
+var directions = _dereq_("../shared/constants").navigationDirections;
+var browserDetection = _dereq_("../shared/browser-detection");
+var focusIntercept = _dereq_("../shared/focus-intercept");
+var findParentTags = _dereq_("../shared/find-parent-tags");
+var userFocusableTagNames = ["INPUT", "SELECT", "TEXTAREA"];
 // Devices with software keyboards do not or cannot focus on input types
 // that do not require keyboard-based interaction.
 var unfocusedInputTypes = [
-  'hidden', 'button', 'reset', 'submit', 'checkbox', 'radio', 'file'
+  "hidden",
+  "button",
+  "reset",
+  "submit",
+  "checkbox",
+  "radio",
+  "file",
 ];
 
 function _isUserFocusableElement(element) {
   if (!browserDetection.hasSoftwareKeyboard()) {
     // on desktop browsers, the only input type that isn't focusable
     // is the hidden input
-    return element.type !== 'hidden';
+    return element.type !== "hidden";
   }
 
-  return userFocusableTagNames.indexOf(element.tagName) > -1 &&
-    unfocusedInputTypes.indexOf(element.type) < 0;
+  return (
+    userFocusableTagNames.indexOf(element.tagName) > -1 &&
+    unfocusedInputTypes.indexOf(element.type) < 0
+  );
 }
 
 function _createNavigationHelper(direction, numberOfElementsInForm) {
@@ -1999,14 +2013,14 @@ function _createNavigationHelper(direction, numberOfElementsInForm) {
         checkIndexBounds: function (index) {
           return index < 0;
         },
-        indexChange: -1
+        indexChange: -1,
       };
     case directions.FORWARD:
       return {
         checkIndexBounds: function (index) {
           return index > numberOfElementsInForm - 1;
         },
-        indexChange: 1
+        indexChange: 1,
       };
     default:
   }
@@ -2017,7 +2031,11 @@ function _createNavigationHelper(direction, numberOfElementsInForm) {
 function _findFirstFocusableElement(elementsInForm) {
   var elementsIndex, element;
 
-  for (elementsIndex = 0; elementsIndex < elementsInForm.length; elementsIndex++) {
+  for (
+    elementsIndex = 0;
+    elementsIndex < elementsInForm.length;
+    elementsIndex++
+  ) {
     element = elementsInForm[elementsIndex];
 
     if (_isUserFocusableElement(element)) {
@@ -2036,16 +2054,13 @@ module.exports = {
 
     // these should never be identical, because there will at least be the
     // before and the after input
-    [
-      firstFocusableInput,
-      lastFocusableInput
-    ].forEach(function (input) {
+    [firstFocusableInput, lastFocusableInput].forEach(function (input) {
       if (!input) {
         return;
       }
 
-      if (focusIntercept.matchFocusElement(input.getAttribute('id'))) {
-        onRemoveFocusIntercepts(input.getAttribute('id'));
+      if (focusIntercept.matchFocusElement(input.getAttribute("id"))) {
+        onRemoveFocusIntercepts(input.getAttribute("id"));
       }
     });
   },
@@ -2053,13 +2068,15 @@ module.exports = {
   createFocusChangeHandler: function (hostedFieldsId, callbacks) {
     return function (data) {
       var currentIndex, targetElement, checkoutForm, navHelper;
-      var sourceElement = document.getElementById('bt-' + data.field + '-' + data.direction + '-' + hostedFieldsId);
+      var sourceElement = document.getElementById(
+        "bt-" + data.field + "-" + data.direction + "-" + hostedFieldsId
+      );
 
       if (!sourceElement) {
         return;
       }
 
-      checkoutForm = findParentTags(sourceElement, 'form')[0];
+      checkoutForm = findParentTags(sourceElement, "form")[0];
 
       if (document.forms.length < 1 || !checkoutForm) {
         callbacks.onRemoveFocusIntercepts();
@@ -2079,34 +2096,36 @@ module.exports = {
         targetElement = checkoutForm[currentIndex];
       } while (!_isUserFocusableElement(targetElement));
 
-      if (focusIntercept.matchFocusElement(targetElement.getAttribute('id'))) {
-        callbacks.onTriggerInputFocus(targetElement.getAttribute('data-braintree-type'));
+      if (focusIntercept.matchFocusElement(targetElement.getAttribute("id"))) {
+        callbacks.onTriggerInputFocus(
+          targetElement.getAttribute("data-braintree-type")
+        );
       } else {
         targetElement.focus();
       }
     };
-  }
+  },
 };
 
 },{"../shared/browser-detection":74,"../shared/constants":75,"../shared/find-parent-tags":77,"../shared/focus-intercept":78}],70:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var allowedStyles = _dereq_('../shared/constants').allowedStyles;
+var allowedStyles = _dereq_("../shared/constants").allowedStyles;
 
 module.exports = function getStylesFromClass(cssClass) {
-  var element = document.createElement('input');
+  var element = document.createElement("input");
   var styles = {};
   var computedStyles;
 
-  if (cssClass[0] === '.') {
+  if (cssClass[0] === ".") {
     cssClass = cssClass.substring(1);
   }
 
   element.className = cssClass;
-  element.style.display = 'none !important';
-  element.style.position = 'fixed !important';
-  element.style.left = '-99999px !important';
-  element.style.top = '-99999px !important';
+  element.style.display = "none !important";
+  element.style.position = "fixed !important";
+  element.style.left = "-99999px !important";
+  element.style.top = "-99999px !important";
   document.body.appendChild(element);
 
   computedStyles = window.getComputedStyle(element);
@@ -2125,41 +2144,42 @@ module.exports = function getStylesFromClass(cssClass) {
 };
 
 },{"../shared/constants":75}],71:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var assign = _dereq_('../../lib/assign').assign;
-var createAssetsUrl = _dereq_('../../lib/create-assets-url');
-var isVerifiedDomain = _dereq_('../../lib/is-verified-domain');
-var Destructor = _dereq_('../../lib/destructor');
-var classList = _dereq_('@braintree/class-list');
-var iFramer = _dereq_('@braintree/iframer');
-var Bus = _dereq_('framebus');
-var createDeferredClient = _dereq_('../../lib/create-deferred-client');
-var BraintreeError = _dereq_('../../lib/braintree-error');
-var composeUrl = _dereq_('./compose-url');
-var getStylesFromClass = _dereq_('./get-styles-from-class');
-var constants = _dereq_('../shared/constants');
-var errors = _dereq_('../shared/errors');
-var INTEGRATION_TIMEOUT_MS = _dereq_('../../lib/constants').INTEGRATION_TIMEOUT_MS;
-var uuid = _dereq_('@braintree/uuid');
-var findParentTags = _dereq_('../shared/find-parent-tags');
-var browserDetection = _dereq_('../shared/browser-detection');
+var assign = _dereq_("../../lib/assign").assign;
+var createAssetsUrl = _dereq_("../../lib/create-assets-url");
+var isVerifiedDomain = _dereq_("../../lib/is-verified-domain");
+var Destructor = _dereq_("../../lib/destructor");
+var classList = _dereq_("@braintree/class-list");
+var iFramer = _dereq_("@braintree/iframer");
+var Bus = _dereq_("framebus");
+var createDeferredClient = _dereq_("../../lib/create-deferred-client");
+var BraintreeError = _dereq_("../../lib/braintree-error");
+var composeUrl = _dereq_("./compose-url");
+var getStylesFromClass = _dereq_("./get-styles-from-class");
+var constants = _dereq_("../shared/constants");
+var errors = _dereq_("../shared/errors");
+var INTEGRATION_TIMEOUT_MS =
+  _dereq_("../../lib/constants").INTEGRATION_TIMEOUT_MS;
+var uuid = _dereq_("@braintree/uuid");
+var findParentTags = _dereq_("../shared/find-parent-tags");
+var browserDetection = _dereq_("../shared/browser-detection");
 var events = constants.events;
-var EventEmitter = _dereq_('@braintree/event-emitter');
-var injectFrame = _dereq_('./inject-frame');
-var analytics = _dereq_('../../lib/analytics');
+var EventEmitter = _dereq_("@braintree/event-emitter");
+var injectFrame = _dereq_("./inject-frame");
+var analytics = _dereq_("../../lib/analytics");
 var allowedFields = constants.allowedFields;
-var methods = _dereq_('../../lib/methods');
-var shadow = _dereq_('../../lib/shadow');
-var findRootNode = _dereq_('../../lib/find-root-node');
-var convertMethodsToError = _dereq_('../../lib/convert-methods-to-error');
-var sharedErrors = _dereq_('../../lib/errors');
-var getCardTypes = _dereq_('../shared/get-card-types');
-var attributeValidationError = _dereq_('./attribute-validation-error');
-var Promise = _dereq_('../../lib/promise');
-var wrapPromise = _dereq_('@braintree/wrap-promise');
-var focusChange = _dereq_('./focus-change');
-var destroyFocusIntercept = _dereq_('../shared/focus-intercept').destroy;
+var methods = _dereq_("../../lib/methods");
+var shadow = _dereq_("../../lib/shadow");
+var findRootNode = _dereq_("../../lib/find-root-node");
+var convertMethodsToError = _dereq_("../../lib/convert-methods-to-error");
+var sharedErrors = _dereq_("../../lib/errors");
+var getCardTypes = _dereq_("../shared/get-card-types");
+var attributeValidationError = _dereq_("./attribute-validation-error");
+var Promise = _dereq_("../../lib/promise");
+var wrapPromise = _dereq_("@braintree/wrap-promise");
+var focusChange = _dereq_("./focus-change");
+var destroyFocusIntercept = _dereq_("../shared/focus-intercept").destroy;
 
 var SAFARI_FOCUS_TIMEOUT = 5;
 
@@ -2448,13 +2468,22 @@ function createInputEventHandler(fields) {
 
     field = merchantPayload.fields[emittedBy];
 
-    classList.toggle(container, constants.externalClasses.FOCUSED, field.isFocused);
+    classList.toggle(
+      container,
+      constants.externalClasses.FOCUSED,
+      field.isFocused
+    );
     classList.toggle(container, constants.externalClasses.VALID, field.isValid);
-    classList.toggle(container, constants.externalClasses.INVALID, !field.isPotentiallyValid);
+    classList.toggle(
+      container,
+      constants.externalClasses.INVALID,
+      !field.isPotentiallyValid
+    );
 
-    this._state = {// eslint-disable-line no-invalid-this
+    // eslint-disable-next-line no-invalid-this
+    this._state = {
       cards: merchantPayload.cards,
-      fields: merchantPayload.fields
+      fields: merchantPayload.fields,
     };
 
     this._emit(eventData.type, merchantPayload); // eslint-disable-line no-invalid-this
@@ -2467,10 +2496,14 @@ function isVisibleEnough(node) {
   var horizontalMidpoint = Math.floor(boundingBox.width / 2);
 
   return (
-    boundingBox.top < (window.innerHeight - verticalMidpoint || document.documentElement.clientHeight - verticalMidpoint) &&
+    boundingBox.top <
+      (window.innerHeight - verticalMidpoint ||
+        document.documentElement.clientHeight - verticalMidpoint) &&
     boundingBox.right > horizontalMidpoint &&
     boundingBox.bottom > verticalMidpoint &&
-    boundingBox.left < (window.innerWidth - horizontalMidpoint || document.documentElement.clientWidth - horizontalMidpoint)
+    boundingBox.left <
+      (window.innerWidth - horizontalMidpoint ||
+        document.documentElement.clientWidth - horizontalMidpoint)
   );
 }
 
@@ -2504,7 +2537,7 @@ function HostedFields(options) {
     authorization: options.authorization,
     debug: isDebug,
     assetsUrl: assetsUrl,
-    name: 'Hosted Fields'
+    name: "Hosted Fields",
   });
 
   hostedFieldsUrl = composeUrl(assetsUrl, componentId, isDebug);
@@ -2513,7 +2546,7 @@ function HostedFields(options) {
     throw new BraintreeError({
       type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
       code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
-      message: 'options.fields is required when instantiating Hosted Fields.'
+      message: "options.fields is required when instantiating Hosted Fields.",
     });
   }
 
@@ -2524,12 +2557,12 @@ function HostedFields(options) {
   this._fields = fields;
   this._state = {
     fields: {},
-    cards: getCardTypes('')
+    cards: getCardTypes(""),
   };
 
   this._bus = new Bus({
     channel: componentId,
-    verifyDomain: isVerifiedDomain
+    verifyDomain: isVerifiedDomain,
   });
 
   this._destructor.registerFunctionForTeardown(function () {
@@ -2538,138 +2571,159 @@ function HostedFields(options) {
 
   // NEXT_MAJOR_VERSION analytics events should have present tense verbs
   if (!options.client) {
-    analytics.sendEvent(this._clientPromise, 'custom.hosted-fields.initialized.deferred-client');
+    analytics.sendEvent(
+      this._clientPromise,
+      "custom.hosted-fields.initialized.deferred-client"
+    );
   } else {
-    analytics.sendEvent(this._clientPromise, 'custom.hosted-fields.initialized');
+    analytics.sendEvent(
+      this._clientPromise,
+      "custom.hosted-fields.initialized"
+    );
   }
 
-  Object.keys(options.fields).forEach(function (key) {
-    var field, externalContainer, internalContainer, frame, frameReadyPromise;
+  Object.keys(options.fields).forEach(
+    function (key) {
+      var field, externalContainer, internalContainer, frame, frameReadyPromise;
 
-    if (!constants.allowedFields.hasOwnProperty(key)) {
-      throw new BraintreeError({
-        type: errors.HOSTED_FIELDS_INVALID_FIELD_KEY.type,
-        code: errors.HOSTED_FIELDS_INVALID_FIELD_KEY.code,
-        message: '"' + key + '" is not a valid field.'
-      });
-    }
-
-    field = options.fields[key];
-    // NEXT_MAJOR_VERSION remove selector as an option
-    // and simply make the API take a container
-    externalContainer = field.container || field.selector;
-
-    if (typeof externalContainer === 'string') {
-      externalContainer = document.querySelector(externalContainer);
-    }
-
-    if (!externalContainer || externalContainer.nodeType !== 1) {
-      throw new BraintreeError({
-        type: errors.HOSTED_FIELDS_INVALID_FIELD_SELECTOR.type,
-        code: errors.HOSTED_FIELDS_INVALID_FIELD_SELECTOR.code,
-        message: errors.HOSTED_FIELDS_INVALID_FIELD_SELECTOR.message,
-        details: {
-          fieldSelector: field.selector,
-          fieldContainer: field.container,
-          fieldKey: key
-        }
-      });
-    } else if (externalContainer.querySelector('iframe[name^="braintree-"]')) {
-      throw new BraintreeError({
-        type: errors.HOSTED_FIELDS_FIELD_DUPLICATE_IFRAME.type,
-        code: errors.HOSTED_FIELDS_FIELD_DUPLICATE_IFRAME.code,
-        message: errors.HOSTED_FIELDS_FIELD_DUPLICATE_IFRAME.message,
-        details: {
-          fieldSelector: field.selector,
-          fieldContainer: field.container,
-          fieldKey: key
-        }
-      });
-    }
-
-    internalContainer = externalContainer;
-
-    if (shadow.isShadowElement(internalContainer)) {
-      internalContainer = shadow.transformToSlot(internalContainer, 'height: 100%');
-    }
-
-    if (field.maxlength && typeof field.maxlength !== 'number') {
-      throw new BraintreeError({
-        type: errors.HOSTED_FIELDS_FIELD_PROPERTY_INVALID.type,
-        code: errors.HOSTED_FIELDS_FIELD_PROPERTY_INVALID.code,
-        message: 'The value for maxlength must be a number.',
-        details: {
-          fieldKey: key
-        }
-      });
-    }
-
-    if (field.minlength && typeof field.minlength !== 'number') {
-      throw new BraintreeError({
-        type: errors.HOSTED_FIELDS_FIELD_PROPERTY_INVALID.type,
-        code: errors.HOSTED_FIELDS_FIELD_PROPERTY_INVALID.code,
-        message: 'The value for minlength must be a number.',
-        details: {
-          fieldKey: key
-        }
-      });
-    }
-
-    frame = iFramer({
-      type: key,
-      name: 'braintree-hosted-field-' + key,
-      style: constants.defaultIFrameStyle,
-      title: field.iframeTitle || 'Secure Credit Card Frame - ' + constants.allowedFields[key].label
-    });
-
-    this._injectedNodes.push.apply(this._injectedNodes, injectFrame(componentId, frame, internalContainer, function () {
-      self.focus(key);
-    }));
-
-    this._setupLabelFocus(key, externalContainer);
-    fields[key] = {
-      frameElement: frame,
-      containerElement: externalContainer
-    };
-    frameReadyPromise = new Promise(function (resolve) {
-      frameReadyPromiseResolveFunctions[key] = resolve;
-    });
-    frameReadyPromises.push(frameReadyPromise);
-
-    this._state.fields[key] = {
-      isEmpty: true,
-      isValid: false,
-      isPotentiallyValid: true,
-      isFocused: false,
-      container: externalContainer
-    };
-
-    setTimeout(function () {
-      // Edge has an intermittent issue where
-      // the iframes load, but the JavaScript
-      // can't message out to the parent page.
-      // We can fix this by setting the src
-      // to about:blank first followed by
-      // the actual source. Both instances
-      // of setting the src need to be in a
-      // setTimeout to work.
-      if (browserDetection.isIE() || browserDetection.isEdge()) {
-        frame.src = 'about:blank';
-        setTimeout(function () {
-          frame.src = hostedFieldsUrl;
-        }, 0);
-      } else {
-        frame.src = hostedFieldsUrl;
+      if (!constants.allowedFields.hasOwnProperty(key)) {
+        throw new BraintreeError({
+          type: errors.HOSTED_FIELDS_INVALID_FIELD_KEY.type,
+          code: errors.HOSTED_FIELDS_INVALID_FIELD_KEY.code,
+          message: '"' + key + '" is not a valid field.',
+        });
       }
-    }, 0);
-  }.bind(this));
+
+      field = options.fields[key];
+      // NEXT_MAJOR_VERSION remove selector as an option
+      // and simply make the API take a container
+      externalContainer = field.container || field.selector;
+
+      if (typeof externalContainer === "string") {
+        externalContainer = document.querySelector(externalContainer);
+      }
+
+      if (!externalContainer || externalContainer.nodeType !== 1) {
+        throw new BraintreeError({
+          type: errors.HOSTED_FIELDS_INVALID_FIELD_SELECTOR.type,
+          code: errors.HOSTED_FIELDS_INVALID_FIELD_SELECTOR.code,
+          message: errors.HOSTED_FIELDS_INVALID_FIELD_SELECTOR.message,
+          details: {
+            fieldSelector: field.selector,
+            fieldContainer: field.container,
+            fieldKey: key,
+          },
+        });
+      } else if (
+        externalContainer.querySelector('iframe[name^="braintree-"]')
+      ) {
+        throw new BraintreeError({
+          type: errors.HOSTED_FIELDS_FIELD_DUPLICATE_IFRAME.type,
+          code: errors.HOSTED_FIELDS_FIELD_DUPLICATE_IFRAME.code,
+          message: errors.HOSTED_FIELDS_FIELD_DUPLICATE_IFRAME.message,
+          details: {
+            fieldSelector: field.selector,
+            fieldContainer: field.container,
+            fieldKey: key,
+          },
+        });
+      }
+
+      internalContainer = externalContainer;
+
+      if (shadow.isShadowElement(internalContainer)) {
+        internalContainer = shadow.transformToSlot(
+          internalContainer,
+          "height: 100%"
+        );
+      }
+
+      if (field.maxlength && typeof field.maxlength !== "number") {
+        throw new BraintreeError({
+          type: errors.HOSTED_FIELDS_FIELD_PROPERTY_INVALID.type,
+          code: errors.HOSTED_FIELDS_FIELD_PROPERTY_INVALID.code,
+          message: "The value for maxlength must be a number.",
+          details: {
+            fieldKey: key,
+          },
+        });
+      }
+
+      if (field.minlength && typeof field.minlength !== "number") {
+        throw new BraintreeError({
+          type: errors.HOSTED_FIELDS_FIELD_PROPERTY_INVALID.type,
+          code: errors.HOSTED_FIELDS_FIELD_PROPERTY_INVALID.code,
+          message: "The value for minlength must be a number.",
+          details: {
+            fieldKey: key,
+          },
+        });
+      }
+
+      frame = iFramer({
+        type: key,
+        name: "braintree-hosted-field-" + key,
+        style: constants.defaultIFrameStyle,
+        title:
+          field.iframeTitle ||
+          "Secure Credit Card Frame - " + constants.allowedFields[key].label,
+      });
+
+      this._injectedNodes.push.apply(
+        this._injectedNodes,
+        injectFrame(componentId, frame, internalContainer, function () {
+          self.focus(key);
+        })
+      );
+
+      this._setupLabelFocus(key, externalContainer);
+      fields[key] = {
+        frameElement: frame,
+        containerElement: externalContainer,
+      };
+      frameReadyPromise = new Promise(function (resolve) {
+        frameReadyPromiseResolveFunctions[key] = resolve;
+      });
+      frameReadyPromises.push(frameReadyPromise);
+
+      this._state.fields[key] = {
+        isEmpty: true,
+        isValid: false,
+        isPotentiallyValid: true,
+        isFocused: false,
+        container: externalContainer,
+      };
+
+      setTimeout(function () {
+        // Edge has an intermittent issue where
+        // the iframes load, but the JavaScript
+        // can't message out to the parent page.
+        // We can fix this by setting the src
+        // to about:blank first followed by
+        // the actual source. Both instances
+        // of setting the src need to be in a
+        // setTimeout to work.
+        if (browserDetection.isIE() || browserDetection.isEdge()) {
+          frame.src = "about:blank";
+          setTimeout(function () {
+            frame.src = hostedFieldsUrl;
+          }, 0);
+        } else {
+          frame.src = hostedFieldsUrl;
+        }
+      }, 0);
+    }.bind(this)
+  );
 
   if (this._merchantConfigurationOptions.styles) {
-    Object.keys(this._merchantConfigurationOptions.styles).forEach(function (selector) {
+    Object.keys(this._merchantConfigurationOptions.styles).forEach(function (
+      selector
+    ) {
       var className = self._merchantConfigurationOptions.styles[selector];
 
-      if (typeof className === 'string') {
-        self._merchantConfigurationOptions.styles[selector] = getStylesFromClass(className);
+      if (typeof className === "string") {
+        self._merchantConfigurationOptions.styles[selector] =
+          getStylesFromClass(className);
       }
     });
   }
@@ -2678,16 +2732,19 @@ function HostedFields(options) {
     destroyFocusIntercept(data && data.id);
   });
 
-  this._bus.on(events.TRIGGER_FOCUS_CHANGE, focusChange.createFocusChangeHandler(componentId, {
-    onRemoveFocusIntercepts: function (element) {
-      self._bus.emit(events.REMOVE_FOCUS_INTERCEPTS, {
-        id: element
-      });
-    },
-    onTriggerInputFocus: function (targetType) {
-      self.focus(targetType);
-    }
-  }));
+  this._bus.on(
+    events.TRIGGER_FOCUS_CHANGE,
+    focusChange.createFocusChangeHandler(componentId, {
+      onRemoveFocusIntercepts: function (element) {
+        self._bus.emit(events.REMOVE_FOCUS_INTERCEPTS, {
+          id: element,
+        });
+      },
+      onTriggerInputFocus: function (targetType) {
+        self.focus(targetType);
+      },
+    })
+  );
 
   this._bus.on(events.READY_FOR_CLIENT, function (reply) {
     self._clientPromise.then(function (client) {
@@ -2696,39 +2753,41 @@ function HostedFields(options) {
   });
 
   this._bus.on(events.CARD_FORM_ENTRY_HAS_BEGUN, function () {
-    analytics.sendEvent(self._clientPromise, 'hosted-fields.input.started');
+    analytics.sendEvent(self._clientPromise, "hosted-fields.input.started");
   });
 
   this._bus.on(events.BIN_AVAILABLE, function (bin) {
-    self._emit('binAvailable', {
-      bin: bin
+    self._emit("binAvailable", {
+      bin: bin,
     });
   });
 
   failureTimeout = setTimeout(function () {
-    analytics.sendEvent(self._clientPromise, 'custom.hosted-fields.load.timed-out');
-    self._emit('timeout');
+    analytics.sendEvent(
+      self._clientPromise,
+      "custom.hosted-fields.load.timed-out"
+    );
+    self._emit("timeout");
   }, INTEGRATION_TIMEOUT_MS);
 
   Promise.all(frameReadyPromises).then(function (results) {
     var reply = results[0];
 
     clearTimeout(failureTimeout);
-    reply(formatMerchantConfigurationForIframes(self._merchantConfigurationOptions));
+    reply(
+      formatMerchantConfigurationForIframes(self._merchantConfigurationOptions)
+    );
 
     self._cleanUpFocusIntercepts();
 
-    self._emit('ready');
+    self._emit("ready");
   });
 
   this._bus.on(events.FRAME_READY, function (data, reply) {
     frameReadyPromiseResolveFunctions[data.field](reply);
   });
 
-  this._bus.on(
-    events.INPUT_EVENT,
-    createInputEventHandler(fields).bind(this)
-  );
+  this._bus.on(events.INPUT_EVENT, createInputEventHandler(fields).bind(this));
 
   this._destructor.registerFunctionForTeardown(function () {
     var j, node, parent;
@@ -2753,7 +2812,9 @@ function HostedFields(options) {
   });
 
   this._destructor.registerFunctionForTeardown(function () {
-    var methodNames = methods(HostedFields.prototype).concat(methods(EventEmitter.prototype));
+    var methodNames = methods(HostedFields.prototype).concat(
+      methods(EventEmitter.prototype)
+    );
 
     convertMethodsToError(self, methodNames);
   });
@@ -2766,32 +2827,40 @@ HostedFields.prototype._setupLabelFocus = function (type, container) {
   var self = this;
   var rootNode = findRootNode(container);
 
-  if (container.id == null) { return; }
+  if (container.id == null) {
+    return;
+  }
 
   function triggerFocus() {
     self.focus(type);
   }
 
   // find any labels in the normal DOM
-  labels = Array.prototype.slice.call(document.querySelectorAll('label[for="' + container.id + '"]'));
+  labels = Array.prototype.slice.call(
+    document.querySelectorAll('label[for="' + container.id + '"]')
+  );
   if (rootNode !== document) {
     // find any labels within the shadow dom
-    labels = labels.concat(Array.prototype.slice.call(rootNode.querySelectorAll('label[for="' + container.id + '"]')));
+    labels = labels.concat(
+      Array.prototype.slice.call(
+        rootNode.querySelectorAll('label[for="' + container.id + '"]')
+      )
+    );
   }
   // find any labels surrounding the container that don't also have the `for` attribute
-  labels = labels.concat(findParentTags(container, 'label'));
+  labels = labels.concat(findParentTags(container, "label"));
   // filter out any accidental duplicates
   labels = labels.filter(function (label, index, arr) {
     return arr.indexOf(label) === index;
   });
 
   for (i = 0; i < labels.length; i++) {
-    labels[i].addEventListener('click', triggerFocus, false);
+    labels[i].addEventListener("click", triggerFocus, false);
   }
 
   this._destructor.registerFunctionForTeardown(function () {
     for (i = 0; i < labels.length; i++) {
-      labels[i].removeEventListener('click', triggerFocus, false);
+      labels[i].removeEventListener("click", triggerFocus, false);
     }
   });
 };
@@ -2811,14 +2880,17 @@ HostedFields.prototype._cleanUpFocusIntercepts = function () {
     this._bus.emit(events.REMOVE_FOCUS_INTERCEPTS);
   } else {
     iframeContainer = this._getAnyFieldContainer();
-    checkoutForm = findParentTags(iframeContainer, 'form')[0];
+    checkoutForm = findParentTags(iframeContainer, "form")[0];
 
     if (checkoutForm) {
-      focusChange.removeExtraFocusElements(checkoutForm, function (id) {
-        this._bus.emit(events.REMOVE_FOCUS_INTERCEPTS, {
-          id: id
-        });
-      }.bind(this));
+      focusChange.removeExtraFocusElements(
+        checkoutForm,
+        function (id) {
+          this._bus.emit(events.REMOVE_FOCUS_INTERCEPTS, {
+            id: id,
+          });
+        }.bind(this)
+      );
     } else {
       this._bus.emit(events.REMOVE_FOCUS_INTERCEPTS);
     }
@@ -2826,13 +2898,21 @@ HostedFields.prototype._cleanUpFocusIntercepts = function () {
 };
 
 HostedFields.prototype._attachInvalidFieldContainersToError = function (err) {
-  if (!(err.details && err.details.invalidFieldKeys && err.details.invalidFieldKeys.length > 0)) {
+  if (
+    !(
+      err.details &&
+      err.details.invalidFieldKeys &&
+      err.details.invalidFieldKeys.length > 0
+    )
+  ) {
     return;
   }
   err.details.invalidFields = {};
-  err.details.invalidFieldKeys.forEach(function (field) {
-    err.details.invalidFields[field] = this._fields[field].containerElement;
-  }.bind(this));
+  err.details.invalidFieldKeys.forEach(
+    function (field) {
+      err.details.invalidFields[field] = this._fields[field].containerElement;
+    }.bind(this)
+  );
 };
 
 /**
@@ -2863,16 +2943,20 @@ HostedFields.prototype.getChallenges = function () {
  */
 HostedFields.prototype.getSupportedCardTypes = function () {
   return this._clientPromise.then(function (client) {
-    var cards = client.getConfiguration().gatewayConfiguration.creditCards.supportedCardTypes.map(function (cardType) {
-      if (cardType === 'MasterCard') {
-        // Mastercard changed their branding. We can't update our
-        // config without creating a breaking change, so we just
-        // hard code the change here
-        return 'Mastercard';
-      }
+    var cards = client
+      .getConfiguration()
+      .gatewayConfiguration.creditCards.supportedCardTypes.map(function (
+        cardType
+      ) {
+        if (cardType === "MasterCard") {
+          // Mastercard changed their branding. We can't update our
+          // config without creating a breaking change, so we just
+          // hard code the change here
+          return "Mastercard";
+        }
 
-      return cardType;
-    });
+        return cardType;
+      });
 
     return cards;
   });
@@ -2897,7 +2981,10 @@ HostedFields.prototype.teardown = function () {
 
   return new Promise(function (resolve, reject) {
     self._destructor.teardown(function (err) {
-      analytics.sendEvent(self._clientPromise, 'custom.hosted-fields.teardown-completed');
+      analytics.sendEvent(
+        self._clientPromise,
+        "custom.hosted-fields.teardown-completed"
+      );
 
       if (err) {
         reject(err);
@@ -3108,18 +3195,24 @@ HostedFields.prototype.addClass = function (field, classname) {
     err = new BraintreeError({
       type: errors.HOSTED_FIELDS_FIELD_INVALID.type,
       code: errors.HOSTED_FIELDS_FIELD_INVALID.code,
-      message: '"' + field + '" is not a valid field. You must use a valid field option when adding a class.'
+      message:
+        '"' +
+        field +
+        '" is not a valid field. You must use a valid field option when adding a class.',
     });
   } else if (!this._fields.hasOwnProperty(field)) {
     err = new BraintreeError({
       type: errors.HOSTED_FIELDS_FIELD_NOT_PRESENT.type,
       code: errors.HOSTED_FIELDS_FIELD_NOT_PRESENT.code,
-      message: 'Cannot add class to "' + field + '" field because it is not part of the current Hosted Fields options.'
+      message:
+        'Cannot add class to "' +
+        field +
+        '" field because it is not part of the current Hosted Fields options.',
     });
   } else {
     this._bus.emit(events.ADD_CLASS, {
       field: field,
-      classname: classname
+      classname: classname,
     });
   }
 
@@ -3156,18 +3249,24 @@ HostedFields.prototype.removeClass = function (field, classname) {
     err = new BraintreeError({
       type: errors.HOSTED_FIELDS_FIELD_INVALID.type,
       code: errors.HOSTED_FIELDS_FIELD_INVALID.code,
-      message: '"' + field + '" is not a valid field. You must use a valid field option when removing a class.'
+      message:
+        '"' +
+        field +
+        '" is not a valid field. You must use a valid field option when removing a class.',
     });
   } else if (!this._fields.hasOwnProperty(field)) {
     err = new BraintreeError({
       type: errors.HOSTED_FIELDS_FIELD_NOT_PRESENT.type,
       code: errors.HOSTED_FIELDS_FIELD_NOT_PRESENT.code,
-      message: 'Cannot remove class from "' + field + '" field because it is not part of the current Hosted Fields options.'
+      message:
+        'Cannot remove class from "' +
+        field +
+        '" field because it is not part of the current Hosted Fields options.',
     });
   } else {
     this._bus.emit(events.REMOVE_CLASS, {
       field: field,
-      classname: classname
+      classname: classname,
     });
   }
 
@@ -3220,13 +3319,19 @@ HostedFields.prototype.setAttribute = function (options) {
     err = new BraintreeError({
       type: errors.HOSTED_FIELDS_FIELD_INVALID.type,
       code: errors.HOSTED_FIELDS_FIELD_INVALID.code,
-      message: '"' + options.field + '" is not a valid field. You must use a valid field option when setting an attribute.'
+      message:
+        '"' +
+        options.field +
+        '" is not a valid field. You must use a valid field option when setting an attribute.',
     });
   } else if (!this._fields.hasOwnProperty(options.field)) {
     err = new BraintreeError({
       type: errors.HOSTED_FIELDS_FIELD_NOT_PRESENT.type,
       code: errors.HOSTED_FIELDS_FIELD_NOT_PRESENT.code,
-      message: 'Cannot set attribute for "' + options.field + '" field because it is not part of the current Hosted Fields options.'
+      message:
+        'Cannot set attribute for "' +
+        options.field +
+        '" field because it is not part of the current Hosted Fields options.',
     });
   } else {
     attributeErr = attributeValidationError(options.attribute, options.value);
@@ -3237,7 +3342,7 @@ HostedFields.prototype.setAttribute = function (options) {
       this._bus.emit(events.SET_ATTRIBUTE, {
         field: options.field,
         attribute: options.attribute,
-        value: options.value
+        value: options.value,
       });
     }
   }
@@ -3280,17 +3385,19 @@ HostedFields.prototype.setMonthOptions = function (options) {
   var errorMessage;
 
   if (!merchantOptions.expirationMonth) {
-    errorMessage = 'Expiration month field must exist to use setMonthOptions.';
+    errorMessage = "Expiration month field must exist to use setMonthOptions.";
   } else if (!merchantOptions.expirationMonth.select) {
-    errorMessage = 'Expiration month field must be a select element.';
+    errorMessage = "Expiration month field must be a select element.";
   }
 
   if (errorMessage) {
-    return Promise.reject(new BraintreeError({
-      type: errors.HOSTED_FIELDS_FIELD_PROPERTY_INVALID.type,
-      code: errors.HOSTED_FIELDS_FIELD_PROPERTY_INVALID.code,
-      message: errorMessage
-    }));
+    return Promise.reject(
+      new BraintreeError({
+        type: errors.HOSTED_FIELDS_FIELD_PROPERTY_INVALID.type,
+        code: errors.HOSTED_FIELDS_FIELD_PROPERTY_INVALID.code,
+        message: errorMessage,
+      })
+    );
   }
 
   return new Promise(function (resolve) {
@@ -3323,7 +3430,7 @@ HostedFields.prototype.setMonthOptions = function (options) {
 HostedFields.prototype.setMessage = function (options) {
   this._bus.emit(events.SET_MESSAGE, {
     field: options.field,
-    message: options.message
+    message: options.message,
   });
 };
 
@@ -3355,13 +3462,19 @@ HostedFields.prototype.removeAttribute = function (options) {
     err = new BraintreeError({
       type: errors.HOSTED_FIELDS_FIELD_INVALID.type,
       code: errors.HOSTED_FIELDS_FIELD_INVALID.code,
-      message: '"' + options.field + '" is not a valid field. You must use a valid field option when removing an attribute.'
+      message:
+        '"' +
+        options.field +
+        '" is not a valid field. You must use a valid field option when removing an attribute.',
     });
   } else if (!this._fields.hasOwnProperty(options.field)) {
     err = new BraintreeError({
       type: errors.HOSTED_FIELDS_FIELD_NOT_PRESENT.type,
       code: errors.HOSTED_FIELDS_FIELD_NOT_PRESENT.code,
-      message: 'Cannot remove attribute for "' + options.field + '" field because it is not part of the current Hosted Fields options.'
+      message:
+        'Cannot remove attribute for "' +
+        options.field +
+        '" field because it is not part of the current Hosted Fields options.',
     });
   } else {
     attributeErr = attributeValidationError(options.attribute);
@@ -3371,7 +3484,7 @@ HostedFields.prototype.removeAttribute = function (options) {
     } else {
       this._bus.emit(events.REMOVE_ATTRIBUTE, {
         field: options.field,
-        attribute: options.attribute
+        attribute: options.attribute,
       });
     }
   }
@@ -3396,8 +3509,8 @@ HostedFields.prototype.removeAttribute = function (options) {
 HostedFields.prototype.setPlaceholder = function (field, placeholder) {
   return this.setAttribute({
     field: field,
-    attribute: 'placeholder',
-    value: placeholder
+    attribute: "placeholder",
+    value: placeholder,
   });
 };
 
@@ -3426,17 +3539,23 @@ HostedFields.prototype.clear = function (field) {
     err = new BraintreeError({
       type: errors.HOSTED_FIELDS_FIELD_INVALID.type,
       code: errors.HOSTED_FIELDS_FIELD_INVALID.code,
-      message: '"' + field + '" is not a valid field. You must use a valid field option when clearing a field.'
+      message:
+        '"' +
+        field +
+        '" is not a valid field. You must use a valid field option when clearing a field.',
     });
   } else if (!this._fields.hasOwnProperty(field)) {
     err = new BraintreeError({
       type: errors.HOSTED_FIELDS_FIELD_NOT_PRESENT.type,
       code: errors.HOSTED_FIELDS_FIELD_NOT_PRESENT.code,
-      message: 'Cannot clear "' + field + '" field because it is not part of the current Hosted Fields options.'
+      message:
+        'Cannot clear "' +
+        field +
+        '" field because it is not part of the current Hosted Fields options.',
     });
   } else {
     this._bus.emit(events.CLEAR_FIELD, {
-      field: field
+      field: field,
     });
   }
 
@@ -3476,19 +3595,25 @@ HostedFields.prototype.focus = function (field) {
     err = new BraintreeError({
       type: errors.HOSTED_FIELDS_FIELD_INVALID.type,
       code: errors.HOSTED_FIELDS_FIELD_INVALID.code,
-      message: '"' + field + '" is not a valid field. You must use a valid field option when focusing a field.'
+      message:
+        '"' +
+        field +
+        '" is not a valid field. You must use a valid field option when focusing a field.',
     });
   } else if (!this._fields.hasOwnProperty(field)) {
     err = new BraintreeError({
       type: errors.HOSTED_FIELDS_FIELD_NOT_PRESENT.type,
       code: errors.HOSTED_FIELDS_FIELD_NOT_PRESENT.code,
-      message: 'Cannot focus "' + field + '" field because it is not part of the current Hosted Fields options.'
+      message:
+        'Cannot focus "' +
+        field +
+        '" field because it is not part of the current Hosted Fields options.',
     });
   } else {
     fieldConfig.frameElement.focus();
 
     this._bus.emit(events.TRIGGER_INPUT_FOCUS, {
-      field: field
+      field: field,
     });
 
     if (browserDetection.isIos()) {
@@ -3545,19 +3670,29 @@ function formatMerchantConfigurationForIframes(config) {
 module.exports = wrapPromise.wrapPrototype(HostedFields);
 
 },{"../../lib/analytics":81,"../../lib/assign":83,"../../lib/braintree-error":86,"../../lib/constants":87,"../../lib/convert-methods-to-error":88,"../../lib/create-assets-url":89,"../../lib/create-deferred-client":91,"../../lib/destructor":92,"../../lib/errors":94,"../../lib/find-root-node":95,"../../lib/is-verified-domain":96,"../../lib/methods":98,"../../lib/promise":100,"../../lib/shadow":101,"../shared/browser-detection":74,"../shared/constants":75,"../shared/errors":76,"../shared/find-parent-tags":77,"../shared/focus-intercept":78,"../shared/get-card-types":79,"./attribute-validation-error":67,"./compose-url":68,"./focus-change":69,"./get-styles-from-class":70,"./inject-frame":72,"@braintree/class-list":30,"@braintree/event-emitter":31,"@braintree/iframer":33,"@braintree/uuid":37,"@braintree/wrap-promise":41,"framebus":50}],72:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var focusIntercept = _dereq_('../shared/focus-intercept');
-var directions = _dereq_('../shared/constants').navigationDirections;
+var focusIntercept = _dereq_("../shared/focus-intercept");
+var directions = _dereq_("../shared/constants").navigationDirections;
 
 module.exports = function injectFrame(id, frame, container, focusHandler) {
-  var frameType = frame.getAttribute('type');
-  var clearboth = document.createElement('div');
+  var frameType = frame.getAttribute("type");
+  var clearboth = document.createElement("div");
   var fragment = document.createDocumentFragment();
-  var focusInterceptBefore = focusIntercept.generate(id, frameType, directions.BACK, focusHandler);
-  var focusInterceptAfter = focusIntercept.generate(id, frameType, directions.FORWARD, focusHandler);
+  var focusInterceptBefore = focusIntercept.generate(
+    id,
+    frameType,
+    directions.BACK,
+    focusHandler
+  );
+  var focusInterceptAfter = focusIntercept.generate(
+    id,
+    frameType,
+    directions.FORWARD,
+    focusHandler
+  );
 
-  clearboth.style.clear = 'both';
+  clearboth.style.clear = "both";
 
   fragment.appendChild(focusInterceptBefore);
   fragment.appendChild(frame);
@@ -3570,17 +3705,17 @@ module.exports = function injectFrame(id, frame, container, focusHandler) {
 };
 
 },{"../shared/constants":75,"../shared/focus-intercept":78}],73:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 /** @module braintree-web/hosted-fields */
 
-var HostedFields = _dereq_('./external/hosted-fields');
-var basicComponentVerification = _dereq_('../lib/basic-component-verification');
-var errors = _dereq_('./shared/errors');
-var supportsInputFormatting = _dereq_('restricted-input/supports-input-formatting');
-var wrapPromise = _dereq_('@braintree/wrap-promise');
-var BraintreeError = _dereq_('../lib/braintree-error');
-var Promise = _dereq_('../lib/promise');
-var VERSION = "3.85.2";
+var HostedFields = _dereq_("./external/hosted-fields");
+var basicComponentVerification = _dereq_("../lib/basic-component-verification");
+var errors = _dereq_("./shared/errors");
+var supportsInputFormatting = _dereq_("restricted-input/supports-input-formatting");
+var wrapPromise = _dereq_("@braintree/wrap-promise");
+var BraintreeError = _dereq_("../lib/braintree-error");
+var Promise = _dereq_("../lib/promise");
+var VERSION = "3.85.3";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -3865,22 +4000,24 @@ var VERSION = "3.85.2";
  * }, callback);
  */
 function create(options) {
-  return basicComponentVerification.verify({
-    name: 'Hosted Fields',
-    authorization: options.authorization,
-    client: options.client
-  }).then(function () {
-    var integration = new HostedFields(options);
+  return basicComponentVerification
+    .verify({
+      name: "Hosted Fields",
+      authorization: options.authorization,
+      client: options.client,
+    })
+    .then(function () {
+      var integration = new HostedFields(options);
 
-    return new Promise(function (resolve, reject) {
-      integration.on('ready', function () {
-        resolve(integration);
-      });
-      integration.on('timeout', function () {
-        reject(new BraintreeError(errors.HOSTED_FIELDS_TIMEOUT));
+      return new Promise(function (resolve, reject) {
+        integration.on("ready", function () {
+          resolve(integration);
+        });
+        integration.on("timeout", function () {
+          reject(new BraintreeError(errors.HOSTED_FIELDS_TIMEOUT));
+        });
       });
     });
-  });
 }
 
 module.exports = {
@@ -3930,16 +4067,16 @@ module.exports = {
    * @description The current version of the SDK, i.e. `{@pkg version}`.
    * @type {string}
    */
-  VERSION: VERSION
+  VERSION: VERSION,
 };
 
 },{"../lib/basic-component-verification":84,"../lib/braintree-error":86,"../lib/promise":100,"./external/hosted-fields":71,"./shared/errors":76,"@braintree/wrap-promise":41,"restricted-input/supports-input-formatting":66}],74:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var isAndroid = _dereq_('@braintree/browser-detection/is-android');
-var isChromeOS = _dereq_('@braintree/browser-detection/is-chrome-os');
-var isIos = _dereq_('@braintree/browser-detection/is-ios');
-var isChrome = _dereq_('@braintree/browser-detection/is-chrome');
+var isAndroid = _dereq_("@braintree/browser-detection/is-android");
+var isChromeOS = _dereq_("@braintree/browser-detection/is-chrome-os");
+var isIos = _dereq_("@braintree/browser-detection/is-ios");
+var isChrome = _dereq_("@braintree/browser-detection/is-chrome");
 
 function hasSoftwareKeyboard() {
   return isAndroid() || isChromeOS() || isIos();
@@ -3950,36 +4087,36 @@ function isChromeIos() {
 }
 
 module.exports = {
-  isIE: _dereq_('@braintree/browser-detection/is-ie'),
-  isEdge: _dereq_('@braintree/browser-detection/is-edge'),
-  isIe9: _dereq_('@braintree/browser-detection/is-ie9'),
-  isIe10: _dereq_('@braintree/browser-detection/is-ie10'),
+  isIE: _dereq_("@braintree/browser-detection/is-ie"),
+  isEdge: _dereq_("@braintree/browser-detection/is-edge"),
+  isIe9: _dereq_("@braintree/browser-detection/is-ie9"),
+  isIe10: _dereq_("@braintree/browser-detection/is-ie10"),
   isAndroid: isAndroid,
   isChromeOS: isChromeOS,
   isChromeIos: isChromeIos,
-  isFirefox: _dereq_('@braintree/browser-detection/is-firefox'),
+  isFirefox: _dereq_("@braintree/browser-detection/is-firefox"),
   isIos: isIos,
-  isIosWebview: _dereq_('@braintree/browser-detection/is-ios-webview'),
-  hasSoftwareKeyboard: hasSoftwareKeyboard
+  isIosWebview: _dereq_("@braintree/browser-detection/is-ios-webview"),
+  hasSoftwareKeyboard: hasSoftwareKeyboard,
 };
 
 },{"@braintree/browser-detection/is-android":20,"@braintree/browser-detection/is-chrome":22,"@braintree/browser-detection/is-chrome-os":21,"@braintree/browser-detection/is-edge":23,"@braintree/browser-detection/is-firefox":24,"@braintree/browser-detection/is-ie":25,"@braintree/browser-detection/is-ie10":26,"@braintree/browser-detection/is-ie9":27,"@braintree/browser-detection/is-ios":29,"@braintree/browser-detection/is-ios-webview":28}],75:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var enumerate = _dereq_('../../lib/enumerate');
-var errors = _dereq_('./errors');
-var VERSION = "3.85.2";
+var enumerate = _dereq_("../../lib/enumerate");
+var errors = _dereq_("./errors");
+var VERSION = "3.85.3";
 
 var constants = {
   VERSION: VERSION,
   maxExpirationYearAge: 19,
   externalEvents: {
-    FOCUS: 'focus',
-    BLUR: 'blur',
-    EMPTY: 'empty',
-    NOT_EMPTY: 'notEmpty',
-    VALIDITY_CHANGE: 'validityChange',
-    CARD_TYPE_CHANGE: 'cardTypeChange'
+    FOCUS: "focus",
+    BLUR: "blur",
+    EMPTY: "empty",
+    NOT_EMPTY: "notEmpty",
+    VALIDITY_CHANGE: "validityChange",
+    CARD_TYPE_CHANGE: "cardTypeChange",
   },
   defaultMaxLengths: {
     number: 19,
@@ -3987,149 +4124,152 @@ var constants = {
     expirationDate: 7,
     expirationMonth: 2,
     expirationYear: 4,
-    cvv: 3
+    cvv: 3,
   },
   externalClasses: {
-    FOCUSED: 'braintree-hosted-fields-focused',
-    INVALID: 'braintree-hosted-fields-invalid',
-    VALID: 'braintree-hosted-fields-valid'
+    FOCUSED: "braintree-hosted-fields-focused",
+    INVALID: "braintree-hosted-fields-invalid",
+    VALID: "braintree-hosted-fields-valid",
   },
   navigationDirections: {
-    BACK: 'before',
-    FORWARD: 'after'
+    BACK: "before",
+    FORWARD: "after",
   },
   defaultIFrameStyle: {
-    border: 'none',
-    width: '100%',
-    height: '100%',
-    'float': 'left'
+    border: "none",
+    width: "100%",
+    height: "100%",
+    float: "left",
   },
   tokenizationErrorCodes: {
     81724: errors.HOSTED_FIELDS_TOKENIZATION_FAIL_ON_DUPLICATE,
     // NEXT_MAJOR_VERSION this error triggers for both AVS and CVV errors
     // but the code name implies that it would only trigger for CVV verification
     // failures
-    81736: errors.HOSTED_FIELDS_TOKENIZATION_CVV_VERIFICATION_FAILED
+    81736: errors.HOSTED_FIELDS_TOKENIZATION_CVV_VERIFICATION_FAILED,
   },
   allowedStyles: [
-    '-moz-appearance',
-    '-moz-box-shadow',
-    '-moz-osx-font-smoothing',
-    '-moz-tap-highlight-color',
-    '-moz-transition',
-    '-webkit-appearance',
-    '-webkit-box-shadow',
-    '-webkit-font-smoothing',
-    '-webkit-tap-highlight-color',
-    '-webkit-transition',
-    'appearance',
-    'box-shadow',
-    'color',
-    'direction',
-    'font',
-    'font-family',
-    'font-size',
-    'font-size-adjust',
-    'font-stretch',
-    'font-style',
-    'font-variant',
-    'font-variant-alternates',
-    'font-variant-caps',
-    'font-variant-east-asian',
-    'font-variant-ligatures',
-    'font-variant-numeric',
-    'font-weight',
-    'letter-spacing',
-    'line-height',
-    'margin',
-    'margin-top',
-    'margin-right',
-    'margin-bottom',
-    'margin-left',
-    'opacity',
-    'outline',
-    'padding',
-    'padding-top',
-    'padding-right',
-    'padding-bottom',
-    'padding-left',
-    'text-align',
-    'text-shadow',
-    'transition'
+    "-moz-appearance",
+    "-moz-box-shadow",
+    "-moz-osx-font-smoothing",
+    "-moz-tap-highlight-color",
+    "-moz-transition",
+    "-webkit-appearance",
+    "-webkit-box-shadow",
+    "-webkit-font-smoothing",
+    "-webkit-tap-highlight-color",
+    "-webkit-transition",
+    "appearance",
+    "box-shadow",
+    "color",
+    "direction",
+    "font",
+    "font-family",
+    "font-size",
+    "font-size-adjust",
+    "font-stretch",
+    "font-style",
+    "font-variant",
+    "font-variant-alternates",
+    "font-variant-caps",
+    "font-variant-east-asian",
+    "font-variant-ligatures",
+    "font-variant-numeric",
+    "font-weight",
+    "letter-spacing",
+    "line-height",
+    "margin",
+    "margin-top",
+    "margin-right",
+    "margin-bottom",
+    "margin-left",
+    "opacity",
+    "outline",
+    "padding",
+    "padding-top",
+    "padding-right",
+    "padding-bottom",
+    "padding-left",
+    "text-align",
+    "text-shadow",
+    "transition",
   ],
   allowedFields: {
     cardholderName: {
-      name: 'cardholder-name',
-      label: 'Cardholder Name'
+      name: "cardholder-name",
+      label: "Cardholder Name",
     },
     number: {
-      name: 'credit-card-number',
-      label: 'Credit Card Number'
+      name: "credit-card-number",
+      label: "Credit Card Number",
     },
     cvv: {
-      name: 'cvv',
-      label: 'CVV'
+      name: "cvv",
+      label: "CVV",
     },
     expirationDate: {
-      name: 'expiration',
-      label: 'Expiration Date'
+      name: "expiration",
+      label: "Expiration Date",
     },
     expirationMonth: {
-      name: 'expiration-month',
-      label: 'Expiration Month'
+      name: "expiration-month",
+      label: "Expiration Month",
     },
     expirationYear: {
-      name: 'expiration-year',
-      label: 'Expiration Year'
+      name: "expiration-year",
+      label: "Expiration Year",
     },
     postalCode: {
-      name: 'postal-code',
-      label: 'Postal Code'
-    }
+      name: "postal-code",
+      label: "Postal Code",
+    },
   },
   allowedAttributes: {
-    'aria-invalid': 'boolean',
-    'aria-required': 'boolean',
-    disabled: 'boolean',
-    placeholder: 'string'
+    "aria-invalid": "boolean",
+    "aria-required": "boolean",
+    disabled: "boolean",
+    placeholder: "string",
   },
   autocompleteMappings: {
-    'cardholder-name': 'cc-name',
-    'credit-card-number': 'cc-number',
-    expiration: 'cc-exp',
-    'expiration-month': 'cc-exp-month',
-    'expiration-year': 'cc-exp-year',
-    cvv: 'cc-csc',
-    'postal-code': 'billing postal-code'
-  }
+    "cardholder-name": "cc-name",
+    "credit-card-number": "cc-number",
+    expiration: "cc-exp",
+    "expiration-month": "cc-exp-month",
+    "expiration-year": "cc-exp-year",
+    cvv: "cc-csc",
+    "postal-code": "billing postal-code",
+  },
 };
 
-constants.events = enumerate([
-  'ADD_CLASS',
-  'AUTOFILL_DATA_AVAILABLE',
-  'BIN_AVAILABLE',
-  'CARD_FORM_ENTRY_HAS_BEGUN',
-  'CLEAR_FIELD',
-  'CONFIGURATION',
-  'FRAME_READY',
-  'INPUT_EVENT',
-  'READY_FOR_CLIENT',
-  'REMOVE_ATTRIBUTE',
-  'REMOVE_CLASS',
-  'REMOVE_FOCUS_INTERCEPTS',
-  'SET_ATTRIBUTE',
-  'SET_MESSAGE',
-  'SET_MONTH_OPTIONS',
-  'TOKENIZATION_REQUEST',
-  'TRIGGER_FOCUS_CHANGE',
-  'TRIGGER_INPUT_FOCUS',
-  'VALIDATE_STRICT'
-], 'hosted-fields:');
+constants.events = enumerate(
+  [
+    "ADD_CLASS",
+    "AUTOFILL_DATA_AVAILABLE",
+    "BIN_AVAILABLE",
+    "CARD_FORM_ENTRY_HAS_BEGUN",
+    "CLEAR_FIELD",
+    "CONFIGURATION",
+    "FRAME_READY",
+    "INPUT_EVENT",
+    "READY_FOR_CLIENT",
+    "REMOVE_ATTRIBUTE",
+    "REMOVE_CLASS",
+    "REMOVE_FOCUS_INTERCEPTS",
+    "SET_ATTRIBUTE",
+    "SET_MESSAGE",
+    "SET_MONTH_OPTIONS",
+    "TOKENIZATION_REQUEST",
+    "TRIGGER_FOCUS_CHANGE",
+    "TRIGGER_INPUT_FOCUS",
+    "VALIDATE_STRICT",
+  ],
+  "hosted-fields:"
+);
 
 module.exports = constants;
 
 },{"../../lib/enumerate":93,"./errors":76}],76:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
 /**
  * @name BraintreeError.Hosted Fields - Creation Error Codes
@@ -4167,82 +4307,83 @@ module.exports = constants;
  * @property {CUSTOMER} HOSTED_FIELDS_FIELDS_INVALID Occurs when one ore more fields are invalid.
  */
 
-var BraintreeError = _dereq_('../../lib/braintree-error');
+var BraintreeError = _dereq_("../../lib/braintree-error");
 
 module.exports = {
   HOSTED_FIELDS_TIMEOUT: {
     type: BraintreeError.types.UNKNOWN,
-    code: 'HOSTED_FIELDS_TIMEOUT',
-    message: 'Hosted Fields timed out when attempting to set up.'
+    code: "HOSTED_FIELDS_TIMEOUT",
+    message: "Hosted Fields timed out when attempting to set up.",
   },
   HOSTED_FIELDS_INVALID_FIELD_KEY: {
     type: BraintreeError.types.MERCHANT,
-    code: 'HOSTED_FIELDS_INVALID_FIELD_KEY'
+    code: "HOSTED_FIELDS_INVALID_FIELD_KEY",
   },
   HOSTED_FIELDS_INVALID_FIELD_SELECTOR: {
     type: BraintreeError.types.MERCHANT,
-    code: 'HOSTED_FIELDS_INVALID_FIELD_SELECTOR',
-    message: 'Selector does not reference a valid DOM node.'
+    code: "HOSTED_FIELDS_INVALID_FIELD_SELECTOR",
+    message: "Selector does not reference a valid DOM node.",
   },
   HOSTED_FIELDS_FIELD_DUPLICATE_IFRAME: {
     type: BraintreeError.types.MERCHANT,
-    code: 'HOSTED_FIELDS_FIELD_DUPLICATE_IFRAME',
-    message: 'Element already contains a Braintree iframe.'
+    code: "HOSTED_FIELDS_FIELD_DUPLICATE_IFRAME",
+    message: "Element already contains a Braintree iframe.",
   },
   HOSTED_FIELDS_FIELD_INVALID: {
     type: BraintreeError.types.MERCHANT,
-    code: 'HOSTED_FIELDS_FIELD_INVALID'
+    code: "HOSTED_FIELDS_FIELD_INVALID",
   },
   HOSTED_FIELDS_FIELD_NOT_PRESENT: {
     type: BraintreeError.types.MERCHANT,
-    code: 'HOSTED_FIELDS_FIELD_NOT_PRESENT'
+    code: "HOSTED_FIELDS_FIELD_NOT_PRESENT",
   },
   HOSTED_FIELDS_TOKENIZATION_NETWORK_ERROR: {
     type: BraintreeError.types.NETWORK,
-    code: 'HOSTED_FIELDS_TOKENIZATION_NETWORK_ERROR',
-    message: 'A tokenization network error occurred.'
+    code: "HOSTED_FIELDS_TOKENIZATION_NETWORK_ERROR",
+    message: "A tokenization network error occurred.",
   },
   HOSTED_FIELDS_TOKENIZATION_FAIL_ON_DUPLICATE: {
     type: BraintreeError.types.CUSTOMER,
-    code: 'HOSTED_FIELDS_TOKENIZATION_FAIL_ON_DUPLICATE',
-    message: 'This credit card already exists in the merchant\'s vault.'
+    code: "HOSTED_FIELDS_TOKENIZATION_FAIL_ON_DUPLICATE",
+    message: "This credit card already exists in the merchant's vault.",
   },
   HOSTED_FIELDS_TOKENIZATION_CVV_VERIFICATION_FAILED: {
     type: BraintreeError.types.CUSTOMER,
-    code: 'HOSTED_FIELDS_TOKENIZATION_CVV_VERIFICATION_FAILED',
-    message: 'CVV verification failed during tokenization.'
+    code: "HOSTED_FIELDS_TOKENIZATION_CVV_VERIFICATION_FAILED",
+    message: "CVV verification failed during tokenization.",
   },
   HOSTED_FIELDS_FAILED_TOKENIZATION: {
     type: BraintreeError.types.CUSTOMER,
-    code: 'HOSTED_FIELDS_FAILED_TOKENIZATION',
-    message: 'The supplied card data failed tokenization.'
+    code: "HOSTED_FIELDS_FAILED_TOKENIZATION",
+    message: "The supplied card data failed tokenization.",
   },
   HOSTED_FIELDS_FIELDS_EMPTY: {
     type: BraintreeError.types.CUSTOMER,
-    code: 'HOSTED_FIELDS_FIELDS_EMPTY',
-    message: 'All fields are empty. Cannot tokenize empty card fields.'
+    code: "HOSTED_FIELDS_FIELDS_EMPTY",
+    message: "All fields are empty. Cannot tokenize empty card fields.",
   },
   HOSTED_FIELDS_FIELDS_INVALID: {
     type: BraintreeError.types.CUSTOMER,
-    code: 'HOSTED_FIELDS_FIELDS_INVALID',
-    message: 'Some payment input fields are invalid. Cannot tokenize invalid card fields.'
+    code: "HOSTED_FIELDS_FIELDS_INVALID",
+    message:
+      "Some payment input fields are invalid. Cannot tokenize invalid card fields.",
   },
   HOSTED_FIELDS_ATTRIBUTE_NOT_SUPPORTED: {
     type: BraintreeError.types.MERCHANT,
-    code: 'HOSTED_FIELDS_ATTRIBUTE_NOT_SUPPORTED'
+    code: "HOSTED_FIELDS_ATTRIBUTE_NOT_SUPPORTED",
   },
   HOSTED_FIELDS_ATTRIBUTE_VALUE_NOT_ALLOWED: {
     type: BraintreeError.types.MERCHANT,
-    code: 'HOSTED_FIELDS_ATTRIBUTE_VALUE_NOT_ALLOWED'
+    code: "HOSTED_FIELDS_ATTRIBUTE_VALUE_NOT_ALLOWED",
   },
   HOSTED_FIELDS_FIELD_PROPERTY_INVALID: {
     type: BraintreeError.types.MERCHANT,
-    code: 'HOSTED_FIELDS_FIELD_PROPERTY_INVALID'
-  }
+    code: "HOSTED_FIELDS_FIELD_PROPERTY_INVALID",
+  },
 };
 
 },{"../../lib/braintree-error":86}],77:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
 function findParentTags(element, tag) {
   var parent = element.parentNode;
@@ -4262,45 +4403,54 @@ function findParentTags(element, tag) {
 module.exports = findParentTags;
 
 },{}],78:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var browserDetection = _dereq_('./browser-detection');
-var classList = _dereq_('@braintree/class-list');
-var constants = _dereq_('./constants');
+var browserDetection = _dereq_("./browser-detection");
+var classList = _dereq_("@braintree/class-list");
+var constants = _dereq_("./constants");
 var allowedFields = Object.keys(constants.allowedFields);
 var directions = constants.navigationDirections;
 
 var focusIntercept = {
   generate: function (hostedFieldsId, type, direction, handler) {
-    var input = document.createElement('input');
+    var input = document.createElement("input");
     var focusInterceptStyles = {
-      border: 'none !important',
-      display: 'block !important',
-      height: '1px !important',
-      left: '-1px !important',
-      opacity: '0 !important',
-      position: 'absolute !important',
-      top: '-1px !important',
-      width: '1px !important'
+      border: "none !important",
+      display: "block !important",
+      height: "1px !important",
+      left: "-1px !important",
+      opacity: "0 !important",
+      position: "absolute !important",
+      top: "-1px !important",
+      width: "1px !important",
     };
-    var shouldCreateFocusIntercept = browserDetection.hasSoftwareKeyboard() ||
-      browserDetection.isFirefox() || browserDetection.isIE();
+    var shouldCreateFocusIntercept =
+      browserDetection.hasSoftwareKeyboard() ||
+      browserDetection.isFirefox() ||
+      browserDetection.isIE();
 
-    if (!shouldCreateFocusIntercept) { return document.createDocumentFragment(); }
+    if (!shouldCreateFocusIntercept) {
+      return document.createDocumentFragment();
+    }
 
-    input.setAttribute('aria-hidden', 'true');
-    input.setAttribute('autocomplete', 'off');
-    input.setAttribute('data-braintree-direction', direction);
-    input.setAttribute('data-braintree-type', type);
-    input.setAttribute('id', 'bt-' + type + '-' + direction + '-' + hostedFieldsId);
-    input.setAttribute('style',
+    input.setAttribute("aria-hidden", "true");
+    input.setAttribute("autocomplete", "off");
+    input.setAttribute("data-braintree-direction", direction);
+    input.setAttribute("data-braintree-type", type);
+    input.setAttribute(
+      "id",
+      "bt-" + type + "-" + direction + "-" + hostedFieldsId
+    );
+    input.setAttribute(
+      "style",
       JSON.stringify(focusInterceptStyles)
-        .replace(/[{}"]/g, '')
-        .replace(/,/g, ';'));
+        .replace(/[{}"]/g, "")
+        .replace(/,/g, ";")
+    );
 
-    classList.add(input, 'focus-intercept');
+    classList.add(input, "focus-intercept");
 
-    input.addEventListener('focus', function (event) {
+    input.addEventListener("focus", function (event) {
       handler(event);
 
       /*
@@ -4323,14 +4473,18 @@ var focusIntercept = {
     var focusInputs;
 
     if (!idString) {
-      focusInputs = document.querySelectorAll('[data-braintree-direction]');
+      focusInputs = document.querySelectorAll("[data-braintree-direction]");
       focusInputs = [].slice.call(focusInputs);
     } else {
       focusInputs = [document.getElementById(idString)];
     }
 
     focusInputs.forEach(function (node) {
-      if (node && node.nodeType === 1 && focusIntercept.matchFocusElement(node.getAttribute('id'))) {
+      if (
+        node &&
+        node.nodeType === 1 &&
+        focusIntercept.matchFocusElement(node.getAttribute("id"))
+      ) {
         node.parentNode.removeChild(node);
       }
     });
@@ -4338,30 +4492,32 @@ var focusIntercept = {
   matchFocusElement: function (idString) {
     var idComponents, hasBTPrefix, isAllowedType, isValidDirection;
 
-    if (!idString) { return false; }
+    if (!idString) {
+      return false;
+    }
 
-    idComponents = idString.split('-');
+    idComponents = idString.split("-");
 
-    if (idComponents.length < 4) { return false; }
+    if (idComponents.length < 4) {
+      return false;
+    }
 
-    hasBTPrefix = idComponents[0] === 'bt';
+    hasBTPrefix = idComponents[0] === "bt";
     isAllowedType = allowedFields.indexOf(idComponents[1]) > -1;
-    isValidDirection = idComponents[2] === directions.BACK || idComponents[2] === directions.FORWARD;
+    isValidDirection =
+      idComponents[2] === directions.BACK ||
+      idComponents[2] === directions.FORWARD;
 
-    return Boolean(
-      hasBTPrefix &&
-      isAllowedType &&
-      isValidDirection
-    );
-  }
+    return Boolean(hasBTPrefix && isAllowedType && isValidDirection);
+  },
 };
 
 module.exports = focusIntercept;
 
 },{"./browser-detection":74,"./constants":75,"@braintree/class-list":30}],79:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var creditCardType = _dereq_('credit-card-type');
+var creditCardType = _dereq_("credit-card-type");
 
 module.exports = function (number) {
   var results = creditCardType(number);
@@ -4371,8 +4527,8 @@ module.exports = function (number) {
     // but we still pass master-card in the braintree API
     // in a major version bump, we can remove this and
     // this will be mastercard instead of master-card
-    if (card.type === 'mastercard') {
-      card.type = 'master-card';
+    if (card.type === "mastercard") {
+      card.type = "master-card";
     }
   });
 
@@ -4380,11 +4536,11 @@ module.exports = function (number) {
 };
 
 },{"credit-card-type":42}],80:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var createAuthorizationData = _dereq_('./create-authorization-data');
-var jsonClone = _dereq_('./json-clone');
-var constants = _dereq_('./constants');
+var createAuthorizationData = _dereq_("./create-authorization-data");
+var jsonClone = _dereq_("./json-clone");
+var constants = _dereq_("./constants");
 
 function addMetadata(configuration, data) {
   var key;
@@ -4414,64 +4570,74 @@ function addMetadata(configuration, data) {
 module.exports = addMetadata;
 
 },{"./constants":87,"./create-authorization-data":90,"./json-clone":97}],81:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var Promise = _dereq_('./promise');
-var constants = _dereq_('./constants');
-var addMetadata = _dereq_('./add-metadata');
+var Promise = _dereq_("./promise");
+var constants = _dereq_("./constants");
+var addMetadata = _dereq_("./add-metadata");
 
 function sendAnalyticsEvent(clientInstanceOrPromise, kind, callback) {
   var timestamp = Date.now(); // milliseconds
 
-  return Promise.resolve(clientInstanceOrPromise).then(function (client) {
-    var timestampInPromise = Date.now();
-    var configuration = client.getConfiguration();
-    var request = client._request;
-    var url = configuration.gatewayConfiguration.analytics.url;
-    var data = {
-      analytics: [{
-        kind: constants.ANALYTICS_PREFIX + kind,
-        isAsync: Math.floor(timestampInPromise / 1000) !== Math.floor(timestamp / 1000),
-        timestamp: timestamp
-      }]
-    };
+  return Promise.resolve(clientInstanceOrPromise)
+    .then(function (client) {
+      var timestampInPromise = Date.now();
+      var configuration = client.getConfiguration();
+      var request = client._request;
+      var url = configuration.gatewayConfiguration.analytics.url;
+      var data = {
+        analytics: [
+          {
+            kind: constants.ANALYTICS_PREFIX + kind,
+            isAsync:
+              Math.floor(timestampInPromise / 1000) !==
+              Math.floor(timestamp / 1000),
+            timestamp: timestamp,
+          },
+        ],
+      };
 
-    request({
-      url: url,
-      method: 'post',
-      data: addMetadata(configuration, data),
-      timeout: constants.ANALYTICS_REQUEST_TIMEOUT_MS
-    }, callback);
-  }).catch(function (err) {
-    // for all non-test cases, we don't provide a callback,
-    // so this error will always be swallowed. In this case,
-    // that's fine, it should only error when the deferred
-    // client fails to set up, in which case we don't want
-    // that error to report over and over again via these
-    // deferred analytics events
-    if (callback) {
-      callback(err);
-    }
-  });
+      request(
+        {
+          url: url,
+          method: "post",
+          data: addMetadata(configuration, data),
+          timeout: constants.ANALYTICS_REQUEST_TIMEOUT_MS,
+        },
+        callback
+      );
+    })
+    .catch(function (err) {
+      // for all non-test cases, we don't provide a callback,
+      // so this error will always be swallowed. In this case,
+      // that's fine, it should only error when the deferred
+      // client fails to set up, in which case we don't want
+      // that error to report over and over again via these
+      // deferred analytics events
+      if (callback) {
+        callback(err);
+      }
+    });
 }
 
 module.exports = {
-  sendEvent: sendAnalyticsEvent
+  sendEvent: sendAnalyticsEvent,
 };
 
 },{"./add-metadata":80,"./constants":87,"./promise":100}],82:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var loadScript = _dereq_('@braintree/asset-loader/load-script');
+var loadScript = _dereq_("@braintree/asset-loader/load-script");
 
 module.exports = {
-  loadScript: loadScript
+  loadScript: loadScript,
 };
 
 },{"@braintree/asset-loader/load-script":3}],83:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var assignNormalized = typeof Object.assign === 'function' ? Object.assign : assignPolyfill;
+var assignNormalized =
+  typeof Object.assign === "function" ? Object.assign : assignPolyfill;
 
 function assignPolyfill(destination) {
   var i, source, key;
@@ -4490,26 +4656,29 @@ function assignPolyfill(destination) {
 
 module.exports = {
   assign: assignNormalized,
-  _assign: assignPolyfill
+  _assign: assignPolyfill,
 };
 
 },{}],84:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var BraintreeError = _dereq_('./braintree-error');
-var Promise = _dereq_('./promise');
-var sharedErrors = _dereq_('./errors');
-var VERSION = "3.85.2";
+var BraintreeError = _dereq_("./braintree-error");
+var Promise = _dereq_("./promise");
+var sharedErrors = _dereq_("./errors");
+var VERSION = "3.85.3";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
 
   if (!options) {
-    return Promise.reject(new BraintreeError({
-      type: sharedErrors.INVALID_USE_OF_INTERNAL_FUNCTION.type,
-      code: sharedErrors.INVALID_USE_OF_INTERNAL_FUNCTION.code,
-      message: 'Options must be passed to basicComponentVerification function.'
-    }));
+    return Promise.reject(
+      new BraintreeError({
+        type: sharedErrors.INVALID_USE_OF_INTERNAL_FUNCTION.type,
+        code: sharedErrors.INVALID_USE_OF_INTERNAL_FUNCTION.code,
+        message:
+          "Options must be passed to basicComponentVerification function.",
+      })
+    );
   }
 
   name = options.name;
@@ -4517,34 +4686,45 @@ function basicComponentVerification(options) {
   authorization = options.authorization;
 
   if (!client && !authorization) {
-    return Promise.reject(new BraintreeError({
-      type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
-      code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
-      // NEXT_MAJOR_VERSION in major version, we expose passing in authorization for all components
-      // instead of passing in a client instance. Leave this a silent feature for now.
-      message: 'options.client is required when instantiating ' + name + '.'
-    }));
+    return Promise.reject(
+      new BraintreeError({
+        type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
+        code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
+        // NEXT_MAJOR_VERSION in major version, we expose passing in authorization for all components
+        // instead of passing in a client instance. Leave this a silent feature for now.
+        message: "options.client is required when instantiating " + name + ".",
+      })
+    );
   }
 
   if (!authorization && client.getVersion() !== VERSION) {
-    return Promise.reject(new BraintreeError({
-      type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
-      code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
-      message: 'Client (version ' + client.getVersion() + ') and ' + name + ' (version ' + VERSION + ') components must be from the same SDK version.'
-    }));
+    return Promise.reject(
+      new BraintreeError({
+        type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
+        code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
+        message:
+          "Client (version " +
+          client.getVersion() +
+          ") and " +
+          name +
+          " (version " +
+          VERSION +
+          ") components must be from the same SDK version.",
+      })
+    );
   }
 
   return Promise.resolve();
 }
 
 module.exports = {
-  verify: basicComponentVerification
+  verify: basicComponentVerification,
 };
 
 },{"./braintree-error":86,"./errors":94,"./promise":100}],85:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var once = _dereq_('./once');
+var once = _dereq_("./once");
 
 function call(fn, callback) {
   var isSync = fn.length === 0;
@@ -4588,9 +4768,9 @@ module.exports = function (functions, cb) {
 };
 
 },{"./once":99}],86:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var enumerate = _dereq_('./enumerate');
+var enumerate = _dereq_("./enumerate");
 
 /**
  * @class
@@ -4601,18 +4781,18 @@ var enumerate = _dereq_('./enumerate');
  */
 function BraintreeError(options) {
   if (!BraintreeError.types.hasOwnProperty(options.type)) {
-    throw new Error(options.type + ' is not a valid type.');
+    throw new Error(options.type + " is not a valid type.");
   }
 
   if (!options.code) {
-    throw new Error('Error code required.');
+    throw new Error("Error code required.");
   }
 
   if (!options.message) {
-    throw new Error('Error message required.');
+    throw new Error("Error message required.");
   }
 
-  this.name = 'BraintreeError';
+  this.name = "BraintreeError";
 
   /**
    * @type {string}
@@ -4655,15 +4835,19 @@ BraintreeError.prototype.constructor = BraintreeError;
  * @property {string} UNKNOWN An error where the origin is unknown.
  */
 BraintreeError.types = enumerate([
-  'CUSTOMER',
-  'MERCHANT',
-  'NETWORK',
-  'INTERNAL',
-  'UNKNOWN'
+  "CUSTOMER",
+  "MERCHANT",
+  "NETWORK",
+  "INTERNAL",
+  "UNKNOWN",
 ]);
 
 BraintreeError.findRootError = function (err) {
-  if (err instanceof BraintreeError && err.details && err.details.originalError) {
+  if (
+    err instanceof BraintreeError &&
+    err.details &&
+    err.details.originalError
+  ) {
     return BraintreeError.findRootError(err.details.originalError);
   }
 
@@ -4673,51 +4857,51 @@ BraintreeError.findRootError = function (err) {
 module.exports = BraintreeError;
 
 },{"./enumerate":93}],87:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var VERSION = "3.85.2";
-var PLATFORM = 'web';
+var VERSION = "3.85.3";
+var PLATFORM = "web";
 
 var CLIENT_API_URLS = {
-  production: 'https://api.braintreegateway.com:443',
-  sandbox: 'https://api.sandbox.braintreegateway.com:443'
+  production: "https://api.braintreegateway.com:443",
+  sandbox: "https://api.sandbox.braintreegateway.com:443",
 };
 
 var ASSETS_URLS = {
-  production: 'https://assets.braintreegateway.com',
-  sandbox: 'https://assets.braintreegateway.com'
+  production: "https://assets.braintreegateway.com",
+  sandbox: "https://assets.braintreegateway.com",
 };
 
 var GRAPHQL_URLS = {
-  production: 'https://payments.braintree-api.com/graphql',
-  sandbox: 'https://payments.sandbox.braintree-api.com/graphql'
+  production: "https://payments.braintree-api.com/graphql",
+  sandbox: "https://payments.sandbox.braintree-api.com/graphql",
 };
 
 // endRemoveIf(production)
 
 module.exports = {
-  ANALYTICS_PREFIX: PLATFORM + '.',
+  ANALYTICS_PREFIX: PLATFORM + ".",
   ANALYTICS_REQUEST_TIMEOUT_MS: 2000,
   ASSETS_URLS: ASSETS_URLS,
   CLIENT_API_URLS: CLIENT_API_URLS,
-  FRAUDNET_SOURCE: 'BRAINTREE_SIGNIN',
-  FRAUDNET_FNCLS: 'fnparams-dede7cc5-15fd-4c75-a9f4-36c430ee3a99',
-  FRAUDNET_URL: 'https://c.paypal.com/da/r/fb.js',
-  BUS_CONFIGURATION_REQUEST_EVENT: 'BUS_CONFIGURATION_REQUEST',
+  FRAUDNET_SOURCE: "BRAINTREE_SIGNIN",
+  FRAUDNET_FNCLS: "fnparams-dede7cc5-15fd-4c75-a9f4-36c430ee3a99",
+  FRAUDNET_URL: "https://c.paypal.com/da/r/fb.js",
+  BUS_CONFIGURATION_REQUEST_EVENT: "BUS_CONFIGURATION_REQUEST",
   GRAPHQL_URLS: GRAPHQL_URLS,
   INTEGRATION_TIMEOUT_MS: 60000,
   VERSION: VERSION,
-  INTEGRATION: 'custom',
-  SOURCE: 'client',
+  INTEGRATION: "custom",
+  SOURCE: "client",
   PLATFORM: PLATFORM,
-  BRAINTREE_LIBRARY_VERSION: 'braintree/' + PLATFORM + '/' + VERSION
+  BRAINTREE_LIBRARY_VERSION: "braintree/" + PLATFORM + "/" + VERSION,
 };
 
 },{}],88:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var BraintreeError = _dereq_('./braintree-error');
-var sharedErrors = _dereq_('./errors');
+var BraintreeError = _dereq_("./braintree-error");
+var sharedErrors = _dereq_("./errors");
 
 module.exports = function (instance, methodNames) {
   methodNames.forEach(function (methodName) {
@@ -4725,17 +4909,17 @@ module.exports = function (instance, methodNames) {
       throw new BraintreeError({
         type: sharedErrors.METHOD_CALLED_AFTER_TEARDOWN.type,
         code: sharedErrors.METHOD_CALLED_AFTER_TEARDOWN.code,
-        message: methodName + ' cannot be called after teardown.'
+        message: methodName + " cannot be called after teardown.",
       });
     };
   });
 };
 
 },{"./braintree-error":86,"./errors":94}],89:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
 // endRemoveIf(production)
-var ASSETS_URLS = _dereq_('./constants').ASSETS_URLS;
+var ASSETS_URLS = _dereq_("./constants").ASSETS_URLS;
 
 function createAssetsUrl(authorization) {
   // endRemoveIf(production)
@@ -4745,27 +4929,27 @@ function createAssetsUrl(authorization) {
 /* eslint-enable */
 
 module.exports = {
-  create: createAssetsUrl
+  create: createAssetsUrl,
 };
 
 },{"./constants":87}],90:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var atob = _dereq_('../lib/vendor/polyfill').atob;
-var CLIENT_API_URLS = _dereq_('../lib/constants').CLIENT_API_URLS;
+var atob = _dereq_("../lib/vendor/polyfill").atob;
+var CLIENT_API_URLS = _dereq_("../lib/constants").CLIENT_API_URLS;
 
 function _isTokenizationKey(str) {
   return /^[a-zA-Z0-9]+_[a-zA-Z0-9]+_[a-zA-Z0-9_]+$/.test(str);
 }
 
 function _parseTokenizationKey(tokenizationKey) {
-  var tokens = tokenizationKey.split('_');
+  var tokens = tokenizationKey.split("_");
   var environment = tokens[0];
-  var merchantId = tokens.slice(2).join('_');
+  var merchantId = tokens.slice(2).join("_");
 
   return {
     merchantId: merchantId,
-    environment: environment
+    environment: environment,
   };
 }
 
@@ -4773,18 +4957,23 @@ function createAuthorizationData(authorization) {
   var parsedClientToken, parsedTokenizationKey;
   var data = {
     attrs: {},
-    configUrl: ''
+    configUrl: "",
   };
 
   if (_isTokenizationKey(authorization)) {
     parsedTokenizationKey = _parseTokenizationKey(authorization);
     data.environment = parsedTokenizationKey.environment;
     data.attrs.tokenizationKey = authorization;
-    data.configUrl = CLIENT_API_URLS[parsedTokenizationKey.environment] + '/merchants/' + parsedTokenizationKey.merchantId + '/client_api/v1/configuration';
+    data.configUrl =
+      CLIENT_API_URLS[parsedTokenizationKey.environment] +
+      "/merchants/" +
+      parsedTokenizationKey.merchantId +
+      "/client_api/v1/configuration";
   } else {
     parsedClientToken = JSON.parse(atob(authorization));
     data.environment = parsedClientToken.environment;
-    data.attrs.authorizationFingerprint = parsedClientToken.authorizationFingerprint;
+    data.attrs.authorizationFingerprint =
+      parsedClientToken.authorizationFingerprint;
     data.configUrl = parsedClientToken.configUrl;
     data.graphQL = parsedClientToken.graphQL;
   }
@@ -4795,14 +4984,14 @@ function createAuthorizationData(authorization) {
 module.exports = createAuthorizationData;
 
 },{"../lib/constants":87,"../lib/vendor/polyfill":103}],91:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var BraintreeError = _dereq_('./braintree-error');
-var Promise = _dereq_('./promise');
-var assets = _dereq_('./assets');
-var sharedErrors = _dereq_('./errors');
+var BraintreeError = _dereq_("./braintree-error");
+var Promise = _dereq_("./promise");
+var assets = _dereq_("./assets");
+var sharedErrors = _dereq_("./errors");
 
-var VERSION = "3.85.2";
+var VERSION = "3.85.3";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -4812,44 +5001,57 @@ function createDeferredClient(options) {
   }
 
   if (!(window.braintree && window.braintree.client)) {
-    promise = assets.loadScript({
-      src: options.assetsUrl + '/web/' + VERSION + '/js/client.min.js'
-    }).catch(function (err) {
-      return Promise.reject(new BraintreeError({
-        type: sharedErrors.CLIENT_SCRIPT_FAILED_TO_LOAD.type,
-        code: sharedErrors.CLIENT_SCRIPT_FAILED_TO_LOAD.code,
-        message: sharedErrors.CLIENT_SCRIPT_FAILED_TO_LOAD.message,
-        details: {
-          originalError: err
-        }
-      }));
-    });
+    promise = assets
+      .loadScript({
+        src: options.assetsUrl + "/web/" + VERSION + "/js/client.min.js",
+      })
+      .catch(function (err) {
+        return Promise.reject(
+          new BraintreeError({
+            type: sharedErrors.CLIENT_SCRIPT_FAILED_TO_LOAD.type,
+            code: sharedErrors.CLIENT_SCRIPT_FAILED_TO_LOAD.code,
+            message: sharedErrors.CLIENT_SCRIPT_FAILED_TO_LOAD.message,
+            details: {
+              originalError: err,
+            },
+          })
+        );
+      });
   }
 
   return promise.then(function () {
     if (window.braintree.client.VERSION !== VERSION) {
-      return Promise.reject(new BraintreeError({
-        type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
-        code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
-        message: 'Client (version ' + window.braintree.client.VERSION + ') and ' + options.name + ' (version ' + VERSION + ') components must be from the same SDK version.'
-      }));
+      return Promise.reject(
+        new BraintreeError({
+          type: sharedErrors.INCOMPATIBLE_VERSIONS.type,
+          code: sharedErrors.INCOMPATIBLE_VERSIONS.code,
+          message:
+            "Client (version " +
+            window.braintree.client.VERSION +
+            ") and " +
+            options.name +
+            " (version " +
+            VERSION +
+            ") components must be from the same SDK version.",
+        })
+      );
     }
 
     return window.braintree.client.create({
       authorization: options.authorization,
-      debug: options.debug
+      debug: options.debug,
     });
   });
 }
 
 module.exports = {
-  create: createDeferredClient
+  create: createDeferredClient,
 };
 
 },{"./assets":82,"./braintree-error":86,"./errors":94,"./promise":100}],92:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var batchExecuteFunctions = _dereq_('./batch-execute-functions');
+var batchExecuteFunctions = _dereq_("./batch-execute-functions");
 
 function Destructor() {
   this._teardownRegistry = [];
@@ -4858,37 +5060,40 @@ function Destructor() {
 }
 
 Destructor.prototype.registerFunctionForTeardown = function (fn) {
-  if (typeof fn === 'function') {
+  if (typeof fn === "function") {
     this._teardownRegistry.push(fn);
   }
 };
 
 Destructor.prototype.teardown = function (callback) {
   if (this._isTearingDown) {
-    callback(new Error('Destructor is already tearing down'));
+    callback(new Error("Destructor is already tearing down"));
 
     return;
   }
 
   this._isTearingDown = true;
 
-  batchExecuteFunctions(this._teardownRegistry, function (err) {
-    this._teardownRegistry = [];
-    this._isTearingDown = false;
+  batchExecuteFunctions(
+    this._teardownRegistry,
+    function (err) {
+      this._teardownRegistry = [];
+      this._isTearingDown = false;
 
-    if (typeof callback === 'function') {
-      callback(err);
-    }
-  }.bind(this));
+      if (typeof callback === "function") {
+        callback(err);
+      }
+    }.bind(this)
+  );
 };
 
 module.exports = Destructor;
 
 },{"./batch-execute-functions":85}],93:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
 function enumerate(values, prefix) {
-  prefix = prefix == null ? '' : prefix;
+  prefix = prefix == null ? "" : prefix;
 
   return values.reduce(function (enumeration, value) {
     enumeration[value] = prefix + value;
@@ -4900,7 +5105,7 @@ function enumerate(values, prefix) {
 module.exports = enumerate;
 
 },{}],94:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
 /**
  * @name BraintreeError.Shared Internal Error Codes
@@ -4923,34 +5128,34 @@ module.exports = enumerate;
  * @property {MERCHANT} METHOD_CALLED_AFTER_TEARDOWN Occurs when a method is called on a component instance after it has been torn down.
  */
 
-var BraintreeError = _dereq_('./braintree-error');
+var BraintreeError = _dereq_("./braintree-error");
 
 module.exports = {
   INVALID_USE_OF_INTERNAL_FUNCTION: {
     type: BraintreeError.types.INTERNAL,
-    code: 'INVALID_USE_OF_INTERNAL_FUNCTION'
+    code: "INVALID_USE_OF_INTERNAL_FUNCTION",
   },
   INSTANTIATION_OPTION_REQUIRED: {
     type: BraintreeError.types.MERCHANT,
-    code: 'INSTANTIATION_OPTION_REQUIRED'
+    code: "INSTANTIATION_OPTION_REQUIRED",
   },
   INCOMPATIBLE_VERSIONS: {
     type: BraintreeError.types.MERCHANT,
-    code: 'INCOMPATIBLE_VERSIONS'
+    code: "INCOMPATIBLE_VERSIONS",
   },
   CLIENT_SCRIPT_FAILED_TO_LOAD: {
     type: BraintreeError.types.NETWORK,
-    code: 'CLIENT_SCRIPT_FAILED_TO_LOAD',
-    message: 'Braintree client script could not be loaded.'
+    code: "CLIENT_SCRIPT_FAILED_TO_LOAD",
+    message: "Braintree client script could not be loaded.",
   },
   METHOD_CALLED_AFTER_TEARDOWN: {
     type: BraintreeError.types.MERCHANT,
-    code: 'METHOD_CALLED_AFTER_TEARDOWN'
-  }
+    code: "METHOD_CALLED_AFTER_TEARDOWN",
+  },
 };
 
 },{"./braintree-error":86}],95:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
 module.exports = function findRootNode(element) {
   while (element.parentNode) {
@@ -4961,20 +5166,20 @@ module.exports = function findRootNode(element) {
 };
 
 },{}],96:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
 var parser;
 var legalHosts = {
-  'paypal.com': 1,
-  'braintreepayments.com': 1,
-  'braintreegateway.com': 1,
-  'braintree-api.com': 1
+  "paypal.com": 1,
+  "braintreepayments.com": 1,
+  "braintreegateway.com": 1,
+  "braintree-api.com": 1,
 };
 
 // endRemoveIf(production)
 
 function stripSubdomains(domain) {
-  return domain.split('.').slice(-2).join('.');
+  return domain.split(".").slice(-2).join(".");
 }
 
 function isVerifiedDomain(url) {
@@ -4986,7 +5191,7 @@ function isVerifiedDomain(url) {
     return false;
   }
 
-  parser = parser || document.createElement('a');
+  parser = parser || document.createElement("a");
   parser.href = url;
   mainDomain = stripSubdomains(parser.hostname);
 
@@ -4996,23 +5201,23 @@ function isVerifiedDomain(url) {
 module.exports = isVerifiedDomain;
 
 },{}],97:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
 },{}],98:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
 module.exports = function (obj) {
   return Object.keys(obj).filter(function (key) {
-    return typeof obj[key] === 'function';
+    return typeof obj[key] === "function";
   });
 };
 
 },{}],99:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
 function once(fn) {
   var called = false;
@@ -5028,13 +5233,13 @@ function once(fn) {
 module.exports = once;
 
 },{}],100:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var PromisePolyfill = _dereq_('promise-polyfill');
-var ExtendedPromise = _dereq_('@braintree/extended-promise');
+var PromisePolyfill = _dereq_("promise-polyfill");
+var ExtendedPromise = _dereq_("@braintree/extended-promise");
 
 // eslint-disable-next-line no-undef
-var PromiseGlobal = typeof Promise !== 'undefined' ? Promise : PromisePolyfill;
+var PromiseGlobal = typeof Promise !== "undefined" ? Promise : PromisePolyfill;
 
 ExtendedPromise.suppressUnhandledPromiseMessage = true;
 ExtendedPromise.setPromise(PromiseGlobal);
@@ -5042,10 +5247,10 @@ ExtendedPromise.setPromise(PromiseGlobal);
 module.exports = PromiseGlobal;
 
 },{"@braintree/extended-promise":32,"promise-polyfill":63}],101:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-var uuid = _dereq_('@braintree/uuid');
-var findRootNode = _dereq_('./find-root-node');
+var uuid = _dereq_("@braintree/uuid");
+var findRootNode = _dereq_("./find-root-node");
 
 // based on https://github.com/krakenjs/belter/blob/cdddc4f8ddb172d29db9e7e1ad1eeeacfb93e215/src/dom.js#L981-L1031
 // thanks @bluepnume
@@ -5053,7 +5258,7 @@ var findRootNode = _dereq_('./find-root-node');
 function isShadowElement(element) {
   element = findRootNode(element);
 
-  return element.toString() === '[object ShadowRoot]';
+  return element.toString() === "[object ShadowRoot]";
 }
 
 function getShadowHost(element) {
@@ -5067,25 +5272,27 @@ function getShadowHost(element) {
 }
 
 function transformToSlot(element, styles) {
-  var styleNode = findRootNode(element).querySelector('style');
+  var styleNode = findRootNode(element).querySelector("style");
   var shadowHost = getShadowHost(element);
-  var slotName = 'shadow-slot-' + uuid();
-  var slot = document.createElement('slot');
-  var slotProvider = document.createElement('div');
+  var slotName = "shadow-slot-" + uuid();
+  var slot = document.createElement("slot");
+  var slotProvider = document.createElement("div");
 
-  slot.setAttribute('name', slotName);
+  slot.setAttribute("name", slotName);
   element.appendChild(slot);
 
-  slotProvider.setAttribute('slot', slotName);
+  slotProvider.setAttribute("slot", slotName);
   shadowHost.appendChild(slotProvider);
 
   if (styles) {
     if (!styleNode) {
-      styleNode = document.createElement('style');
+      styleNode = document.createElement("style");
       element.appendChild(styleNode);
     }
 
-    styleNode.sheet.insertRule('::slotted([slot="' + slotName + '"]) { ' + styles + ' }');
+    styleNode.sheet.insertRule(
+      '::slotted([slot="' + slotName + '"]) { ' + styles + " }"
+    );
   }
 
   if (isShadowElement(shadowHost)) {
@@ -5098,34 +5305,37 @@ function transformToSlot(element, styles) {
 module.exports = {
   isShadowElement: isShadowElement,
   getShadowHost: getShadowHost,
-  transformToSlot: transformToSlot
+  transformToSlot: transformToSlot,
 };
 
 },{"./find-root-node":95,"@braintree/uuid":37}],102:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
 function useMin(isDebug) {
-  return isDebug ? '' : '.min';
+  return isDebug ? "" : ".min";
 }
 
 module.exports = useMin;
 
 },{}],103:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
 // NEXT_MAJOR_VERSION old versions of IE don't have atob, in the
 // next major version, we're dropping support for those versions
 // so we can eliminate the need to have this atob polyfill
-var atobNormalized = typeof atob === 'function' ? atob : atobPolyfill;
+var atobNormalized = typeof atob === "function" ? atob : atobPolyfill;
 
 function atobPolyfill(base64String) {
   var a, b, c, b1, b2, b3, b4, i;
-  var base64Matcher = new RegExp('^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})([=]{1,2})?$');
-  var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
-  var result = '';
+  var base64Matcher = new RegExp(
+    "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})([=]{1,2})?$"
+  );
+  var characters =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+  var result = "";
 
   if (!base64Matcher.test(base64String)) {
-    throw new Error('Non base64 encoded input passed to window.atob polyfill');
+    throw new Error("Non base64 encoded input passed to window.atob polyfill");
   }
 
   i = 0;
@@ -5135,11 +5345,14 @@ function atobPolyfill(base64String) {
     b3 = characters.indexOf(base64String.charAt(i++));
     b4 = characters.indexOf(base64String.charAt(i++));
 
-    a = (b1 & 0x3F) << 2 | b2 >> 4 & 0x3;
-    b = (b2 & 0xF) << 4 | b3 >> 2 & 0xF;
-    c = (b3 & 0x3) << 6 | b4 & 0x3F;
+    a = ((b1 & 0x3f) << 2) | ((b2 >> 4) & 0x3);
+    b = ((b2 & 0xf) << 4) | ((b3 >> 2) & 0xf);
+    c = ((b3 & 0x3) << 6) | (b4 & 0x3f);
 
-    result += String.fromCharCode(a) + (b ? String.fromCharCode(b) : '') + (c ? String.fromCharCode(c) : '');
+    result +=
+      String.fromCharCode(a) +
+      (b ? String.fromCharCode(b) : "") +
+      (c ? String.fromCharCode(c) : "");
   } while (i < base64String.length);
 
   return result;
@@ -5149,7 +5362,7 @@ module.exports = {
   atob: function (base64String) {
     return atobNormalized.call(window, base64String);
   },
-  _atob: atobPolyfill
+  _atob: atobPolyfill,
 };
 
 },{}]},{},[73])(73)
