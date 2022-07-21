@@ -795,7 +795,7 @@ var createDeferredClient = _dereq_("../lib/create-deferred-client");
 var createAssetsUrl = _dereq_("../lib/create-assets-url");
 var methods = _dereq_("../lib/methods");
 var convertMethodsToError = _dereq_("../lib/convert-methods-to-error");
-var VERSION = "3.85.3";
+var VERSION = "3.85.5";
 var Promise = _dereq_("../lib/promise");
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 var errors = _dereq_("./errors");
@@ -878,9 +878,9 @@ var errors = _dereq_("./errors");
  * @param {boolean} [options.kount] Kount fraud data collection will occur if the merchant configuration has it enabled.
  * **Note:** the data sent to Kount is asynchronous and may not have completed by the time the data collector create call is complete. In most cases, this will not matter, but if you create the data collector instance and immediately navigate away from the page, the device information may fail to be sent to Kount.
  * @param {boolean} [options.paypal] *Deprecated:* PayPal fraud data collection will occur when the DataCollector instance is created.
- * @param {string} [options.riskCorrelatoinId] Pass a custom risk correlation id when creating the data collector.
- * @param {string} [options.clientMetadataId] Deprecated. Use `options.riskCorrelatoinId` instead.
- * @param {string} [options.correlationId] Deprecated. Use `options.riskCorrelatoinId` instead.
+ * @param {string} [options.riskCorrelationId] Pass a custom risk correlation id when creating the data collector.
+ * @param {string} [options.clientMetadataId] Deprecated. Use `options.riskCorrelationId` instead.
+ * @param {string} [options.correlationId] Deprecated. Use `options.riskCorrelationId` instead.
  * @param {callback} [callback] The second argument, `data`, is the {@link DataCollector} instance.
  * @returns {(Promise|void)} Returns a promise that resolves the {@link DataCollector} instance if no callback is provided.
  */
@@ -1898,7 +1898,7 @@ module.exports = {
 var BraintreeError = _dereq_("./braintree-error");
 var Promise = _dereq_("./promise");
 var sharedErrors = _dereq_("./errors");
-var VERSION = "3.85.3";
+var VERSION = "3.85.5";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -2067,7 +2067,7 @@ module.exports = function (obj) {
 },{}],19:[function(_dereq_,module,exports){
 "use strict";
 
-var VERSION = "3.85.3";
+var VERSION = "3.85.5";
 var PLATFORM = "web";
 
 var CLIENT_API_URLS = {
@@ -2148,7 +2148,7 @@ var Promise = _dereq_("./promise");
 var assets = _dereq_("./assets");
 var sharedErrors = _dereq_("./errors");
 
-var VERSION = "3.85.3";
+var VERSION = "3.85.5";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();

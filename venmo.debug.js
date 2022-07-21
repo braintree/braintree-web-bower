@@ -63,7 +63,7 @@ module.exports = _dereq_("./dist/load-script");
 "use strict";
 module.exports = function isAndroid(ua) {
     ua = ua || window.navigator.userAgent;
-    return /Android/.test(ua);
+    return /Android/i.test(ua);
 };
 
 },{}],5:[function(_dereq_,module,exports){
@@ -149,7 +149,8 @@ module.exports = function isIosWebview(ua) {
         if (isIosGoogleSearchApp(ua)) {
             return true;
         }
-        return /.+AppleWebKit(?!.*Safari)/.test(ua);
+        // Historically, a webview could be identified by the presence of AppleWebKit and _no_ presence of Safari after.
+        return /.+AppleWebKit(?!.*Safari)/i.test(ua);
     }
     return false;
 };
@@ -1414,7 +1415,7 @@ module.exports = {
 var BraintreeError = _dereq_("./braintree-error");
 var Promise = _dereq_("./promise");
 var sharedErrors = _dereq_("./errors");
-var VERSION = "3.85.3";
+var VERSION = "3.85.5";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1562,7 +1563,7 @@ module.exports = BraintreeError;
 },{"./enumerate":57}],52:[function(_dereq_,module,exports){
 "use strict";
 
-var VERSION = "3.85.3";
+var VERSION = "3.85.5";
 var PLATFORM = "web";
 
 var CLIENT_API_URLS = {
@@ -1694,7 +1695,7 @@ var Promise = _dereq_("./promise");
 var assets = _dereq_("./assets");
 var sharedErrors = _dereq_("./errors");
 
-var VERSION = "3.85.3";
+var VERSION = "3.85.5";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -2511,7 +2512,7 @@ var BraintreeError = _dereq_("../lib/braintree-error");
 var Venmo = _dereq_("./venmo");
 var Promise = _dereq_("../lib/promise");
 var supportsVenmo = _dereq_("./shared/supports-venmo");
-var VERSION = "3.85.3";
+var VERSION = "3.85.5";
 
 /**
  * @static
@@ -2962,7 +2963,7 @@ var ExtendedPromise = _dereq_("@braintree/extended-promise");
 var createVenmoDesktop = _dereq_("./external/");
 var graphqlQueries = _dereq_("./external/queries");
 
-var VERSION = "3.85.3";
+var VERSION = "3.85.5";
 var DEFAULT_MOBILE_POLLING_INTERVAL = 250; // 1/4 second
 var DEFAULT_MOBILE_EXPIRING_THRESHOLD = 300000; // 5 minutes
 

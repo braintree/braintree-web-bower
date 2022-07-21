@@ -63,7 +63,7 @@ module.exports = _dereq_("./dist/load-script");
 "use strict";
 module.exports = function isAndroid(ua) {
     ua = ua || window.navigator.userAgent;
-    return /Android/.test(ua);
+    return /Android/i.test(ua);
 };
 
 },{}],5:[function(_dereq_,module,exports){
@@ -141,7 +141,8 @@ module.exports = function isIosWebview(ua) {
         if (isIosGoogleSearchApp(ua)) {
             return true;
         }
-        return /.+AppleWebKit(?!.*Safari)/.test(ua);
+        // Historically, a webview could be identified by the presence of AppleWebKit and _no_ presence of Safari after.
+        return /.+AppleWebKit(?!.*Safari)/i.test(ua);
     }
     return false;
 };
@@ -210,7 +211,7 @@ function isOperaMini(ua) {
     return ua.indexOf("Opera Mini") > -1;
 }
 function isAndroidWebview(ua) {
-    var androidWebviewRegExp = /Version\/[\d.]+/;
+    var androidWebviewRegExp = /Version\/[\d.]+/i;
     ua = ua || window.navigator.userAgent;
     if (isAndroid(ua)) {
         return (androidWebviewRegExp.test(ua) && !isOperaMini(ua) && !isDuckDuckGo(ua));
@@ -1480,7 +1481,7 @@ module.exports = {
 var BraintreeError = _dereq_("./braintree-error");
 var Promise = _dereq_("./promise");
 var sharedErrors = _dereq_("./errors");
-var VERSION = "3.85.3";
+var VERSION = "3.85.5";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1628,7 +1629,7 @@ module.exports = BraintreeError;
 },{"./enumerate":60}],54:[function(_dereq_,module,exports){
 "use strict";
 
-var VERSION = "3.85.3";
+var VERSION = "3.85.5";
 var PLATFORM = "web";
 
 var CLIENT_API_URLS = {
@@ -1782,7 +1783,7 @@ var Promise = _dereq_("./promise");
 var assets = _dereq_("./assets");
 var sharedErrors = _dereq_("./errors");
 
-var VERSION = "3.85.3";
+var VERSION = "3.85.5";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -2819,7 +2820,7 @@ module.exports = {
 var basicComponentVerification = _dereq_("../lib/basic-component-verification");
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 var PayPalCheckout = _dereq_("./paypal-checkout");
-var VERSION = "3.85.3";
+var VERSION = "3.85.5";
 
 /**
  * @static
@@ -2903,7 +2904,7 @@ var methods = _dereq_("../lib/methods");
 var useMin = _dereq_("../lib/use-min");
 var convertMethodsToError = _dereq_("../lib/convert-methods-to-error");
 var querystring = _dereq_("../lib/querystring");
-var VERSION = "3.85.3";
+var VERSION = "3.85.5";
 var INTEGRATION_TIMEOUT_MS = _dereq_("../lib/constants").INTEGRATION_TIMEOUT_MS;
 
 var REQUIRED_PARAMS_FOR_START_VAULT_INITIATED_CHECKOUT = [
