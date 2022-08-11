@@ -11,7 +11,7 @@ var PromiseGlobal =
 typeof Promise !== "undefined" ? Promise : promise_polyfill_1.default;
 exports.PromiseGlobal = PromiseGlobal;
 
-},{"promise-polyfill":46}],2:[function(_dereq_,module,exports){
+},{"promise-polyfill":53}],2:[function(_dereq_,module,exports){
 "use strict";
 var promise_1 = _dereq_("./lib/promise");
 var scriptPromiseCache = {};
@@ -83,7 +83,7 @@ module.exports = function isChrome(ua) {
         !isSilk(ua));
 };
 
-},{"./is-duckduckgo":6,"./is-edge":7,"./is-opera":13,"./is-samsung":14,"./is-silk":15}],6:[function(_dereq_,module,exports){
+},{"./is-duckduckgo":6,"./is-edge":7,"./is-opera":16,"./is-samsung":17,"./is-silk":18}],6:[function(_dereq_,module,exports){
 "use strict";
 module.exports = function isDuckDuckGo(ua) {
     ua = ua || window.navigator.userAgent;
@@ -99,12 +99,27 @@ module.exports = function isEdge(ua) {
 
 },{}],8:[function(_dereq_,module,exports){
 "use strict";
+var isIE11 = _dereq_("./is-ie11");
+module.exports = function isIE(ua) {
+    ua = ua || window.navigator.userAgent;
+    return ua.indexOf("MSIE") !== -1 || isIE11(ua);
+};
+
+},{"./is-ie11":9}],9:[function(_dereq_,module,exports){
+"use strict";
+module.exports = function isIe11(ua) {
+    ua = ua || window.navigator.userAgent;
+    return ua.indexOf("Trident/7") !== -1;
+};
+
+},{}],10:[function(_dereq_,module,exports){
+"use strict";
 module.exports = function isIosFirefox(ua) {
     ua = ua || window.navigator.userAgent;
     return /FxiOS/i.test(ua);
 };
 
-},{}],9:[function(_dereq_,module,exports){
+},{}],11:[function(_dereq_,module,exports){
 "use strict";
 var isIos = _dereq_("./is-ios");
 function isGoogleSearchApp(ua) {
@@ -115,7 +130,7 @@ module.exports = function isIosGoogleSearchApp(ua) {
     return isIos(ua) && isGoogleSearchApp(ua);
 };
 
-},{"./is-ios":12}],10:[function(_dereq_,module,exports){
+},{"./is-ios":15}],12:[function(_dereq_,module,exports){
 "use strict";
 var isIos = _dereq_("./is-ios");
 var isIosFirefox = _dereq_("./is-ios-firefox");
@@ -138,7 +153,7 @@ module.exports = function isIosSafari(ua) {
         !isFacebook(ua));
 };
 
-},{"./is-ios":12,"./is-ios-firefox":8}],11:[function(_dereq_,module,exports){
+},{"./is-ios":15,"./is-ios-firefox":10}],13:[function(_dereq_,module,exports){
 "use strict";
 var isIos = _dereq_("./is-ios");
 var isIosGoogleSearchApp = _dereq_("./is-ios-google-search-app");
@@ -155,14 +170,25 @@ module.exports = function isIosWebview(ua) {
     return false;
 };
 
-},{"./is-ios":12,"./is-ios-google-search-app":9}],12:[function(_dereq_,module,exports){
+},{"./is-ios":15,"./is-ios-google-search-app":11}],14:[function(_dereq_,module,exports){
+"use strict";
+var isIosWebview = _dereq_("./is-ios-webview");
+module.exports = function isIosWKWebview(ua, statusBarVisible) {
+    statusBarVisible =
+        typeof statusBarVisible !== "undefined"
+            ? statusBarVisible
+            : window.statusbar.visible;
+    return isIosWebview(ua) && statusBarVisible;
+};
+
+},{"./is-ios-webview":13}],15:[function(_dereq_,module,exports){
 "use strict";
 module.exports = function isIos(ua) {
     ua = ua || window.navigator.userAgent;
     return /iPhone|iPod|iPad/i.test(ua);
 };
 
-},{}],13:[function(_dereq_,module,exports){
+},{}],16:[function(_dereq_,module,exports){
 "use strict";
 module.exports = function isOpera(ua) {
     ua = ua || window.navigator.userAgent;
@@ -171,39 +197,91 @@ module.exports = function isOpera(ua) {
         ua.indexOf("OPT/") !== -1);
 };
 
-},{}],14:[function(_dereq_,module,exports){
+},{}],17:[function(_dereq_,module,exports){
 "use strict";
 module.exports = function isSamsungBrowser(ua) {
     ua = ua || window.navigator.userAgent;
     return /SamsungBrowser/i.test(ua);
 };
 
-},{}],15:[function(_dereq_,module,exports){
+},{}],18:[function(_dereq_,module,exports){
 "use strict";
 module.exports = function isSilk(ua) {
     ua = ua || window.navigator.userAgent;
     return ua.indexOf("Silk/") !== -1;
 };
 
-},{}],16:[function(_dereq_,module,exports){
+},{}],19:[function(_dereq_,module,exports){
+"use strict";
+var MINIMUM_SUPPORTED_CHROME_IOS_VERSION = 48;
+var isAndroid = _dereq_("./is-android");
+var isIosFirefox = _dereq_("./is-ios-firefox");
+var isIosWebview = _dereq_("./is-ios-webview");
+var isChrome = _dereq_("./is-chrome");
+var isSamsungBrowser = _dereq_("./is-samsung");
+var isDuckDuckGo = _dereq_("./is-duckduckgo");
+function isUnsupportedIosChrome(ua) {
+    ua = ua || window.navigator.userAgent;
+    var match = ua.match(/CriOS\/(\d+)\./);
+    if (!match) {
+        return false;
+    }
+    var version = parseInt(match[1], 10);
+    return version < MINIMUM_SUPPORTED_CHROME_IOS_VERSION;
+}
+function isOperaMini(ua) {
+    ua = ua || window.navigator.userAgent;
+    return ua.indexOf("Opera Mini") > -1;
+}
+function isAndroidWebview(ua) {
+    var androidWebviewRegExp = /Version\/[\d.]+/i;
+    ua = ua || window.navigator.userAgent;
+    if (isAndroid(ua)) {
+        return (androidWebviewRegExp.test(ua) && !isOperaMini(ua) && !isDuckDuckGo(ua));
+    }
+    return false;
+}
+function isOldSamsungBrowserOrSamsungWebview(ua) {
+    return !isChrome(ua) && !isSamsungBrowser(ua) && /samsung/i.test(ua);
+}
+module.exports = function supportsPopups(ua) {
+    ua = ua || window.navigator.userAgent;
+    return !(isIosWebview(ua) ||
+        isIosFirefox(ua) ||
+        isAndroidWebview(ua) ||
+        isOperaMini(ua) ||
+        isUnsupportedIosChrome(ua) ||
+        isOldSamsungBrowserOrSamsungWebview(ua));
+};
+
+},{"./is-android":4,"./is-chrome":5,"./is-duckduckgo":6,"./is-ios-firefox":10,"./is-ios-webview":13,"./is-samsung":17}],20:[function(_dereq_,module,exports){
 module.exports = _dereq_("./dist/is-android");
 
-},{"./dist/is-android":4}],17:[function(_dereq_,module,exports){
+},{"./dist/is-android":4}],21:[function(_dereq_,module,exports){
 module.exports = _dereq_("./dist/is-chrome");
 
-},{"./dist/is-chrome":5}],18:[function(_dereq_,module,exports){
+},{"./dist/is-chrome":5}],22:[function(_dereq_,module,exports){
+module.exports = _dereq_("./dist/is-ie");
+
+},{"./dist/is-ie":8}],23:[function(_dereq_,module,exports){
 module.exports = _dereq_("./dist/is-ios-safari");
 
-},{"./dist/is-ios-safari":10}],19:[function(_dereq_,module,exports){
+},{"./dist/is-ios-safari":12}],24:[function(_dereq_,module,exports){
 module.exports = _dereq_("./dist/is-ios-webview");
 
-},{"./dist/is-ios-webview":11}],20:[function(_dereq_,module,exports){
+},{"./dist/is-ios-webview":13}],25:[function(_dereq_,module,exports){
+module.exports = _dereq_("./dist/is-ios-wkwebview");
+
+},{"./dist/is-ios-wkwebview":14}],26:[function(_dereq_,module,exports){
 module.exports = _dereq_("./dist/is-ios");
 
-},{"./dist/is-ios":12}],21:[function(_dereq_,module,exports){
+},{"./dist/is-ios":15}],27:[function(_dereq_,module,exports){
 module.exports = _dereq_("./dist/is-samsung");
 
-},{"./dist/is-samsung":14}],22:[function(_dereq_,module,exports){
+},{"./dist/is-samsung":17}],28:[function(_dereq_,module,exports){
+module.exports = _dereq_("./dist/supports-popups");
+
+},{"./dist/supports-popups":19}],29:[function(_dereq_,module,exports){
 "use strict";
 var GlobalPromise = (typeof Promise !== "undefined"
     ? Promise // eslint-disable-line no-undef
@@ -337,7 +415,7 @@ var ExtendedPromise = /** @class */ (function () {
 }());
 module.exports = ExtendedPromise;
 
-},{}],23:[function(_dereq_,module,exports){
+},{}],30:[function(_dereq_,module,exports){
 "use strict";
 var set_attributes_1 = _dereq_("./lib/set-attributes");
 var default_attributes_1 = _dereq_("./lib/default-attributes");
@@ -357,7 +435,7 @@ module.exports = function createFrame(options) {
     return iframe;
 };
 
-},{"./lib/assign":24,"./lib/default-attributes":25,"./lib/set-attributes":26}],24:[function(_dereq_,module,exports){
+},{"./lib/assign":31,"./lib/default-attributes":32,"./lib/set-attributes":33}],31:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.assign = void 0;
@@ -380,7 +458,7 @@ target) {
 }
 exports.assign = assign;
 
-},{}],25:[function(_dereq_,module,exports){
+},{}],32:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.defaultAttributes = void 0;
@@ -391,7 +469,7 @@ exports.defaultAttributes = {
     scrolling: "no",
 };
 
-},{}],26:[function(_dereq_,module,exports){
+},{}],33:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.setAttributes = void 0;
@@ -412,7 +490,7 @@ attributes) {
 }
 exports.setAttributes = setAttributes;
 
-},{}],27:[function(_dereq_,module,exports){
+},{}],34:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {
@@ -426,7 +504,7 @@ function uuid() {
 
 module.exports = uuid;
 
-},{}],28:[function(_dereq_,module,exports){
+},{}],35:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 function deferred(fn) {
@@ -450,7 +528,7 @@ function deferred(fn) {
 }
 exports.deferred = deferred;
 
-},{}],29:[function(_dereq_,module,exports){
+},{}],36:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 function once(fn) {
@@ -468,7 +546,7 @@ function once(fn) {
 }
 exports.once = once;
 
-},{}],30:[function(_dereq_,module,exports){
+},{}],37:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 /* eslint-disable consistent-return */
@@ -480,7 +558,7 @@ function promiseOrCallback(promise, callback) {
 }
 exports.promiseOrCallback = promiseOrCallback;
 
-},{}],31:[function(_dereq_,module,exports){
+},{}],38:[function(_dereq_,module,exports){
 "use strict";
 var deferred_1 = _dereq_("./lib/deferred");
 var once_1 = _dereq_("./lib/once");
@@ -530,7 +608,7 @@ wrapPromise.wrapPrototype = function (target, options) {
 };
 module.exports = wrapPromise;
 
-},{"./lib/deferred":28,"./lib/once":29,"./lib/promise-or-callback":30}],32:[function(_dereq_,module,exports){
+},{"./lib/deferred":35,"./lib/once":36,"./lib/promise-or-callback":37}],39:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Framebus = void 0;
@@ -716,14 +794,14 @@ var Framebus = /** @class */ (function () {
 }());
 exports.Framebus = Framebus;
 
-},{"./lib/broadcast":36,"./lib/constants":37,"./lib/is-not-string":40,"./lib/package-payload":42,"./lib/subscription-args-invalid":44}],33:[function(_dereq_,module,exports){
+},{"./lib/broadcast":43,"./lib/constants":44,"./lib/is-not-string":47,"./lib/package-payload":49,"./lib/subscription-args-invalid":51}],40:[function(_dereq_,module,exports){
 "use strict";
 var attach_1 = _dereq_("./lib/attach");
 var framebus_1 = _dereq_("./framebus");
 attach_1.attach();
 module.exports = framebus_1.Framebus;
 
-},{"./framebus":32,"./lib/attach":34}],34:[function(_dereq_,module,exports){
+},{"./framebus":39,"./lib/attach":41}],41:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.detach = exports.attach = void 0;
@@ -745,7 +823,7 @@ function detach() {
 exports.detach = detach;
 // endRemoveIf(production)
 
-},{"./message":41}],35:[function(_dereq_,module,exports){
+},{"./message":48}],42:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.broadcastToChildWindows = void 0;
@@ -764,7 +842,7 @@ function broadcastToChildWindows(payload, origin, source) {
 }
 exports.broadcastToChildWindows = broadcastToChildWindows;
 
-},{"./broadcast":36,"./constants":37}],36:[function(_dereq_,module,exports){
+},{"./broadcast":43,"./constants":44}],43:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.broadcast = void 0;
@@ -796,7 +874,7 @@ function broadcast(frame, payload, origin) {
 }
 exports.broadcast = broadcast;
 
-},{"./has-opener":39}],37:[function(_dereq_,module,exports){
+},{"./has-opener":46}],44:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.subscribers = exports.childWindows = exports.prefix = void 0;
@@ -804,7 +882,7 @@ exports.prefix = "/*framebus*/";
 exports.childWindows = [];
 exports.subscribers = {};
 
-},{}],38:[function(_dereq_,module,exports){
+},{}],45:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.dispatch = void 0;
@@ -829,7 +907,7 @@ function dispatch(origin, event, data, reply, e) {
 }
 exports.dispatch = dispatch;
 
-},{"./constants":37}],39:[function(_dereq_,module,exports){
+},{"./constants":44}],46:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.hasOpener = void 0;
@@ -850,7 +928,7 @@ function hasOpener(frame) {
 }
 exports.hasOpener = hasOpener;
 
-},{}],40:[function(_dereq_,module,exports){
+},{}],47:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.isntString = void 0;
@@ -859,7 +937,7 @@ function isntString(str) {
 }
 exports.isntString = isntString;
 
-},{}],41:[function(_dereq_,module,exports){
+},{}],48:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.onmessage = void 0;
@@ -883,7 +961,7 @@ function onmessage(e) {
 }
 exports.onmessage = onmessage;
 
-},{"./broadcast-to-child-windows":35,"./dispatch":38,"./is-not-string":40,"./unpack-payload":45}],42:[function(_dereq_,module,exports){
+},{"./broadcast-to-child-windows":42,"./dispatch":45,"./is-not-string":47,"./unpack-payload":52}],49:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.packagePayload = void 0;
@@ -909,7 +987,7 @@ function packagePayload(event, origin, data, reply) {
 }
 exports.packagePayload = packagePayload;
 
-},{"./constants":37,"./subscribe-replier":43}],43:[function(_dereq_,module,exports){
+},{"./constants":44,"./subscribe-replier":50}],50:[function(_dereq_,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -933,7 +1011,7 @@ function subscribeReplier(fn, origin) {
 }
 exports.subscribeReplier = subscribeReplier;
 
-},{"../framebus":32,"@braintree/uuid":27}],44:[function(_dereq_,module,exports){
+},{"../framebus":39,"@braintree/uuid":34}],51:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.subscriptionArgsInvalid = void 0;
@@ -949,7 +1027,7 @@ function subscriptionArgsInvalid(event, fn, origin) {
 }
 exports.subscriptionArgsInvalid = subscriptionArgsInvalid;
 
-},{"./is-not-string":40}],45:[function(_dereq_,module,exports){
+},{"./is-not-string":47}],52:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.unpackPayload = void 0;
@@ -985,7 +1063,7 @@ function unpackPayload(e) {
 }
 exports.unpackPayload = unpackPayload;
 
-},{"./constants":37,"./package-payload":42}],46:[function(_dereq_,module,exports){
+},{"./constants":44,"./package-payload":49}],53:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -1311,7 +1389,7 @@ Promise._unhandledRejectionFn = function _unhandledRejectionFn(err) {
 
 module.exports = Promise;
 
-},{}],47:[function(_dereq_,module,exports){
+},{}],54:[function(_dereq_,module,exports){
 "use strict";
 
 var createAuthorizationData = _dereq_("./create-authorization-data");
@@ -1345,7 +1423,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":52,"./create-authorization-data":55,"./json-clone":61}],48:[function(_dereq_,module,exports){
+},{"./constants":60,"./create-authorization-data":63,"./json-clone":81}],55:[function(_dereq_,module,exports){
 "use strict";
 
 var Promise = _dereq_("./promise");
@@ -1400,7 +1478,7 @@ module.exports = {
   sendEvent: sendAnalyticsEvent,
 };
 
-},{"./add-metadata":47,"./constants":52,"./promise":63}],49:[function(_dereq_,module,exports){
+},{"./add-metadata":54,"./constants":60,"./promise":83}],56:[function(_dereq_,module,exports){
 "use strict";
 
 var loadScript = _dereq_("@braintree/asset-loader/load-script");
@@ -1409,13 +1487,39 @@ module.exports = {
   loadScript: loadScript,
 };
 
-},{"@braintree/asset-loader/load-script":3}],50:[function(_dereq_,module,exports){
+},{"@braintree/asset-loader/load-script":3}],57:[function(_dereq_,module,exports){
+"use strict";
+
+var assignNormalized =
+  typeof Object.assign === "function" ? Object.assign : assignPolyfill;
+
+function assignPolyfill(destination) {
+  var i, source, key;
+
+  for (i = 1; i < arguments.length; i++) {
+    source = arguments[i];
+    for (key in source) {
+      if (source.hasOwnProperty(key)) {
+        destination[key] = source[key];
+      }
+    }
+  }
+
+  return destination;
+}
+
+module.exports = {
+  assign: assignNormalized,
+  _assign: assignPolyfill,
+};
+
+},{}],58:[function(_dereq_,module,exports){
 "use strict";
 
 var BraintreeError = _dereq_("./braintree-error");
 var Promise = _dereq_("./promise");
 var sharedErrors = _dereq_("./errors");
-var VERSION = "3.85.5";
+var VERSION = "3.86.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1471,7 +1575,7 @@ module.exports = {
   verify: basicComponentVerification,
 };
 
-},{"./braintree-error":51,"./errors":58,"./promise":63}],51:[function(_dereq_,module,exports){
+},{"./braintree-error":59,"./errors":66,"./promise":83}],59:[function(_dereq_,module,exports){
 "use strict";
 
 var enumerate = _dereq_("./enumerate");
@@ -1560,10 +1664,10 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":57}],52:[function(_dereq_,module,exports){
+},{"./enumerate":65}],60:[function(_dereq_,module,exports){
 "use strict";
 
-var VERSION = "3.85.5";
+var VERSION = "3.86.0";
 var PLATFORM = "web";
 
 var CLIENT_API_URLS = {
@@ -1601,7 +1705,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: "braintree/" + PLATFORM + "/" + VERSION,
 };
 
-},{}],53:[function(_dereq_,module,exports){
+},{}],61:[function(_dereq_,module,exports){
 "use strict";
 
 var BraintreeError = _dereq_("./braintree-error");
@@ -1619,7 +1723,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"./braintree-error":51,"./errors":58}],54:[function(_dereq_,module,exports){
+},{"./braintree-error":59,"./errors":66}],62:[function(_dereq_,module,exports){
 "use strict";
 
 // endRemoveIf(production)
@@ -1636,7 +1740,7 @@ module.exports = {
   create: createAssetsUrl,
 };
 
-},{"./constants":52}],55:[function(_dereq_,module,exports){
+},{"./constants":60}],63:[function(_dereq_,module,exports){
 "use strict";
 
 var atob = _dereq_("../lib/vendor/polyfill").atob;
@@ -1687,7 +1791,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/constants":52,"../lib/vendor/polyfill":65}],56:[function(_dereq_,module,exports){
+},{"../lib/constants":60,"../lib/vendor/polyfill":86}],64:[function(_dereq_,module,exports){
 "use strict";
 
 var BraintreeError = _dereq_("./braintree-error");
@@ -1695,7 +1799,7 @@ var Promise = _dereq_("./promise");
 var assets = _dereq_("./assets");
 var sharedErrors = _dereq_("./errors");
 
-var VERSION = "3.85.5";
+var VERSION = "3.86.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1752,7 +1856,7 @@ module.exports = {
   create: createDeferredClient,
 };
 
-},{"./assets":49,"./braintree-error":51,"./errors":58,"./promise":63}],57:[function(_dereq_,module,exports){
+},{"./assets":56,"./braintree-error":59,"./errors":66,"./promise":83}],65:[function(_dereq_,module,exports){
 "use strict";
 
 function enumerate(values, prefix) {
@@ -1767,7 +1871,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],58:[function(_dereq_,module,exports){
+},{}],66:[function(_dereq_,module,exports){
 "use strict";
 
 /**
@@ -1817,7 +1921,610 @@ module.exports = {
   },
 };
 
-},{"./braintree-error":51}],59:[function(_dereq_,module,exports){
+},{"./braintree-error":59}],67:[function(_dereq_,module,exports){
+"use strict";
+
+var Popup = _dereq_("./strategies/popup");
+var PopupBridge = _dereq_("./strategies/popup-bridge");
+var Modal = _dereq_("./strategies/modal");
+var Bus = _dereq_("framebus");
+var events = _dereq_("../shared/events");
+var errors = _dereq_("../shared/errors");
+var constants = _dereq_("../shared/constants");
+var uuid = _dereq_("@braintree/uuid");
+var iFramer = _dereq_("@braintree/iframer");
+var BraintreeError = _dereq_("../../braintree-error");
+var browserDetection = _dereq_("../shared/browser-detection");
+var isHTTPS = _dereq_("../../is-https");
+var assign = _dereq_("./../../assign").assign;
+var BUS_CONFIGURATION_REQUEST_EVENT =
+  _dereq_("../../constants").BUS_CONFIGURATION_REQUEST_EVENT;
+
+var REQUIRED_CONFIG_KEYS = ["name", "dispatchFrameUrl", "openFrameUrl"];
+
+function noop() {}
+
+function _validateFrameConfiguration(options) {
+  if (!options) {
+    throw new Error("Valid configuration is required");
+  }
+
+  REQUIRED_CONFIG_KEYS.forEach(function (key) {
+    if (!options.hasOwnProperty(key)) {
+      throw new Error("A valid frame " + key + " must be provided");
+    }
+  });
+
+  if (!/^[\w_]+$/.test(options.name)) {
+    throw new Error("A valid frame name must be provided");
+  }
+}
+
+function FrameService(options) {
+  _validateFrameConfiguration(options);
+
+  this._serviceId = uuid().replace(/-/g, "");
+
+  this._options = {
+    name: options.name + "_" + this._serviceId,
+    dispatchFrameUrl: options.dispatchFrameUrl,
+    openFrameUrl: options.openFrameUrl,
+    height: options.height,
+    width: options.width,
+    top: options.top,
+    left: options.left,
+  };
+  this.state = options.state || {};
+
+  this._bus = new Bus({ channel: this._serviceId });
+  this._setBusEvents();
+}
+
+FrameService.prototype.initialize = function (callback) {
+  var dispatchFrameReadyHandler = function () {
+    callback();
+    this._bus.off(events.DISPATCH_FRAME_READY, dispatchFrameReadyHandler);
+  }.bind(this);
+
+  this._bus.on(events.DISPATCH_FRAME_READY, dispatchFrameReadyHandler);
+  this._writeDispatchFrame();
+};
+
+FrameService.prototype._writeDispatchFrame = function () {
+  var frameName = constants.DISPATCH_FRAME_NAME + "_" + this._serviceId;
+  var frameSrc = this._options.dispatchFrameUrl;
+
+  this._dispatchFrame = iFramer({
+    "aria-hidden": true,
+    name: frameName,
+    title: frameName,
+    src: frameSrc,
+    class: constants.DISPATCH_FRAME_CLASS,
+    height: 0,
+    width: 0,
+    style: {
+      position: "absolute",
+      left: "-9999px",
+    },
+  });
+
+  document.body.appendChild(this._dispatchFrame);
+};
+
+FrameService.prototype._setBusEvents = function () {
+  this._bus.on(
+    events.DISPATCH_FRAME_REPORT,
+    function (res, reply) {
+      if (this._onCompleteCallback) {
+        this._onCompleteCallback.call(null, res.err, res.payload);
+      }
+      this._frame.close();
+
+      this._onCompleteCallback = null;
+
+      if (reply) {
+        reply();
+      }
+    }.bind(this)
+  );
+
+  this._bus.on(
+    BUS_CONFIGURATION_REQUEST_EVENT,
+    function (reply) {
+      reply(this.state);
+    }.bind(this)
+  );
+};
+
+FrameService.prototype.open = function (options, callback) {
+  var error;
+
+  options = options || {};
+  this._frame = this._getFrameForEnvironment(options);
+
+  this._frame.initialize(callback);
+
+  if (this._frame instanceof PopupBridge) {
+    return;
+  }
+
+  assign(this.state, options.state);
+
+  this._onCompleteCallback = callback;
+  this._frame.open();
+
+  if (this.isFrameClosed()) {
+    this._cleanupFrame();
+    if (callback) {
+      if (browserDetection.isIE() && !isHTTPS.isHTTPS()) {
+        error = new BraintreeError(
+          errors.FRAME_SERVICE_FRAME_OPEN_FAILED_IE_BUG
+        );
+      } else {
+        error = new BraintreeError(errors.FRAME_SERVICE_FRAME_OPEN_FAILED);
+      }
+      callback(error);
+    }
+
+    return;
+  }
+  this._pollForPopupClose();
+};
+
+FrameService.prototype.redirect = function (url) {
+  if (this._frame && !this.isFrameClosed()) {
+    this._frame.redirect(url);
+  }
+};
+
+FrameService.prototype.close = function () {
+  if (!this.isFrameClosed()) {
+    this._frame.close();
+  }
+};
+
+FrameService.prototype.focus = function () {
+  if (!this.isFrameClosed()) {
+    this._frame.focus();
+  }
+};
+
+FrameService.prototype.createHandler = function (options) {
+  options = options || {};
+
+  return {
+    close: function () {
+      if (options.beforeClose) {
+        options.beforeClose();
+      }
+
+      this.close();
+    }.bind(this),
+    focus: function () {
+      if (options.beforeFocus) {
+        options.beforeFocus();
+      }
+
+      this.focus();
+    }.bind(this),
+  };
+};
+
+FrameService.prototype.createNoopHandler = function () {
+  return {
+    close: noop,
+    focus: noop,
+  };
+};
+
+FrameService.prototype.teardown = function () {
+  this.close();
+  this._dispatchFrame.parentNode.removeChild(this._dispatchFrame);
+  this._dispatchFrame = null;
+  this._cleanupFrame();
+};
+
+FrameService.prototype.isFrameClosed = function () {
+  return this._frame == null || this._frame.isClosed();
+};
+
+FrameService.prototype._cleanupFrame = function () {
+  this._frame = null;
+  clearInterval(this._popupInterval);
+  this._popupInterval = null;
+};
+
+FrameService.prototype._pollForPopupClose = function () {
+  this._popupInterval = setInterval(
+    function () {
+      if (this.isFrameClosed()) {
+        this._cleanupFrame();
+        if (this._onCompleteCallback) {
+          this._onCompleteCallback(
+            new BraintreeError(errors.FRAME_SERVICE_FRAME_CLOSED)
+          );
+        }
+      }
+    }.bind(this),
+    constants.POPUP_POLL_INTERVAL
+  );
+
+  return this._popupInterval;
+};
+
+FrameService.prototype._getFrameForEnvironment = function (options) {
+  var usePopup = browserDetection.supportsPopups();
+  var popupBridgeExists = Boolean(window.popupBridge);
+
+  var initOptions = assign({}, this._options, options);
+
+  if (popupBridgeExists) {
+    return new PopupBridge(initOptions);
+  } else if (usePopup) {
+    return new Popup(initOptions);
+  }
+
+  return new Modal(initOptions);
+};
+
+module.exports = FrameService;
+
+},{"../../braintree-error":59,"../../constants":60,"../../is-https":79,"../shared/browser-detection":74,"../shared/constants":75,"../shared/errors":76,"../shared/events":77,"./../../assign":57,"./strategies/modal":69,"./strategies/popup":72,"./strategies/popup-bridge":70,"@braintree/iframer":30,"@braintree/uuid":34,"framebus":40}],68:[function(_dereq_,module,exports){
+"use strict";
+
+var FrameService = _dereq_("./frame-service");
+
+module.exports = {
+  create: function createFrameService(options, callback) {
+    var frameService = new FrameService(options);
+
+    frameService.initialize(function () {
+      callback(frameService);
+    });
+  },
+};
+
+},{"./frame-service":67}],69:[function(_dereq_,module,exports){
+"use strict";
+
+var iFramer = _dereq_("@braintree/iframer");
+var assign = _dereq_("../../../assign").assign;
+var browserDetection = _dereq_("../../shared/browser-detection");
+
+var ELEMENT_STYLES = {
+  position: "fixed",
+  top: 0,
+  left: 0,
+  bottom: 0,
+  padding: 0,
+  margin: 0,
+  border: 0,
+  outline: "none",
+  zIndex: 20001,
+  background: "#FFFFFF",
+};
+
+function noop() {}
+
+function Modal(options) {
+  this._closed = null;
+  this._frame = null;
+  this._options = options || {};
+  this._container = this._options.container || document.body;
+}
+
+Modal.prototype.initialize = noop;
+
+Modal.prototype.open = function () {
+  var iframerConfig = {
+    src: this._options.openFrameUrl,
+    name: this._options.name,
+    scrolling: "yes",
+    height: "100%",
+    width: "100%",
+    style: assign({}, ELEMENT_STYLES),
+    title: "Lightbox Frame",
+  };
+
+  if (browserDetection.isIos()) {
+    // WKWebView has buggy behavior when scrolling a fixed position modal. The workaround is to lock scrolling in
+    // the background. When modal is closed, we restore scrolling and return to the previous scroll position.
+    if (browserDetection.isIosWKWebview()) {
+      this._lockScrolling();
+      // Allows WKWebView to scroll all the way down to bottom
+      iframerConfig.style = {};
+    }
+
+    this._el = document.createElement("div");
+
+    assign(this._el.style, ELEMENT_STYLES, {
+      height: "100%",
+      width: "100%",
+      overflow: "auto",
+      "-webkit-overflow-scrolling": "touch",
+    });
+
+    this._frame = iFramer(iframerConfig);
+    this._el.appendChild(this._frame);
+  } else {
+    this._el = this._frame = iFramer(iframerConfig);
+  }
+  this._closed = false;
+
+  this._container.appendChild(this._el);
+};
+
+Modal.prototype.focus = noop;
+
+Modal.prototype.close = function () {
+  this._container.removeChild(this._el);
+  this._frame = null;
+  this._closed = true;
+  if (browserDetection.isIosWKWebview()) {
+    this._unlockScrolling();
+  }
+};
+
+Modal.prototype.isClosed = function () {
+  return Boolean(this._closed);
+};
+
+Modal.prototype.redirect = function (redirectUrl) {
+  this._frame.src = redirectUrl;
+};
+
+Modal.prototype._unlockScrolling = function () {
+  document.body.style.overflow = this._savedBodyProperties.overflowStyle;
+  document.body.style.position = this._savedBodyProperties.positionStyle;
+  window.scrollTo(
+    this._savedBodyProperties.left,
+    this._savedBodyProperties.top
+  );
+  delete this._savedBodyProperties;
+};
+
+Modal.prototype._lockScrolling = function () {
+  var doc = document.documentElement;
+
+  // From https://stackoverflow.com/questions/9538868/prevent-body-from-scrolling-when-a-modal-is-opened#comment65626743_24727206
+  this._savedBodyProperties = {
+    left: (window.pageXOffset || doc.scrollLeft) - (doc.clientLeft || 0),
+    top: (window.pageYOffset || doc.scrollTop) - (doc.clientTop || 0),
+    overflowStyle: document.body.style.overflow,
+    positionStyle: document.body.style.position,
+  };
+  document.body.style.overflow = "hidden";
+  document.body.style.position = "fixed";
+  window.scrollTo(0, 0);
+};
+
+module.exports = Modal;
+
+},{"../../../assign":57,"../../shared/browser-detection":74,"@braintree/iframer":30}],70:[function(_dereq_,module,exports){
+"use strict";
+
+var BraintreeError = _dereq_("../../../braintree-error");
+var errors = _dereq_("../../shared/errors");
+
+function noop() {}
+
+function PopupBridge(options) {
+  this._closed = null;
+  this._options = options;
+}
+
+PopupBridge.prototype.initialize = function (callback) {
+  var self = this;
+
+  window.popupBridge.onComplete = function (err, payload) {
+    var popupDismissed = !payload && !err;
+
+    self._closed = true;
+
+    if (err || popupDismissed) {
+      // User clicked "Done" button of browser view
+      callback(new BraintreeError(errors.FRAME_SERVICE_FRAME_CLOSED));
+
+      return;
+    }
+    // User completed popup flow (includes success and cancel cases)
+    callback(null, payload);
+  };
+};
+
+PopupBridge.prototype.open = function (options) {
+  var url;
+
+  options = options || {};
+  url = options.openFrameUrl || this._options.openFrameUrl;
+
+  this._closed = false;
+  window.popupBridge.open(url);
+};
+
+PopupBridge.prototype.focus = noop;
+
+PopupBridge.prototype.close = noop;
+
+PopupBridge.prototype.isClosed = function () {
+  return Boolean(this._closed);
+};
+
+PopupBridge.prototype.redirect = function (redirectUrl) {
+  this.open({ openFrameUrl: redirectUrl });
+};
+
+module.exports = PopupBridge;
+
+},{"../../../braintree-error":59,"../../shared/errors":76}],71:[function(_dereq_,module,exports){
+"use strict";
+
+var constants = _dereq_("../../../shared/constants");
+var position = _dereq_("./position");
+
+function calculatePosition(type, userDefinedPosition, size) {
+  if (typeof userDefinedPosition !== "undefined") {
+    return userDefinedPosition;
+  }
+
+  return position[type](size);
+}
+
+module.exports = function composePopupOptions(options) {
+  var height = options.height || constants.DEFAULT_POPUP_HEIGHT;
+  var width = options.width || constants.DEFAULT_POPUP_WIDTH;
+  var top = calculatePosition("top", options.top, height);
+  var left = calculatePosition("left", options.left, width);
+
+  return [
+    constants.POPUP_BASE_OPTIONS,
+    "height=" + height,
+    "width=" + width,
+    "top=" + top,
+    "left=" + left,
+  ].join(",");
+};
+
+},{"../../../shared/constants":75,"./position":73}],72:[function(_dereq_,module,exports){
+"use strict";
+
+var composeOptions = _dereq_("./compose-options");
+
+function noop() {}
+
+function Popup(options) {
+  this._frame = null;
+  this._options = options || {};
+
+  this.open();
+}
+
+Popup.prototype.initialize = noop;
+
+Popup.prototype.open = function () {
+  this._frame = window.open(
+    this._options.openFrameUrl,
+    this._options.name,
+    composeOptions(this._options)
+  );
+};
+
+Popup.prototype.focus = function () {
+  this._frame.focus();
+};
+
+Popup.prototype.close = function () {
+  if (this._frame.closed) {
+    return;
+  }
+  this._frame.close();
+};
+
+Popup.prototype.isClosed = function () {
+  return !this._frame || Boolean(this._frame.closed);
+};
+
+Popup.prototype.redirect = function (redirectUrl) {
+  this._frame.location.href = redirectUrl;
+};
+
+module.exports = Popup;
+
+},{"./compose-options":71}],73:[function(_dereq_,module,exports){
+"use strict";
+
+function top(height) {
+  var windowHeight =
+    window.outerHeight || document.documentElement.clientHeight;
+  var windowTop = window.screenY == null ? window.screenTop : window.screenY;
+
+  return center(windowHeight, height, windowTop);
+}
+
+function left(width) {
+  var windowWidth = window.outerWidth || document.documentElement.clientWidth;
+  var windowLeft = window.screenX == null ? window.screenLeft : window.screenX;
+
+  return center(windowWidth, width, windowLeft);
+}
+
+function center(windowMetric, popupMetric, offset) {
+  return (windowMetric - popupMetric) / 2 + offset;
+}
+
+module.exports = {
+  top: top,
+  left: left,
+  center: center,
+};
+
+},{}],74:[function(_dereq_,module,exports){
+"use strict";
+
+module.exports = {
+  isIos: _dereq_("@braintree/browser-detection/is-ios"),
+  isIosWKWebview: _dereq_("@braintree/browser-detection/is-ios-wkwebview"),
+  isIE: _dereq_("@braintree/browser-detection/is-ie"),
+  supportsPopups: _dereq_("@braintree/browser-detection/supports-popups"),
+};
+
+},{"@braintree/browser-detection/is-ie":22,"@braintree/browser-detection/is-ios":26,"@braintree/browser-detection/is-ios-wkwebview":25,"@braintree/browser-detection/supports-popups":28}],75:[function(_dereq_,module,exports){
+"use strict";
+
+module.exports = {
+  DISPATCH_FRAME_NAME: "dispatch",
+  DISPATCH_FRAME_CLASS: "braintree-dispatch-frame",
+  POPUP_BASE_OPTIONS: "resizable,scrollbars",
+  DEFAULT_POPUP_WIDTH: 450,
+  DEFAULT_POPUP_HEIGHT: 535,
+  POPUP_POLL_INTERVAL: 100,
+  POPUP_CLOSE_TIMEOUT: 100,
+};
+
+},{}],76:[function(_dereq_,module,exports){
+"use strict";
+
+/**
+ * @name BraintreeError.Popup Related Error Codes
+ * @ignore
+ * @description Errors that occur when using a component that opens a popup window.
+ * @property {INTERNAL} FRAME_SERVICE_FRAME_CLOSED - Occurs when the frame is closed before tokenization can occur.
+ * @property {INTERNAL} FRAME_SERVICE_FRAME_OPEN_FAILED - Occurs when the popup could not be opened.
+ * @property {INTERNAL} FRAME_SERVICE_FRAME_OPEN_FAILED_IE_BUG - Occurs when the frame could not be opened because of a specific bug in Internet Explorer - https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/11324352/.
+ */
+
+var BraintreeError = _dereq_("../../braintree-error");
+
+module.exports = {
+  FRAME_SERVICE_FRAME_CLOSED: {
+    type: BraintreeError.types.INTERNAL,
+    code: "FRAME_SERVICE_FRAME_CLOSED",
+    message: "Frame closed before tokenization could occur.",
+  },
+  FRAME_SERVICE_FRAME_OPEN_FAILED: {
+    type: BraintreeError.types.INTERNAL,
+    code: "FRAME_SERVICE_FRAME_OPEN_FAILED",
+    message: "Frame failed to open.",
+  },
+  FRAME_SERVICE_FRAME_OPEN_FAILED_IE_BUG: {
+    type: BraintreeError.types.INTERNAL,
+    code: "FRAME_SERVICE_FRAME_OPEN_FAILED_IE_BUG",
+    message:
+      "Could not open frame. This may be due to a bug in IE browsers when attempting to open an HTTPS page from a HTTP page. https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/11324352/",
+  },
+};
+
+},{"../../braintree-error":59}],77:[function(_dereq_,module,exports){
+"use strict";
+
+var enumerate = _dereq_("../../enumerate");
+
+module.exports = enumerate(
+  ["DISPATCH_FRAME_READY", "DISPATCH_FRAME_REPORT"],
+  "frameService:"
+);
+
+},{"../../enumerate":65}],78:[function(_dereq_,module,exports){
 "use strict";
 
 module.exports = function inIframe(win) {
@@ -1830,7 +2537,20 @@ module.exports = function inIframe(win) {
   }
 };
 
-},{}],60:[function(_dereq_,module,exports){
+},{}],79:[function(_dereq_,module,exports){
+"use strict";
+
+function isHTTPS(protocol) {
+  protocol = protocol || window.location.protocol;
+
+  return protocol === "https:";
+}
+
+module.exports = {
+  isHTTPS: isHTTPS,
+};
+
+},{}],80:[function(_dereq_,module,exports){
 "use strict";
 
 var parser;
@@ -1865,14 +2585,14 @@ function isVerifiedDomain(url) {
 
 module.exports = isVerifiedDomain;
 
-},{}],61:[function(_dereq_,module,exports){
+},{}],81:[function(_dereq_,module,exports){
 "use strict";
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],62:[function(_dereq_,module,exports){
+},{}],82:[function(_dereq_,module,exports){
 "use strict";
 
 module.exports = function (obj) {
@@ -1881,7 +2601,7 @@ module.exports = function (obj) {
   });
 };
 
-},{}],63:[function(_dereq_,module,exports){
+},{}],83:[function(_dereq_,module,exports){
 "use strict";
 
 var PromisePolyfill = _dereq_("promise-polyfill");
@@ -1895,7 +2615,7 @@ ExtendedPromise.setPromise(PromiseGlobal);
 
 module.exports = PromiseGlobal;
 
-},{"@braintree/extended-promise":22,"promise-polyfill":46}],64:[function(_dereq_,module,exports){
+},{"@braintree/extended-promise":29,"promise-polyfill":53}],84:[function(_dereq_,module,exports){
 "use strict";
 
 function _notEmpty(obj) {
@@ -2002,7 +2722,16 @@ module.exports = {
   hasQueryParams: hasQueryParams,
 };
 
-},{}],65:[function(_dereq_,module,exports){
+},{}],85:[function(_dereq_,module,exports){
+"use strict";
+
+function useMin(isDebug) {
+  return isDebug ? "" : ".min";
+}
+
+module.exports = useMin;
+
+},{}],86:[function(_dereq_,module,exports){
 "use strict";
 
 // NEXT_MAJOR_VERSION old versions of IE don't have atob, in the
@@ -2050,7 +2779,7 @@ module.exports = {
   _atob: atobPolyfill,
 };
 
-},{}],66:[function(_dereq_,module,exports){
+},{}],87:[function(_dereq_,module,exports){
 "use strict";
 var __importDefault =
   (this && this.__importDefault) ||
@@ -2063,7 +2792,7 @@ module.exports = function createVenmoDesktop(options) {
   return instance.initialize();
 };
 
-},{"./venmo-desktop":68}],67:[function(_dereq_,module,exports){
+},{"./venmo-desktop":89}],88:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.VENMO_PAYMENT_CONTEXT_STATUS_QUERY =
@@ -2086,7 +2815,7 @@ exports.LEGACY_VENMO_PAYMENT_CONTEXT_STATUS_QUERY =
 exports.VENMO_PAYMENT_CONTEXT_STATUS_QUERY =
   "query PaymentContext($id: ID!) {\n  node(id: $id) {\n    ... on VenmoPaymentContext {\n      status\n      paymentMethodId\n      userName\n      payerInfo {\n        firstName\n        lastName\n        phoneNumber\n        email\n        externalId\n        userName\n      }\n    }\n  }\n}";
 
-},{}],68:[function(_dereq_,module,exports){
+},{}],89:[function(_dereq_,module,exports){
 "use strict";
 var __assign =
   (this && this.__assign) ||
@@ -2498,7 +3227,7 @@ var VenmoDesktop = /** @class */ (function () {
 })();
 exports.default = VenmoDesktop;
 
-},{"../shared/events":73,"./queries":67,"@braintree/iframer":23,"@braintree/uuid":27,"framebus":33}],69:[function(_dereq_,module,exports){
+},{"../shared/events":94,"./queries":88,"@braintree/iframer":30,"@braintree/uuid":34,"framebus":40}],90:[function(_dereq_,module,exports){
 "use strict";
 /** @module braintree-web/venmo */
 
@@ -2512,7 +3241,7 @@ var BraintreeError = _dereq_("../lib/braintree-error");
 var Venmo = _dereq_("./venmo");
 var Promise = _dereq_("../lib/promise");
 var supportsVenmo = _dereq_("./shared/supports-venmo");
-var VERSION = "3.85.5";
+var VERSION = "3.86.0";
 
 /**
  * @static
@@ -2527,7 +3256,10 @@ var VERSION = "3.85.5";
  * @param {string} [options.deepLinkReturnUrl] An override for the URL that the Venmo iOS app opens to return from an app switch.
  * @param {boolean} [options.requireManualReturn=false] When `true`, the customer will have to manually switch back to the browser/webview that is presenting Venmo to complete the payment.
  * @param {boolean} [options.useRedirectForIOS=false] Normally, the Venmo flow is launched using `window.open` and the Venmo app intercepts that call and opens the Venmo app instead. If the customer does not have the Venmo app installed, it opens the Venmo website in a new window and instructs the customer to install the app.
- *
+ * @param {boolean} [options.allowDesktop] Used to support desktop users. When enabled, the default mode is to render a scannable QR-code customers scan with their phone's to approve via the mobile app.
+ * @param {boolean} [options.allowDesktopWebLogin=false] When `true`, the customer will authorize payment via a window popup that allows them to sign in to their Venmo account. This is used explicitly for customers operating from desktop browsers wanting to avoid the QR Code flow.
+ * @param {boolean} [options.mobileWebFallBack] Use this option when you want to force a web-login experience, such as if on mobile and the Venmo app isn't installed.
+
  * In iOS webviews and Safari View Controllers (a webview-like environment which is indistinguishable from Safari for JavaScript environments), this call to `window.open` will always fail to app switch to Venmo, resulting instead in a white screen. Because of this, an alternate approach is required to launch the Venmo flow.
  *
  * When `useRedirectForIOS` is `true` and the Venmo flow is started in an iOS environment, the Venmo flow will be started by setting `window.location.href` to the Venmo website (which will still be intercepted by the Venmo app and should be the same behavior as if `window.open` was called). However, if the customer does not have the Venmo app installed, the merchant page will instead be replaced with the Venmo website and the customer will need to use the browser's back button to return to the merchant's website. Ensure that your customer's checkout information will not be lost if they are navigated away from the website and return using the browser back button.
@@ -2551,6 +3283,7 @@ var VERSION = "3.85.5";
  * @example <caption>Allow desktop flow to be used</caption>
  * braintree.venmo.create({
  *   client: clientInstance,
+ *   allowDesktop: true
  * }).then(function (venmoInstance) {
  *   // venmoInstance is ready to be used.
  * }).catch(function (createErr) {
@@ -2654,7 +3387,7 @@ module.exports = {
   VERSION: VERSION,
 };
 
-},{"../lib/analytics":48,"../lib/basic-component-verification":50,"../lib/braintree-error":51,"../lib/create-assets-url":54,"../lib/create-deferred-client":56,"../lib/promise":63,"./shared/errors":72,"./shared/supports-venmo":74,"./venmo":75,"@braintree/wrap-promise":31}],70:[function(_dereq_,module,exports){
+},{"../lib/analytics":55,"../lib/basic-component-verification":58,"../lib/braintree-error":59,"../lib/create-assets-url":62,"../lib/create-deferred-client":64,"../lib/promise":83,"./shared/errors":93,"./shared/supports-venmo":96,"./venmo":98,"@braintree/wrap-promise":38}],91:[function(_dereq_,module,exports){
 "use strict";
 
 var isAndroid = _dereq_("@braintree/browser-detection/is-android");
@@ -2716,16 +3449,26 @@ module.exports = {
   doesNotSupportWindowOpenInIos: doesNotSupportWindowOpenInIos,
 };
 
-},{"@braintree/browser-detection/is-android":16,"@braintree/browser-detection/is-chrome":17,"@braintree/browser-detection/is-ios":20,"@braintree/browser-detection/is-ios-safari":18,"@braintree/browser-detection/is-ios-webview":19,"@braintree/browser-detection/is-samsung":21}],71:[function(_dereq_,module,exports){
+},{"@braintree/browser-detection/is-android":20,"@braintree/browser-detection/is-chrome":21,"@braintree/browser-detection/is-ios":26,"@braintree/browser-detection/is-ios-safari":23,"@braintree/browser-detection/is-ios-webview":24,"@braintree/browser-detection/is-samsung":27}],92:[function(_dereq_,module,exports){
 "use strict";
 
+/**
+ * Venmo shared constants
+ * @typedef {object} Venmo~venmoConstants
+ * @ignore
+ * @property {string} VENMO_APP_OR_MOBILE_AUTH_URL A deep-linked url that will open the Venmo app if installed, or navigate to a Venmo web-login experience if the Venmo app is not present.
+ * @property {string} VENMO_MOBILE_APP_AUTH_ONLY_URL A deep-linked url that leads to a Venmo dead-end page if the Venmo app is not installed (page asks customer to download the app).
+ * @property {string} VENMO_WEB_LOGIN_URL A non-deeplinked url that leads to a Venmo login page. For use when explicitly wanting to avoid using the Venmo mobile app via a deep-linked url.
+ */
 module.exports = {
   DOCUMENT_VISIBILITY_CHANGE_EVENT_DELAY: 500,
   DEFAULT_PROCESS_RESULTS_DELAY: 1000,
-  VENMO_OPEN_URL: "https://venmo.com/braintree/checkout",
+  VENMO_APP_OR_MOBILE_AUTH_URL: "https://account.venmo.com/go/checkout",
+  VENMO_MOBILE_APP_AUTH_ONLY_URL: "https://venmo.com/braintree/checkout",
+  VENMO_WEB_LOGIN_URL: "https://account.venmo.com/go/web",
 };
 
-},{}],72:[function(_dereq_,module,exports){
+},{}],93:[function(_dereq_,module,exports){
 "use strict";
 
 /**
@@ -2740,19 +3483,22 @@ module.exports = {
 /**
  * @name BraintreeError.Venmo - tokenize Error Codes
  * @description Errors that occur when using the [`tokenize` method](./Venmo.html#tokenize).
- * @property {MERCHANT} VENMO_TOKENIZATION_REQUEST_ACTIVE Occurs when `tokenize` is called when the flow is already in progress.
- * @property {MERCHANT} VENMO_TOKENIZATION_REQUEST_NOT_ACTIVE Occurs when `cancelTokenization` is called when the flow is not in progress.
- * @property {UNKNOWN} VENMO_APP_FAILED Occurs when tokenization fails.
  * @property {CUSTOMER} VENMO_APP_CANCELED Occurs when customer cancels flow from the Venmo app.
+ * @property {UNKNOWN} VENMO_APP_FAILED Occurs when tokenization fails.
  * @property {CUSTOMER} VENMO_CANCELED Occurs when customer cancels the flow or Venmo app is not available.
+ * @property {CUSTOMER} VENMO_CUSTOMER_CANCELED Occurs when customer cancels the flow.
  * @property {CUSTOMER} VENMO_DESKTOP_CANCELED Occurs when customer cancels the Venmo Desktop flow by closing the modal.
- * @property {MERCHANT} VENMO_TOKENIZATION_CANCELED_BY_MERCHANT Occurs when `cancelTokenization` is called while tokenization is in progress.
  * @property {UNKNOWN} VENMO_DESKTOP_UNKNOWN_ERROR Occurs when an unknown error causes the Venmo Desktop flow to fail.
  * @property {UNKNOWN} VENMO_MOBILE_POLLING_TOKENIZATION_NETWORK_ERROR Occurs when an unknown network error causes the mobile polling process to fail.
  * @property {CUSTOMER} VENMO_MOBILE_POLLING_TOKENIZATION_EXPIRED Occurs when the polling has expired and the payment cannot be completed.
  * @property {CUSTOMER} VENMO_MOBILE_POLLING_TOKENIZATION_CANCELED Occurs when the polling operation is canceled by the customer.
  * @property {CUSTOMER} VENMO_MOBILE_POLLING_TOKENIZATION_TIMEOUT Occurs when customer takes too long to complete payment.
  * @property {UNKNOWN} VENMO_MOBILE_POLLING_TOKENIZATION_FAILED Occurs if there is an unknown error during the mobile polling process.
+ * @property {NETWORK} VENMO_NETWORK_ERROR Occurs when a network error causes a request to fail.
+ * @property {MERCHANT} VENMO_TOKENIZATION_CANCELED_BY_MERCHANT Occurs when `cancelTokenization` is called while tokenization is in progress.
+ * @property {UNKNOWN} VENMO_TOKENIZATION_FAILED Occurs when there is an unknown error during the web login experience.
+ * @property {MERCHANT} VENMO_TOKENIZATION_REQUEST_ACTIVE Occurs when `tokenize` is called when the flow is already in progress.
+ * @property {MERCHANT} VENMO_TOKENIZATION_REQUEST_NOT_ACTIVE Occurs when `cancelTokenization` is called when the flow is not in progress.
  */
 
 var BraintreeError = _dereq_("../../lib/braintree-error");
@@ -2788,6 +3534,16 @@ module.exports = {
     code: "VENMO_CANCELED",
     message:
       "User canceled Venmo authorization, or Venmo app is not available.",
+  },
+  VENMO_CUSTOMER_CANCELED: {
+    type: BraintreeError.types.CUSTOMER,
+    code: "VENMO_CUSTOMER_CANCELED",
+    message: "User canceled Venmo authorization.",
+  },
+  VENMO_NETWORK_ERROR: {
+    type: BraintreeError.types.NETWORK,
+    code: "VENMO_NETWORK_ERROR",
+    message: "Something went wrong making the request",
   },
   VENMO_DESKTOP_CANCELED: {
     type: BraintreeError.types.CUSTOMER,
@@ -2845,9 +3601,14 @@ module.exports = {
     code: "VENMO_INVALID_DEEP_LINK_RETURN_URL",
     message: "Venmo deep link return URL is invalid.",
   },
+  VENMO_TOKENIZATION_FAILED: {
+    type: BraintreeError.types.UNKNOWN,
+    code: "VENMO_TOKENIZATION_FAILED",
+    message: "Venmo encountered a problem",
+  },
 };
 
-},{"../../lib/braintree-error":51}],73:[function(_dereq_,module,exports){
+},{"../../lib/braintree-error":59}],94:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.VENMO_DESKTOP_UNKNOWN_ERROR =
@@ -2876,7 +3637,22 @@ exports.VENMO_DESKTOP_CLOSED_FROM_PARENT = "VENMO_DESKTOP_CLOSED_FROM_PARENT";
 exports.VENMO_DESKTOP_REQUEST_NEW_QR_CODE = "VENMO_DESKTOP_REQUEST_NEW_QR_CODE";
 exports.VENMO_DESKTOP_UNKNOWN_ERROR = "VENMO_DESKTOP_UNKNOWN_ERROR";
 
-},{}],74:[function(_dereq_,module,exports){
+},{}],95:[function(_dereq_,module,exports){
+"use strict";
+var venmoConstants = _dereq_("./constants");
+
+function getVenmoUrl(options) {
+  if (options.useAllowDesktopWebLogin)
+    return venmoConstants.VENMO_WEB_LOGIN_URL;
+
+  if (options.mobileWebFallBack) return venmoConstants.VENMO_APP_CHECKOUT_URL;
+
+  return venmoConstants.VENMO_MOBILE_APP_AUTH_ONLY_URL;
+}
+
+module.exports = getVenmoUrl;
+
+},{"./constants":92}],96:[function(_dereq_,module,exports){
 "use strict";
 
 var browserDetection = _dereq_("./browser-detection");
@@ -2939,7 +3715,283 @@ module.exports = {
   isBrowserSupported: isBrowserSupported,
 };
 
-},{"./browser-detection":70}],75:[function(_dereq_,module,exports){
+},{"./browser-detection":91}],97:[function(_dereq_,module,exports){
+"use strict";
+
+var frameService = _dereq_("../../lib/frame-service/external");
+var useMin = _dereq_("../../lib/use-min");
+var Promise = _dereq_("../../lib/promise");
+
+var VERSION = "3.86.0";
+var VENMO_LOGO_SVG =
+  '<svg width="198" height="58" viewBox="0 0 198 58" fill="none" xmlns="http://www.w3.org/2000/svg">\n  <path fill-rule="evenodd" clip-rule="evenodd" d="M43.0702 13.6572C44.1935 15.4585 44.6999 17.3139 44.6999 19.6576C44.6999 27.1328 38.1277 36.8436 32.7935 43.6625H20.6099L15.7236 15.2939L26.3917 14.3105L28.9751 34.4966C31.389 30.6783 34.3678 24.6779 34.3678 20.587C34.3678 18.3477 33.9727 16.8225 33.3553 15.5666L43.0702 13.6572Z" fill="white"/>\n  <path fill-rule="evenodd" clip-rule="evenodd" d="M56.8965 26.1491C58.8596 26.1491 63.8018 25.2772 63.8018 22.5499C63.8018 21.2402 62.8481 20.587 61.7242 20.587C59.7579 20.587 57.1776 22.8763 56.8965 26.1491ZM56.6715 31.5506C56.6715 34.8807 58.5787 36.1873 61.107 36.1873C63.8603 36.1873 66.4966 35.534 69.923 33.8433L68.6324 42.3523C66.2183 43.4976 62.4559 44.2617 58.8039 44.2617C49.5403 44.2617 46.2249 38.8071 46.2249 31.9879C46.2249 23.1496 51.6179 13.765 62.7365 13.765C68.858 13.765 72.2809 17.0949 72.2809 21.7317C72.2815 29.2066 62.4005 31.4965 56.6715 31.5506Z" fill="white"/>\n  <path fill-rule="evenodd" clip-rule="evenodd" d="M103.067 20.3142C103.067 21.4052 102.897 22.9875 102.727 24.0216L99.5262 43.6622H89.1385L92.0585 25.658C92.1139 25.1696 92.284 24.1865 92.284 23.6411C92.284 22.3314 91.4414 22.0047 90.4282 22.0047C89.0826 22.0047 87.7337 22.6042 86.8354 23.0418L83.5234 43.6625H73.0772L77.8495 14.257H86.8908L87.0052 16.6041C89.1382 15.2404 91.9469 13.7656 95.932 13.7656C101.212 13.765 103.067 16.3845 103.067 20.3142Z" fill="white"/>\n  <path fill-rule="evenodd" clip-rule="evenodd" d="M133.906 16.9841C136.881 14.9131 139.69 13.765 143.563 13.765C148.897 13.765 150.753 16.3845 150.753 20.3142C150.753 21.4052 150.583 22.9875 150.413 24.0216L147.216 43.6622H136.825L139.801 25.2774C139.855 24.786 139.971 24.1865 139.971 23.8063C139.971 22.3317 139.128 22.0047 138.115 22.0047C136.824 22.0047 135.535 22.5501 134.577 23.0418L131.266 43.6625H120.878L123.854 25.2777C123.908 24.7863 124.02 24.1868 124.02 23.8065C124.02 22.332 123.177 22.0049 122.167 22.0049C120.819 22.0049 119.473 22.6045 118.574 23.0421L115.26 43.6628H104.817L109.589 14.2573H118.52L118.8 16.7122C120.878 15.241 123.684 13.7662 127.446 13.7662C130.704 13.765 132.837 15.129 133.906 16.9841Z" fill="white"/>\n  <path fill-rule="evenodd" clip-rule="evenodd" d="M171.426 25.5502C171.426 23.1496 170.808 21.513 168.956 21.513C164.857 21.513 164.015 28.55 164.015 32.1498C164.015 34.8807 164.802 36.5709 166.653 36.5709C170.528 36.5709 171.426 29.1497 171.426 25.5502ZM153.458 31.7152C153.458 22.442 158.511 13.765 170.136 13.765C178.896 13.765 182.098 18.7854 182.098 25.7148C182.098 34.8805 177.099 44.3723 165.194 44.3723C156.378 44.3723 153.458 38.7525 153.458 31.7152Z" fill="white"/>\n</svg>';
+var CONTINUE_OR_CANCEL_INSTRUCTIONS =
+  "Tap cancel payment to cancel and return to the business. Continue payment will relaunch the payment window.";
+
+var POPUP_WIDTH = 400;
+var POPUP_HEIGHT = 570;
+var ELEMENT_IDS = {
+  backdrop: "venmo-desktop-web-backdrop",
+  backdropHidden: "venmo-desktop-web-backdrop.hidden",
+  backdropContainer: "venmo-backdrop-container",
+  cancelButton: "venmo-popup-cancel-button",
+  continueButton: "venmo-popup-continue-button",
+  message: "venmo-message",
+  instructions: "venmo-instructions",
+  venmoLogo: "venmo-full-logo",
+};
+
+function openPopup(options) {
+  var popupName = "venmoforceWebLogin";
+  var checkForStatusChange = options.checkForStatusChange;
+  var cancelTokenization = options.cancelTokenization;
+  var venmoUrl = options.venmoUrl;
+  var assetsUrl = options.assetsUrl;
+  var debug = options.debug || false;
+  var popupLocation = centeredPopupDimensions();
+  var assetsBaseUrl = assetsUrl + "/web/" + VERSION + "/html";
+
+  return new Promise(function (resolve, reject) {
+    frameService.create(
+      {
+        name: popupName,
+        dispatchFrameUrl:
+          assetsBaseUrl + "/dispatch-frame" + useMin(debug) + ".html",
+        openFrameUrl:
+          assetsBaseUrl + "/venmo-landing-frame" + useMin(debug) + ".html",
+        top: popupLocation.top,
+        left: popupLocation.left,
+        height: POPUP_HEIGHT,
+        width: POPUP_WIDTH,
+      },
+      function (frameServiceInstance) {
+        document
+          .getElementById(ELEMENT_IDS.continueButton)
+          .addEventListener("click", function () {
+            frameServiceInstance.focus();
+          });
+        document
+          .getElementById(ELEMENT_IDS.cancelButton)
+          .addEventListener("click", function () {
+            frameServiceInstance.close();
+            cancelTokenization();
+            closeBackdrop();
+          });
+        frameServiceInstance.open({}, function (err) {
+          var retryStartingCount = 1;
+
+          if (err) {
+            reject(err);
+          } else {
+            checkForStatusChange(retryStartingCount)
+              .then(resolve)
+              .catch(reject);
+          }
+          frameServiceInstance.close();
+          closeBackdrop();
+        });
+        frameServiceInstance.redirect(venmoUrl);
+      }
+    );
+  });
+}
+
+function centeredPopupDimensions() {
+  var popupTop =
+    Math.round((window.outerHeight - POPUP_HEIGHT) / 2) + window.screenTop;
+  var popupLeft =
+    Math.round((window.outerWidth - POPUP_WIDTH) / 2) + window.screenLeft;
+
+  return {
+    top: popupTop,
+    left: popupLeft,
+  };
+}
+
+function closeBackdrop() {
+  document.getElementById("venmo-desktop-web-backdrop").classList.add("hidden");
+}
+
+function getElementStyles() {
+  var backdropStyles = [
+    "#" + ELEMENT_IDS.backdropHidden + " {",
+    "display: none;",
+    "}",
+    "#" + ELEMENT_IDS.backdrop + " {",
+    "cursor: pointer;",
+    "position: absolute;",
+    "top: 0;",
+    "left: 0;",
+    "bottom: 0;",
+    "width: 100%;",
+    "background: rgba(0, 0, 0, 0.4);",
+    "}",
+  ];
+  var backdropContainerStyles = [
+    "#" + ELEMENT_IDS.backdropContainer + " {",
+    "display: flex;",
+    "align-content: center;",
+    "justify-content: center;",
+    "align-items: center;",
+    "width: 100%;",
+    "height: 100%;",
+    "flex-direction: column;",
+    "}",
+  ];
+
+  var cancelButtonStyles = [
+    "#" + ELEMENT_IDS.cancelButton + " {",
+    "height: 24px;",
+    "width: 380px;",
+    "font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;",
+    "font-style: normal;",
+    "font-weight: 700;",
+    "font-size: 18px;",
+    "line-height: 24px;",
+    "text-align: center;",
+    "background-color: transparent;",
+    "border: none;",
+    "color: #FFFFFF;",
+    "margin-top: 28px;",
+    "}",
+  ];
+
+  var continueButtonStyles = [
+    "#" + ELEMENT_IDS.continueButton + " {",
+    "width: 400px;",
+    "height: 50px;",
+    "background: #0074DE;",
+    "border-radius: 24px;",
+    "border: none;",
+    "font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;",
+    "font-style: normal;",
+    "font-weight: 700;",
+    "font-size: 18px;",
+    "color: #FFFFFF;",
+    "margin-top: 44px;",
+    "}",
+  ];
+
+  var messageStyles = [
+    "#" + ELEMENT_IDS.message + " {",
+    "font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;",
+    "font-style: normal;",
+    "font-weight: 500;",
+    "font-size: 24px;",
+    "line-height: 32px;",
+    "text-align: center;",
+    "color: #FFFFFF;",
+    "margin-top: 32px;",
+    "}",
+  ];
+
+  var instructionStyles = [
+    "#" + ELEMENT_IDS.instructions + " {",
+    "font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;",
+    "font-style: normal;",
+    "font-weight: 400;",
+    "font-size: 16px;",
+    "line-height: 20px;",
+    "text-align: center;",
+    "color: #FFFFFF;",
+    "margin-top: 16px;",
+    "width: 400px;",
+    "}",
+  ];
+
+  var allStyles = backdropStyles.concat(
+    backdropContainerStyles,
+    cancelButtonStyles,
+    continueButtonStyles,
+    messageStyles,
+    instructionStyles
+  );
+
+  return allStyles.join("\n");
+}
+
+function buildAndStyleElements() {
+  var alreadyRenderedBackdrop = document.getElementById(ELEMENT_IDS.backdrop);
+  var backdropStylesElement,
+    backdropDiv,
+    backDropContentContainer,
+    venmoLogoDiv,
+    venmoMessageDiv,
+    instructionsDiv,
+    continueButton,
+    cancelButton;
+
+  if (alreadyRenderedBackdrop) {
+    alreadyRenderedBackdrop.classList.remove("hidden");
+
+    return;
+  }
+  backdropStylesElement = document.createElement("style");
+  backdropDiv = document.createElement("div");
+  backDropContentContainer = document.createElement("div");
+  venmoLogoDiv = document.createElement("div");
+  venmoMessageDiv = document.createElement("div");
+  instructionsDiv = document.createElement("div");
+  continueButton = document.createElement("button");
+  cancelButton = document.createElement("button");
+
+  backdropStylesElement.id = "venmo-desktop-web__injected-styles";
+  backdropStylesElement.innerHTML = getElementStyles();
+
+  backdropDiv.id = ELEMENT_IDS.backdrop;
+
+  backDropContentContainer.id = ELEMENT_IDS.backdropContainer;
+
+  venmoLogoDiv.id = ELEMENT_IDS.venmoLogo;
+  venmoLogoDiv.innerHTML = VENMO_LOGO_SVG;
+
+  venmoMessageDiv.id = ELEMENT_IDS.message;
+  venmoMessageDiv.innerText = "What would you like to do?";
+
+  instructionsDiv.id = ELEMENT_IDS.instructions;
+  instructionsDiv.innerText = CONTINUE_OR_CANCEL_INSTRUCTIONS;
+
+  continueButton.id = ELEMENT_IDS.continueButton;
+  continueButton.innerText = "Continue payment";
+
+  cancelButton.id = ELEMENT_IDS.cancelButton;
+  cancelButton.innerText = "Cancel payment";
+
+  document.head.appendChild(backdropStylesElement);
+  backDropContentContainer.appendChild(venmoLogoDiv);
+  backDropContentContainer.appendChild(venmoMessageDiv);
+  backDropContentContainer.appendChild(instructionsDiv);
+  backDropContentContainer.appendChild(continueButton);
+  backDropContentContainer.appendChild(cancelButton);
+  backdropDiv.appendChild(backDropContentContainer);
+  document.body.appendChild(backdropDiv);
+}
+
+/**
+ * Applies a backdrop over the page, and opens a popup to the supplied url. Uses supplied status and cancel functions to handle the flow.
+ * @function runWebLogin
+ * @ignore
+ * @param {object} [options] Options for running the web login flow.
+ * @param {string} [options.venmoUrl] Venmo url that is to be used for logging in.
+ * @param {string} [options.assetsUrl] Url that points to the hosted Braintree assets.
+ * @param {Venmo~checkPaymentContextStatusAndProcessResult} [options.checkForStatusChange] {@link Venmo~checkPaymentContextStatusAndProcessResult} to be invoked in order to check for a payment context status update.
+ * @param {Venmo~cancelTokenization} [options.cancelTokenization] {@link Venmo~cancelTokenization} to be invoked when the appropriate payment context status is retrieved.
+ * @returns {Promise} Returns a promise
+ */
+function runWebLogin(options) {
+  buildAndStyleElements();
+
+  return openPopup(options);
+}
+
+module.exports = {
+  runWebLogin: runWebLogin,
+  openPopup: openPopup,
+  POPUP_WIDTH: POPUP_WIDTH,
+  POPUP_HEIGHT: POPUP_HEIGHT,
+};
+
+},{"../../lib/frame-service/external":68,"../../lib/promise":83,"../../lib/use-min":85}],98:[function(_dereq_,module,exports){
 "use strict";
 
 var analytics = _dereq_("../lib/analytics");
@@ -2956,6 +4008,9 @@ var BraintreeError = _dereq_("../lib/braintree-error");
 var inIframe = _dereq_("../lib/in-iframe");
 var Promise = _dereq_("../lib/promise");
 var ExtendedPromise = _dereq_("@braintree/extended-promise");
+var getVenmoUrl = _dereq_("./shared/get-venmo-url");
+var runWebLogin = _dereq_("./shared/web-login-backdrop").runWebLogin;
+
 // NEXT_MAJOR_VERSION the source code for this is actually in a
 // typescript repo called venmo-desktop, once the SDK is migrated
 // to typescript, we can move the TS files out of that separate
@@ -2963,7 +4018,7 @@ var ExtendedPromise = _dereq_("@braintree/extended-promise");
 var createVenmoDesktop = _dereq_("./external/");
 var graphqlQueries = _dereq_("./external/queries");
 
-var VERSION = "3.85.5";
+var VERSION = "3.86.0";
 var DEFAULT_MOBILE_POLLING_INTERVAL = 250; // 1/4 second
 var DEFAULT_MOBILE_EXPIRING_THRESHOLD = 300000; // 5 minutes
 
@@ -2986,11 +4041,12 @@ var DEFAULT_MOBILE_EXPIRING_THRESHOLD = 300000; // 5 minutes
 function Venmo(options) {
   var self = this;
 
+  this._allowDesktopWebLogin = options.allowDesktopWebLogin || false;
+  this._mobileWebFallBack = options.mobileWebFallBack || false;
   this._createPromise = options.createPromise;
   this._allowNewBrowserTab = options.allowNewBrowserTab !== false;
   this._allowWebviews = options.allowWebviews !== false;
   this._allowDesktop = options.allowDesktop === true;
-  this._requireManualReturn = options.requireManualReturn === true;
   this._useRedirectForIOS = options.useRedirectForIOS === true;
   this._profileId = options.profileId;
   this._displayName = options.displayName;
@@ -2998,8 +4054,14 @@ function Venmo(options) {
   this._ignoreHistoryChanges = options.ignoreHistoryChanges;
   this._paymentMethodUsage = (options.paymentMethodUsage || "").toUpperCase();
   this._shouldUseLegacyFlow = !this._paymentMethodUsage;
-  this._useDesktopFlow = this._allowDesktop && this._isDesktop();
+  this._requireManualReturn = options.requireManualReturn === true;
+  this._useDesktopQRFlow =
+    this._allowDesktop && this._isDesktop() && !this._allowDesktopWebLogin;
+  this._useAllowDesktopWebLogin =
+    this._allowDesktopWebLogin && this._isDesktop();
   this._cannotHaveReturnUrls = inIframe() || this._requireManualReturn;
+  this._maxRetryCount = 3;
+
   this._shouldCreateVenmoPaymentContext =
     this._cannotHaveReturnUrls || !this._shouldUseLegacyFlow;
 
@@ -3020,7 +4082,7 @@ function Venmo(options) {
       this._createPromise,
       "venmo.appswitch.return-in-new-tab"
     );
-  } else if (this._useDesktopFlow) {
+  } else if (this._useDesktopQRFlow) {
     this._createPromise = this._createPromise.then(function (client) {
       var config = client.getConfiguration().gatewayConfiguration;
 
@@ -3068,7 +4130,7 @@ function Venmo(options) {
             self._createPromise,
             "venmo.desktop-flow.setup-failed"
           );
-          self._useDesktopFlow = false;
+          self._useDesktopQRFlow = false;
 
           return client;
         });
@@ -3249,6 +4311,9 @@ Venmo.prototype.getUrl = function () {
         },
       };
 
+      this._isDebug = configuration.isDebug;
+      this._assetsUrl = configuration.gatewayConfiguration.assetsUrl;
+
       currentUrl = currentUrl.replace(/#*$/, "");
 
       /* eslint-disable camelcase */
@@ -3265,6 +4330,11 @@ Venmo.prototype.getUrl = function () {
       }
 
       if (this._shouldIncludeReturnUrls()) {
+        if (this._useAllowDesktopWebLogin) {
+          currentUrl =
+            this._assetsUrl + "/web/" + VERSION + "/html/redirect-frame.html";
+        }
+
         params["x-success"] = currentUrl + "#venmoSuccess=1";
         params["x-cancel"] = currentUrl + "#venmoCancel=1";
         params["x-error"] = currentUrl + "#venmoError=1";
@@ -3279,9 +4349,15 @@ Venmo.prototype.getUrl = function () {
       params.braintree_access_token = accessToken;
       params.braintree_environment = venmoConfiguration.environment;
       params.braintree_sdk_data = btoa(JSON.stringify(braintreeData));
-      /* eslint-enable camelcase */
 
-      return constants.VENMO_OPEN_URL + "?" + querystring.stringify(params);
+      return (
+        getVenmoUrl({
+          useAllowDesktopWebLogin: this._useAllowDesktopWebLogin,
+          mobileWebFallBack: this._mobileWebFallBack,
+        }) +
+        "?" +
+        querystring.stringify(params)
+      );
     }.bind(this)
   );
 };
@@ -3396,8 +4472,7 @@ Venmo.prototype.tokenize = function (options) {
   }
 
   this._tokenizationInProgress = true;
-
-  if (this._useDesktopFlow) {
+  if (this._useDesktopQRFlow) {
     // for the desktop flow, we create a venmo payment
     // context and then present a qr code modal to the
     // customer and they will open up their venmo app
@@ -3406,7 +4481,19 @@ Venmo.prototype.tokenize = function (options) {
     // in order to determine when the status of the
     // payment context has updated and then pass the
     // resulting nonce back to the merchant.
-    tokenizationPromise = this._tokenizeForDesktop(options);
+    tokenizationPromise = this._tokenizeForDesktopQRFlow(options);
+  } else if (this._useAllowDesktopWebLogin) {
+    /**
+     * For Desktop Web Login, we open a browser popup to allow for authorization. Once authorized, the redirect urls are used by Venmo, and we query the API for a payment context status update.
+     *
+     * - Payment context is created on initialization
+     * - Popup is opened to Venmo login url.
+     *  - The payment is authorized or canceled, and the popup is closed
+     * - Once the popup is closed, we query the API for a payment context status update
+     *
+     * This is an alternate, opt-in flow to be used the Desktop QR Flow is not desired for Pay with Venmo desktop experiences.
+     */
+    tokenizationPromise = this._tokenizeWebLoginWithRedirect();
   } else if (this._cannotHaveReturnUrls) {
     // in the manual return strategy, we create the payment
     // context on initialization, then continually poll once
@@ -3466,6 +4553,7 @@ Venmo.prototype.tokenize = function (options) {
  * Cancels the venmo tokenization process
  *
  * @public
+ * @function Venmo~cancelTokenization
  * @returns {(Promise|void)} Returns a promise if no callback is provided.
  * @example
  * venmoTokenizeButton.addEventListener('click', function () {
@@ -3514,6 +4602,47 @@ Venmo.prototype.cancelTokenization = function () {
   ]);
 };
 
+Venmo.prototype._tokenizeWebLoginWithRedirect = function () {
+  var self = this;
+
+  analytics.sendEvent(self._createPromise, "venmo.tokenize.web-login.start");
+  this._tokenizePromise = new ExtendedPromise();
+
+  return this.getUrl().then(function (url) {
+    runWebLogin({
+      checkForStatusChange:
+        self._checkPaymentContextStatusAndProcessResult.bind(self),
+      cancelTokenization: self.cancelTokenization.bind(self),
+      venmoUrl: url,
+      assetsUrl: self._assetsUrl,
+      debug: self._isDebug,
+    })
+      .then(function (payload) {
+        analytics.sendEvent(
+          self._createPromise,
+          "venmo.tokenize.web-login.success"
+        );
+
+        return self._tokenizePromise.resolve({
+          paymentMethodNonce: payload.paymentMethodId,
+          username: payload.userName,
+          payerInfo: payload.payerInfo,
+          id: self._venmoPaymentContextId,
+        });
+      })
+      .catch(function (err) {
+        analytics.sendEvent(
+          self._createPromise,
+          "venmo.tokenize.web-login.failure"
+        );
+
+        return self._tokenizePromise.reject(err);
+      });
+
+    return self._tokenizePromise;
+  });
+};
+
 Venmo.prototype._queryPaymentContextStatus = function (id) {
   var self = this;
 
@@ -3535,6 +4664,71 @@ Venmo.prototype._queryPaymentContextStatus = function (id) {
     })
     .then(function (response) {
       return response.data.node;
+    });
+};
+
+/**
+ * Queries the GraphQL API to get the payment context and process the status. Retries until there is an update to the payment context status.
+ * @name Venmo~checkPaymentContextStatusAndProcessResult
+ * @ignore
+ * @param {number} retryCount The counter for tracking number of retries made against the API.
+ * @returns {Promise} Returns a promise
+ */
+Venmo.prototype._checkPaymentContextStatusAndProcessResult = function (
+  retryCount
+) {
+  var self = this;
+
+  return self
+    ._queryPaymentContextStatus(self._venmoPaymentContextId)
+    .catch(function (networkError) {
+      return Promise.reject(
+        new BraintreeError({
+          type: errors.VENMO_NETWORK_ERROR.type,
+          code: errors.VENMO_NETWORK_ERROR.code,
+          message: errors.VENMO_NETWORK_ERROR.message,
+          details: networkError,
+        })
+      );
+    })
+    .then(function (node) {
+      var resultStatus = node.status;
+
+      if (resultStatus !== self._venmoPaymentContextStatus) {
+        self._venmoPaymentContextStatus = resultStatus;
+
+        analytics.sendEvent(
+          self._createPromise,
+          "venmo.tokenize.web-login.status-change"
+        );
+
+        switch (resultStatus) {
+          case "APPROVED":
+            return Promise.resolve(node);
+          case "CANCELED":
+            return Promise.reject(
+              new BraintreeError(errors.VENMO_CUSTOMER_CANCELED)
+            );
+          case "FAILED":
+            return Promise.reject(
+              new BraintreeError(errors.VENMO_TOKENIZATION_FAILED)
+            );
+          default:
+        }
+      }
+
+      return new Promise(function (resolve, reject) {
+        if (retryCount < self._maxRetryCount) {
+          retryCount++;
+
+          return self
+            ._checkPaymentContextStatusAndProcessResult(retryCount)
+            .then(resolve)
+            .catch(reject);
+        }
+
+        return reject(new BraintreeError(errors.VENMO_TOKENIZATION_FAILED));
+      });
     });
 };
 
@@ -3734,7 +4928,7 @@ Venmo.prototype._tokenizeForMobileWithHashChangeListeners = function (options) {
   });
 };
 
-Venmo.prototype._tokenizeForDesktop = function () {
+Venmo.prototype._tokenizeForDesktopQRFlow = function () {
   var self = this;
 
   analytics.sendEvent(this._createPromise, "venmo.tokenize.desktop.start");
@@ -3786,14 +4980,6 @@ Venmo.prototype._tokenizeForDesktop = function () {
     });
 
   return this._tokenizePromise;
-};
-
-// TODO remove this once initial testing is done
-Venmo.prototype._updateVenmoDesktopPaymentContext = function (status, options) {
-  return this._venmoDesktopInstance.updateVenmoDesktopPaymentContext(
-    status,
-    options
-  );
 };
 
 Venmo.prototype._cancelMobilePaymentContext = function () {
@@ -4043,5 +5229,5 @@ function isIosWebviewInDeepLinkReturnUrlFlow() {
 
 module.exports = wrapPromise.wrapPrototype(Venmo);
 
-},{"../lib/analytics":48,"../lib/braintree-error":51,"../lib/convert-methods-to-error":53,"../lib/in-iframe":59,"../lib/is-verified-domain":60,"../lib/methods":62,"../lib/promise":63,"../lib/querystring":64,"./external/":66,"./external/queries":67,"./shared/browser-detection":70,"./shared/constants":71,"./shared/errors":72,"./shared/supports-venmo":74,"@braintree/extended-promise":22,"@braintree/wrap-promise":31}]},{},[69])(69)
+},{"../lib/analytics":55,"../lib/braintree-error":59,"../lib/convert-methods-to-error":61,"../lib/in-iframe":78,"../lib/is-verified-domain":80,"../lib/methods":82,"../lib/promise":83,"../lib/querystring":84,"./external/":87,"./external/queries":88,"./shared/browser-detection":91,"./shared/constants":92,"./shared/errors":93,"./shared/get-venmo-url":95,"./shared/supports-venmo":96,"./shared/web-login-backdrop":97,"@braintree/extended-promise":29,"@braintree/wrap-promise":38}]},{},[90])(90)
 });

@@ -2213,7 +2213,7 @@ var AmericanExpress = _dereq_("./american-express");
 var basicComponentVerification = _dereq_("../lib/basic-component-verification");
 var createDeferredClient = _dereq_("../lib/create-deferred-client");
 var createAssetsUrl = _dereq_("../lib/create-assets-url");
-var VERSION = "3.85.5";
+var VERSION = "3.86.0";
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 
 /**
@@ -2734,7 +2734,7 @@ var createAssetsUrl = _dereq_("../lib/create-assets-url");
 var createDeferredClient = _dereq_("../lib/create-deferred-client");
 var Promise = _dereq_("../lib/promise");
 var errors = _dereq_("./errors");
-var VERSION = "3.85.5";
+var VERSION = "3.86.0";
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 
 /**
@@ -3536,7 +3536,7 @@ module.exports = {
 
 var BraintreeError = _dereq_("../lib/braintree-error");
 var Client = _dereq_("./client");
-var VERSION = "3.85.5";
+var VERSION = "3.86.0";
 var Promise = _dereq_("../lib/promise");
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 var sharedErrors = _dereq_("../lib/errors");
@@ -5063,7 +5063,7 @@ var createDeferredClient = _dereq_("../lib/create-deferred-client");
 var createAssetsUrl = _dereq_("../lib/create-assets-url");
 var methods = _dereq_("../lib/methods");
 var convertMethodsToError = _dereq_("../lib/convert-methods-to-error");
-var VERSION = "3.85.5";
+var VERSION = "3.86.0";
 var Promise = _dereq_("../lib/promise");
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 var errors = _dereq_("./errors");
@@ -6588,7 +6588,7 @@ var createAssetsUrl = _dereq_("../lib/create-assets-url");
 var createDeferredClient = _dereq_("../lib/create-deferred-client");
 var basicComponentVerification = _dereq_("../lib/basic-component-verification");
 var wrapPromise = _dereq_("@braintree/wrap-promise");
-var VERSION = "3.85.5";
+var VERSION = "3.86.0";
 var errors = _dereq_("./errors");
 
 /**
@@ -8565,7 +8565,7 @@ var supportsInputFormatting = _dereq_("restricted-input/supports-input-formattin
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 var BraintreeError = _dereq_("../lib/braintree-error");
 var Promise = _dereq_("../lib/promise");
-var VERSION = "3.85.5";
+var VERSION = "3.86.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -8955,7 +8955,7 @@ module.exports = {
 
 var enumerate = _dereq_("../../lib/enumerate");
 var errors = _dereq_("./errors");
-var VERSION = "3.85.5";
+var VERSION = "3.86.0";
 
 var constants = {
   VERSION: VERSION,
@@ -9442,7 +9442,7 @@ var vaultManager = _dereq_("./vault-manager");
 var venmo = _dereq_("./venmo");
 var visaCheckout = _dereq_("./visa-checkout");
 var preferredPaymentMethods = _dereq_("./preferred-payment-methods");
-var VERSION = "3.85.5";
+var VERSION = "3.86.0";
 
 module.exports = {
   /** @type {module:braintree-web/american-express} */
@@ -9488,7 +9488,7 @@ module.exports = {
   VERSION: VERSION,
 };
 
-},{"./american-express":77,"./apple-pay":80,"./client":86,"./data-collector":105,"./google-payment":110,"./hosted-fields":117,"./local-payment":171,"./masterpass":174,"./payment-request":179,"./paypal":186,"./paypal-checkout":183,"./preferred-payment-methods":189,"./three-d-secure":199,"./unionpay":203,"./us-bank-account":209,"./vault-manager":212,"./venmo":217,"./visa-checkout":225}],125:[function(_dereq_,module,exports){
+},{"./american-express":77,"./apple-pay":80,"./client":86,"./data-collector":105,"./google-payment":110,"./hosted-fields":117,"./local-payment":171,"./masterpass":174,"./payment-request":179,"./paypal":186,"./paypal-checkout":183,"./preferred-payment-methods":189,"./three-d-secure":199,"./unionpay":203,"./us-bank-account":209,"./vault-manager":212,"./venmo":217,"./visa-checkout":227}],125:[function(_dereq_,module,exports){
 "use strict";
 
 var createAuthorizationData = _dereq_("./create-authorization-data");
@@ -9618,7 +9618,7 @@ module.exports = {
 var BraintreeError = _dereq_("./braintree-error");
 var Promise = _dereq_("./promise");
 var sharedErrors = _dereq_("./errors");
-var VERSION = "3.85.5";
+var VERSION = "3.86.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -9833,7 +9833,7 @@ module.exports = function (obj) {
 },{}],133:[function(_dereq_,module,exports){
 "use strict";
 
-var VERSION = "3.85.5";
+var VERSION = "3.86.0";
 var PLATFORM = "web";
 
 var CLIENT_API_URLS = {
@@ -9987,7 +9987,7 @@ var Promise = _dereq_("./promise");
 var assets = _dereq_("./assets");
 var sharedErrors = _dereq_("./errors");
 
-var VERSION = "3.85.5";
+var VERSION = "3.86.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -10796,7 +10796,7 @@ module.exports = enumerate(
 },{"../../enumerate":141}],156:[function(_dereq_,module,exports){
 "use strict";
 
-var VERSION = "3.85.5";
+var VERSION = "3.86.0";
 var assign = _dereq_("./assign").assign;
 
 function generateTokenizationParameters(configuration, overrides) {
@@ -11292,7 +11292,7 @@ module.exports = {
 var frameService = _dereq_("../../lib/frame-service/external");
 var BraintreeError = _dereq_("../../lib/braintree-error");
 var useMin = _dereq_("../../lib/use-min");
-var VERSION = "3.85.5";
+var VERSION = "3.86.0";
 var INTEGRATION_TIMEOUT_MS =
   _dereq_("../../lib/constants").INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_("../../lib/analytics");
@@ -11887,7 +11887,7 @@ var basicComponentVerification = _dereq_("../lib/basic-component-verification");
 var createDeferredClient = _dereq_("../lib/create-deferred-client");
 var createAssetsUrl = _dereq_("../lib/create-assets-url");
 var LocalPayment = _dereq_("./external/local-payment");
-var VERSION = "3.85.5";
+var VERSION = "3.86.0";
 var Promise = _dereq_("../lib/promise");
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 var BraintreeError = _dereq_("../lib/braintree-error");
@@ -12089,7 +12089,7 @@ var Promise = _dereq_("../../lib/promise");
 var frameService = _dereq_("../../lib/frame-service/external");
 var BraintreeError = _dereq_("../../lib/braintree-error");
 var errors = _dereq_("../shared/errors");
-var VERSION = "3.85.5";
+var VERSION = "3.86.0";
 var methods = _dereq_("../../lib/methods");
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 var analytics = _dereq_("../../lib/analytics");
@@ -12570,7 +12570,7 @@ var browserDetection = _dereq_("./shared/browser-detection");
 var Masterpass = _dereq_("./external/masterpass");
 var createDeferredClient = _dereq_("../lib/create-deferred-client");
 var createAssetsUrl = _dereq_("../lib/create-assets-url");
-var VERSION = "3.85.5";
+var VERSION = "3.86.0";
 var errors = _dereq_("./shared/errors");
 var Promise = _dereq_("../lib/promise");
 var wrapPromise = _dereq_("@braintree/wrap-promise");
@@ -12781,7 +12781,7 @@ var methods = _dereq_("../../lib/methods");
 var Promise = _dereq_("../../lib/promise");
 var EventEmitter = _dereq_("@braintree/event-emitter");
 var BraintreeError = _dereq_("../../lib/braintree-error");
-var VERSION = "3.85.5";
+var VERSION = "3.86.0";
 var constants = _dereq_("../shared/constants");
 var events = constants.events;
 var errors = constants.errors;
@@ -13532,7 +13532,7 @@ var basicComponentVerification = _dereq_("../lib/basic-component-verification");
 var createDeferredClient = _dereq_("../lib/create-deferred-client");
 var createAssetsUrl = _dereq_("../lib/create-assets-url");
 var wrapPromise = _dereq_("@braintree/wrap-promise");
-var VERSION = "3.85.5";
+var VERSION = "3.86.0";
 
 /**
  * @static
@@ -13846,7 +13846,7 @@ module.exports = {
 var basicComponentVerification = _dereq_("../lib/basic-component-verification");
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 var PayPalCheckout = _dereq_("./paypal-checkout");
-var VERSION = "3.85.5";
+var VERSION = "3.86.0";
 
 /**
  * @static
@@ -13930,7 +13930,7 @@ var methods = _dereq_("../lib/methods");
 var useMin = _dereq_("../lib/use-min");
 var convertMethodsToError = _dereq_("../lib/convert-methods-to-error");
 var querystring = _dereq_("../lib/querystring");
-var VERSION = "3.85.5";
+var VERSION = "3.86.0";
 var INTEGRATION_TIMEOUT_MS = _dereq_("../lib/constants").INTEGRATION_TIMEOUT_MS;
 
 var REQUIRED_PARAMS_FOR_START_VAULT_INITIATED_CHECKOUT = [
@@ -15271,7 +15271,7 @@ var BraintreeError = _dereq_("../../lib/braintree-error");
 var convertToBraintreeError = _dereq_("../../lib/convert-to-braintree-error");
 var useMin = _dereq_("../../lib/use-min");
 var once = _dereq_("../../lib/once");
-var VERSION = "3.85.5";
+var VERSION = "3.86.0";
 var constants = _dereq_("../shared/constants");
 var INTEGRATION_TIMEOUT_MS =
   _dereq_("../../lib/constants").INTEGRATION_TIMEOUT_MS;
@@ -15954,7 +15954,7 @@ var createAssetsUrl = _dereq_("../lib/create-assets-url");
 var BraintreeError = _dereq_("../lib/braintree-error");
 var errors = _dereq_("./shared/errors");
 var PayPal = _dereq_("./external/paypal");
-var VERSION = "3.85.5";
+var VERSION = "3.86.0";
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 var Promise = _dereq_("../lib/promise");
 
@@ -16161,7 +16161,7 @@ module.exports = {
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 var basicComponentVerification = _dereq_("../lib/basic-component-verification");
 var PreferredPaymentMethods = _dereq_("./preferred-payment-methods");
-var VERSION = "3.85.5";
+var VERSION = "3.86.0";
 
 /**
  * @static
@@ -16344,7 +16344,7 @@ var useMin = _dereq_("../../../lib/use-min");
 var BUS_CONFIGURATION_REQUEST_EVENT =
   _dereq_("../../../lib/constants").BUS_CONFIGURATION_REQUEST_EVENT;
 
-var VERSION = "3.85.5";
+var VERSION = "3.86.0";
 var IFRAME_HEIGHT = 400;
 var IFRAME_WIDTH = 400;
 
@@ -17193,7 +17193,7 @@ var ExtendedPromise = _dereq_("@braintree/extended-promise");
 var INTEGRATION_TIMEOUT_MS =
   _dereq_("../../../lib/constants").INTEGRATION_TIMEOUT_MS;
 var PLATFORM = _dereq_("../../../lib/constants").PLATFORM;
-var VERSION = "3.85.5";
+var VERSION = "3.86.0";
 var CUSTOMER_CANCELED_SONGBIRD_MODAL = "01";
 var SONGBIRD_UI_EVENTS = [
   "ui.close",
@@ -18102,6 +18102,7 @@ var FRAMEWORKS = _dereq_("./frameworks");
  * @property {object} threeDSecureInfo 3DS information about the card. Note: This information should be verified on the server by using the [payment method nonce find method](https://developer.paypal.com/braintree/docs/reference/request/payment-method-nonce/find). The values provided here are merely for convenience. Only values looked up on the server should determine the logic about how to process a transaction.
  * @property {string} threeDSecureInfo.acsTransactionId The transaction identifier from the issuing bank.
  * @property {string} threeDSecureInfo.cavv Cardholder authentication verification value or CAVV. The main encrypted message issuers and card networks use to verify authentication has occurred. Mastercard uses an AVV message and American Express uses an AEVV message, each of which should also be passed in the cavv parameter.
+ * @property {boolean} threeDSecureInfo.dataOnlyRequested Indicates whether to use the data only flow. In this flow, frictionless 3DS is ensured for Mastercard cardholders as the card scheme provides a risk score for the issuer to determine whether to approve.
  * @property {string} threeDSecureInfo.dsTransactionId Transaction identifier resulting from 3D Secure 2 authentication.
  * @property {string} threeDSecureInfo.eciFlag The value of the electronic commerce indicator (ECI) flag, which indicates the outcome of the 3DS authentication. This will be a two-digit value.
  * @property {boolean} threeDSecureInfo.enrolled Indicates the status of 3D Secure authentication eligibility with the card issuer.
@@ -18833,7 +18834,7 @@ var createAssetsUrl = _dereq_("../lib/create-assets-url");
 var BraintreeError = _dereq_("../lib/braintree-error");
 var analytics = _dereq_("../lib/analytics");
 var errors = _dereq_("./shared/errors");
-var VERSION = "3.85.5";
+var VERSION = "3.86.0";
 var Promise = _dereq_("../lib/promise");
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 
@@ -19267,7 +19268,7 @@ var createDeferredClient = _dereq_("../lib/create-deferred-client");
 var createAssetsUrl = _dereq_("../lib/create-assets-url");
 var analytics = _dereq_("../lib/analytics");
 var errors = _dereq_("./shared/errors");
-var VERSION = "3.85.5";
+var VERSION = "3.86.0";
 var Promise = _dereq_("../lib/promise");
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 
@@ -19472,7 +19473,7 @@ var errors = _dereq_("./errors");
 var events = constants.events;
 var iFramer = _dereq_("@braintree/iframer");
 var methods = _dereq_("../../lib/methods");
-var VERSION = "3.85.5";
+var VERSION = "3.86.0";
 var uuid = _dereq_("@braintree/uuid");
 var Promise = _dereq_("../../lib/promise");
 var wrapPromise = _dereq_("@braintree/wrap-promise");
@@ -20003,7 +20004,7 @@ var createDeferredClient = _dereq_("../lib/create-deferred-client");
 var createAssetsUrl = _dereq_("../lib/create-assets-url");
 var errors = _dereq_("./errors");
 var USBankAccount = _dereq_("./us-bank-account");
-var VERSION = "3.85.5";
+var VERSION = "3.86.0";
 var Promise = _dereq_("../lib/promise");
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 
@@ -20638,7 +20639,7 @@ var basicComponentVerification = _dereq_("../lib/basic-component-verification");
 var createDeferredClient = _dereq_("../lib/create-deferred-client");
 var createAssetsUrl = _dereq_("../lib/create-assets-url");
 var VaultManager = _dereq_("./vault-manager");
-var VERSION = "3.85.5";
+var VERSION = "3.86.0";
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 
 /**
@@ -21363,7 +21364,7 @@ var BraintreeError = _dereq_("../lib/braintree-error");
 var Venmo = _dereq_("./venmo");
 var Promise = _dereq_("../lib/promise");
 var supportsVenmo = _dereq_("./shared/supports-venmo");
-var VERSION = "3.85.5";
+var VERSION = "3.86.0";
 
 /**
  * @static
@@ -21378,7 +21379,10 @@ var VERSION = "3.85.5";
  * @param {string} [options.deepLinkReturnUrl] An override for the URL that the Venmo iOS app opens to return from an app switch.
  * @param {boolean} [options.requireManualReturn=false] When `true`, the customer will have to manually switch back to the browser/webview that is presenting Venmo to complete the payment.
  * @param {boolean} [options.useRedirectForIOS=false] Normally, the Venmo flow is launched using `window.open` and the Venmo app intercepts that call and opens the Venmo app instead. If the customer does not have the Venmo app installed, it opens the Venmo website in a new window and instructs the customer to install the app.
- *
+ * @param {boolean} [options.allowDesktop] Used to support desktop users. When enabled, the default mode is to render a scannable QR-code customers scan with their phone's to approve via the mobile app.
+ * @param {boolean} [options.allowDesktopWebLogin=false] When `true`, the customer will authorize payment via a window popup that allows them to sign in to their Venmo account. This is used explicitly for customers operating from desktop browsers wanting to avoid the QR Code flow.
+ * @param {boolean} [options.mobileWebFallBack] Use this option when you want to force a web-login experience, such as if on mobile and the Venmo app isn't installed.
+
  * In iOS webviews and Safari View Controllers (a webview-like environment which is indistinguishable from Safari for JavaScript environments), this call to `window.open` will always fail to app switch to Venmo, resulting instead in a white screen. Because of this, an alternate approach is required to launch the Venmo flow.
  *
  * When `useRedirectForIOS` is `true` and the Venmo flow is started in an iOS environment, the Venmo flow will be started by setting `window.location.href` to the Venmo website (which will still be intercepted by the Venmo app and should be the same behavior as if `window.open` was called). However, if the customer does not have the Venmo app installed, the merchant page will instead be replaced with the Venmo website and the customer will need to use the browser's back button to return to the merchant's website. Ensure that your customer's checkout information will not be lost if they are navigated away from the website and return using the browser back button.
@@ -21402,6 +21406,7 @@ var VERSION = "3.85.5";
  * @example <caption>Allow desktop flow to be used</caption>
  * braintree.venmo.create({
  *   client: clientInstance,
+ *   allowDesktop: true
  * }).then(function (venmoInstance) {
  *   // venmoInstance is ready to be used.
  * }).catch(function (createErr) {
@@ -21505,7 +21510,7 @@ module.exports = {
   VERSION: VERSION,
 };
 
-},{"../lib/analytics":126,"../lib/basic-component-verification":129,"../lib/braintree-error":131,"../lib/create-assets-url":136,"../lib/create-deferred-client":138,"../lib/promise":164,"./shared/errors":220,"./shared/supports-venmo":222,"./venmo":223,"@braintree/wrap-promise":49}],218:[function(_dereq_,module,exports){
+},{"../lib/analytics":126,"../lib/basic-component-verification":129,"../lib/braintree-error":131,"../lib/create-assets-url":136,"../lib/create-deferred-client":138,"../lib/promise":164,"./shared/errors":220,"./shared/supports-venmo":223,"./venmo":225,"@braintree/wrap-promise":49}],218:[function(_dereq_,module,exports){
 "use strict";
 
 var isAndroid = _dereq_("@braintree/browser-detection/is-android");
@@ -21570,10 +21575,20 @@ module.exports = {
 },{"@braintree/browser-detection/is-android":24,"@braintree/browser-detection/is-chrome":26,"@braintree/browser-detection/is-ios":35,"@braintree/browser-detection/is-ios-safari":32,"@braintree/browser-detection/is-ios-webview":33,"@braintree/browser-detection/is-samsung":36}],219:[function(_dereq_,module,exports){
 "use strict";
 
+/**
+ * Venmo shared constants
+ * @typedef {object} Venmo~venmoConstants
+ * @ignore
+ * @property {string} VENMO_APP_OR_MOBILE_AUTH_URL A deep-linked url that will open the Venmo app if installed, or navigate to a Venmo web-login experience if the Venmo app is not present.
+ * @property {string} VENMO_MOBILE_APP_AUTH_ONLY_URL A deep-linked url that leads to a Venmo dead-end page if the Venmo app is not installed (page asks customer to download the app).
+ * @property {string} VENMO_WEB_LOGIN_URL A non-deeplinked url that leads to a Venmo login page. For use when explicitly wanting to avoid using the Venmo mobile app via a deep-linked url.
+ */
 module.exports = {
   DOCUMENT_VISIBILITY_CHANGE_EVENT_DELAY: 500,
   DEFAULT_PROCESS_RESULTS_DELAY: 1000,
-  VENMO_OPEN_URL: "https://venmo.com/braintree/checkout",
+  VENMO_APP_OR_MOBILE_AUTH_URL: "https://account.venmo.com/go/checkout",
+  VENMO_MOBILE_APP_AUTH_ONLY_URL: "https://venmo.com/braintree/checkout",
+  VENMO_WEB_LOGIN_URL: "https://account.venmo.com/go/web",
 };
 
 },{}],220:[function(_dereq_,module,exports){
@@ -21591,19 +21606,22 @@ module.exports = {
 /**
  * @name BraintreeError.Venmo - tokenize Error Codes
  * @description Errors that occur when using the [`tokenize` method](./Venmo.html#tokenize).
- * @property {MERCHANT} VENMO_TOKENIZATION_REQUEST_ACTIVE Occurs when `tokenize` is called when the flow is already in progress.
- * @property {MERCHANT} VENMO_TOKENIZATION_REQUEST_NOT_ACTIVE Occurs when `cancelTokenization` is called when the flow is not in progress.
- * @property {UNKNOWN} VENMO_APP_FAILED Occurs when tokenization fails.
  * @property {CUSTOMER} VENMO_APP_CANCELED Occurs when customer cancels flow from the Venmo app.
+ * @property {UNKNOWN} VENMO_APP_FAILED Occurs when tokenization fails.
  * @property {CUSTOMER} VENMO_CANCELED Occurs when customer cancels the flow or Venmo app is not available.
+ * @property {CUSTOMER} VENMO_CUSTOMER_CANCELED Occurs when customer cancels the flow.
  * @property {CUSTOMER} VENMO_DESKTOP_CANCELED Occurs when customer cancels the Venmo Desktop flow by closing the modal.
- * @property {MERCHANT} VENMO_TOKENIZATION_CANCELED_BY_MERCHANT Occurs when `cancelTokenization` is called while tokenization is in progress.
  * @property {UNKNOWN} VENMO_DESKTOP_UNKNOWN_ERROR Occurs when an unknown error causes the Venmo Desktop flow to fail.
  * @property {UNKNOWN} VENMO_MOBILE_POLLING_TOKENIZATION_NETWORK_ERROR Occurs when an unknown network error causes the mobile polling process to fail.
  * @property {CUSTOMER} VENMO_MOBILE_POLLING_TOKENIZATION_EXPIRED Occurs when the polling has expired and the payment cannot be completed.
  * @property {CUSTOMER} VENMO_MOBILE_POLLING_TOKENIZATION_CANCELED Occurs when the polling operation is canceled by the customer.
  * @property {CUSTOMER} VENMO_MOBILE_POLLING_TOKENIZATION_TIMEOUT Occurs when customer takes too long to complete payment.
  * @property {UNKNOWN} VENMO_MOBILE_POLLING_TOKENIZATION_FAILED Occurs if there is an unknown error during the mobile polling process.
+ * @property {NETWORK} VENMO_NETWORK_ERROR Occurs when a network error causes a request to fail.
+ * @property {MERCHANT} VENMO_TOKENIZATION_CANCELED_BY_MERCHANT Occurs when `cancelTokenization` is called while tokenization is in progress.
+ * @property {UNKNOWN} VENMO_TOKENIZATION_FAILED Occurs when there is an unknown error during the web login experience.
+ * @property {MERCHANT} VENMO_TOKENIZATION_REQUEST_ACTIVE Occurs when `tokenize` is called when the flow is already in progress.
+ * @property {MERCHANT} VENMO_TOKENIZATION_REQUEST_NOT_ACTIVE Occurs when `cancelTokenization` is called when the flow is not in progress.
  */
 
 var BraintreeError = _dereq_("../../lib/braintree-error");
@@ -21639,6 +21657,16 @@ module.exports = {
     code: "VENMO_CANCELED",
     message:
       "User canceled Venmo authorization, or Venmo app is not available.",
+  },
+  VENMO_CUSTOMER_CANCELED: {
+    type: BraintreeError.types.CUSTOMER,
+    code: "VENMO_CUSTOMER_CANCELED",
+    message: "User canceled Venmo authorization.",
+  },
+  VENMO_NETWORK_ERROR: {
+    type: BraintreeError.types.NETWORK,
+    code: "VENMO_NETWORK_ERROR",
+    message: "Something went wrong making the request",
   },
   VENMO_DESKTOP_CANCELED: {
     type: BraintreeError.types.CUSTOMER,
@@ -21696,6 +21724,11 @@ module.exports = {
     code: "VENMO_INVALID_DEEP_LINK_RETURN_URL",
     message: "Venmo deep link return URL is invalid.",
   },
+  VENMO_TOKENIZATION_FAILED: {
+    type: BraintreeError.types.UNKNOWN,
+    code: "VENMO_TOKENIZATION_FAILED",
+    message: "Venmo encountered a problem",
+  },
 };
 
 },{"../../lib/braintree-error":131}],221:[function(_dereq_,module,exports){
@@ -21728,6 +21761,21 @@ exports.VENMO_DESKTOP_REQUEST_NEW_QR_CODE = "VENMO_DESKTOP_REQUEST_NEW_QR_CODE";
 exports.VENMO_DESKTOP_UNKNOWN_ERROR = "VENMO_DESKTOP_UNKNOWN_ERROR";
 
 },{}],222:[function(_dereq_,module,exports){
+"use strict";
+var venmoConstants = _dereq_("./constants");
+
+function getVenmoUrl(options) {
+  if (options.useAllowDesktopWebLogin)
+    return venmoConstants.VENMO_WEB_LOGIN_URL;
+
+  if (options.mobileWebFallBack) return venmoConstants.VENMO_APP_CHECKOUT_URL;
+
+  return venmoConstants.VENMO_MOBILE_APP_AUTH_ONLY_URL;
+}
+
+module.exports = getVenmoUrl;
+
+},{"./constants":219}],223:[function(_dereq_,module,exports){
 "use strict";
 
 var browserDetection = _dereq_("./browser-detection");
@@ -21790,7 +21838,283 @@ module.exports = {
   isBrowserSupported: isBrowserSupported,
 };
 
-},{"./browser-detection":218}],223:[function(_dereq_,module,exports){
+},{"./browser-detection":218}],224:[function(_dereq_,module,exports){
+"use strict";
+
+var frameService = _dereq_("../../lib/frame-service/external");
+var useMin = _dereq_("../../lib/use-min");
+var Promise = _dereq_("../../lib/promise");
+
+var VERSION = "3.86.0";
+var VENMO_LOGO_SVG =
+  '<svg width="198" height="58" viewBox="0 0 198 58" fill="none" xmlns="http://www.w3.org/2000/svg">\n  <path fill-rule="evenodd" clip-rule="evenodd" d="M43.0702 13.6572C44.1935 15.4585 44.6999 17.3139 44.6999 19.6576C44.6999 27.1328 38.1277 36.8436 32.7935 43.6625H20.6099L15.7236 15.2939L26.3917 14.3105L28.9751 34.4966C31.389 30.6783 34.3678 24.6779 34.3678 20.587C34.3678 18.3477 33.9727 16.8225 33.3553 15.5666L43.0702 13.6572Z" fill="white"/>\n  <path fill-rule="evenodd" clip-rule="evenodd" d="M56.8965 26.1491C58.8596 26.1491 63.8018 25.2772 63.8018 22.5499C63.8018 21.2402 62.8481 20.587 61.7242 20.587C59.7579 20.587 57.1776 22.8763 56.8965 26.1491ZM56.6715 31.5506C56.6715 34.8807 58.5787 36.1873 61.107 36.1873C63.8603 36.1873 66.4966 35.534 69.923 33.8433L68.6324 42.3523C66.2183 43.4976 62.4559 44.2617 58.8039 44.2617C49.5403 44.2617 46.2249 38.8071 46.2249 31.9879C46.2249 23.1496 51.6179 13.765 62.7365 13.765C68.858 13.765 72.2809 17.0949 72.2809 21.7317C72.2815 29.2066 62.4005 31.4965 56.6715 31.5506Z" fill="white"/>\n  <path fill-rule="evenodd" clip-rule="evenodd" d="M103.067 20.3142C103.067 21.4052 102.897 22.9875 102.727 24.0216L99.5262 43.6622H89.1385L92.0585 25.658C92.1139 25.1696 92.284 24.1865 92.284 23.6411C92.284 22.3314 91.4414 22.0047 90.4282 22.0047C89.0826 22.0047 87.7337 22.6042 86.8354 23.0418L83.5234 43.6625H73.0772L77.8495 14.257H86.8908L87.0052 16.6041C89.1382 15.2404 91.9469 13.7656 95.932 13.7656C101.212 13.765 103.067 16.3845 103.067 20.3142Z" fill="white"/>\n  <path fill-rule="evenodd" clip-rule="evenodd" d="M133.906 16.9841C136.881 14.9131 139.69 13.765 143.563 13.765C148.897 13.765 150.753 16.3845 150.753 20.3142C150.753 21.4052 150.583 22.9875 150.413 24.0216L147.216 43.6622H136.825L139.801 25.2774C139.855 24.786 139.971 24.1865 139.971 23.8063C139.971 22.3317 139.128 22.0047 138.115 22.0047C136.824 22.0047 135.535 22.5501 134.577 23.0418L131.266 43.6625H120.878L123.854 25.2777C123.908 24.7863 124.02 24.1868 124.02 23.8065C124.02 22.332 123.177 22.0049 122.167 22.0049C120.819 22.0049 119.473 22.6045 118.574 23.0421L115.26 43.6628H104.817L109.589 14.2573H118.52L118.8 16.7122C120.878 15.241 123.684 13.7662 127.446 13.7662C130.704 13.765 132.837 15.129 133.906 16.9841Z" fill="white"/>\n  <path fill-rule="evenodd" clip-rule="evenodd" d="M171.426 25.5502C171.426 23.1496 170.808 21.513 168.956 21.513C164.857 21.513 164.015 28.55 164.015 32.1498C164.015 34.8807 164.802 36.5709 166.653 36.5709C170.528 36.5709 171.426 29.1497 171.426 25.5502ZM153.458 31.7152C153.458 22.442 158.511 13.765 170.136 13.765C178.896 13.765 182.098 18.7854 182.098 25.7148C182.098 34.8805 177.099 44.3723 165.194 44.3723C156.378 44.3723 153.458 38.7525 153.458 31.7152Z" fill="white"/>\n</svg>';
+var CONTINUE_OR_CANCEL_INSTRUCTIONS =
+  "Tap cancel payment to cancel and return to the business. Continue payment will relaunch the payment window.";
+
+var POPUP_WIDTH = 400;
+var POPUP_HEIGHT = 570;
+var ELEMENT_IDS = {
+  backdrop: "venmo-desktop-web-backdrop",
+  backdropHidden: "venmo-desktop-web-backdrop.hidden",
+  backdropContainer: "venmo-backdrop-container",
+  cancelButton: "venmo-popup-cancel-button",
+  continueButton: "venmo-popup-continue-button",
+  message: "venmo-message",
+  instructions: "venmo-instructions",
+  venmoLogo: "venmo-full-logo",
+};
+
+function openPopup(options) {
+  var popupName = "venmoforceWebLogin";
+  var checkForStatusChange = options.checkForStatusChange;
+  var cancelTokenization = options.cancelTokenization;
+  var venmoUrl = options.venmoUrl;
+  var assetsUrl = options.assetsUrl;
+  var debug = options.debug || false;
+  var popupLocation = centeredPopupDimensions();
+  var assetsBaseUrl = assetsUrl + "/web/" + VERSION + "/html";
+
+  return new Promise(function (resolve, reject) {
+    frameService.create(
+      {
+        name: popupName,
+        dispatchFrameUrl:
+          assetsBaseUrl + "/dispatch-frame" + useMin(debug) + ".html",
+        openFrameUrl:
+          assetsBaseUrl + "/venmo-landing-frame" + useMin(debug) + ".html",
+        top: popupLocation.top,
+        left: popupLocation.left,
+        height: POPUP_HEIGHT,
+        width: POPUP_WIDTH,
+      },
+      function (frameServiceInstance) {
+        document
+          .getElementById(ELEMENT_IDS.continueButton)
+          .addEventListener("click", function () {
+            frameServiceInstance.focus();
+          });
+        document
+          .getElementById(ELEMENT_IDS.cancelButton)
+          .addEventListener("click", function () {
+            frameServiceInstance.close();
+            cancelTokenization();
+            closeBackdrop();
+          });
+        frameServiceInstance.open({}, function (err) {
+          var retryStartingCount = 1;
+
+          if (err) {
+            reject(err);
+          } else {
+            checkForStatusChange(retryStartingCount)
+              .then(resolve)
+              .catch(reject);
+          }
+          frameServiceInstance.close();
+          closeBackdrop();
+        });
+        frameServiceInstance.redirect(venmoUrl);
+      }
+    );
+  });
+}
+
+function centeredPopupDimensions() {
+  var popupTop =
+    Math.round((window.outerHeight - POPUP_HEIGHT) / 2) + window.screenTop;
+  var popupLeft =
+    Math.round((window.outerWidth - POPUP_WIDTH) / 2) + window.screenLeft;
+
+  return {
+    top: popupTop,
+    left: popupLeft,
+  };
+}
+
+function closeBackdrop() {
+  document.getElementById("venmo-desktop-web-backdrop").classList.add("hidden");
+}
+
+function getElementStyles() {
+  var backdropStyles = [
+    "#" + ELEMENT_IDS.backdropHidden + " {",
+    "display: none;",
+    "}",
+    "#" + ELEMENT_IDS.backdrop + " {",
+    "cursor: pointer;",
+    "position: absolute;",
+    "top: 0;",
+    "left: 0;",
+    "bottom: 0;",
+    "width: 100%;",
+    "background: rgba(0, 0, 0, 0.4);",
+    "}",
+  ];
+  var backdropContainerStyles = [
+    "#" + ELEMENT_IDS.backdropContainer + " {",
+    "display: flex;",
+    "align-content: center;",
+    "justify-content: center;",
+    "align-items: center;",
+    "width: 100%;",
+    "height: 100%;",
+    "flex-direction: column;",
+    "}",
+  ];
+
+  var cancelButtonStyles = [
+    "#" + ELEMENT_IDS.cancelButton + " {",
+    "height: 24px;",
+    "width: 380px;",
+    "font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;",
+    "font-style: normal;",
+    "font-weight: 700;",
+    "font-size: 18px;",
+    "line-height: 24px;",
+    "text-align: center;",
+    "background-color: transparent;",
+    "border: none;",
+    "color: #FFFFFF;",
+    "margin-top: 28px;",
+    "}",
+  ];
+
+  var continueButtonStyles = [
+    "#" + ELEMENT_IDS.continueButton + " {",
+    "width: 400px;",
+    "height: 50px;",
+    "background: #0074DE;",
+    "border-radius: 24px;",
+    "border: none;",
+    "font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;",
+    "font-style: normal;",
+    "font-weight: 700;",
+    "font-size: 18px;",
+    "color: #FFFFFF;",
+    "margin-top: 44px;",
+    "}",
+  ];
+
+  var messageStyles = [
+    "#" + ELEMENT_IDS.message + " {",
+    "font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;",
+    "font-style: normal;",
+    "font-weight: 500;",
+    "font-size: 24px;",
+    "line-height: 32px;",
+    "text-align: center;",
+    "color: #FFFFFF;",
+    "margin-top: 32px;",
+    "}",
+  ];
+
+  var instructionStyles = [
+    "#" + ELEMENT_IDS.instructions + " {",
+    "font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;",
+    "font-style: normal;",
+    "font-weight: 400;",
+    "font-size: 16px;",
+    "line-height: 20px;",
+    "text-align: center;",
+    "color: #FFFFFF;",
+    "margin-top: 16px;",
+    "width: 400px;",
+    "}",
+  ];
+
+  var allStyles = backdropStyles.concat(
+    backdropContainerStyles,
+    cancelButtonStyles,
+    continueButtonStyles,
+    messageStyles,
+    instructionStyles
+  );
+
+  return allStyles.join("\n");
+}
+
+function buildAndStyleElements() {
+  var alreadyRenderedBackdrop = document.getElementById(ELEMENT_IDS.backdrop);
+  var backdropStylesElement,
+    backdropDiv,
+    backDropContentContainer,
+    venmoLogoDiv,
+    venmoMessageDiv,
+    instructionsDiv,
+    continueButton,
+    cancelButton;
+
+  if (alreadyRenderedBackdrop) {
+    alreadyRenderedBackdrop.classList.remove("hidden");
+
+    return;
+  }
+  backdropStylesElement = document.createElement("style");
+  backdropDiv = document.createElement("div");
+  backDropContentContainer = document.createElement("div");
+  venmoLogoDiv = document.createElement("div");
+  venmoMessageDiv = document.createElement("div");
+  instructionsDiv = document.createElement("div");
+  continueButton = document.createElement("button");
+  cancelButton = document.createElement("button");
+
+  backdropStylesElement.id = "venmo-desktop-web__injected-styles";
+  backdropStylesElement.innerHTML = getElementStyles();
+
+  backdropDiv.id = ELEMENT_IDS.backdrop;
+
+  backDropContentContainer.id = ELEMENT_IDS.backdropContainer;
+
+  venmoLogoDiv.id = ELEMENT_IDS.venmoLogo;
+  venmoLogoDiv.innerHTML = VENMO_LOGO_SVG;
+
+  venmoMessageDiv.id = ELEMENT_IDS.message;
+  venmoMessageDiv.innerText = "What would you like to do?";
+
+  instructionsDiv.id = ELEMENT_IDS.instructions;
+  instructionsDiv.innerText = CONTINUE_OR_CANCEL_INSTRUCTIONS;
+
+  continueButton.id = ELEMENT_IDS.continueButton;
+  continueButton.innerText = "Continue payment";
+
+  cancelButton.id = ELEMENT_IDS.cancelButton;
+  cancelButton.innerText = "Cancel payment";
+
+  document.head.appendChild(backdropStylesElement);
+  backDropContentContainer.appendChild(venmoLogoDiv);
+  backDropContentContainer.appendChild(venmoMessageDiv);
+  backDropContentContainer.appendChild(instructionsDiv);
+  backDropContentContainer.appendChild(continueButton);
+  backDropContentContainer.appendChild(cancelButton);
+  backdropDiv.appendChild(backDropContentContainer);
+  document.body.appendChild(backdropDiv);
+}
+
+/**
+ * Applies a backdrop over the page, and opens a popup to the supplied url. Uses supplied status and cancel functions to handle the flow.
+ * @function runWebLogin
+ * @ignore
+ * @param {object} [options] Options for running the web login flow.
+ * @param {string} [options.venmoUrl] Venmo url that is to be used for logging in.
+ * @param {string} [options.assetsUrl] Url that points to the hosted Braintree assets.
+ * @param {Venmo~checkPaymentContextStatusAndProcessResult} [options.checkForStatusChange] {@link Venmo~checkPaymentContextStatusAndProcessResult} to be invoked in order to check for a payment context status update.
+ * @param {Venmo~cancelTokenization} [options.cancelTokenization] {@link Venmo~cancelTokenization} to be invoked when the appropriate payment context status is retrieved.
+ * @returns {Promise} Returns a promise
+ */
+function runWebLogin(options) {
+  buildAndStyleElements();
+
+  return openPopup(options);
+}
+
+module.exports = {
+  runWebLogin: runWebLogin,
+  openPopup: openPopup,
+  POPUP_WIDTH: POPUP_WIDTH,
+  POPUP_HEIGHT: POPUP_HEIGHT,
+};
+
+},{"../../lib/frame-service/external":146,"../../lib/promise":164,"../../lib/use-min":167}],225:[function(_dereq_,module,exports){
 "use strict";
 
 var analytics = _dereq_("../lib/analytics");
@@ -21807,6 +22131,9 @@ var BraintreeError = _dereq_("../lib/braintree-error");
 var inIframe = _dereq_("../lib/in-iframe");
 var Promise = _dereq_("../lib/promise");
 var ExtendedPromise = _dereq_("@braintree/extended-promise");
+var getVenmoUrl = _dereq_("./shared/get-venmo-url");
+var runWebLogin = _dereq_("./shared/web-login-backdrop").runWebLogin;
+
 // NEXT_MAJOR_VERSION the source code for this is actually in a
 // typescript repo called venmo-desktop, once the SDK is migrated
 // to typescript, we can move the TS files out of that separate
@@ -21814,7 +22141,7 @@ var ExtendedPromise = _dereq_("@braintree/extended-promise");
 var createVenmoDesktop = _dereq_("./external/");
 var graphqlQueries = _dereq_("./external/queries");
 
-var VERSION = "3.85.5";
+var VERSION = "3.86.0";
 var DEFAULT_MOBILE_POLLING_INTERVAL = 250; // 1/4 second
 var DEFAULT_MOBILE_EXPIRING_THRESHOLD = 300000; // 5 minutes
 
@@ -21837,11 +22164,12 @@ var DEFAULT_MOBILE_EXPIRING_THRESHOLD = 300000; // 5 minutes
 function Venmo(options) {
   var self = this;
 
+  this._allowDesktopWebLogin = options.allowDesktopWebLogin || false;
+  this._mobileWebFallBack = options.mobileWebFallBack || false;
   this._createPromise = options.createPromise;
   this._allowNewBrowserTab = options.allowNewBrowserTab !== false;
   this._allowWebviews = options.allowWebviews !== false;
   this._allowDesktop = options.allowDesktop === true;
-  this._requireManualReturn = options.requireManualReturn === true;
   this._useRedirectForIOS = options.useRedirectForIOS === true;
   this._profileId = options.profileId;
   this._displayName = options.displayName;
@@ -21849,8 +22177,14 @@ function Venmo(options) {
   this._ignoreHistoryChanges = options.ignoreHistoryChanges;
   this._paymentMethodUsage = (options.paymentMethodUsage || "").toUpperCase();
   this._shouldUseLegacyFlow = !this._paymentMethodUsage;
-  this._useDesktopFlow = this._allowDesktop && this._isDesktop();
+  this._requireManualReturn = options.requireManualReturn === true;
+  this._useDesktopQRFlow =
+    this._allowDesktop && this._isDesktop() && !this._allowDesktopWebLogin;
+  this._useAllowDesktopWebLogin =
+    this._allowDesktopWebLogin && this._isDesktop();
   this._cannotHaveReturnUrls = inIframe() || this._requireManualReturn;
+  this._maxRetryCount = 3;
+
   this._shouldCreateVenmoPaymentContext =
     this._cannotHaveReturnUrls || !this._shouldUseLegacyFlow;
 
@@ -21871,7 +22205,7 @@ function Venmo(options) {
       this._createPromise,
       "venmo.appswitch.return-in-new-tab"
     );
-  } else if (this._useDesktopFlow) {
+  } else if (this._useDesktopQRFlow) {
     this._createPromise = this._createPromise.then(function (client) {
       var config = client.getConfiguration().gatewayConfiguration;
 
@@ -21919,7 +22253,7 @@ function Venmo(options) {
             self._createPromise,
             "venmo.desktop-flow.setup-failed"
           );
-          self._useDesktopFlow = false;
+          self._useDesktopQRFlow = false;
 
           return client;
         });
@@ -22100,6 +22434,9 @@ Venmo.prototype.getUrl = function () {
         },
       };
 
+      this._isDebug = configuration.isDebug;
+      this._assetsUrl = configuration.gatewayConfiguration.assetsUrl;
+
       currentUrl = currentUrl.replace(/#*$/, "");
 
       /* eslint-disable camelcase */
@@ -22116,6 +22453,11 @@ Venmo.prototype.getUrl = function () {
       }
 
       if (this._shouldIncludeReturnUrls()) {
+        if (this._useAllowDesktopWebLogin) {
+          currentUrl =
+            this._assetsUrl + "/web/" + VERSION + "/html/redirect-frame.html";
+        }
+
         params["x-success"] = currentUrl + "#venmoSuccess=1";
         params["x-cancel"] = currentUrl + "#venmoCancel=1";
         params["x-error"] = currentUrl + "#venmoError=1";
@@ -22130,9 +22472,15 @@ Venmo.prototype.getUrl = function () {
       params.braintree_access_token = accessToken;
       params.braintree_environment = venmoConfiguration.environment;
       params.braintree_sdk_data = btoa(JSON.stringify(braintreeData));
-      /* eslint-enable camelcase */
 
-      return constants.VENMO_OPEN_URL + "?" + querystring.stringify(params);
+      return (
+        getVenmoUrl({
+          useAllowDesktopWebLogin: this._useAllowDesktopWebLogin,
+          mobileWebFallBack: this._mobileWebFallBack,
+        }) +
+        "?" +
+        querystring.stringify(params)
+      );
     }.bind(this)
   );
 };
@@ -22247,8 +22595,7 @@ Venmo.prototype.tokenize = function (options) {
   }
 
   this._tokenizationInProgress = true;
-
-  if (this._useDesktopFlow) {
+  if (this._useDesktopQRFlow) {
     // for the desktop flow, we create a venmo payment
     // context and then present a qr code modal to the
     // customer and they will open up their venmo app
@@ -22257,7 +22604,19 @@ Venmo.prototype.tokenize = function (options) {
     // in order to determine when the status of the
     // payment context has updated and then pass the
     // resulting nonce back to the merchant.
-    tokenizationPromise = this._tokenizeForDesktop(options);
+    tokenizationPromise = this._tokenizeForDesktopQRFlow(options);
+  } else if (this._useAllowDesktopWebLogin) {
+    /**
+     * For Desktop Web Login, we open a browser popup to allow for authorization. Once authorized, the redirect urls are used by Venmo, and we query the API for a payment context status update.
+     *
+     * - Payment context is created on initialization
+     * - Popup is opened to Venmo login url.
+     *  - The payment is authorized or canceled, and the popup is closed
+     * - Once the popup is closed, we query the API for a payment context status update
+     *
+     * This is an alternate, opt-in flow to be used the Desktop QR Flow is not desired for Pay with Venmo desktop experiences.
+     */
+    tokenizationPromise = this._tokenizeWebLoginWithRedirect();
   } else if (this._cannotHaveReturnUrls) {
     // in the manual return strategy, we create the payment
     // context on initialization, then continually poll once
@@ -22317,6 +22676,7 @@ Venmo.prototype.tokenize = function (options) {
  * Cancels the venmo tokenization process
  *
  * @public
+ * @function Venmo~cancelTokenization
  * @returns {(Promise|void)} Returns a promise if no callback is provided.
  * @example
  * venmoTokenizeButton.addEventListener('click', function () {
@@ -22365,6 +22725,47 @@ Venmo.prototype.cancelTokenization = function () {
   ]);
 };
 
+Venmo.prototype._tokenizeWebLoginWithRedirect = function () {
+  var self = this;
+
+  analytics.sendEvent(self._createPromise, "venmo.tokenize.web-login.start");
+  this._tokenizePromise = new ExtendedPromise();
+
+  return this.getUrl().then(function (url) {
+    runWebLogin({
+      checkForStatusChange:
+        self._checkPaymentContextStatusAndProcessResult.bind(self),
+      cancelTokenization: self.cancelTokenization.bind(self),
+      venmoUrl: url,
+      assetsUrl: self._assetsUrl,
+      debug: self._isDebug,
+    })
+      .then(function (payload) {
+        analytics.sendEvent(
+          self._createPromise,
+          "venmo.tokenize.web-login.success"
+        );
+
+        return self._tokenizePromise.resolve({
+          paymentMethodNonce: payload.paymentMethodId,
+          username: payload.userName,
+          payerInfo: payload.payerInfo,
+          id: self._venmoPaymentContextId,
+        });
+      })
+      .catch(function (err) {
+        analytics.sendEvent(
+          self._createPromise,
+          "venmo.tokenize.web-login.failure"
+        );
+
+        return self._tokenizePromise.reject(err);
+      });
+
+    return self._tokenizePromise;
+  });
+};
+
 Venmo.prototype._queryPaymentContextStatus = function (id) {
   var self = this;
 
@@ -22386,6 +22787,71 @@ Venmo.prototype._queryPaymentContextStatus = function (id) {
     })
     .then(function (response) {
       return response.data.node;
+    });
+};
+
+/**
+ * Queries the GraphQL API to get the payment context and process the status. Retries until there is an update to the payment context status.
+ * @name Venmo~checkPaymentContextStatusAndProcessResult
+ * @ignore
+ * @param {number} retryCount The counter for tracking number of retries made against the API.
+ * @returns {Promise} Returns a promise
+ */
+Venmo.prototype._checkPaymentContextStatusAndProcessResult = function (
+  retryCount
+) {
+  var self = this;
+
+  return self
+    ._queryPaymentContextStatus(self._venmoPaymentContextId)
+    .catch(function (networkError) {
+      return Promise.reject(
+        new BraintreeError({
+          type: errors.VENMO_NETWORK_ERROR.type,
+          code: errors.VENMO_NETWORK_ERROR.code,
+          message: errors.VENMO_NETWORK_ERROR.message,
+          details: networkError,
+        })
+      );
+    })
+    .then(function (node) {
+      var resultStatus = node.status;
+
+      if (resultStatus !== self._venmoPaymentContextStatus) {
+        self._venmoPaymentContextStatus = resultStatus;
+
+        analytics.sendEvent(
+          self._createPromise,
+          "venmo.tokenize.web-login.status-change"
+        );
+
+        switch (resultStatus) {
+          case "APPROVED":
+            return Promise.resolve(node);
+          case "CANCELED":
+            return Promise.reject(
+              new BraintreeError(errors.VENMO_CUSTOMER_CANCELED)
+            );
+          case "FAILED":
+            return Promise.reject(
+              new BraintreeError(errors.VENMO_TOKENIZATION_FAILED)
+            );
+          default:
+        }
+      }
+
+      return new Promise(function (resolve, reject) {
+        if (retryCount < self._maxRetryCount) {
+          retryCount++;
+
+          return self
+            ._checkPaymentContextStatusAndProcessResult(retryCount)
+            .then(resolve)
+            .catch(reject);
+        }
+
+        return reject(new BraintreeError(errors.VENMO_TOKENIZATION_FAILED));
+      });
     });
 };
 
@@ -22585,7 +23051,7 @@ Venmo.prototype._tokenizeForMobileWithHashChangeListeners = function (options) {
   });
 };
 
-Venmo.prototype._tokenizeForDesktop = function () {
+Venmo.prototype._tokenizeForDesktopQRFlow = function () {
   var self = this;
 
   analytics.sendEvent(this._createPromise, "venmo.tokenize.desktop.start");
@@ -22637,14 +23103,6 @@ Venmo.prototype._tokenizeForDesktop = function () {
     });
 
   return this._tokenizePromise;
-};
-
-// TODO remove this once initial testing is done
-Venmo.prototype._updateVenmoDesktopPaymentContext = function (status, options) {
-  return this._venmoDesktopInstance.updateVenmoDesktopPaymentContext(
-    status,
-    options
-  );
 };
 
 Venmo.prototype._cancelMobilePaymentContext = function () {
@@ -22894,7 +23352,7 @@ function isIosWebviewInDeepLinkReturnUrlFlow() {
 
 module.exports = wrapPromise.wrapPrototype(Venmo);
 
-},{"../lib/analytics":126,"../lib/braintree-error":131,"../lib/convert-methods-to-error":134,"../lib/in-iframe":157,"../lib/is-verified-domain":160,"../lib/methods":162,"../lib/promise":164,"../lib/querystring":165,"./external/":214,"./external/queries":215,"./shared/browser-detection":218,"./shared/constants":219,"./shared/errors":220,"./shared/supports-venmo":222,"@braintree/extended-promise":40,"@braintree/wrap-promise":49}],224:[function(_dereq_,module,exports){
+},{"../lib/analytics":126,"../lib/braintree-error":131,"../lib/convert-methods-to-error":134,"../lib/in-iframe":157,"../lib/is-verified-domain":160,"../lib/methods":162,"../lib/promise":164,"../lib/querystring":165,"./external/":214,"./external/queries":215,"./shared/browser-detection":218,"./shared/constants":219,"./shared/errors":220,"./shared/get-venmo-url":222,"./shared/supports-venmo":223,"./shared/web-login-backdrop":224,"@braintree/extended-promise":40,"@braintree/wrap-promise":49}],226:[function(_dereq_,module,exports){
 "use strict";
 
 /**
@@ -22942,7 +23400,7 @@ module.exports = {
   },
 };
 
-},{"../lib/braintree-error":131}],225:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":131}],227:[function(_dereq_,module,exports){
 "use strict";
 
 /**
@@ -22957,7 +23415,7 @@ var createAssetsUrl = _dereq_("../lib/create-assets-url");
 var VisaCheckout = _dereq_("./visa-checkout");
 var analytics = _dereq_("../lib/analytics");
 var errors = _dereq_("./errors");
-var VERSION = "3.85.5";
+var VERSION = "3.86.0";
 var Promise = _dereq_("../lib/promise");
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 
@@ -23014,7 +23472,7 @@ module.exports = {
   VERSION: VERSION,
 };
 
-},{"../lib/analytics":126,"../lib/basic-component-verification":129,"../lib/braintree-error":131,"../lib/create-assets-url":136,"../lib/create-deferred-client":138,"../lib/promise":164,"./errors":224,"./visa-checkout":226,"@braintree/wrap-promise":49}],226:[function(_dereq_,module,exports){
+},{"../lib/analytics":126,"../lib/basic-component-verification":129,"../lib/braintree-error":131,"../lib/create-assets-url":136,"../lib/create-deferred-client":138,"../lib/promise":164,"./errors":226,"./visa-checkout":228,"@braintree/wrap-promise":49}],228:[function(_dereq_,module,exports){
 "use strict";
 
 var BraintreeError = _dereq_("../lib/braintree-error");
@@ -23223,5 +23681,5 @@ VisaCheckout.prototype.teardown = function () {
 
 module.exports = wrapPromise.wrapPrototype(VisaCheckout);
 
-},{"../lib/analytics":126,"../lib/braintree-error":131,"../lib/convert-methods-to-error":134,"../lib/json-clone":161,"../lib/methods":162,"../lib/promise":164,"./errors":224,"@braintree/wrap-promise":49}]},{},[124])(124)
+},{"../lib/analytics":126,"../lib/braintree-error":131,"../lib/convert-methods-to-error":134,"../lib/json-clone":161,"../lib/methods":162,"../lib/promise":164,"./errors":226,"@braintree/wrap-promise":49}]},{},[124])(124)
 });
