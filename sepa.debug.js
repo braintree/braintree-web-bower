@@ -1,4 +1,4 @@
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}(g.braintree || (g.braintree = {})).localPayment = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(_dereq_,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}(g.braintree || (g.braintree = {})).sepa = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(_dereq_,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -1385,7 +1385,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":54,"./create-authorization-data":58,"./json-clone":74}],49:[function(_dereq_,module,exports){
+},{"./constants":54,"./create-authorization-data":56,"./json-clone":72}],49:[function(_dereq_,module,exports){
 "use strict";
 
 var Promise = _dereq_("./promise");
@@ -1440,7 +1440,7 @@ module.exports = {
   sendEvent: sendAnalyticsEvent,
 };
 
-},{"./add-metadata":48,"./constants":54,"./promise":76}],50:[function(_dereq_,module,exports){
+},{"./add-metadata":48,"./constants":54,"./promise":73}],50:[function(_dereq_,module,exports){
 "use strict";
 
 var loadScript = _dereq_("@braintree/asset-loader/load-script");
@@ -1537,7 +1537,7 @@ module.exports = {
   verify: basicComponentVerification,
 };
 
-},{"./braintree-error":53,"./errors":61,"./promise":76}],53:[function(_dereq_,module,exports){
+},{"./braintree-error":53,"./errors":59,"./promise":73}],53:[function(_dereq_,module,exports){
 "use strict";
 
 var enumerate = _dereq_("./enumerate");
@@ -1626,7 +1626,7 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":60}],54:[function(_dereq_,module,exports){
+},{"./enumerate":58}],54:[function(_dereq_,module,exports){
 "use strict";
 
 var VERSION = "3.87.0";
@@ -1670,46 +1670,6 @@ module.exports = {
 },{}],55:[function(_dereq_,module,exports){
 "use strict";
 
-var BraintreeError = _dereq_("./braintree-error");
-var sharedErrors = _dereq_("./errors");
-
-module.exports = function (instance, methodNames) {
-  methodNames.forEach(function (methodName) {
-    instance[methodName] = function () {
-      throw new BraintreeError({
-        type: sharedErrors.METHOD_CALLED_AFTER_TEARDOWN.type,
-        code: sharedErrors.METHOD_CALLED_AFTER_TEARDOWN.code,
-        message: methodName + " cannot be called after teardown.",
-      });
-    };
-  });
-};
-
-},{"./braintree-error":53,"./errors":61}],56:[function(_dereq_,module,exports){
-"use strict";
-
-var BraintreeError = _dereq_("./braintree-error");
-
-function convertToBraintreeError(originalErr, btErrorObject) {
-  if (originalErr instanceof BraintreeError) {
-    return originalErr;
-  }
-
-  return new BraintreeError({
-    type: btErrorObject.type,
-    code: btErrorObject.code,
-    message: btErrorObject.message,
-    details: {
-      originalError: originalErr,
-    },
-  });
-}
-
-module.exports = convertToBraintreeError;
-
-},{"./braintree-error":53}],57:[function(_dereq_,module,exports){
-"use strict";
-
 // endRemoveIf(production)
 var ASSETS_URLS = _dereq_("./constants").ASSETS_URLS;
 
@@ -1724,7 +1684,7 @@ module.exports = {
   create: createAssetsUrl,
 };
 
-},{"./constants":54}],58:[function(_dereq_,module,exports){
+},{"./constants":54}],56:[function(_dereq_,module,exports){
 "use strict";
 
 var atob = _dereq_("../lib/vendor/polyfill").atob;
@@ -1775,7 +1735,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/constants":54,"../lib/vendor/polyfill":79}],59:[function(_dereq_,module,exports){
+},{"../lib/constants":54,"../lib/vendor/polyfill":75}],57:[function(_dereq_,module,exports){
 "use strict";
 
 var BraintreeError = _dereq_("./braintree-error");
@@ -1840,7 +1800,7 @@ module.exports = {
   create: createDeferredClient,
 };
 
-},{"./assets":50,"./braintree-error":53,"./errors":61,"./promise":76}],60:[function(_dereq_,module,exports){
+},{"./assets":50,"./braintree-error":53,"./errors":59,"./promise":73}],58:[function(_dereq_,module,exports){
 "use strict";
 
 function enumerate(values, prefix) {
@@ -1855,7 +1815,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],61:[function(_dereq_,module,exports){
+},{}],59:[function(_dereq_,module,exports){
 "use strict";
 
 /**
@@ -1905,7 +1865,7 @@ module.exports = {
   },
 };
 
-},{"./braintree-error":53}],62:[function(_dereq_,module,exports){
+},{"./braintree-error":53}],60:[function(_dereq_,module,exports){
 "use strict";
 
 var Popup = _dereq_("./strategies/popup");
@@ -2153,7 +2113,7 @@ FrameService.prototype._getFrameForEnvironment = function (options) {
 
 module.exports = FrameService;
 
-},{"../../braintree-error":53,"../../constants":54,"../../is-https":73,"../shared/browser-detection":69,"../shared/constants":70,"../shared/errors":71,"../shared/events":72,"./../../assign":51,"./strategies/modal":64,"./strategies/popup":67,"./strategies/popup-bridge":65,"@braintree/iframer":24,"@braintree/uuid":28,"framebus":34}],63:[function(_dereq_,module,exports){
+},{"../../braintree-error":53,"../../constants":54,"../../is-https":71,"../shared/browser-detection":67,"../shared/constants":68,"../shared/errors":69,"../shared/events":70,"./../../assign":51,"./strategies/modal":62,"./strategies/popup":65,"./strategies/popup-bridge":63,"@braintree/iframer":24,"@braintree/uuid":28,"framebus":34}],61:[function(_dereq_,module,exports){
 "use strict";
 
 var FrameService = _dereq_("./frame-service");
@@ -2168,7 +2128,7 @@ module.exports = {
   },
 };
 
-},{"./frame-service":62}],64:[function(_dereq_,module,exports){
+},{"./frame-service":60}],62:[function(_dereq_,module,exports){
 "use strict";
 
 var iFramer = _dereq_("@braintree/iframer");
@@ -2284,7 +2244,7 @@ Modal.prototype._lockScrolling = function () {
 
 module.exports = Modal;
 
-},{"../../../assign":51,"../../shared/browser-detection":69,"@braintree/iframer":24}],65:[function(_dereq_,module,exports){
+},{"../../../assign":51,"../../shared/browser-detection":67,"@braintree/iframer":24}],63:[function(_dereq_,module,exports){
 "use strict";
 
 var BraintreeError = _dereq_("../../../braintree-error");
@@ -2340,7 +2300,7 @@ PopupBridge.prototype.redirect = function (redirectUrl) {
 
 module.exports = PopupBridge;
 
-},{"../../../braintree-error":53,"../../shared/errors":71}],66:[function(_dereq_,module,exports){
+},{"../../../braintree-error":53,"../../shared/errors":69}],64:[function(_dereq_,module,exports){
 "use strict";
 
 var constants = _dereq_("../../../shared/constants");
@@ -2369,7 +2329,7 @@ module.exports = function composePopupOptions(options) {
   ].join(",");
 };
 
-},{"../../../shared/constants":70,"./position":68}],67:[function(_dereq_,module,exports){
+},{"../../../shared/constants":68,"./position":66}],65:[function(_dereq_,module,exports){
 "use strict";
 
 var composeOptions = _dereq_("./compose-options");
@@ -2414,7 +2374,7 @@ Popup.prototype.redirect = function (redirectUrl) {
 
 module.exports = Popup;
 
-},{"./compose-options":66}],68:[function(_dereq_,module,exports){
+},{"./compose-options":64}],66:[function(_dereq_,module,exports){
 "use strict";
 
 function top(height) {
@@ -2442,7 +2402,7 @@ module.exports = {
   center: center,
 };
 
-},{}],69:[function(_dereq_,module,exports){
+},{}],67:[function(_dereq_,module,exports){
 "use strict";
 
 module.exports = {
@@ -2452,7 +2412,7 @@ module.exports = {
   supportsPopups: _dereq_("@braintree/browser-detection/supports-popups"),
 };
 
-},{"@braintree/browser-detection/is-ie":19,"@braintree/browser-detection/is-ios":21,"@braintree/browser-detection/is-ios-wkwebview":20,"@braintree/browser-detection/supports-popups":22}],70:[function(_dereq_,module,exports){
+},{"@braintree/browser-detection/is-ie":19,"@braintree/browser-detection/is-ios":21,"@braintree/browser-detection/is-ios-wkwebview":20,"@braintree/browser-detection/supports-popups":22}],68:[function(_dereq_,module,exports){
 "use strict";
 
 module.exports = {
@@ -2465,7 +2425,7 @@ module.exports = {
   POPUP_CLOSE_TIMEOUT: 100,
 };
 
-},{}],71:[function(_dereq_,module,exports){
+},{}],69:[function(_dereq_,module,exports){
 "use strict";
 
 /**
@@ -2498,7 +2458,7 @@ module.exports = {
   },
 };
 
-},{"../../braintree-error":53}],72:[function(_dereq_,module,exports){
+},{"../../braintree-error":53}],70:[function(_dereq_,module,exports){
 "use strict";
 
 var enumerate = _dereq_("../../enumerate");
@@ -2508,7 +2468,7 @@ module.exports = enumerate(
   "frameService:"
 );
 
-},{"../../enumerate":60}],73:[function(_dereq_,module,exports){
+},{"../../enumerate":58}],71:[function(_dereq_,module,exports){
 "use strict";
 
 function isHTTPS(protocol) {
@@ -2521,23 +2481,14 @@ module.exports = {
   isHTTPS: isHTTPS,
 };
 
-},{}],74:[function(_dereq_,module,exports){
+},{}],72:[function(_dereq_,module,exports){
 "use strict";
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],75:[function(_dereq_,module,exports){
-"use strict";
-
-module.exports = function (obj) {
-  return Object.keys(obj).filter(function (key) {
-    return typeof obj[key] === "function";
-  });
-};
-
-},{}],76:[function(_dereq_,module,exports){
+},{}],73:[function(_dereq_,module,exports){
 "use strict";
 
 var PromisePolyfill = _dereq_("promise-polyfill");
@@ -2551,114 +2502,7 @@ ExtendedPromise.setPromise(PromiseGlobal);
 
 module.exports = PromiseGlobal;
 
-},{"@braintree/extended-promise":23,"promise-polyfill":47}],77:[function(_dereq_,module,exports){
-"use strict";
-
-function _notEmpty(obj) {
-  var key;
-
-  for (key in obj) {
-    if (obj.hasOwnProperty(key)) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-/* eslint-disable no-mixed-operators */
-function _isArray(value) {
-  return (
-    (value &&
-      typeof value === "object" &&
-      typeof value.length === "number" &&
-      Object.prototype.toString.call(value) === "[object Array]") ||
-    false
-  );
-}
-/* eslint-enable no-mixed-operators */
-
-function hasQueryParams(url) {
-  url = url || window.location.href;
-
-  return /\?/.test(url);
-}
-
-function parse(url) {
-  var query, params;
-
-  url = url || window.location.href;
-
-  if (!hasQueryParams(url)) {
-    return {};
-  }
-
-  query = url.split("?")[1] || "";
-  query = query.replace(/#.*$/, "").split("&");
-
-  params = query.reduce(function (toReturn, keyValue) {
-    var parts = keyValue.split("=");
-    var key = decodeURIComponent(parts[0]);
-    var value = decodeURIComponent(parts[1]);
-
-    toReturn[key] = value;
-
-    return toReturn;
-  }, {});
-
-  return params;
-}
-
-function stringify(params, namespace) {
-  var k, v, p;
-  var query = [];
-
-  for (p in params) {
-    if (!params.hasOwnProperty(p)) {
-      continue;
-    }
-
-    v = params[p];
-
-    if (namespace) {
-      if (_isArray(params)) {
-        k = namespace + "[]";
-      } else {
-        k = namespace + "[" + p + "]";
-      }
-    } else {
-      k = p;
-    }
-    if (typeof v === "object") {
-      query.push(stringify(v, k));
-    } else {
-      query.push(encodeURIComponent(k) + "=" + encodeURIComponent(v));
-    }
-  }
-
-  return query.join("&");
-}
-
-function queryify(url, params) {
-  url = url || "";
-
-  if (params != null && typeof params === "object" && _notEmpty(params)) {
-    url += url.indexOf("?") === -1 ? "?" : "";
-    url += url.indexOf("=") !== -1 ? "&" : "";
-    url += stringify(params);
-  }
-
-  return url;
-}
-
-module.exports = {
-  parse: parse,
-  stringify: stringify,
-  queryify: queryify,
-  hasQueryParams: hasQueryParams,
-};
-
-},{}],78:[function(_dereq_,module,exports){
+},{"@braintree/extended-promise":23,"promise-polyfill":47}],74:[function(_dereq_,module,exports){
 "use strict";
 
 function useMin(isDebug) {
@@ -2667,7 +2511,7 @@ function useMin(isDebug) {
 
 module.exports = useMin;
 
-},{}],79:[function(_dereq_,module,exports){
+},{}],75:[function(_dereq_,module,exports){
 "use strict";
 
 // NEXT_MAJOR_VERSION old versions of IE don't have atob, in the
@@ -2715,624 +2559,390 @@ module.exports = {
   _atob: atobPolyfill,
 };
 
-},{}],80:[function(_dereq_,module,exports){
+},{}],76:[function(_dereq_,module,exports){
 "use strict";
 
-module.exports = {
-  REQUIRED_OPTIONS_FOR_START_PAYMENT: [
-    "onPaymentStart",
-    "paymentType",
-    "amount",
-    "fallback",
-  ],
-};
-
-},{}],81:[function(_dereq_,module,exports){
-"use strict";
-
-var frameService = _dereq_("../../lib/frame-service/external");
 var BraintreeError = _dereq_("../../lib/braintree-error");
-var useMin = _dereq_("../../lib/use-min");
-var VERSION = "3.87.0";
-var INTEGRATION_TIMEOUT_MS =
-  _dereq_("../../lib/constants").INTEGRATION_TIMEOUT_MS;
-var analytics = _dereq_("../../lib/analytics");
-var methods = _dereq_("../../lib/methods");
-var convertMethodsToError = _dereq_("../../lib/convert-methods-to-error");
-var convertToBraintreeError = _dereq_("../../lib/convert-to-braintree-error");
+var sepaErrors = _dereq_("../shared/errors");
 var Promise = _dereq_("../../lib/promise");
-var ExtendedPromise = _dereq_("@braintree/extended-promise");
-var querystring = _dereq_("../../lib/querystring");
-var wrapPromise = _dereq_("@braintree/wrap-promise");
-var constants = _dereq_("./constants");
-var errors = _dereq_("../shared/errors");
+var frameService = _dereq_("../../lib/frame-service/external");
+var analytics = _dereq_("../../lib/analytics");
+var useMin = _dereq_("../../lib/use-min");
 
-var DEFAULT_WINDOW_WIDTH = 1282;
-var DEFAULT_WINDOW_HEIGHT = 720;
+var POPUP_WIDTH = 400;
+var POPUP_HEIGHT = 570;
 
 /**
- * @class
- * @param {object} options see {@link module:braintree-web/local-payment.create|local-payment.create}
- * @classdesc This class represents a LocalPayment component. Instances of this class can open a LocalPayment window for paying with alternate payments local to a specific country. Any additional UI, such as disabling the page while authentication is taking place, is up to the developer.
- *
- * @description <strong>Do not use this constructor directly. Use {@link module:braintree-web/local-payment.create|braintree-web.local-payment.create} instead.</strong>
+ * @ignore
+ * @typedef CreateMandateResponse
+ * @property {string} approvalUrl The URL to present to the customer for payment approval.
+ * @property {string} last4 The last four digits of the iban.
+ * @property {string} bankReferenceToken The tokenized payment source to fun the payment.
  */
-function LocalPayment(options) {
-  this._client = options.client;
-  this._assetsUrl =
-    options.client.getConfiguration().gatewayConfiguration.assetsUrl +
-    "/web/" +
-    VERSION;
-  this._isDebug = options.client.getConfiguration().isDebug;
-  this._loadingFrameUrl =
-    this._assetsUrl +
-    "/html/local-payment-landing-frame" +
-    useMin(this._isDebug) +
-    ".html";
-  this._authorizationInProgress = false;
-  this._paymentType = "unknown";
-  this._merchantAccountId = options.merchantAccountId;
-}
 
-LocalPayment.prototype._initialize = function () {
-  var self = this;
-  var client = this._client;
-  var failureTimeout = setTimeout(function () {
-    analytics.sendEvent(client, "local-payment.load.timed-out");
-  }, INTEGRATION_TIMEOUT_MS);
+/**
+ *
+ * A function that creates a mandate so that we can present the mandate to the customer via a popup.
+ *
+ * @ignore
+ * @static
+ * @function createMandate
+ * @param {object} client The Braintree client.
+ * @param {object} options All options for intiating the SEPA payment flow.
+ * @param {string} [options.accountHolderName] The account holder name.
+ * @param {string} [options.cancelUrl] The URL to redirect to if authorization is cancelled.
+ * @param {string} [options.countryCode] The customer's country code.
+ * @param {string} [options.customerId] The customer's id.
+ * @param {string} [options.iban] The customer's International Bank Account Number.
+ * @param {string} [options.mandateType] Specify ONE_OFF or RECURRENT payment.
+ * @param {string} [options.merchantAccountId] The merchant's account id.
+ * @param {string} [options.merchantId] The merchant id.
+ * @param {string} [options.returnUrl] The URL to redirect to if authorization is successful.
+ * @returns {Promise<CreateMandateResponse|Error>} Returns a promise with the mandate response or an error.
+ */
 
-  return new Promise(function (resolve) {
-    frameService.create(
-      {
-        name: "localpaymentlandingpage",
-        dispatchFrameUrl:
-          self._assetsUrl +
-          "/html/dispatch-frame" +
-          useMin(self._isDebug) +
-          ".html",
-        openFrameUrl: self._loadingFrameUrl,
+function createMandate(client, options) {
+  // Disabling eslint because api is expecting snake_case format for the keys
+  /* eslint-disable */
+  var data = {
+    sepa_debit: {
+      account_holder_name: options.accountHolderName,
+      merchant_or_partner_customer_id: options.customerId,
+      iban: options.iban,
+      mandate_type: options.mandateType,
+      billing_address: {
+        country_code: options.countryCode,
       },
-      function (service) {
-        self._frameService = service;
-        clearTimeout(failureTimeout);
-        analytics.sendEvent(client, "local-payment.load.succeeded");
-        resolve(self);
-      }
-    );
-  });
-};
-
-/**
- * Launches the local payment flow and returns a nonce payload. Only one local payment flow should be active at a time. One way to achieve this is to disable your local payment button while the flow is open.
- * @public
- * @function
- * @param {object} options All options for initiating the local payment payment flow.
- * @param {object} options.fallback Configuration for what to do when app switching back from a Bank app on a mobile device.
- * @param {string} options.fallback.buttonText The text to display in a button to redirect back to the merchant page.
- * @param {string} options.fallback.url The url to redirect to when the redirect button is pressed. Query params will be added to the url to process the data returned from the bank.
- * @param {string} options.fallback.cancelButtonText The text to display in a button to redirect back to the merchant page when the customer cancels. If no `cancelButtonText` is provided, `buttonText` will be used.
- * @param {string} options.fallback.cancelUrl The url to redirect to when the redirect button is pressed when the customer cancels. Query params will be added to the url to check the state of the payment. If no `cancelUrl` is provided, `url` will be used.
- * @param {object} [options.windowOptions] The options for configuring the window that is opened when starting the payment.
- * @param {number} [options.windowOptions.width=1282] The width in pixels of the window opened when starting the payment. The default width size is this large to allow various banking partner landing pages to display the QR Code to be scanned by the bank's mobile app. Many will not display the QR code when the window size is smaller than a standard desktop screen.
- * @param {number} [options.windowOptions.height=720] The height in pixels of the window opened when starting the payment.
- * @param {string} options.amount The amount to authorize for the transaction.
- * @param {string} options.currencyCode The currency to process the payment.
- * @param {string} [options.displayName] The merchant name displayed inside of the window that is opened when starting the payment.
- * @param {string} options.paymentType The type of local payment.
- * @param {string} options.paymentTypeCountryCode The country code of the local payment. This value must be one of the supported country codes for a given local payment type listed {@link https://developer.paypal.com/braintree/docs/guides/local-payment-methods/client-side-custom/javascript/v3#render-local-payment-method-buttons|here}. For local payments supported in multiple countries, this value may determine which banks are presented to the customer.
- * @param {string} options.email Payer email of the customer.
- * @param {string} options.givenName First name of the customer.
- * @param {string} options.surname Last name of the customer.
- * @param {string} options.phone Phone number of the customer.
- * @param {string} options.bic Bank Identification Code of the customer (specific to iDEAL transactions).
- * @param {boolean} options.shippingAddressRequired Indicates whether or not the payment needs to be shipped. For digital goods, this should be false. Defaults to false.
- * @param {string} options.address.streetAddress Line 1 of the Address (eg. number, street, etc). An error will occur if this address is not valid.
- * @param {string} options.address.extendedAddress Line 2 of the Address (eg. suite, apt #, etc.). An error will occur if this address is not valid.
- * @param {string} options.address.locality Customer's city.
- * @param {string} options.address.region Customer's region or state.
- * @param {string} options.address.postalCode Customer's postal code.
- * @param {string} options.address.countryCode Customer's country code.
- * @param {function} options.onPaymentStart A function that will be called with two parameters: an object containing the  `paymentId` and a `continueCallback` that must be called to launch the flow. You can use method to do any preprocessing on your server before the flow begins..
- * @param {callback} [callback] The second argument, <code>data</code>, is a {@link LocalPayment~startPaymentPayload|startPaymentPayload}. If no callback is provided, the method will return a Promise that resolves with a {@link LocalPayment~startPaymentPayload|startPaymentPayload}.
- * @example
- * button.addEventListener('click', function () {
- *   // Disable the button when local payment is in progress
- *   button.setAttribute('disabled', 'disabled');
- *
- *   // Because startPayment opens a new window, this must be called
- *   // as a result of a user action, such as a button click.
- *   localPaymentInstance.startPayment({
- *     paymentType: 'ideal',
- *     paymentTypeCountryCode: 'NL',
- *     fallback: {
- *       buttonText: 'Return to Merchant',
- *       url: 'https://example.com/my-checkout-page'
- *     },
- *     amount: '10.00',
- *     currencyCode: 'EUR',
- *     onPaymentStart: function (data, continueCallback) {
- *       // Do any preprocessing before starting the flow
- *       // data.paymentId is the ID of the localPayment
- *       continueCallback();
- *     }
- *   }).then(function (payload) {
- *     button.removeAttribute('disabled');
- *     // Submit payload.nonce to your server
- *   }).catch(function (startPaymentError) {
- *     button.removeAttribute('disabled');
- *     // Handle flow errors or premature flow closure
- *     console.error('Error!', startPaymentError);
- *   });
- * });
- * @returns {(Promise|void)} Returns a promise if no callback is provided.
- */
-LocalPayment.prototype.startPayment = function (options) {
-  var address, params, promise;
-  var self = this; // eslint-disable-line no-invalid-this
-  var serviceId = this._frameService._serviceId; // eslint-disable-line no-invalid-this
-  var windowOptions = options.windowOptions || {};
-
-  if (hasMissingOption(options)) {
-    return Promise.reject(
-      new BraintreeError(
-        errors.LOCAL_PAYMENT_START_PAYMENT_MISSING_REQUIRED_OPTION
-      )
-    );
-  }
-
-  address = options.address || {};
-  params = {
-    intent: "sale",
-    returnUrl: querystring.queryify(
-      self._assetsUrl +
-        "/html/local-payment-redirect-frame" +
-        useMin(self._isDebug) +
-        ".html",
-      {
-        channel: serviceId,
-        r: options.fallback.url,
-        t: options.fallback.buttonText,
-      }
-    ),
-    cancelUrl: querystring.queryify(
-      self._assetsUrl +
-        "/html/local-payment-redirect-frame" +
-        useMin(self._isDebug) +
-        ".html",
-      {
-        channel: serviceId,
-        r: options.fallback.cancelUrl || options.fallback.url,
-        t: options.fallback.cancelButtonText || options.fallback.buttonText,
-        c: 1, // indicating we went through the cancel flow
-      }
-    ),
-    experienceProfile: {
-      brandName: options.displayName,
-      noShipping: !options.shippingAddressRequired,
     },
-    fundingSource: options.paymentType,
-    paymentTypeCountryCode: options.paymentTypeCountryCode,
-    amount: options.amount,
-    currencyIsoCode: options.currencyCode,
-    firstName: options.givenName,
-    lastName: options.surname,
-    payerEmail: options.email,
-    phone: options.phone,
-    line1: address.streetAddress,
-    line2: address.extendedAddress,
-    city: address.locality,
-    state: address.region,
-    postalCode: address.postalCode,
-    countryCode: address.countryCode,
-    merchantAccountId: self._merchantAccountId,
-    bic: options.bic,
+    cancel_url: options.cancelUrl,
+    return_url: options.returnUrl,
+    merchant_account_id: options.merchantAccountId,
   };
-
-  self._paymentType = options.paymentType.toLowerCase();
-  if (self._authorizationInProgress) {
-    analytics.sendEvent(
-      self._client,
-      self._paymentType + ".local-payment.start-payment.error.already-opened"
-    );
-
-    return Promise.reject(
-      new BraintreeError(errors.LOCAL_PAYMENT_ALREADY_IN_PROGRESS)
-    );
-  }
-
-  self._authorizationInProgress = true;
-
-  promise = new ExtendedPromise();
-
-  self._startPaymentCallback = self._createStartPaymentCallback(
-    function (val) {
-      promise.resolve(val);
-    },
-    function (err) {
-      promise.reject(err);
-    }
-  );
-  self._frameService.open(
-    {
-      width: windowOptions.width || DEFAULT_WINDOW_WIDTH,
-      height: windowOptions.height || DEFAULT_WINDOW_HEIGHT,
-    },
-    self._startPaymentCallback
-  );
-
-  self._client
-    .request({
-      method: "post",
-      endpoint: "local_payments/create",
-      data: params,
-    })
-    .then(function (response) {
-      analytics.sendEvent(
-        self._client,
-        self._paymentType + ".local-payment.start-payment.opened"
-      );
-      self._startPaymentOptions = options;
-      options.onPaymentStart(
-        { paymentId: response.paymentResource.paymentToken },
-        function () {
-          self._frameService.redirect(response.paymentResource.redirectUrl);
-        }
-      );
-    })
-    .catch(function (err) {
-      var status = err.details && err.details.httpStatus;
-
-      self._frameService.close();
-      self._authorizationInProgress = false;
-
-      if (status === 422) {
-        promise.reject(
-          new BraintreeError({
-            type: errors.LOCAL_PAYMENT_INVALID_PAYMENT_OPTION.type,
-            code: errors.LOCAL_PAYMENT_INVALID_PAYMENT_OPTION.code,
-            message: errors.LOCAL_PAYMENT_INVALID_PAYMENT_OPTION.message,
-            details: {
-              originalError: err,
-            },
-          })
-        );
-
-        return;
-      }
-
-      promise.reject(
-        convertToBraintreeError(err, {
-          type: errors.LOCAL_PAYMENT_START_PAYMENT_FAILED.type,
-          code: errors.LOCAL_PAYMENT_START_PAYMENT_FAILED.code,
-          message: errors.LOCAL_PAYMENT_START_PAYMENT_FAILED.message,
-        })
-      );
-    });
-
-  return promise;
-};
-
-/**
- * Manually tokenizes params for a local payment received from PayPal.When app switching back from a mobile application (such as a bank application for an iDEAL payment), the window may lose context with the parent page. In that case, a fallback url is used, and this method can be used to finish the flow.
- * @public
- * @function
- * @param {object} [params] All options for tokenizing local payment parameters. If no params are passed in, the params will be pulled off of the query string of the page.
- * @param {string} params.btLpToken The token representing the local payment. Aliased to `token` if `btLpToken` is not present.
- * @param {string} params.btLpPaymentId The payment id for the local payment. Aliased to `paymentId` if `btLpPaymentId` is not present.
- * @param {string} params.btLpPayerId The payer id for the local payment. Aliased to `PayerID` if `btLpPayerId` is not present.
- * @param {callback} [callback] The second argument, <code>data</code>, is a {@link LocalPayment~startPaymentPayload|startPaymentPayload}. If no callback is provided, the method will return a Promise that resolves with a {@link LocalPayment~startPaymentPayload|startPaymentPayload}.
- * @example
- * localPaymentInstance.tokenize().then(function (payload) {
- *   // send payload.nonce to your server
- * }).catch(function (err) {
- *   // handle tokenization error
- * });
- * @returns {(Promise|void)} Returns a promise if no callback is provided.
- */
-LocalPayment.prototype.tokenize = function (params) {
-  var self = this;
-  var client = this._client;
-
-  params = params || querystring.parse();
-
-  if (params.c || params.wasCanceled) {
-    return Promise.reject(
-      new BraintreeError({
-        type: errors.LOCAL_PAYMENT_CANCELED.type,
-        code: errors.LOCAL_PAYMENT_CANCELED.code,
-        message: errors.LOCAL_PAYMENT_CANCELED.message,
-        details: {
-          originalError: {
-            errorcode: params.errorcode,
-            token: params.btLpToken,
-          },
-        },
-      })
-    );
-  } else if (params.errorcode) {
-    return Promise.reject(
-      new BraintreeError({
-        type: errors.LOCAL_PAYMENT_START_PAYMENT_FAILED.type,
-        code: errors.LOCAL_PAYMENT_START_PAYMENT_FAILED.code,
-        message: errors.LOCAL_PAYMENT_START_PAYMENT_FAILED.message,
-        details: {
-          originalError: {
-            errorcode: params.errorcode,
-            token: params.btLpToken,
-          },
-        },
-      })
-    );
-  }
+  /* eslint-enable */
 
   return client
     .request({
-      endpoint: "payment_methods/paypal_accounts",
+      api: "clientApi",
       method: "post",
-      data: this._formatTokenizeData(params),
+      endpoint: "sepa_debit",
+      data: data,
     })
     .then(function (response) {
-      var payload = self._formatTokenizePayload(response);
+      var sepaDebitAccount = response.message.body.sepaDebitAccount;
 
-      if (window.popupBridge) {
-        analytics.sendEvent(
-          client,
-          self._paymentType + ".local-payment.tokenization.success-popupbridge"
-        );
-      } else {
-        analytics.sendEvent(
-          client,
-          self._paymentType + ".local-payment.tokenization.success"
-        );
+      if (!sepaDebitAccount) {
+        throw new BraintreeError(sepaErrors.SEPA_CREATE_MANDATE_FAILED);
       }
 
-      return payload;
+      return {
+        approvalUrl: sepaDebitAccount.approvalUrl,
+        last4: sepaDebitAccount.last4,
+        bankReferenceToken: sepaDebitAccount.bankReferenceToken,
+      };
     })
-    .catch(function (err) {
-      analytics.sendEvent(
-        client,
-        self._paymentType + ".local-payment.tokenization.failed"
-      );
-
-      return Promise.reject(
-        convertToBraintreeError(err, {
-          type: errors.LOCAL_PAYMENT_TOKENIZATION_FAILED.type,
-          code: errors.LOCAL_PAYMENT_TOKENIZATION_FAILED.code,
-          message: errors.LOCAL_PAYMENT_TOKENIZATION_FAILED.message,
-        })
-      );
+    .catch(function () {
+      throw new BraintreeError(sepaErrors.SEPA_CREATE_MANDATE_FAILED);
     });
-};
-
-/**
- * Closes the LocalPayment window if it is open.
- * @public
- * @example
- * localPaymentInstance.closeWindow();
- * @returns {void}
- */
-LocalPayment.prototype.closeWindow = function () {
-  if (this._authoriztionInProgress) {
-    analytics.sendEvent(
-      this._client,
-      this._paymentType + ".local-payment.start-payment.closed.by-merchant"
-    );
-  }
-  this._frameService.close();
-};
-
-/**
- * Focuses the LocalPayment window if it is open.
- * @public
- * @example
- * localPaymentInstance.focusWindow();
- * @returns {void}
- */
-LocalPayment.prototype.focusWindow = function () {
-  this._frameService.focus();
-};
-
-LocalPayment.prototype._createStartPaymentCallback = function (
-  resolve,
-  reject
-) {
-  var self = this;
-  var client = this._client;
-
-  return function (err, params) {
-    self._authorizationInProgress = false;
-    if (err) {
-      if (err.code === "FRAME_SERVICE_FRAME_CLOSED") {
-        if (params && params.errorcode === "processing_error") {
-          // something failed within the payment window (rather than when
-          // tokenizing with Braintree)
-          analytics.sendEvent(
-            client,
-            self._paymentType + ".local-payment.failed-in-window"
-          );
-          reject(new BraintreeError(errors.LOCAL_PAYMENT_START_PAYMENT_FAILED));
-
-          return;
-        }
-
-        // its possible to have a query param with errorcode=payment_error, which
-        // indicates that the customer cancelled the flow from within the UI,
-        // but as there's no meaningful difference to the merchant whether the
-        // customer closes via the UI or by manually closing the window, we
-        // don't differentiate these
-        analytics.sendEvent(
-          client,
-          self._paymentType + ".local-payment.tokenization.closed.by-user"
-        );
-        reject(new BraintreeError(errors.LOCAL_PAYMENT_WINDOW_CLOSED));
-      } else if (
-        err.code &&
-        err.code.indexOf("FRAME_SERVICE_FRAME_OPEN_FAILED") > -1
-      ) {
-        reject(
-          new BraintreeError({
-            code: errors.LOCAL_PAYMENT_WINDOW_OPEN_FAILED.code,
-            type: errors.LOCAL_PAYMENT_WINDOW_OPEN_FAILED.type,
-            message: errors.LOCAL_PAYMENT_WINDOW_OPEN_FAILED.message,
-            details: {
-              originalError: err,
-            },
-          })
-        );
-      }
-    } else if (params) {
-      if (!window.popupBridge) {
-        self._frameService.redirect(self._loadingFrameUrl);
-      }
-
-      self
-        .tokenize(params)
-        .then(resolve)
-        .catch(reject)
-        .then(function () {
-          self._frameService.close();
-        });
-    }
-  };
-};
-
-LocalPayment.prototype._formatTokenizePayload = function (response) {
-  var payload;
-  var account = {};
-
-  if (response.paypalAccounts) {
-    account = response.paypalAccounts[0];
-  }
-
-  payload = {
-    nonce: account.nonce,
-    details: {},
-    type: account.type,
-  };
-
-  if (account.details) {
-    if (account.details.payerInfo) {
-      payload.details = account.details.payerInfo;
-    }
-    if (account.details.correlationId) {
-      payload.correlationId = account.details.correlationId;
-    }
-  }
-
-  return payload;
-};
-
-/**
- * Checks if required tokenization parameters are available in querystring for manual tokenization requests.
- * @public
- * @function
- * @example
- * // if query string contains
- * // ?btLpToken=token&btLpPaymentId=payment-id&btLpPayerId=payer-id
- * localPaymentInstance.hasTokenizationParams(); // true
- *
- * // if query string is missing required params
- * localPaymentInstance.hasTokenizationParams(); // false
- *
- * if (localPaymentInstance.hasTokenizationParams()) {
- *   localPaymentInstance.tokenize();
- * }
- * @returns {Boolean} Returns a Boolean value for the state of the query string.
- */
-LocalPayment.prototype.hasTokenizationParams = function () {
-  var params = querystring.parse();
-
-  if (params.errorcode) {
-    return true;
-  }
-
-  return Boolean(
-    params.btLpToken && params.btLpPaymentId && params.btLpPayerId
-  );
-};
-
-LocalPayment.prototype._formatTokenizeData = function (params) {
-  var clientConfiguration = this._client.getConfiguration();
-  var gatewayConfiguration = clientConfiguration.gatewayConfiguration;
-  var data = {
-    merchantAccountId: this._merchantAccountId,
-    paypalAccount: {
-      correlationId: params.btLpToken || params.token,
-      paymentToken: params.btLpPaymentId || params.paymentId,
-      payerId: params.btLpPayerId || params.PayerID,
-      unilateral: gatewayConfiguration.paypal.unvettedMerchant,
-      intent: "sale",
-    },
-  };
-
-  return data;
-};
-
-function hasMissingOption(options) {
-  var i, option;
-
-  if (!options) {
-    return true;
-  }
-
-  for (i = 0; i < constants.REQUIRED_OPTIONS_FOR_START_PAYMENT.length; i++) {
-    option = constants.REQUIRED_OPTIONS_FOR_START_PAYMENT[i];
-
-    if (!options.hasOwnProperty(option)) {
-      return true;
-    }
-  }
-
-  if (!(options.fallback.url && options.fallback.buttonText)) {
-    return true;
-  }
-
-  return false;
 }
 
 /**
- * Cleanly remove anything set up by {@link module:braintree-web/local-payment.create|create}.
- * @public
- * @param {callback} [callback] Called on completion.
- * @example
- * localPaymentInstance.teardown();
- * @example <caption>With callback</caption>
- * localPaymentInstance.teardown(function () {
- *   // teardown is complete
- * });
- * @returns {(Promise|void)} Returns a promise if no callback is provided.
+ *
+ * A function for opening and managing the popup used for authorization.
+ *
+ * @ignore
+ * @param {string} client The Braintree client.
+ * @param {string} options The input options needed to manage the popup portion of the flow.
+ * @param {string} [options.assetsUrl] The url to the Braintree asset to be used in frameservice.
+ * @param {string} [options.approvalUrl] The url to open for SEPA authorization. It is `approvalUrl` coming back from the mandate creation, but commonly refered to as the mandate link.
+ * @param {string} [options.debug] Whether to use debugging modes or not.
+ * @returns {Promise<void|Error>} Returns a promise.
  */
-LocalPayment.prototype.teardown = function () {
-  var self = this; // eslint-disable-line no-invalid-this
+function openPopup(client, options) {
+  var popupName = "sepadirectdebit";
+  var assetsBaseUrl = options.assetsUrl + "/html";
+  var debug = options.debug || false;
 
-  self._frameService.teardown();
+  return new Promise(function (resolve, reject) {
+    var popupLocation = centeredPopupDimensions();
 
-  convertMethodsToError(self, methods(LocalPayment.prototype));
+    frameService.create(
+      {
+        name: popupName,
+        dispatchFrameUrl:
+          assetsBaseUrl + "/dispatch-frame" + useMin(debug) + ".html",
+        openFrameUrl:
+          assetsBaseUrl + "/sepa-landing-frame" + useMin(debug) + ".html",
+        top: popupLocation.top,
+        left: popupLocation.left,
+        height: POPUP_HEIGHT,
+        width: POPUP_WIDTH,
+      },
+      function (frameServiceInstance) {
+        analytics.sendEvent(client, "sepa.popup.initialized");
+        frameServiceInstance.open({}, function (err, params) {
+          if (mandateApproved(params)) {
+            frameServiceInstance.close();
 
-  analytics.sendEvent(self._client, "local-payment.teardown-completed");
+            return resolve();
+          }
 
-  return Promise.resolve();
+          if (customerCanceled(params, err)) {
+            frameServiceInstance.close();
+
+            return reject(
+              new BraintreeError(sepaErrors.SEPA_CUSTOMER_CANCELED)
+            );
+          }
+
+          frameServiceInstance.close();
+
+          return reject(
+            new BraintreeError(sepaErrors.SEPA_TOKENIZATION_FAILED)
+          );
+        });
+
+        frameServiceInstance.redirect(options.approvalUrl);
+      }
+    );
+  });
+}
+
+function mandateApproved(params) {
+  return params && params.success;
+}
+
+function customerCanceled(params, error) {
+  return (
+    (params && params.cancel) ||
+    (error && error.code === "FRAME_SERVICE_FRAME_CLOSED")
+  );
+}
+
+function centeredPopupDimensions() {
+  var popupTop =
+    Math.round((window.outerHeight - POPUP_HEIGHT) / 2) + window.screenTop;
+  var popupLeft =
+    Math.round((window.outerWidth - POPUP_WIDTH) / 2) + window.screenLeft;
+
+  return {
+    top: popupTop,
+    left: popupLeft,
+  };
+}
+
+/**
+ *
+ * A function that creates a mandate so that we can present the mandate to the customer via a popup.
+ *
+ * @ignore
+ * @static
+ * @function handleApproval
+ * @param {object} client The Braintree client.
+ * @param {object} options All options for intiating the SEPA payment flow.
+ * @param {string} [options.bankReferenceToken] The tokenized payment source to fun the payment.
+ * @param {string} [options.customerId] The customer's id.
+ * @param {string} [options.last4] The last four digits of iban.
+ * @param {string} [options.mandateType] The mandate type being used. Specify ONE_OFF or RECURRENT payment.
+ * @param {string} [options.merchantAccountId] The merchant's account id.
+ * @param {string} [options.merchantId] The merchant id.
+ * @returns {Promise<tokenizePayload|Error>} Returns a promise with the approval response or an error.
+ */
+
+function handleApproval(client, options) {
+  // Disabling eslint because api is expecting snake_case format for the keys
+  /* eslint-disable */
+  var data = {
+    sepa_debit_account: {
+      last_4: options.last4,
+      merchant_or_partner_customer_id: options.customerId,
+      bank_reference_token: options.bankReferenceToken,
+      mandate_type: options.mandateType,
+    },
+    merchant_account_id: options.merchantAccountId,
+  };
+
+  /* eslint-enable */
+  return client
+    .request({
+      api: "clientApi",
+      method: "post",
+      endpoint: "payment_methods/sepa_debit_accounts",
+      data: data,
+    })
+    .then(function (response) {
+      if (!response.nonce) {
+        throw new BraintreeError(sepaErrors.SEPA_TRANSACTION_FAILED);
+      }
+
+      return {
+        nonce: response.nonce,
+        ibanLastFour: options.last4,
+        customerId: options.customerId,
+        mandateType: options.mandateType,
+      };
+    })
+    .catch(function () {
+      throw new BraintreeError(sepaErrors.SEPA_TRANSACTION_FAILED);
+    });
+}
+
+module.exports = {
+  createMandate: createMandate,
+  openPopup: openPopup,
+  handleApproval: handleApproval,
+  POPUP_WIDTH: POPUP_WIDTH,
+  POPUP_HEIGHT: POPUP_HEIGHT,
 };
 
-module.exports = wrapPromise.wrapPrototype(LocalPayment);
-
-},{"../../lib/analytics":49,"../../lib/braintree-error":53,"../../lib/constants":54,"../../lib/convert-methods-to-error":55,"../../lib/convert-to-braintree-error":56,"../../lib/frame-service/external":63,"../../lib/methods":75,"../../lib/promise":76,"../../lib/querystring":77,"../../lib/use-min":78,"../shared/errors":83,"./constants":80,"@braintree/extended-promise":23,"@braintree/wrap-promise":32}],82:[function(_dereq_,module,exports){
+},{"../../lib/analytics":49,"../../lib/braintree-error":53,"../../lib/frame-service/external":61,"../../lib/promise":73,"../../lib/use-min":74,"../shared/errors":80}],77:[function(_dereq_,module,exports){
 "use strict";
+
+var wrapPromise = _dereq_("@braintree/wrap-promise");
+var BraintreeError = _dereq_("../../lib/braintree-error");
+var sepaErrors = _dereq_("../shared/errors");
+var Promise = _dereq_("../../lib/promise");
+var constants = _dereq_("../shared/constants");
+var mandates = _dereq_("./mandate");
+var hasMissingOption = _dereq_("../shared/has-missing-option");
+var analytics = _dereq_("../../lib/analytics");
+var VERSION = "3.87.0";
+
 /**
- * @module braintree-web/local-payment
- * @description A component to integrate with local payment methods. *This component is currently in beta and is subject to change.*
+ * @class
+ * @param {object} options see {@link module:braintree-web/sepa.create|sepa.create}
+ * @description <strong>Do not use this constructor directly. Use {@link module:braintree-web/sepa.create|braintree-web.sepa.create} instead.</strong>
+ * @classdesc This class represents a SEPA component produced by {@link module:braintree-web/sepa.create|braintree-web.sepa.create}. Instances provide methods for tokenizing SEPA payments.
+ */
+function SEPA(options) {
+  var getConfiguration = options.client.getConfiguration();
+
+  this._client = options.client;
+  this._assetsUrl =
+    getConfiguration.gatewayConfiguration.assetsUrl + "/web/" + VERSION;
+  this._isDebug = getConfiguration.isDebug;
+  this._returnUrl = this._assetsUrl + "/html/redirect-frame.html?success=1";
+  this._cancelUrl = this._assetsUrl + "/html/redirect-frame.html?cancel=1";
+
+  analytics.sendEvent(this._client, "sepa.component.initialized");
+}
+
+/**
+ * SEPA tokenize payload.
+ * @typedef SEPA~tokenizePayload
+ * @property {string} nonce The payment nonce.
+ * @property {string} ibanLastFour The last four digits of the customer's IBAN.
+ * @property {string} mandateType The specified mandateType used.
+ * @property {string} customerId The provided customer id.
  */
 
+/**
+ * @static
+ * @public
+ * @function tokenize
+ * @param {object} options All options for intiating the SEPA payment flow.
+ * @param {string} [options.accountHolderName] The account holder name.
+ * @param {string} [options.customerId] The customer's id.
+ * @param {string} [options.iban] The customer's International Bank Account Number.
+ * @param {string} [options.mandateType] Specify ONE_OFF or RECURRENT payment.
+ * @param {string} [options.countryCode] The customer's country code.
+ * @param {string} [options.merchantAccountId] The merchant's account id.
+ * @param {callback} [callback] The first argument is an error object, where the second is a {@link SEPA~tokenizePayload|tokenizePayload}
+ * @returns {(Promise<tokenizePayload|error>)} Returns a promise if no callback is provided.
+ *
+ * @example
+ * button.addEventListener('click', function () {
+ *   var tokenizeInputs = {
+ *     accountHolderName: "some-accnt-holder-name",
+ *     customerId: "a-customer-id",
+ *     iban: "a-full-iban",
+ *     mandateType: "ONE_OFF",
+ *     countryCode: "LI",
+ *     merchantAccountId: "a-merchant-account-id"
+ *   }
+ *   sepaInstance.tokenize(tokenizeInputs).then(function (payload) {
+ *      // Submit payload.nonce to your server
+ *   }).catch(function(tokenizationErr) {
+ *     // Handle errors in the flow
+ *   })
+ * })
+ */
+
+SEPA.prototype.tokenize = function (options) {
+  var self = this;
+
+  if (!options || hasMissingOption(options, constants.REQUIRED_OPTIONS)) {
+    analytics.sendEvent(self._client, "sepa.input-validation.missing-options");
+
+    return Promise.reject(
+      new BraintreeError(sepaErrors.SEPA_TOKENIZE_MISSING_REQUIRED_OPTION)
+    );
+  }
+
+  if (!constants.MANDATE_TYPE_ENUM.includes(options.mandateType)) {
+    analytics.sendEvent(self._client, "sepa.input-validation.invalid-mandate");
+
+    return Promise.reject(
+      new BraintreeError(sepaErrors.SEPA_INVALID_MANDATE_TYPE)
+    );
+  }
+
+  return mandates
+    .createMandate(self._client, {
+      accountHolderName: options.accountHolderName,
+      customerId: options.customerId,
+      iban: options.iban,
+      mandateType: options.mandateType,
+      countryCode: options.countryCode,
+      merchantAccountId: options.merchantAccountId,
+      cancelUrl: self._cancelUrl,
+      returnUrl: self._returnUrl,
+    })
+    .then(function (mandateResponse) {
+      analytics.sendEvent(self._client, "sepa.create-mandate.success");
+      options.last4 = mandateResponse.last4;
+      options.bankReferenceToken = mandateResponse.bankReferenceToken;
+
+      return mandates.openPopup(self._client, {
+        approvalUrl: mandateResponse.approvalUrl,
+        assetsUrl: self._assetsUrl,
+      });
+    })
+    .then(function () {
+      analytics.sendEvent(self._client, "sepa.mandate.approved");
+
+      return mandates.handleApproval(self._client, {
+        bankReferenceToken: options.bankReferenceToken,
+        last4: options.last4,
+        customerId: options.customerId,
+        mandateType: options.mandateType,
+        merchantAccountId: options.merchantAccountId,
+      });
+    })
+    .then(function (approval) {
+      analytics.sendEvent(self._client, "sepa.tokenization.success");
+
+      return Promise.resolve(approval);
+    })
+    .catch(function (err) {
+      analytics.sendEvent(self._client, "sepa." + err.details + ".failed");
+
+      return Promise.reject(err);
+    });
+};
+
+module.exports = wrapPromise.wrapPrototype(SEPA);
+
+},{"../../lib/analytics":49,"../../lib/braintree-error":53,"../../lib/promise":73,"../shared/constants":79,"../shared/errors":80,"../shared/has-missing-option":81,"./mandate":76,"@braintree/wrap-promise":32}],78:[function(_dereq_,module,exports){
+"use strict";
+/** @module braintree-web/sepa */
+
 var analytics = _dereq_("../lib/analytics");
-var basicComponentVerification = _dereq_("../lib/basic-component-verification");
-var createDeferredClient = _dereq_("../lib/create-deferred-client");
+var SEPA = _dereq_("./external/sepa");
 var createAssetsUrl = _dereq_("../lib/create-assets-url");
-var LocalPayment = _dereq_("./external/local-payment");
-var VERSION = "3.87.0";
-var Promise = _dereq_("../lib/promise");
+var createDeferredClient = _dereq_("../lib/create-deferred-client");
+var basicComponentVerification = _dereq_("../lib/basic-component-verification");
 var wrapPromise = _dereq_("@braintree/wrap-promise");
-var BraintreeError = _dereq_("../lib/braintree-error");
-var errors = _dereq_("./shared/errors");
+var VERSION = "3.87.0";
 
 /**
  * @static
@@ -3340,71 +2950,29 @@ var errors = _dereq_("./shared/errors");
  * @param {object} options Creation options:
  * @param {Client} [options.client] A {@link Client} instance.
  * @param {string} [options.authorization] A tokenizationKey or clientToken. Can be used in place of `options.client`.
- * @param {string} [options.merchantAccountId] A non-default merchant account ID to use for tokenization and creation of the authorizing transaction. Braintree strongly recommends specifying this parameter.
- * @param {callback} callback The second argument, `data`, is the {@link LocalPayment} instance.
- * @example <caption>Using the local payment component to set up an iDEAL button</caption>
- * var idealButton = document.querySelector('.ideal-button');
- *
- * braintree.client.create({
- *   authorization: CLIENT_AUTHORIZATION
- * }, function (clientErr, clientInstance) {
- *   if (clientErr) {
- *     console.error('Error creating client:', clientErr);
- *     return;
- *   }
- *
- *   braintree.localPayment.create({
- *     client: clientInstance,
- *     merchantAccountId: 'merchantAccountEUR',
- *   }, function (localPaymentErr, localPaymentInstance) {
- *     if (localPaymentErr) {
- *       console.error('Error creating local payment component:', localPaymentErr);
- *       return;
- *     }
- *
- *     idealButton.removeAttribute('disabled');
- *
- *     // When the button is clicked, attempt to start the payment flow.
- *     idealButton.addEventListener('click', function (event) {
- *       // Because this opens a popup, this has to be called as a result of
- *       // customer action, like clicking a button. You cannot call this at any time.
- *       localPaymentInstance.startPayment({
- *         paymentType: 'ideal',
- *         amount: '10.67',
- *         city: 'Den Haag',
- *         countryCode: 'NL',
- *         firstName: 'Test',
- *         lastName: 'McTester',
- *         line1: '123 of 456 Fake Lane',
- *         line2: 'Apartment 789',
- *         payerEmail: 'payer@example.com',
- *         phone: '123456789',
- *         postalCode: '1234 AA',
- *         currencyCode: 'EUR',
- *         onPaymentStart: function (data, continueCallback) {
- *           // Do any preprocessing to store the ID and setup webhook
- *           // Call start to initiate the popup
- *           continueCallback();
- *         }
- **       }, function (startPaymentErr, payload) {
- *         if (startPaymentErr) {
- *           if (startPaymentErr.type !== 'CUSTOMER') {
- *             console.error('Error starting payment:', startPaymentErr);
- *           }
- *           return;
- *         }
- *
- *         idealButton.setAttribute('disabled', true);
- *
- *         console.log(payload.paymentId);
- *       });
- *     }, false);
- *   });
+ * @param {boolean} [options.debug] A debug flag.
+ * @param {callback} [callback] When provided, will be used instead of a promise. First argument is an error object, where the second is an instance of {@link SEPA|SEPA}.
+ * @returns {Promise<void|error>} Returns the SEPA instance.
+ * @example
+ * braintree.sepa.create({
+ *   client: clientInstance
+ * }).then(function (sepaInstance) {
+ *   // sepaInstance is ready to be used.
+ * }).catch(function (createErr) {
+ *   console.error('Error creating SEPA instance', createErr);
  * });
- * @returns {(Promise|void)} Returns a promise if no callback is provided.
+ * @example <caption>Creating a SEPA component</caption>
+ * braintree.sepa.create({
+ *   client: clientInstance,
+ * }).then(function (sepaInstance) {
+ *   // sepaInstance is ready to be used.
+ * }).catch(function (createErr) {
+ *   console.error('Error creating SEPA instance', createErr);
+ * });
  */
+
 function create(options) {
-  var name = "Local Payment";
+  var name = "SEPA";
 
   return basicComponentVerification
     .verify({
@@ -3422,22 +2990,11 @@ function create(options) {
       });
     })
     .then(function (client) {
-      var localPaymentInstance;
-      var config = client.getConfiguration();
-
       options.client = client;
 
-      if (config.gatewayConfiguration.paypalEnabled !== true) {
-        return Promise.reject(
-          new BraintreeError(errors.LOCAL_PAYMENT_NOT_ENABLED)
-        );
-      }
+      analytics.sendEvent(options.client, "sepa.client.initialized");
 
-      analytics.sendEvent(client, "local-payment.initialized");
-
-      localPaymentInstance = new LocalPayment(options);
-
-      return localPaymentInstance._initialize();
+      return new SEPA(options);
     });
 }
 
@@ -3450,78 +3007,103 @@ module.exports = {
   VERSION: VERSION,
 };
 
-},{"../lib/analytics":49,"../lib/basic-component-verification":52,"../lib/braintree-error":53,"../lib/create-assets-url":57,"../lib/create-deferred-client":59,"../lib/promise":76,"./external/local-payment":81,"./shared/errors":83,"@braintree/wrap-promise":32}],83:[function(_dereq_,module,exports){
+},{"../lib/analytics":49,"../lib/basic-component-verification":52,"../lib/create-assets-url":55,"../lib/create-deferred-client":57,"./external/sepa":77,"@braintree/wrap-promise":32}],79:[function(_dereq_,module,exports){
 "use strict";
 
-/**
- * @name BraintreeError.LocalPayment - Creation Error Codes
- * @description Errors that occur when [creating the Local Payment component](./module-braintree-web_local-payment.html#.create).
- * @property {MERCHANT} LOCAL_PAYMENT_NOT_ENABLED Occurs when Local Payment is not enabled on the Braintree control panel.
- */
+module.exports = {
+  REQUIRED_OPTIONS: [
+    "iban",
+    "merchantAccountId",
+    "mandateType",
+    "customerId",
+    "accountHolderName",
+    "countryCode",
+  ],
+  MANDATE_TYPE_ENUM: ["ONE_OFF", "RECURRENT"],
+};
 
-/**
- * @name BraintreeError.LocalPayment - startPayment Error Codes
- * @description Errors that occur when using the [`startPayment` method](./LocalPayment.html#startPayment).
- * @property {MERCHANT} LOCAL_PAYMENT_START_PAYMENT_MISSING_REQUIRED_OPTION Occurs when a startPayment is missing a required option.
- * @property {MERCHANT} LOCAL_PAYMENT_ALREADY_IN_PROGRESS Occurs when a startPayment call is already in progress.
- * @property {MERCHANT} LOCAL_PAYMENT_INVALID_PAYMENT_OPTION Occurs when a startPayment call has an invalid option.
- * @property {NETWORK} LOCAL_PAYMENT_START_PAYMENT_FAILED Occurs when a startPayment call fails.
- * @property {NETWORK} LOCAL_PAYMENT_TOKENIZATION_FAILED Occurs when a startPayment call fails to tokenize the result from authorization.
- * @property {CUSTOMER} LOCAL_PAYMENT_CANCELED Occurs when the customer cancels the Local Payment.
- * @property {CUSTOMER} LOCAL_PAYMENT_WINDOW_CLOSED Occurs when the customer closes the Local Payment window.
- * @property {MERCHANT} LOCAL_PAYMENT_WINDOW_OPEN_FAILED Occurs when the Local Payment window fails to open. Usually because `startPayment` was not called as a direct result of a user action.
- */
+},{}],80:[function(_dereq_,module,exports){
+"use strict";
 
 var BraintreeError = _dereq_("../../lib/braintree-error");
 
+/**
+ * @name BraintreeError.SEPA - tokenize Error Codes
+ * @description Errors that occur when using the {@link module:braintree-web/sepa.tokenize|sepa.tokenize} method.
+ * @property {MERCHANT} SEPA_CREATE_MANDATE_FAILED Occurs when there was an issue creating a mandate. This can occur if the request fails, or if the merchant does not have SEPA enabled.
+ * @property {CUSTOMER} SEPA_CUSTOMER_CANCELED Occurs when the customer has canceled the SEPA authorization process. This can be within the mandate approval popup, or by canceling the popup itself.
+ * @property {MERCHANT} SEPA_INVALID_MANDATE_TYPE Occurs when an invalid mandate type is provided.
+ * @property {UNKNOWN} SEPA_TOKENIZATION_FAILED Occurs when tokenization fails during the mandate approval process for unknown reasons.
+ * @property {MERCHANT} SEPA_TOKENIZE_MISSING_REQUIRED_OPTION Occurs when there are required input options not provided.
+ * @property {UNKNOWN} SEPA_TRANSACTION_FAILED Occurs when final tokenization fails.
+ */
+
+// Those with a "details" property are used in specific locations and this prop serves to identify where in the imlpementation the error originates.
 module.exports = {
-  LOCAL_PAYMENT_NOT_ENABLED: {
+  SEPA_CREATE_MANDATE_FAILED: {
     type: BraintreeError.types.MERCHANT,
-    code: "LOCAL_PAYMENT_NOT_ENABLED",
-    message: "LocalPayment is not enabled for this merchant.",
+    code: "SEPA_CREATE_MANDATE_FAILED",
+    message: "SEPA create mandate failed.",
+    details: "create-mandate",
   },
-  LOCAL_PAYMENT_ALREADY_IN_PROGRESS: {
-    type: BraintreeError.types.MERCHANT,
-    code: "LOCAL_PAYMENT_ALREADY_IN_PROGRESS",
-    message: "LocalPayment payment is already in progress.",
-  },
-  LOCAL_PAYMENT_CANCELED: {
+  SEPA_CUSTOMER_CANCELED: {
     type: BraintreeError.types.CUSTOMER,
-    code: "LOCAL_PAYMENT_CANCELED",
-    message: "Customer canceled the LocalPayment before authorizing.",
+    code: "SEPA_CUSTOMER_CANCELED",
+    message: "User canceled SEPA authorization",
+    details: "customer-canceled",
   },
-  LOCAL_PAYMENT_WINDOW_CLOSED: {
-    type: BraintreeError.types.CUSTOMER,
-    code: "LOCAL_PAYMENT_WINDOW_CLOSED",
-    message: "Customer closed LocalPayment window before authorizing.",
-  },
-  LOCAL_PAYMENT_WINDOW_OPEN_FAILED: {
+  SEPA_INVALID_MANDATE_TYPE: {
     type: BraintreeError.types.MERCHANT,
-    code: "LOCAL_PAYMENT_WINDOW_OPEN_FAILED",
-    message:
-      "LocalPayment window failed to open; make sure startPayment was called in response to a user action.",
+    code: "SEPA_INVALID_MANDATE_TYPE",
+    message: "SEPA mandate type is invalid",
   },
-  LOCAL_PAYMENT_START_PAYMENT_FAILED: {
-    type: BraintreeError.types.NETWORK,
-    code: "LOCAL_PAYMENT_START_PAYMENT_FAILED",
-    message: "LocalPayment startPayment failed.",
+  SEPA_TOKENIZATION_FAILED: {
+    type: BraintreeError.types.UNKNOWN,
+    code: "SEPA_TOKENIZATION_FAILED",
+    message: "SEPA encountered a problem",
+    details: "open-popup",
   },
-  LOCAL_PAYMENT_START_PAYMENT_MISSING_REQUIRED_OPTION: {
+  SEPA_TOKENIZE_MISSING_REQUIRED_OPTION: {
     type: BraintreeError.types.MERCHANT,
-    code: "LOCAL_PAYMENT_START_PAYMENT_MISSING_REQUIRED_OPTION",
-    message: "Missing required option for startPayment.",
+    code: "SEPA_TOKENIZE_MISSING_REQUIRED_OPTION",
+    message: "Missing required option for tokenize.",
   },
-  LOCAL_PAYMENT_TOKENIZATION_FAILED: {
-    type: BraintreeError.types.NETWORK,
-    code: "LOCAL_PAYMENT_TOKENIZATION_FAILED",
-    message: "Could not tokenize user's local payment method.",
-  },
-  LOCAL_PAYMENT_INVALID_PAYMENT_OPTION: {
-    type: BraintreeError.types.MERCHANT,
-    code: "LOCAL_PAYMENT_INVALID_PAYMENT_OPTION",
-    message: "Local payment options are invalid.",
+  SEPA_TRANSACTION_FAILED: {
+    type: BraintreeError.types.UNKNOWN,
+    code: "SEPA_TRANSACTION_FAILED",
+    message: "SEPA transaction failed",
+    details: "handle-approval",
   },
 };
 
-},{"../../lib/braintree-error":53}]},{},[82])(82)
+},{"../../lib/braintree-error":53}],81:[function(_dereq_,module,exports){
+"use strict";
+
+/**
+ * @ignore
+ * @static
+ * @function hasMissingOption
+ * @param {object} options All options provided for intiating the SEPA payment flow.
+ * @param {array} required A list of required inputs that must be include as part of the options.
+ * @returns {boolean} Returns a boolean.
+ */
+function hasMissingOption(options, required) {
+  var i, option;
+
+  required = required || [];
+
+  for (i = 0; i < required.length; i++) {
+    option = required[i];
+
+    if (!options.hasOwnProperty(option)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+module.exports = hasMissingOption;
+
+},{}]},{},[78])(78)
 });

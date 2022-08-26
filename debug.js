@@ -2213,7 +2213,7 @@ var AmericanExpress = _dereq_("./american-express");
 var basicComponentVerification = _dereq_("../lib/basic-component-verification");
 var createDeferredClient = _dereq_("../lib/create-deferred-client");
 var createAssetsUrl = _dereq_("../lib/create-assets-url");
-var VERSION = "3.86.0";
+var VERSION = "3.87.0";
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 
 /**
@@ -2734,7 +2734,7 @@ var createAssetsUrl = _dereq_("../lib/create-assets-url");
 var createDeferredClient = _dereq_("../lib/create-deferred-client");
 var Promise = _dereq_("../lib/promise");
 var errors = _dereq_("./errors");
-var VERSION = "3.86.0";
+var VERSION = "3.87.0";
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 
 /**
@@ -3536,7 +3536,7 @@ module.exports = {
 
 var BraintreeError = _dereq_("../lib/braintree-error");
 var Client = _dereq_("./client");
-var VERSION = "3.86.0";
+var VERSION = "3.87.0";
 var Promise = _dereq_("../lib/promise");
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 var sharedErrors = _dereq_("../lib/errors");
@@ -5063,7 +5063,7 @@ var createDeferredClient = _dereq_("../lib/create-deferred-client");
 var createAssetsUrl = _dereq_("../lib/create-assets-url");
 var methods = _dereq_("../lib/methods");
 var convertMethodsToError = _dereq_("../lib/convert-methods-to-error");
-var VERSION = "3.86.0";
+var VERSION = "3.87.0";
 var Promise = _dereq_("../lib/promise");
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 var errors = _dereq_("./errors");
@@ -6588,7 +6588,7 @@ var createAssetsUrl = _dereq_("../lib/create-assets-url");
 var createDeferredClient = _dereq_("../lib/create-deferred-client");
 var basicComponentVerification = _dereq_("../lib/basic-component-verification");
 var wrapPromise = _dereq_("@braintree/wrap-promise");
-var VERSION = "3.86.0";
+var VERSION = "3.87.0";
 var errors = _dereq_("./errors");
 
 /**
@@ -8565,7 +8565,7 @@ var supportsInputFormatting = _dereq_("restricted-input/supports-input-formattin
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 var BraintreeError = _dereq_("../lib/braintree-error");
 var Promise = _dereq_("../lib/promise");
-var VERSION = "3.86.0";
+var VERSION = "3.87.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -8955,7 +8955,7 @@ module.exports = {
 
 var enumerate = _dereq_("../../lib/enumerate");
 var errors = _dereq_("./errors");
-var VERSION = "3.86.0";
+var VERSION = "3.87.0";
 
 var constants = {
   VERSION: VERSION,
@@ -9435,6 +9435,7 @@ var paymentRequest = _dereq_("./payment-request");
 var paypal = _dereq_("./paypal");
 var paypalCheckout = _dereq_("./paypal-checkout");
 var googlePayment = _dereq_("./google-payment");
+var sepa = _dereq_("./sepa");
 var threeDSecure = _dereq_("./three-d-secure");
 var unionpay = _dereq_("./unionpay");
 var usBankAccount = _dereq_("./us-bank-account");
@@ -9442,7 +9443,7 @@ var vaultManager = _dereq_("./vault-manager");
 var venmo = _dereq_("./venmo");
 var visaCheckout = _dereq_("./visa-checkout");
 var preferredPaymentMethods = _dereq_("./preferred-payment-methods");
-var VERSION = "3.86.0";
+var VERSION = "3.87.0";
 
 module.exports = {
   /** @type {module:braintree-web/american-express} */
@@ -9479,6 +9480,8 @@ module.exports = {
   venmo: venmo,
   /** @type {module:braintree-web/visa-checkout} */
   visaCheckout: visaCheckout,
+  /** @type {module:braintree-web/sepa} */
+  sepa: sepa,
   /** @type {module:braintree-web/preferred-payment-methods} */
   preferredPaymentMethods: preferredPaymentMethods,
   /**
@@ -9488,7 +9491,7 @@ module.exports = {
   VERSION: VERSION,
 };
 
-},{"./american-express":77,"./apple-pay":80,"./client":86,"./data-collector":105,"./google-payment":110,"./hosted-fields":117,"./local-payment":171,"./masterpass":174,"./payment-request":179,"./paypal":186,"./paypal-checkout":183,"./preferred-payment-methods":189,"./three-d-secure":199,"./unionpay":203,"./us-bank-account":209,"./vault-manager":212,"./venmo":217,"./visa-checkout":227}],125:[function(_dereq_,module,exports){
+},{"./american-express":77,"./apple-pay":80,"./client":86,"./data-collector":105,"./google-payment":110,"./hosted-fields":117,"./local-payment":171,"./masterpass":174,"./payment-request":179,"./paypal":186,"./paypal-checkout":183,"./preferred-payment-methods":189,"./sepa":193,"./three-d-secure":205,"./unionpay":209,"./us-bank-account":215,"./vault-manager":218,"./venmo":223,"./visa-checkout":233}],125:[function(_dereq_,module,exports){
 "use strict";
 
 var createAuthorizationData = _dereq_("./create-authorization-data");
@@ -9618,7 +9621,7 @@ module.exports = {
 var BraintreeError = _dereq_("./braintree-error");
 var Promise = _dereq_("./promise");
 var sharedErrors = _dereq_("./errors");
-var VERSION = "3.86.0";
+var VERSION = "3.87.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -9833,7 +9836,7 @@ module.exports = function (obj) {
 },{}],133:[function(_dereq_,module,exports){
 "use strict";
 
-var VERSION = "3.86.0";
+var VERSION = "3.87.0";
 var PLATFORM = "web";
 
 var CLIENT_API_URLS = {
@@ -9987,7 +9990,7 @@ var Promise = _dereq_("./promise");
 var assets = _dereq_("./assets");
 var sharedErrors = _dereq_("./errors");
 
-var VERSION = "3.86.0";
+var VERSION = "3.87.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -10796,7 +10799,7 @@ module.exports = enumerate(
 },{"../../enumerate":141}],156:[function(_dereq_,module,exports){
 "use strict";
 
-var VERSION = "3.86.0";
+var VERSION = "3.87.0";
 var assign = _dereq_("./assign").assign;
 
 function generateTokenizationParameters(configuration, overrides) {
@@ -11292,7 +11295,7 @@ module.exports = {
 var frameService = _dereq_("../../lib/frame-service/external");
 var BraintreeError = _dereq_("../../lib/braintree-error");
 var useMin = _dereq_("../../lib/use-min");
-var VERSION = "3.86.0";
+var VERSION = "3.87.0";
 var INTEGRATION_TIMEOUT_MS =
   _dereq_("../../lib/constants").INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_("../../lib/analytics");
@@ -11887,7 +11890,7 @@ var basicComponentVerification = _dereq_("../lib/basic-component-verification");
 var createDeferredClient = _dereq_("../lib/create-deferred-client");
 var createAssetsUrl = _dereq_("../lib/create-assets-url");
 var LocalPayment = _dereq_("./external/local-payment");
-var VERSION = "3.86.0";
+var VERSION = "3.87.0";
 var Promise = _dereq_("../lib/promise");
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 var BraintreeError = _dereq_("../lib/braintree-error");
@@ -12089,7 +12092,7 @@ var Promise = _dereq_("../../lib/promise");
 var frameService = _dereq_("../../lib/frame-service/external");
 var BraintreeError = _dereq_("../../lib/braintree-error");
 var errors = _dereq_("../shared/errors");
-var VERSION = "3.86.0";
+var VERSION = "3.87.0";
 var methods = _dereq_("../../lib/methods");
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 var analytics = _dereq_("../../lib/analytics");
@@ -12570,7 +12573,7 @@ var browserDetection = _dereq_("./shared/browser-detection");
 var Masterpass = _dereq_("./external/masterpass");
 var createDeferredClient = _dereq_("../lib/create-deferred-client");
 var createAssetsUrl = _dereq_("../lib/create-assets-url");
-var VERSION = "3.86.0";
+var VERSION = "3.87.0";
 var errors = _dereq_("./shared/errors");
 var Promise = _dereq_("../lib/promise");
 var wrapPromise = _dereq_("@braintree/wrap-promise");
@@ -12781,7 +12784,7 @@ var methods = _dereq_("../../lib/methods");
 var Promise = _dereq_("../../lib/promise");
 var EventEmitter = _dereq_("@braintree/event-emitter");
 var BraintreeError = _dereq_("../../lib/braintree-error");
-var VERSION = "3.86.0";
+var VERSION = "3.87.0";
 var constants = _dereq_("../shared/constants");
 var events = constants.events;
 var errors = constants.errors;
@@ -13532,7 +13535,7 @@ var basicComponentVerification = _dereq_("../lib/basic-component-verification");
 var createDeferredClient = _dereq_("../lib/create-deferred-client");
 var createAssetsUrl = _dereq_("../lib/create-assets-url");
 var wrapPromise = _dereq_("@braintree/wrap-promise");
-var VERSION = "3.86.0";
+var VERSION = "3.87.0";
 
 /**
  * @static
@@ -13846,7 +13849,7 @@ module.exports = {
 var basicComponentVerification = _dereq_("../lib/basic-component-verification");
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 var PayPalCheckout = _dereq_("./paypal-checkout");
-var VERSION = "3.86.0";
+var VERSION = "3.87.0";
 
 /**
  * @static
@@ -13930,7 +13933,7 @@ var methods = _dereq_("../lib/methods");
 var useMin = _dereq_("../lib/use-min");
 var convertMethodsToError = _dereq_("../lib/convert-methods-to-error");
 var querystring = _dereq_("../lib/querystring");
-var VERSION = "3.86.0";
+var VERSION = "3.87.0";
 var INTEGRATION_TIMEOUT_MS = _dereq_("../lib/constants").INTEGRATION_TIMEOUT_MS;
 
 var REQUIRED_PARAMS_FOR_START_VAULT_INITIATED_CHECKOUT = [
@@ -15271,7 +15274,7 @@ var BraintreeError = _dereq_("../../lib/braintree-error");
 var convertToBraintreeError = _dereq_("../../lib/convert-to-braintree-error");
 var useMin = _dereq_("../../lib/use-min");
 var once = _dereq_("../../lib/once");
-var VERSION = "3.86.0";
+var VERSION = "3.87.0";
 var constants = _dereq_("../shared/constants");
 var INTEGRATION_TIMEOUT_MS =
   _dereq_("../../lib/constants").INTEGRATION_TIMEOUT_MS;
@@ -15954,7 +15957,7 @@ var createAssetsUrl = _dereq_("../lib/create-assets-url");
 var BraintreeError = _dereq_("../lib/braintree-error");
 var errors = _dereq_("./shared/errors");
 var PayPal = _dereq_("./external/paypal");
-var VERSION = "3.86.0";
+var VERSION = "3.87.0";
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 var Promise = _dereq_("../lib/promise");
 
@@ -16161,7 +16164,7 @@ module.exports = {
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 var basicComponentVerification = _dereq_("../lib/basic-component-verification");
 var PreferredPaymentMethods = _dereq_("./preferred-payment-methods");
-var VERSION = "3.86.0";
+var VERSION = "3.87.0";
 
 /**
  * @static
@@ -16327,6 +16330,552 @@ module.exports = wrapPromise.wrapPrototype(PreferredPaymentMethods);
 },{"../lib/analytics":126,"../lib/create-assets-url":136,"../lib/create-deferred-client":138,"../lib/promise":164,"@braintree/wrap-promise":49}],191:[function(_dereq_,module,exports){
 "use strict";
 
+var BraintreeError = _dereq_("../../lib/braintree-error");
+var sepaErrors = _dereq_("../shared/errors");
+var Promise = _dereq_("../../lib/promise");
+var frameService = _dereq_("../../lib/frame-service/external");
+var analytics = _dereq_("../../lib/analytics");
+var useMin = _dereq_("../../lib/use-min");
+
+var POPUP_WIDTH = 400;
+var POPUP_HEIGHT = 570;
+
+/**
+ * @ignore
+ * @typedef CreateMandateResponse
+ * @property {string} approvalUrl The URL to present to the customer for payment approval.
+ * @property {string} last4 The last four digits of the iban.
+ * @property {string} bankReferenceToken The tokenized payment source to fun the payment.
+ */
+
+/**
+ *
+ * A function that creates a mandate so that we can present the mandate to the customer via a popup.
+ *
+ * @ignore
+ * @static
+ * @function createMandate
+ * @param {object} client The Braintree client.
+ * @param {object} options All options for intiating the SEPA payment flow.
+ * @param {string} [options.accountHolderName] The account holder name.
+ * @param {string} [options.cancelUrl] The URL to redirect to if authorization is cancelled.
+ * @param {string} [options.countryCode] The customer's country code.
+ * @param {string} [options.customerId] The customer's id.
+ * @param {string} [options.iban] The customer's International Bank Account Number.
+ * @param {string} [options.mandateType] Specify ONE_OFF or RECURRENT payment.
+ * @param {string} [options.merchantAccountId] The merchant's account id.
+ * @param {string} [options.merchantId] The merchant id.
+ * @param {string} [options.returnUrl] The URL to redirect to if authorization is successful.
+ * @returns {Promise<CreateMandateResponse|Error>} Returns a promise with the mandate response or an error.
+ */
+
+function createMandate(client, options) {
+  // Disabling eslint because api is expecting snake_case format for the keys
+  /* eslint-disable */
+  var data = {
+    sepa_debit: {
+      account_holder_name: options.accountHolderName,
+      merchant_or_partner_customer_id: options.customerId,
+      iban: options.iban,
+      mandate_type: options.mandateType,
+      billing_address: {
+        country_code: options.countryCode,
+      },
+    },
+    cancel_url: options.cancelUrl,
+    return_url: options.returnUrl,
+    merchant_account_id: options.merchantAccountId,
+  };
+  /* eslint-enable */
+
+  return client
+    .request({
+      api: "clientApi",
+      method: "post",
+      endpoint: "sepa_debit",
+      data: data,
+    })
+    .then(function (response) {
+      var sepaDebitAccount = response.message.body.sepaDebitAccount;
+
+      if (!sepaDebitAccount) {
+        throw new BraintreeError(sepaErrors.SEPA_CREATE_MANDATE_FAILED);
+      }
+
+      return {
+        approvalUrl: sepaDebitAccount.approvalUrl,
+        last4: sepaDebitAccount.last4,
+        bankReferenceToken: sepaDebitAccount.bankReferenceToken,
+      };
+    })
+    .catch(function () {
+      throw new BraintreeError(sepaErrors.SEPA_CREATE_MANDATE_FAILED);
+    });
+}
+
+/**
+ *
+ * A function for opening and managing the popup used for authorization.
+ *
+ * @ignore
+ * @param {string} client The Braintree client.
+ * @param {string} options The input options needed to manage the popup portion of the flow.
+ * @param {string} [options.assetsUrl] The url to the Braintree asset to be used in frameservice.
+ * @param {string} [options.approvalUrl] The url to open for SEPA authorization. It is `approvalUrl` coming back from the mandate creation, but commonly refered to as the mandate link.
+ * @param {string} [options.debug] Whether to use debugging modes or not.
+ * @returns {Promise<void|Error>} Returns a promise.
+ */
+function openPopup(client, options) {
+  var popupName = "sepadirectdebit";
+  var assetsBaseUrl = options.assetsUrl + "/html";
+  var debug = options.debug || false;
+
+  return new Promise(function (resolve, reject) {
+    var popupLocation = centeredPopupDimensions();
+
+    frameService.create(
+      {
+        name: popupName,
+        dispatchFrameUrl:
+          assetsBaseUrl + "/dispatch-frame" + useMin(debug) + ".html",
+        openFrameUrl:
+          assetsBaseUrl + "/sepa-landing-frame" + useMin(debug) + ".html",
+        top: popupLocation.top,
+        left: popupLocation.left,
+        height: POPUP_HEIGHT,
+        width: POPUP_WIDTH,
+      },
+      function (frameServiceInstance) {
+        analytics.sendEvent(client, "sepa.popup.initialized");
+        frameServiceInstance.open({}, function (err, params) {
+          if (mandateApproved(params)) {
+            frameServiceInstance.close();
+
+            return resolve();
+          }
+
+          if (customerCanceled(params, err)) {
+            frameServiceInstance.close();
+
+            return reject(
+              new BraintreeError(sepaErrors.SEPA_CUSTOMER_CANCELED)
+            );
+          }
+
+          frameServiceInstance.close();
+
+          return reject(
+            new BraintreeError(sepaErrors.SEPA_TOKENIZATION_FAILED)
+          );
+        });
+
+        frameServiceInstance.redirect(options.approvalUrl);
+      }
+    );
+  });
+}
+
+function mandateApproved(params) {
+  return params && params.success;
+}
+
+function customerCanceled(params, error) {
+  return (
+    (params && params.cancel) ||
+    (error && error.code === "FRAME_SERVICE_FRAME_CLOSED")
+  );
+}
+
+function centeredPopupDimensions() {
+  var popupTop =
+    Math.round((window.outerHeight - POPUP_HEIGHT) / 2) + window.screenTop;
+  var popupLeft =
+    Math.round((window.outerWidth - POPUP_WIDTH) / 2) + window.screenLeft;
+
+  return {
+    top: popupTop,
+    left: popupLeft,
+  };
+}
+
+/**
+ *
+ * A function that creates a mandate so that we can present the mandate to the customer via a popup.
+ *
+ * @ignore
+ * @static
+ * @function handleApproval
+ * @param {object} client The Braintree client.
+ * @param {object} options All options for intiating the SEPA payment flow.
+ * @param {string} [options.bankReferenceToken] The tokenized payment source to fun the payment.
+ * @param {string} [options.customerId] The customer's id.
+ * @param {string} [options.last4] The last four digits of iban.
+ * @param {string} [options.mandateType] The mandate type being used. Specify ONE_OFF or RECURRENT payment.
+ * @param {string} [options.merchantAccountId] The merchant's account id.
+ * @param {string} [options.merchantId] The merchant id.
+ * @returns {Promise<tokenizePayload|Error>} Returns a promise with the approval response or an error.
+ */
+
+function handleApproval(client, options) {
+  // Disabling eslint because api is expecting snake_case format for the keys
+  /* eslint-disable */
+  var data = {
+    sepa_debit_account: {
+      last_4: options.last4,
+      merchant_or_partner_customer_id: options.customerId,
+      bank_reference_token: options.bankReferenceToken,
+      mandate_type: options.mandateType,
+    },
+    merchant_account_id: options.merchantAccountId,
+  };
+
+  /* eslint-enable */
+  return client
+    .request({
+      api: "clientApi",
+      method: "post",
+      endpoint: "payment_methods/sepa_debit_accounts",
+      data: data,
+    })
+    .then(function (response) {
+      if (!response.nonce) {
+        throw new BraintreeError(sepaErrors.SEPA_TRANSACTION_FAILED);
+      }
+
+      return {
+        nonce: response.nonce,
+        ibanLastFour: options.last4,
+        customerId: options.customerId,
+        mandateType: options.mandateType,
+      };
+    })
+    .catch(function () {
+      throw new BraintreeError(sepaErrors.SEPA_TRANSACTION_FAILED);
+    });
+}
+
+module.exports = {
+  createMandate: createMandate,
+  openPopup: openPopup,
+  handleApproval: handleApproval,
+  POPUP_WIDTH: POPUP_WIDTH,
+  POPUP_HEIGHT: POPUP_HEIGHT,
+};
+
+},{"../../lib/analytics":126,"../../lib/braintree-error":131,"../../lib/frame-service/external":146,"../../lib/promise":164,"../../lib/use-min":167,"../shared/errors":195}],192:[function(_dereq_,module,exports){
+"use strict";
+
+var wrapPromise = _dereq_("@braintree/wrap-promise");
+var BraintreeError = _dereq_("../../lib/braintree-error");
+var sepaErrors = _dereq_("../shared/errors");
+var Promise = _dereq_("../../lib/promise");
+var constants = _dereq_("../shared/constants");
+var mandates = _dereq_("./mandate");
+var hasMissingOption = _dereq_("../shared/has-missing-option");
+var analytics = _dereq_("../../lib/analytics");
+var VERSION = "3.87.0";
+
+/**
+ * @class
+ * @param {object} options see {@link module:braintree-web/sepa.create|sepa.create}
+ * @description <strong>Do not use this constructor directly. Use {@link module:braintree-web/sepa.create|braintree-web.sepa.create} instead.</strong>
+ * @classdesc This class represents a SEPA component produced by {@link module:braintree-web/sepa.create|braintree-web.sepa.create}. Instances provide methods for tokenizing SEPA payments.
+ */
+function SEPA(options) {
+  var getConfiguration = options.client.getConfiguration();
+
+  this._client = options.client;
+  this._assetsUrl =
+    getConfiguration.gatewayConfiguration.assetsUrl + "/web/" + VERSION;
+  this._isDebug = getConfiguration.isDebug;
+  this._returnUrl = this._assetsUrl + "/html/redirect-frame.html?success=1";
+  this._cancelUrl = this._assetsUrl + "/html/redirect-frame.html?cancel=1";
+
+  analytics.sendEvent(this._client, "sepa.component.initialized");
+}
+
+/**
+ * SEPA tokenize payload.
+ * @typedef SEPA~tokenizePayload
+ * @property {string} nonce The payment nonce.
+ * @property {string} ibanLastFour The last four digits of the customer's IBAN.
+ * @property {string} mandateType The specified mandateType used.
+ * @property {string} customerId The provided customer id.
+ */
+
+/**
+ * @static
+ * @public
+ * @function tokenize
+ * @param {object} options All options for intiating the SEPA payment flow.
+ * @param {string} [options.accountHolderName] The account holder name.
+ * @param {string} [options.customerId] The customer's id.
+ * @param {string} [options.iban] The customer's International Bank Account Number.
+ * @param {string} [options.mandateType] Specify ONE_OFF or RECURRENT payment.
+ * @param {string} [options.countryCode] The customer's country code.
+ * @param {string} [options.merchantAccountId] The merchant's account id.
+ * @param {callback} [callback] The first argument is an error object, where the second is a {@link SEPA~tokenizePayload|tokenizePayload}
+ * @returns {(Promise<tokenizePayload|error>)} Returns a promise if no callback is provided.
+ *
+ * @example
+ * button.addEventListener('click', function () {
+ *   var tokenizeInputs = {
+ *     accountHolderName: "some-accnt-holder-name",
+ *     customerId: "a-customer-id",
+ *     iban: "a-full-iban",
+ *     mandateType: "ONE_OFF",
+ *     countryCode: "LI",
+ *     merchantAccountId: "a-merchant-account-id"
+ *   }
+ *   sepaInstance.tokenize(tokenizeInputs).then(function (payload) {
+ *      // Submit payload.nonce to your server
+ *   }).catch(function(tokenizationErr) {
+ *     // Handle errors in the flow
+ *   })
+ * })
+ */
+
+SEPA.prototype.tokenize = function (options) {
+  var self = this;
+
+  if (!options || hasMissingOption(options, constants.REQUIRED_OPTIONS)) {
+    analytics.sendEvent(self._client, "sepa.input-validation.missing-options");
+
+    return Promise.reject(
+      new BraintreeError(sepaErrors.SEPA_TOKENIZE_MISSING_REQUIRED_OPTION)
+    );
+  }
+
+  if (!constants.MANDATE_TYPE_ENUM.includes(options.mandateType)) {
+    analytics.sendEvent(self._client, "sepa.input-validation.invalid-mandate");
+
+    return Promise.reject(
+      new BraintreeError(sepaErrors.SEPA_INVALID_MANDATE_TYPE)
+    );
+  }
+
+  return mandates
+    .createMandate(self._client, {
+      accountHolderName: options.accountHolderName,
+      customerId: options.customerId,
+      iban: options.iban,
+      mandateType: options.mandateType,
+      countryCode: options.countryCode,
+      merchantAccountId: options.merchantAccountId,
+      cancelUrl: self._cancelUrl,
+      returnUrl: self._returnUrl,
+    })
+    .then(function (mandateResponse) {
+      analytics.sendEvent(self._client, "sepa.create-mandate.success");
+      options.last4 = mandateResponse.last4;
+      options.bankReferenceToken = mandateResponse.bankReferenceToken;
+
+      return mandates.openPopup(self._client, {
+        approvalUrl: mandateResponse.approvalUrl,
+        assetsUrl: self._assetsUrl,
+      });
+    })
+    .then(function () {
+      analytics.sendEvent(self._client, "sepa.mandate.approved");
+
+      return mandates.handleApproval(self._client, {
+        bankReferenceToken: options.bankReferenceToken,
+        last4: options.last4,
+        customerId: options.customerId,
+        mandateType: options.mandateType,
+        merchantAccountId: options.merchantAccountId,
+      });
+    })
+    .then(function (approval) {
+      analytics.sendEvent(self._client, "sepa.tokenization.success");
+
+      return Promise.resolve(approval);
+    })
+    .catch(function (err) {
+      analytics.sendEvent(self._client, "sepa." + err.details + ".failed");
+
+      return Promise.reject(err);
+    });
+};
+
+module.exports = wrapPromise.wrapPrototype(SEPA);
+
+},{"../../lib/analytics":126,"../../lib/braintree-error":131,"../../lib/promise":164,"../shared/constants":194,"../shared/errors":195,"../shared/has-missing-option":196,"./mandate":191,"@braintree/wrap-promise":49}],193:[function(_dereq_,module,exports){
+"use strict";
+/** @module braintree-web/sepa */
+
+var analytics = _dereq_("../lib/analytics");
+var SEPA = _dereq_("./external/sepa");
+var createAssetsUrl = _dereq_("../lib/create-assets-url");
+var createDeferredClient = _dereq_("../lib/create-deferred-client");
+var basicComponentVerification = _dereq_("../lib/basic-component-verification");
+var wrapPromise = _dereq_("@braintree/wrap-promise");
+var VERSION = "3.87.0";
+
+/**
+ * @static
+ * @function create
+ * @param {object} options Creation options:
+ * @param {Client} [options.client] A {@link Client} instance.
+ * @param {string} [options.authorization] A tokenizationKey or clientToken. Can be used in place of `options.client`.
+ * @param {boolean} [options.debug] A debug flag.
+ * @param {callback} [callback] When provided, will be used instead of a promise. First argument is an error object, where the second is an instance of {@link SEPA|SEPA}.
+ * @returns {Promise<void|error>} Returns the SEPA instance.
+ * @example
+ * braintree.sepa.create({
+ *   client: clientInstance
+ * }).then(function (sepaInstance) {
+ *   // sepaInstance is ready to be used.
+ * }).catch(function (createErr) {
+ *   console.error('Error creating SEPA instance', createErr);
+ * });
+ * @example <caption>Creating a SEPA component</caption>
+ * braintree.sepa.create({
+ *   client: clientInstance,
+ * }).then(function (sepaInstance) {
+ *   // sepaInstance is ready to be used.
+ * }).catch(function (createErr) {
+ *   console.error('Error creating SEPA instance', createErr);
+ * });
+ */
+
+function create(options) {
+  var name = "SEPA";
+
+  return basicComponentVerification
+    .verify({
+      name: name,
+      client: options.client,
+      authorization: options.authorization,
+    })
+    .then(function () {
+      return createDeferredClient.create({
+        authorization: options.authorization,
+        client: options.client,
+        debug: options.debug,
+        assetsUrl: createAssetsUrl.create(options.authorization),
+        name: name,
+      });
+    })
+    .then(function (client) {
+      options.client = client;
+
+      analytics.sendEvent(options.client, "sepa.client.initialized");
+
+      return new SEPA(options);
+    });
+}
+
+module.exports = {
+  create: wrapPromise(create),
+  /**
+   * @description The current version of the SDK, i.e. `{@pkg version}`.
+   * @type {string}
+   */
+  VERSION: VERSION,
+};
+
+},{"../lib/analytics":126,"../lib/basic-component-verification":129,"../lib/create-assets-url":136,"../lib/create-deferred-client":138,"./external/sepa":192,"@braintree/wrap-promise":49}],194:[function(_dereq_,module,exports){
+"use strict";
+
+module.exports = {
+  REQUIRED_OPTIONS: [
+    "iban",
+    "merchantAccountId",
+    "mandateType",
+    "customerId",
+    "accountHolderName",
+    "countryCode",
+  ],
+  MANDATE_TYPE_ENUM: ["ONE_OFF", "RECURRENT"],
+};
+
+},{}],195:[function(_dereq_,module,exports){
+"use strict";
+
+var BraintreeError = _dereq_("../../lib/braintree-error");
+
+/**
+ * @name BraintreeError.SEPA - tokenize Error Codes
+ * @description Errors that occur when using the {@link module:braintree-web/sepa.tokenize|sepa.tokenize} method.
+ * @property {MERCHANT} SEPA_CREATE_MANDATE_FAILED Occurs when there was an issue creating a mandate. This can occur if the request fails, or if the merchant does not have SEPA enabled.
+ * @property {CUSTOMER} SEPA_CUSTOMER_CANCELED Occurs when the customer has canceled the SEPA authorization process. This can be within the mandate approval popup, or by canceling the popup itself.
+ * @property {MERCHANT} SEPA_INVALID_MANDATE_TYPE Occurs when an invalid mandate type is provided.
+ * @property {UNKNOWN} SEPA_TOKENIZATION_FAILED Occurs when tokenization fails during the mandate approval process for unknown reasons.
+ * @property {MERCHANT} SEPA_TOKENIZE_MISSING_REQUIRED_OPTION Occurs when there are required input options not provided.
+ * @property {UNKNOWN} SEPA_TRANSACTION_FAILED Occurs when final tokenization fails.
+ */
+
+// Those with a "details" property are used in specific locations and this prop serves to identify where in the imlpementation the error originates.
+module.exports = {
+  SEPA_CREATE_MANDATE_FAILED: {
+    type: BraintreeError.types.MERCHANT,
+    code: "SEPA_CREATE_MANDATE_FAILED",
+    message: "SEPA create mandate failed.",
+    details: "create-mandate",
+  },
+  SEPA_CUSTOMER_CANCELED: {
+    type: BraintreeError.types.CUSTOMER,
+    code: "SEPA_CUSTOMER_CANCELED",
+    message: "User canceled SEPA authorization",
+    details: "customer-canceled",
+  },
+  SEPA_INVALID_MANDATE_TYPE: {
+    type: BraintreeError.types.MERCHANT,
+    code: "SEPA_INVALID_MANDATE_TYPE",
+    message: "SEPA mandate type is invalid",
+  },
+  SEPA_TOKENIZATION_FAILED: {
+    type: BraintreeError.types.UNKNOWN,
+    code: "SEPA_TOKENIZATION_FAILED",
+    message: "SEPA encountered a problem",
+    details: "open-popup",
+  },
+  SEPA_TOKENIZE_MISSING_REQUIRED_OPTION: {
+    type: BraintreeError.types.MERCHANT,
+    code: "SEPA_TOKENIZE_MISSING_REQUIRED_OPTION",
+    message: "Missing required option for tokenize.",
+  },
+  SEPA_TRANSACTION_FAILED: {
+    type: BraintreeError.types.UNKNOWN,
+    code: "SEPA_TRANSACTION_FAILED",
+    message: "SEPA transaction failed",
+    details: "handle-approval",
+  },
+};
+
+},{"../../lib/braintree-error":131}],196:[function(_dereq_,module,exports){
+"use strict";
+
+/**
+ * @ignore
+ * @static
+ * @function hasMissingOption
+ * @param {object} options All options provided for intiating the SEPA payment flow.
+ * @param {array} required A list of required inputs that must be include as part of the options.
+ * @returns {boolean} Returns a boolean.
+ */
+function hasMissingOption(options, required) {
+  var i, option;
+
+  required = required || [];
+
+  for (i = 0; i < required.length; i++) {
+    option = required[i];
+
+    if (!options.hasOwnProperty(option)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+module.exports = hasMissingOption;
+
+},{}],197:[function(_dereq_,module,exports){
+"use strict";
+
 var assign = _dereq_("../../../lib/assign").assign;
 var analytics = _dereq_("../../../lib/analytics");
 var BraintreeError = _dereq_("../../../lib/braintree-error");
@@ -16344,7 +16893,7 @@ var useMin = _dereq_("../../../lib/use-min");
 var BUS_CONFIGURATION_REQUEST_EVENT =
   _dereq_("../../../lib/constants").BUS_CONFIGURATION_REQUEST_EVENT;
 
-var VERSION = "3.86.0";
+var VERSION = "3.87.0";
 var IFRAME_HEIGHT = 400;
 var IFRAME_WIDTH = 400;
 
@@ -16776,7 +17325,7 @@ BaseFramework.prototype.teardown = function () {
 
 module.exports = BaseFramework;
 
-},{"../../../lib/analytics":126,"../../../lib/assign":128,"../../../lib/braintree-error":131,"../../../lib/constants":133,"../../../lib/is-verified-domain":160,"../../../lib/promise":164,"../../../lib/use-min":167,"../../shared/constants":200,"../../shared/errors":201,"../../shared/events":202,"@braintree/event-emitter":39,"@braintree/extended-promise":40,"@braintree/iframer":41,"@braintree/uuid":45,"framebus":58}],192:[function(_dereq_,module,exports){
+},{"../../../lib/analytics":126,"../../../lib/assign":128,"../../../lib/braintree-error":131,"../../../lib/constants":133,"../../../lib/is-verified-domain":160,"../../../lib/promise":164,"../../../lib/use-min":167,"../../shared/constants":206,"../../shared/errors":207,"../../shared/events":208,"@braintree/event-emitter":39,"@braintree/extended-promise":40,"@braintree/iframer":41,"@braintree/uuid":45,"framebus":58}],198:[function(_dereq_,module,exports){
 "use strict";
 // NEXT_MAJOR_VERSION drop support for Bootstrap framework,
 // recomend using inline frame version and putting it in
@@ -16842,7 +17391,7 @@ Bootstrap3ModalFramework.prototype._createCardinalConfigurationOptions =
 
 module.exports = Bootstrap3ModalFramework;
 
-},{"./songbird":197}],193:[function(_dereq_,module,exports){
+},{"./songbird":203}],199:[function(_dereq_,module,exports){
 "use strict";
 
 var SongbirdFramework = _dereq_("./songbird");
@@ -16930,7 +17479,7 @@ CardinalModalFramework.prototype._createV1IframeModalElement = function (
 
 module.exports = CardinalModalFramework;
 
-},{"./songbird":197}],194:[function(_dereq_,module,exports){
+},{"./songbird":203}],200:[function(_dereq_,module,exports){
 "use strict";
 
 var LegacyFramework = _dereq_("./legacy");
@@ -16945,7 +17494,7 @@ module.exports = {
   "inline-iframe": InlineIframeFramework,
 };
 
-},{"./bootstrap3-modal":192,"./cardinal-modal":193,"./inline-iframe":195,"./legacy":196}],195:[function(_dereq_,module,exports){
+},{"./bootstrap3-modal":198,"./cardinal-modal":199,"./inline-iframe":201,"./legacy":202}],201:[function(_dereq_,module,exports){
 "use strict";
 
 var SongbirdFramework = _dereq_("./songbird");
@@ -17053,7 +17602,7 @@ InlineIframeFramework.prototype._onInlineSetup = function (
 
 module.exports = InlineIframeFramework;
 
-},{"../../../lib/braintree-error":131,"../../../lib/enumerate":141,"../../shared/errors":201,"./songbird":197}],196:[function(_dereq_,module,exports){
+},{"../../../lib/braintree-error":131,"../../../lib/enumerate":141,"../../shared/errors":207,"./songbird":203}],202:[function(_dereq_,module,exports){
 "use strict";
 
 var BaseFramework = _dereq_("./base");
@@ -17174,7 +17723,7 @@ LegacyFramework.prototype._presentChallenge = function (
 
 module.exports = LegacyFramework;
 
-},{"../../../lib/deferred":139,"./base":191}],197:[function(_dereq_,module,exports){
+},{"../../../lib/deferred":139,"./base":197}],203:[function(_dereq_,module,exports){
 "use strict";
 
 var BaseFramework = _dereq_("./base");
@@ -17193,7 +17742,7 @@ var ExtendedPromise = _dereq_("@braintree/extended-promise");
 var INTEGRATION_TIMEOUT_MS =
   _dereq_("../../../lib/constants").INTEGRATION_TIMEOUT_MS;
 var PLATFORM = _dereq_("../../../lib/constants").PLATFORM;
-var VERSION = "3.86.0";
+var VERSION = "3.87.0";
 var CUSTOMER_CANCELED_SONGBIRD_MODAL = "01";
 var SONGBIRD_UI_EVENTS = [
   "ui.close",
@@ -18035,7 +18584,7 @@ function extractAddressData(source, target, prefix) {
 
 module.exports = SongbirdFramework;
 
-},{"../../../lib/analytics":126,"../../../lib/assets":127,"../../../lib/assign":128,"../../../lib/braintree-error":131,"../../../lib/constants":133,"../../../lib/convert-to-braintree-error":135,"../../../lib/deferred":139,"../../../lib/enumerate":141,"../../../lib/promise":164,"../../shared/constants":200,"../../shared/errors":201,"./base":191,"@braintree/extended-promise":40}],198:[function(_dereq_,module,exports){
+},{"../../../lib/analytics":126,"../../../lib/assets":127,"../../../lib/assign":128,"../../../lib/braintree-error":131,"../../../lib/constants":133,"../../../lib/convert-to-braintree-error":135,"../../../lib/deferred":139,"../../../lib/enumerate":141,"../../../lib/promise":164,"../../shared/constants":206,"../../shared/errors":207,"./base":197,"@braintree/extended-promise":40}],204:[function(_dereq_,module,exports){
 "use strict";
 
 var wrapPromise = _dereq_("@braintree/wrap-promise");
@@ -18822,7 +19371,7 @@ ThreeDSecure.prototype.teardown = function () {
 
 module.exports = wrapPromise.wrapPrototype(ThreeDSecure);
 
-},{"../../lib/convert-methods-to-error":134,"../../lib/methods":162,"./frameworks":194,"@braintree/event-emitter":39,"@braintree/wrap-promise":49}],199:[function(_dereq_,module,exports){
+},{"../../lib/convert-methods-to-error":134,"../../lib/methods":162,"./frameworks":200,"@braintree/event-emitter":39,"@braintree/wrap-promise":49}],205:[function(_dereq_,module,exports){
 "use strict";
 /** @module braintree-web/three-d-secure */
 
@@ -18834,7 +19383,7 @@ var createAssetsUrl = _dereq_("../lib/create-assets-url");
 var BraintreeError = _dereq_("../lib/braintree-error");
 var analytics = _dereq_("../lib/analytics");
 var errors = _dereq_("./shared/errors");
-var VERSION = "3.86.0";
+var VERSION = "3.87.0";
 var Promise = _dereq_("../lib/promise");
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 
@@ -19057,7 +19606,7 @@ module.exports = {
   VERSION: VERSION,
 };
 
-},{"../lib/analytics":126,"../lib/basic-component-verification":129,"../lib/braintree-error":131,"../lib/create-assets-url":136,"../lib/create-deferred-client":138,"../lib/is-https":159,"../lib/promise":164,"./external/three-d-secure":198,"./shared/errors":201,"@braintree/wrap-promise":49}],200:[function(_dereq_,module,exports){
+},{"../lib/analytics":126,"../lib/basic-component-verification":129,"../lib/braintree-error":131,"../lib/create-assets-url":136,"../lib/create-deferred-client":138,"../lib/is-https":159,"../lib/promise":164,"./external/three-d-secure":204,"./shared/errors":207,"@braintree/wrap-promise":49}],206:[function(_dereq_,module,exports){
 "use strict";
 
 module.exports = {
@@ -19068,7 +19617,7 @@ module.exports = {
   },
 };
 
-},{}],201:[function(_dereq_,module,exports){
+},{}],207:[function(_dereq_,module,exports){
 "use strict";
 
 /**
@@ -19247,14 +19796,14 @@ module.exports = {
   },
 };
 
-},{"../../lib/braintree-error":131}],202:[function(_dereq_,module,exports){
+},{"../../lib/braintree-error":131}],208:[function(_dereq_,module,exports){
 "use strict";
 
 var enumerate = _dereq_("../../lib/enumerate");
 
 module.exports = enumerate(["AUTHENTICATION_COMPLETE"], "threedsecure:");
 
-},{"../../lib/enumerate":141}],203:[function(_dereq_,module,exports){
+},{"../../lib/enumerate":141}],209:[function(_dereq_,module,exports){
 "use strict";
 /**
  * @module braintree-web/unionpay
@@ -19268,7 +19817,7 @@ var createDeferredClient = _dereq_("../lib/create-deferred-client");
 var createAssetsUrl = _dereq_("../lib/create-assets-url");
 var analytics = _dereq_("../lib/analytics");
 var errors = _dereq_("./shared/errors");
-var VERSION = "3.86.0";
+var VERSION = "3.87.0";
 var Promise = _dereq_("../lib/promise");
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 
@@ -19334,7 +19883,7 @@ module.exports = {
   VERSION: VERSION,
 };
 
-},{"../lib/analytics":126,"../lib/basic-component-verification":129,"../lib/braintree-error":131,"../lib/create-assets-url":136,"../lib/create-deferred-client":138,"../lib/promise":164,"./shared/errors":205,"./shared/unionpay":206,"@braintree/wrap-promise":49}],204:[function(_dereq_,module,exports){
+},{"../lib/analytics":126,"../lib/basic-component-verification":129,"../lib/braintree-error":131,"../lib/create-assets-url":136,"../lib/create-deferred-client":138,"../lib/promise":164,"./shared/errors":211,"./shared/unionpay":212,"@braintree/wrap-promise":49}],210:[function(_dereq_,module,exports){
 "use strict";
 
 var enumerate = _dereq_("../../lib/enumerate");
@@ -19351,7 +19900,7 @@ module.exports = {
   HOSTED_FIELDS_FRAME_NAME: "braintreeunionpayhostedfields",
 };
 
-},{"../../lib/enumerate":141}],205:[function(_dereq_,module,exports){
+},{"../../lib/enumerate":141}],211:[function(_dereq_,module,exports){
 "use strict";
 
 /**
@@ -19459,7 +20008,7 @@ module.exports = {
   },
 };
 
-},{"../../lib/braintree-error":131}],206:[function(_dereq_,module,exports){
+},{"../../lib/braintree-error":131}],212:[function(_dereq_,module,exports){
 "use strict";
 
 var analytics = _dereq_("../../lib/analytics");
@@ -19473,7 +20022,7 @@ var errors = _dereq_("./errors");
 var events = constants.events;
 var iFramer = _dereq_("@braintree/iframer");
 var methods = _dereq_("../../lib/methods");
-var VERSION = "3.86.0";
+var VERSION = "3.87.0";
 var uuid = _dereq_("@braintree/uuid");
 var Promise = _dereq_("../../lib/promise");
 var wrapPromise = _dereq_("@braintree/wrap-promise");
@@ -19914,14 +20463,14 @@ UnionPay.prototype._initializeHostedFields = function () {
 
 module.exports = wrapPromise.wrapPrototype(UnionPay);
 
-},{"../../lib/analytics":126,"../../lib/braintree-error":131,"../../lib/constants":133,"../../lib/convert-methods-to-error":134,"../../lib/is-verified-domain":160,"../../lib/methods":162,"../../lib/promise":164,"../../lib/use-min":167,"./constants":204,"./errors":205,"@braintree/iframer":41,"@braintree/uuid":45,"@braintree/wrap-promise":49,"framebus":58}],207:[function(_dereq_,module,exports){
+},{"../../lib/analytics":126,"../../lib/braintree-error":131,"../../lib/constants":133,"../../lib/convert-methods-to-error":134,"../../lib/is-verified-domain":160,"../../lib/methods":162,"../../lib/promise":164,"../../lib/use-min":167,"./constants":210,"./errors":211,"@braintree/iframer":41,"@braintree/uuid":45,"@braintree/wrap-promise":49,"framebus":58}],213:[function(_dereq_,module,exports){
 "use strict";
 
 module.exports = {
   PLAID_LINK_JS: "https://cdn.plaid.com/link/v2/stable/link-initialize.js",
 };
 
-},{}],208:[function(_dereq_,module,exports){
+},{}],214:[function(_dereq_,module,exports){
 "use strict";
 
 /**
@@ -19991,7 +20540,7 @@ module.exports = {
   },
 };
 
-},{"../lib/braintree-error":131}],209:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":131}],215:[function(_dereq_,module,exports){
 "use strict";
 /**
  * @module braintree-web/us-bank-account
@@ -20004,7 +20553,7 @@ var createDeferredClient = _dereq_("../lib/create-deferred-client");
 var createAssetsUrl = _dereq_("../lib/create-assets-url");
 var errors = _dereq_("./errors");
 var USBankAccount = _dereq_("./us-bank-account");
-var VERSION = "3.86.0";
+var VERSION = "3.87.0";
 var Promise = _dereq_("../lib/promise");
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 
@@ -20061,7 +20610,7 @@ module.exports = {
   VERSION: VERSION,
 };
 
-},{"../lib/basic-component-verification":129,"../lib/braintree-error":131,"../lib/create-assets-url":136,"../lib/create-deferred-client":138,"../lib/promise":164,"./errors":208,"./us-bank-account":210,"@braintree/wrap-promise":49}],210:[function(_dereq_,module,exports){
+},{"../lib/basic-component-verification":129,"../lib/braintree-error":131,"../lib/create-assets-url":136,"../lib/create-deferred-client":138,"../lib/promise":164,"./errors":214,"./us-bank-account":216,"@braintree/wrap-promise":49}],216:[function(_dereq_,module,exports){
 "use strict";
 
 var BraintreeError = _dereq_("../lib/braintree-error");
@@ -20598,7 +21147,7 @@ USBankAccount.prototype.teardown = function () {
 
 module.exports = wrapPromise.wrapPrototype(USBankAccount);
 
-},{"../lib/analytics":126,"../lib/braintree-error":131,"../lib/convert-methods-to-error":134,"../lib/errors":142,"../lib/methods":162,"../lib/once":163,"../lib/promise":164,"./constants":207,"./errors":208,"@braintree/wrap-promise":49}],211:[function(_dereq_,module,exports){
+},{"../lib/analytics":126,"../lib/braintree-error":131,"../lib/convert-methods-to-error":134,"../lib/errors":142,"../lib/methods":162,"../lib/once":163,"../lib/promise":164,"./constants":213,"./errors":214,"@braintree/wrap-promise":49}],217:[function(_dereq_,module,exports){
 "use strict";
 
 /**
@@ -20628,7 +21177,7 @@ module.exports = {
   },
 };
 
-},{"../lib/braintree-error":131}],212:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":131}],218:[function(_dereq_,module,exports){
 "use strict";
 /**
  * @module braintree-web/vault-manager
@@ -20639,7 +21188,7 @@ var basicComponentVerification = _dereq_("../lib/basic-component-verification");
 var createDeferredClient = _dereq_("../lib/create-deferred-client");
 var createAssetsUrl = _dereq_("../lib/create-assets-url");
 var VaultManager = _dereq_("./vault-manager");
-var VERSION = "3.86.0";
+var VERSION = "3.87.0";
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 
 /**
@@ -20682,7 +21231,7 @@ module.exports = {
   VERSION: VERSION,
 };
 
-},{"../lib/basic-component-verification":129,"../lib/create-assets-url":136,"../lib/create-deferred-client":138,"./vault-manager":213,"@braintree/wrap-promise":49}],213:[function(_dereq_,module,exports){
+},{"../lib/basic-component-verification":129,"../lib/create-assets-url":136,"../lib/create-deferred-client":138,"./vault-manager":219,"@braintree/wrap-promise":49}],219:[function(_dereq_,module,exports){
 "use strict";
 
 var analytics = _dereq_("../lib/analytics");
@@ -20902,7 +21451,7 @@ VaultManager.prototype.teardown = function () {
 
 module.exports = wrapPromise.wrapPrototype(VaultManager);
 
-},{"../lib/analytics":126,"../lib/braintree-error":131,"../lib/convert-methods-to-error":134,"../lib/methods":162,"../lib/promise":164,"./errors":211,"@braintree/wrap-promise":49}],214:[function(_dereq_,module,exports){
+},{"../lib/analytics":126,"../lib/braintree-error":131,"../lib/convert-methods-to-error":134,"../lib/methods":162,"../lib/promise":164,"./errors":217,"@braintree/wrap-promise":49}],220:[function(_dereq_,module,exports){
 "use strict";
 var __importDefault =
   (this && this.__importDefault) ||
@@ -20915,7 +21464,7 @@ module.exports = function createVenmoDesktop(options) {
   return instance.initialize();
 };
 
-},{"./venmo-desktop":216}],215:[function(_dereq_,module,exports){
+},{"./venmo-desktop":222}],221:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.VENMO_PAYMENT_CONTEXT_STATUS_QUERY =
@@ -20938,7 +21487,7 @@ exports.LEGACY_VENMO_PAYMENT_CONTEXT_STATUS_QUERY =
 exports.VENMO_PAYMENT_CONTEXT_STATUS_QUERY =
   "query PaymentContext($id: ID!) {\n  node(id: $id) {\n    ... on VenmoPaymentContext {\n      status\n      paymentMethodId\n      userName\n      payerInfo {\n        firstName\n        lastName\n        phoneNumber\n        email\n        externalId\n        userName\n      }\n    }\n  }\n}";
 
-},{}],216:[function(_dereq_,module,exports){
+},{}],222:[function(_dereq_,module,exports){
 "use strict";
 var __assign =
   (this && this.__assign) ||
@@ -21350,7 +21899,7 @@ var VenmoDesktop = /** @class */ (function () {
 })();
 exports.default = VenmoDesktop;
 
-},{"../shared/events":221,"./queries":215,"@braintree/iframer":41,"@braintree/uuid":45,"framebus":58}],217:[function(_dereq_,module,exports){
+},{"../shared/events":227,"./queries":221,"@braintree/iframer":41,"@braintree/uuid":45,"framebus":58}],223:[function(_dereq_,module,exports){
 "use strict";
 /** @module braintree-web/venmo */
 
@@ -21364,7 +21913,7 @@ var BraintreeError = _dereq_("../lib/braintree-error");
 var Venmo = _dereq_("./venmo");
 var Promise = _dereq_("../lib/promise");
 var supportsVenmo = _dereq_("./shared/supports-venmo");
-var VERSION = "3.86.0";
+var VERSION = "3.87.0";
 
 /**
  * @static
@@ -21379,10 +21928,7 @@ var VERSION = "3.86.0";
  * @param {string} [options.deepLinkReturnUrl] An override for the URL that the Venmo iOS app opens to return from an app switch.
  * @param {boolean} [options.requireManualReturn=false] When `true`, the customer will have to manually switch back to the browser/webview that is presenting Venmo to complete the payment.
  * @param {boolean} [options.useRedirectForIOS=false] Normally, the Venmo flow is launched using `window.open` and the Venmo app intercepts that call and opens the Venmo app instead. If the customer does not have the Venmo app installed, it opens the Venmo website in a new window and instructs the customer to install the app.
- * @param {boolean} [options.allowDesktop] Used to support desktop users. When enabled, the default mode is to render a scannable QR-code customers scan with their phone's to approve via the mobile app.
- * @param {boolean} [options.allowDesktopWebLogin=false] When `true`, the customer will authorize payment via a window popup that allows them to sign in to their Venmo account. This is used explicitly for customers operating from desktop browsers wanting to avoid the QR Code flow.
- * @param {boolean} [options.mobileWebFallBack] Use this option when you want to force a web-login experience, such as if on mobile and the Venmo app isn't installed.
-
+ 
  * In iOS webviews and Safari View Controllers (a webview-like environment which is indistinguishable from Safari for JavaScript environments), this call to `window.open` will always fail to app switch to Venmo, resulting instead in a white screen. Because of this, an alternate approach is required to launch the Venmo flow.
  *
  * When `useRedirectForIOS` is `true` and the Venmo flow is started in an iOS environment, the Venmo flow will be started by setting `window.location.href` to the Venmo website (which will still be intercepted by the Venmo app and should be the same behavior as if `window.open` was called). However, if the customer does not have the Venmo app installed, the merchant page will instead be replaced with the Venmo website and the customer will need to use the browser's back button to return to the merchant's website. Ensure that your customer's checkout information will not be lost if they are navigated away from the website and return using the browser back button.
@@ -21394,6 +21940,9 @@ var VERSION = "3.86.0";
  * * single_use - intended as a one time transaction
  * * multi_use - intended to be vaulted and used for multiple transactions
  * @param {string} [options.displayName] The business name that will be displayed in the Venmo app payment approval screen. Only applicable when used with `paymentMethodUsage` and used by merchants onboarded as PayFast channel partners.
+ * @param {boolean} [options.allowDesktop] Used to support desktop users. When enabled, the default mode is to render a scannable QR-code customers scan with their phone's to approve via the mobile app.
+ * @param {boolean} [options.allowDesktopWebLogin=false] When `true`, the customer will authorize payment via a window popup that allows them to sign in to their Venmo account. This is used explicitly for customers operating from desktop browsers wanting to avoid the QR Code flow.
+ * @param {boolean} [options.mobileWebFallBack] Use this option when you want to force a web-login experience, such as if on mobile and the Venmo app isn't installed.
  * @param {callback} [callback] The second argument, `data`, is the {@link Venmo} instance. If no callback is provided, `create` returns a promise that resolves with the {@link Venmo} instance.
  * @example
  * braintree.venmo.create({
@@ -21510,7 +22059,7 @@ module.exports = {
   VERSION: VERSION,
 };
 
-},{"../lib/analytics":126,"../lib/basic-component-verification":129,"../lib/braintree-error":131,"../lib/create-assets-url":136,"../lib/create-deferred-client":138,"../lib/promise":164,"./shared/errors":220,"./shared/supports-venmo":223,"./venmo":225,"@braintree/wrap-promise":49}],218:[function(_dereq_,module,exports){
+},{"../lib/analytics":126,"../lib/basic-component-verification":129,"../lib/braintree-error":131,"../lib/create-assets-url":136,"../lib/create-deferred-client":138,"../lib/promise":164,"./shared/errors":226,"./shared/supports-venmo":229,"./venmo":231,"@braintree/wrap-promise":49}],224:[function(_dereq_,module,exports){
 "use strict";
 
 var isAndroid = _dereq_("@braintree/browser-detection/is-android");
@@ -21572,7 +22121,7 @@ module.exports = {
   doesNotSupportWindowOpenInIos: doesNotSupportWindowOpenInIos,
 };
 
-},{"@braintree/browser-detection/is-android":24,"@braintree/browser-detection/is-chrome":26,"@braintree/browser-detection/is-ios":35,"@braintree/browser-detection/is-ios-safari":32,"@braintree/browser-detection/is-ios-webview":33,"@braintree/browser-detection/is-samsung":36}],219:[function(_dereq_,module,exports){
+},{"@braintree/browser-detection/is-android":24,"@braintree/browser-detection/is-chrome":26,"@braintree/browser-detection/is-ios":35,"@braintree/browser-detection/is-ios-safari":32,"@braintree/browser-detection/is-ios-webview":33,"@braintree/browser-detection/is-samsung":36}],225:[function(_dereq_,module,exports){
 "use strict";
 
 /**
@@ -21591,7 +22140,7 @@ module.exports = {
   VENMO_WEB_LOGIN_URL: "https://account.venmo.com/go/web",
 };
 
-},{}],220:[function(_dereq_,module,exports){
+},{}],226:[function(_dereq_,module,exports){
 "use strict";
 
 /**
@@ -21731,7 +22280,7 @@ module.exports = {
   },
 };
 
-},{"../../lib/braintree-error":131}],221:[function(_dereq_,module,exports){
+},{"../../lib/braintree-error":131}],227:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.VENMO_DESKTOP_UNKNOWN_ERROR =
@@ -21760,7 +22309,7 @@ exports.VENMO_DESKTOP_CLOSED_FROM_PARENT = "VENMO_DESKTOP_CLOSED_FROM_PARENT";
 exports.VENMO_DESKTOP_REQUEST_NEW_QR_CODE = "VENMO_DESKTOP_REQUEST_NEW_QR_CODE";
 exports.VENMO_DESKTOP_UNKNOWN_ERROR = "VENMO_DESKTOP_UNKNOWN_ERROR";
 
-},{}],222:[function(_dereq_,module,exports){
+},{}],228:[function(_dereq_,module,exports){
 "use strict";
 var venmoConstants = _dereq_("./constants");
 
@@ -21768,14 +22317,15 @@ function getVenmoUrl(options) {
   if (options.useAllowDesktopWebLogin)
     return venmoConstants.VENMO_WEB_LOGIN_URL;
 
-  if (options.mobileWebFallBack) return venmoConstants.VENMO_APP_CHECKOUT_URL;
+  if (options.mobileWebFallBack)
+    return venmoConstants.VENMO_APP_OR_MOBILE_AUTH_URL;
 
   return venmoConstants.VENMO_MOBILE_APP_AUTH_ONLY_URL;
 }
 
 module.exports = getVenmoUrl;
 
-},{"./constants":219}],223:[function(_dereq_,module,exports){
+},{"./constants":225}],229:[function(_dereq_,module,exports){
 "use strict";
 
 var browserDetection = _dereq_("./browser-detection");
@@ -21838,14 +22388,14 @@ module.exports = {
   isBrowserSupported: isBrowserSupported,
 };
 
-},{"./browser-detection":218}],224:[function(_dereq_,module,exports){
+},{"./browser-detection":224}],230:[function(_dereq_,module,exports){
 "use strict";
 
 var frameService = _dereq_("../../lib/frame-service/external");
 var useMin = _dereq_("../../lib/use-min");
 var Promise = _dereq_("../../lib/promise");
 
-var VERSION = "3.86.0";
+var VERSION = "3.87.0";
 var VENMO_LOGO_SVG =
   '<svg width="198" height="58" viewBox="0 0 198 58" fill="none" xmlns="http://www.w3.org/2000/svg">\n  <path fill-rule="evenodd" clip-rule="evenodd" d="M43.0702 13.6572C44.1935 15.4585 44.6999 17.3139 44.6999 19.6576C44.6999 27.1328 38.1277 36.8436 32.7935 43.6625H20.6099L15.7236 15.2939L26.3917 14.3105L28.9751 34.4966C31.389 30.6783 34.3678 24.6779 34.3678 20.587C34.3678 18.3477 33.9727 16.8225 33.3553 15.5666L43.0702 13.6572Z" fill="white"/>\n  <path fill-rule="evenodd" clip-rule="evenodd" d="M56.8965 26.1491C58.8596 26.1491 63.8018 25.2772 63.8018 22.5499C63.8018 21.2402 62.8481 20.587 61.7242 20.587C59.7579 20.587 57.1776 22.8763 56.8965 26.1491ZM56.6715 31.5506C56.6715 34.8807 58.5787 36.1873 61.107 36.1873C63.8603 36.1873 66.4966 35.534 69.923 33.8433L68.6324 42.3523C66.2183 43.4976 62.4559 44.2617 58.8039 44.2617C49.5403 44.2617 46.2249 38.8071 46.2249 31.9879C46.2249 23.1496 51.6179 13.765 62.7365 13.765C68.858 13.765 72.2809 17.0949 72.2809 21.7317C72.2815 29.2066 62.4005 31.4965 56.6715 31.5506Z" fill="white"/>\n  <path fill-rule="evenodd" clip-rule="evenodd" d="M103.067 20.3142C103.067 21.4052 102.897 22.9875 102.727 24.0216L99.5262 43.6622H89.1385L92.0585 25.658C92.1139 25.1696 92.284 24.1865 92.284 23.6411C92.284 22.3314 91.4414 22.0047 90.4282 22.0047C89.0826 22.0047 87.7337 22.6042 86.8354 23.0418L83.5234 43.6625H73.0772L77.8495 14.257H86.8908L87.0052 16.6041C89.1382 15.2404 91.9469 13.7656 95.932 13.7656C101.212 13.765 103.067 16.3845 103.067 20.3142Z" fill="white"/>\n  <path fill-rule="evenodd" clip-rule="evenodd" d="M133.906 16.9841C136.881 14.9131 139.69 13.765 143.563 13.765C148.897 13.765 150.753 16.3845 150.753 20.3142C150.753 21.4052 150.583 22.9875 150.413 24.0216L147.216 43.6622H136.825L139.801 25.2774C139.855 24.786 139.971 24.1865 139.971 23.8063C139.971 22.3317 139.128 22.0047 138.115 22.0047C136.824 22.0047 135.535 22.5501 134.577 23.0418L131.266 43.6625H120.878L123.854 25.2777C123.908 24.7863 124.02 24.1868 124.02 23.8065C124.02 22.332 123.177 22.0049 122.167 22.0049C120.819 22.0049 119.473 22.6045 118.574 23.0421L115.26 43.6628H104.817L109.589 14.2573H118.52L118.8 16.7122C120.878 15.241 123.684 13.7662 127.446 13.7662C130.704 13.765 132.837 15.129 133.906 16.9841Z" fill="white"/>\n  <path fill-rule="evenodd" clip-rule="evenodd" d="M171.426 25.5502C171.426 23.1496 170.808 21.513 168.956 21.513C164.857 21.513 164.015 28.55 164.015 32.1498C164.015 34.8807 164.802 36.5709 166.653 36.5709C170.528 36.5709 171.426 29.1497 171.426 25.5502ZM153.458 31.7152C153.458 22.442 158.511 13.765 170.136 13.765C178.896 13.765 182.098 18.7854 182.098 25.7148C182.098 34.8805 177.099 44.3723 165.194 44.3723C156.378 44.3723 153.458 38.7525 153.458 31.7152Z" fill="white"/>\n</svg>';
 var CONTINUE_OR_CANCEL_INSTRUCTIONS =
@@ -22114,7 +22664,7 @@ module.exports = {
   POPUP_HEIGHT: POPUP_HEIGHT,
 };
 
-},{"../../lib/frame-service/external":146,"../../lib/promise":164,"../../lib/use-min":167}],225:[function(_dereq_,module,exports){
+},{"../../lib/frame-service/external":146,"../../lib/promise":164,"../../lib/use-min":167}],231:[function(_dereq_,module,exports){
 "use strict";
 
 var analytics = _dereq_("../lib/analytics");
@@ -22141,7 +22691,7 @@ var runWebLogin = _dereq_("./shared/web-login-backdrop").runWebLogin;
 var createVenmoDesktop = _dereq_("./external/");
 var graphqlQueries = _dereq_("./external/queries");
 
-var VERSION = "3.86.0";
+var VERSION = "3.87.0";
 var DEFAULT_MOBILE_POLLING_INTERVAL = 250; // 1/4 second
 var DEFAULT_MOBILE_EXPIRING_THRESHOLD = 300000; // 5 minutes
 
@@ -22964,6 +23514,10 @@ Venmo.prototype._shouldUseRedirectStrategy = function () {
     return false;
   }
 
+  if (this._mobileWebFallBack === true) { 
+    return true;
+  }
+
   return this._useRedirectForIOS;
 };
 
@@ -23352,7 +23906,7 @@ function isIosWebviewInDeepLinkReturnUrlFlow() {
 
 module.exports = wrapPromise.wrapPrototype(Venmo);
 
-},{"../lib/analytics":126,"../lib/braintree-error":131,"../lib/convert-methods-to-error":134,"../lib/in-iframe":157,"../lib/is-verified-domain":160,"../lib/methods":162,"../lib/promise":164,"../lib/querystring":165,"./external/":214,"./external/queries":215,"./shared/browser-detection":218,"./shared/constants":219,"./shared/errors":220,"./shared/get-venmo-url":222,"./shared/supports-venmo":223,"./shared/web-login-backdrop":224,"@braintree/extended-promise":40,"@braintree/wrap-promise":49}],226:[function(_dereq_,module,exports){
+},{"../lib/analytics":126,"../lib/braintree-error":131,"../lib/convert-methods-to-error":134,"../lib/in-iframe":157,"../lib/is-verified-domain":160,"../lib/methods":162,"../lib/promise":164,"../lib/querystring":165,"./external/":220,"./external/queries":221,"./shared/browser-detection":224,"./shared/constants":225,"./shared/errors":226,"./shared/get-venmo-url":228,"./shared/supports-venmo":229,"./shared/web-login-backdrop":230,"@braintree/extended-promise":40,"@braintree/wrap-promise":49}],232:[function(_dereq_,module,exports){
 "use strict";
 
 /**
@@ -23400,7 +23954,7 @@ module.exports = {
   },
 };
 
-},{"../lib/braintree-error":131}],227:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":131}],233:[function(_dereq_,module,exports){
 "use strict";
 
 /**
@@ -23415,7 +23969,7 @@ var createAssetsUrl = _dereq_("../lib/create-assets-url");
 var VisaCheckout = _dereq_("./visa-checkout");
 var analytics = _dereq_("../lib/analytics");
 var errors = _dereq_("./errors");
-var VERSION = "3.86.0";
+var VERSION = "3.87.0";
 var Promise = _dereq_("../lib/promise");
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 
@@ -23472,7 +24026,7 @@ module.exports = {
   VERSION: VERSION,
 };
 
-},{"../lib/analytics":126,"../lib/basic-component-verification":129,"../lib/braintree-error":131,"../lib/create-assets-url":136,"../lib/create-deferred-client":138,"../lib/promise":164,"./errors":226,"./visa-checkout":228,"@braintree/wrap-promise":49}],228:[function(_dereq_,module,exports){
+},{"../lib/analytics":126,"../lib/basic-component-verification":129,"../lib/braintree-error":131,"../lib/create-assets-url":136,"../lib/create-deferred-client":138,"../lib/promise":164,"./errors":232,"./visa-checkout":234,"@braintree/wrap-promise":49}],234:[function(_dereq_,module,exports){
 "use strict";
 
 var BraintreeError = _dereq_("../lib/braintree-error");
@@ -23681,5 +24235,5 @@ VisaCheckout.prototype.teardown = function () {
 
 module.exports = wrapPromise.wrapPrototype(VisaCheckout);
 
-},{"../lib/analytics":126,"../lib/braintree-error":131,"../lib/convert-methods-to-error":134,"../lib/json-clone":161,"../lib/methods":162,"../lib/promise":164,"./errors":226,"@braintree/wrap-promise":49}]},{},[124])(124)
+},{"../lib/analytics":126,"../lib/braintree-error":131,"../lib/convert-methods-to-error":134,"../lib/json-clone":161,"../lib/methods":162,"../lib/promise":164,"./errors":232,"@braintree/wrap-promise":49}]},{},[124])(124)
 });
