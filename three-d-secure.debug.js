@@ -1348,7 +1348,7 @@ module.exports = {
 var BraintreeError = _dereq_("./braintree-error");
 var Promise = _dereq_("./promise");
 var sharedErrors = _dereq_("./errors");
-var VERSION = "3.87.0";
+var VERSION = "3.88.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1496,7 +1496,7 @@ module.exports = BraintreeError;
 },{"./enumerate":43}],36:[function(_dereq_,module,exports){
 "use strict";
 
-var VERSION = "3.87.0";
+var VERSION = "3.88.0";
 var PLATFORM = "web";
 
 var CLIENT_API_URLS = {
@@ -1650,7 +1650,7 @@ var Promise = _dereq_("./promise");
 var assets = _dereq_("./assets");
 var sharedErrors = _dereq_("./errors");
 
-var VERSION = "3.87.0";
+var VERSION = "3.88.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1941,7 +1941,7 @@ var useMin = _dereq_("../../../lib/use-min");
 var BUS_CONFIGURATION_REQUEST_EVENT =
   _dereq_("../../../lib/constants").BUS_CONFIGURATION_REQUEST_EVENT;
 
-var VERSION = "3.87.0";
+var VERSION = "3.88.0";
 var IFRAME_HEIGHT = 400;
 var IFRAME_WIDTH = 400;
 
@@ -2290,6 +2290,7 @@ BaseFramework.prototype.cancelVerifyCard = function () {
 };
 
 BaseFramework.prototype._setupV1Bus = function (options) {
+  var clientConfiguration = this._client.getConfiguration();
   var parentURL = window.location.href.split("#")[0];
   var lookupResponse = options.lookupResponse;
   var channel = uuid();
@@ -2305,6 +2306,8 @@ BaseFramework.prototype._setupV1Bus = function (options) {
 
   bus.on(BUS_CONFIGURATION_REQUEST_EVENT, function (reply) {
     reply({
+      clientConfiguration: clientConfiguration,
+      nonce: options.nonce,
       acsUrl: lookupResponse.acsUrl,
       pareq: lookupResponse.pareq,
       termUrl:
@@ -2690,6 +2693,7 @@ LegacyFramework.prototype._createIframe = function (options) {
   var self = this;
 
   this._setupV1Elements({
+    nonce: options.nonce,
     lookupResponse: options.lookupResponse,
     showLoader: options.showLoader,
     handleAuthResponse: function (data) {
@@ -2764,6 +2768,7 @@ LegacyFramework.prototype._presentChallenge = function (
     this._createIframe({
       showLoader: options.showLoader,
       lookupResponse: lookupResponse.lookup,
+      nonce: lookupResponse.paymentMethod.nonce,
       removeFrame: options.removeFrame,
     })
   );
@@ -2790,7 +2795,7 @@ var ExtendedPromise = _dereq_("@braintree/extended-promise");
 var INTEGRATION_TIMEOUT_MS =
   _dereq_("../../../lib/constants").INTEGRATION_TIMEOUT_MS;
 var PLATFORM = _dereq_("../../../lib/constants").PLATFORM;
-var VERSION = "3.87.0";
+var VERSION = "3.88.0";
 var CUSTOMER_CANCELED_SONGBIRD_MODAL = "01";
 var SONGBIRD_UI_EVENTS = [
   "ui.close",
@@ -3742,7 +3747,7 @@ var FRAMEWORKS = _dereq_("./frameworks");
  * @property {string} [extendedAddress] Line 2 of the billing address (eg. suite, apt #, etc.). (maximum length 50)
  * @property {string} [line3] Line 3 of the billing address if needed (eg. suite, apt #, etc). (maximum length 50)
  * @property {string} [locality] The locality (city) name associated with the billing address.
- * @property {string} [region] The 2 letter code for US states or an ISO-3166-2 country subdivision code of up to three letters.
+ * @property {string} [region] This field expects an ISO3166-2 subdivision code. The subdivision code is what follows the hyphen separator in the full ISO 3166-2 code. For example, the state of Ohio in the United States we expect "OH" as opposed to the full ISO 3166-2 code "US-OH".
  * @property {string} [postalCode] The zip code or equivalent for countries that have them.
  * @property {string} [countryCodeAlpha2] The 2 character country code.
  */
@@ -3757,7 +3762,7 @@ var FRAMEWORKS = _dereq_("./frameworks");
  * @property {string} [shippingAddress.extendedAddress] Line 2 of the shipping address (eg. suite, apt #, etc.). (maximum length 50)
  * @property {string} [shippingAddress.line3] Line 3 of the shipping address if needed (eg. suite, apt #, etc). (maximum length 50)
  * @property {string} [shippingAddress.locality] The locality (city) name associated with the shipping address. (maximum length 50)
- * @property {string} [shippingAddress.region] The 2 letter code for US states or an ISO-3166-2 country subdivision code of up to three letters. (maximum length 50)
+ * @property {string} [shippingAddress.region] This field expects an ISO3166-2 subdivision code. The subdivision code is what follows the hyphen separator in the full ISO 3166-2 code. For example, the state of Ohio in the United States we expect "OH" as opposed to the full ISO 3166-2 code "US-OH".
  * @property {string} [shippingAddress.postalCode] The zip code or equivalent for countries that have them. (maximum length 10)
  * @property {string} [shippingAddress.countryCodeAlpha2] The 2 character country code. (maximum length 2)
  * @property {string} [shippingPhone] The phone number associated with the shipping address. Only numbers; remove dashes, parenthesis and other characters. (maximum length 20)
@@ -4431,7 +4436,7 @@ var createAssetsUrl = _dereq_("../lib/create-assets-url");
 var BraintreeError = _dereq_("../lib/braintree-error");
 var analytics = _dereq_("../lib/analytics");
 var errors = _dereq_("./shared/errors");
-var VERSION = "3.87.0";
+var VERSION = "3.88.0";
 var Promise = _dereq_("../lib/promise");
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 
