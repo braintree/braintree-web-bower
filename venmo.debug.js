@@ -1519,7 +1519,7 @@ module.exports = {
 var BraintreeError = _dereq_("./braintree-error");
 var Promise = _dereq_("./promise");
 var sharedErrors = _dereq_("./errors");
-var VERSION = "3.88.0";
+var VERSION = "3.88.1";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1667,7 +1667,7 @@ module.exports = BraintreeError;
 },{"./enumerate":65}],60:[function(_dereq_,module,exports){
 "use strict";
 
-var VERSION = "3.88.0";
+var VERSION = "3.88.1";
 var PLATFORM = "web";
 
 var CLIENT_API_URLS = {
@@ -1791,7 +1791,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/constants":60,"../lib/vendor/polyfill":86}],64:[function(_dereq_,module,exports){
+},{"../lib/constants":60,"../lib/vendor/polyfill":87}],64:[function(_dereq_,module,exports){
 "use strict";
 
 var BraintreeError = _dereq_("./braintree-error");
@@ -1799,7 +1799,7 @@ var Promise = _dereq_("./promise");
 var assets = _dereq_("./assets");
 var sharedErrors = _dereq_("./errors");
 
-var VERSION = "3.88.0";
+var VERSION = "3.88.1";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -2725,13 +2725,26 @@ module.exports = {
 },{}],85:[function(_dereq_,module,exports){
 "use strict";
 
+module.exports = function (snakeString) {
+  if (snakeString.indexOf("_") === -1) {
+    return snakeString;
+  }
+
+  return snakeString.toLowerCase().replace(/(\_\w)/g, function (match) {
+    return match[1].toUpperCase();
+  });
+};
+
+},{}],86:[function(_dereq_,module,exports){
+"use strict";
+
 function useMin(isDebug) {
   return isDebug ? "" : ".min";
 }
 
 module.exports = useMin;
 
-},{}],86:[function(_dereq_,module,exports){
+},{}],87:[function(_dereq_,module,exports){
 "use strict";
 
 // NEXT_MAJOR_VERSION old versions of IE don't have atob, in the
@@ -2779,7 +2792,7 @@ module.exports = {
   _atob: atobPolyfill,
 };
 
-},{}],87:[function(_dereq_,module,exports){
+},{}],88:[function(_dereq_,module,exports){
 "use strict";
 var __importDefault =
   (this && this.__importDefault) ||
@@ -2792,7 +2805,7 @@ module.exports = function createVenmoDesktop(options) {
   return instance.initialize();
 };
 
-},{"./venmo-desktop":89}],88:[function(_dereq_,module,exports){
+},{"./venmo-desktop":90}],89:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.VENMO_PAYMENT_CONTEXT_STATUS_QUERY =
@@ -2815,7 +2828,7 @@ exports.LEGACY_VENMO_PAYMENT_CONTEXT_STATUS_QUERY =
 exports.VENMO_PAYMENT_CONTEXT_STATUS_QUERY =
   "query PaymentContext($id: ID!) {\n  node(id: $id) {\n    ... on VenmoPaymentContext {\n      status\n      paymentMethodId\n      userName\n      payerInfo {\n        firstName\n        lastName\n        phoneNumber\n        email\n        externalId\n        userName\n      }\n    }\n  }\n}";
 
-},{}],89:[function(_dereq_,module,exports){
+},{}],90:[function(_dereq_,module,exports){
 "use strict";
 var __assign =
   (this && this.__assign) ||
@@ -3227,7 +3240,7 @@ var VenmoDesktop = /** @class */ (function () {
 })();
 exports.default = VenmoDesktop;
 
-},{"../shared/events":94,"./queries":88,"@braintree/iframer":30,"@braintree/uuid":34,"framebus":40}],90:[function(_dereq_,module,exports){
+},{"../shared/events":95,"./queries":89,"@braintree/iframer":30,"@braintree/uuid":34,"framebus":40}],91:[function(_dereq_,module,exports){
 "use strict";
 /** @module braintree-web/venmo */
 
@@ -3241,7 +3254,7 @@ var BraintreeError = _dereq_("../lib/braintree-error");
 var Venmo = _dereq_("./venmo");
 var Promise = _dereq_("../lib/promise");
 var supportsVenmo = _dereq_("./shared/supports-venmo");
-var VERSION = "3.88.0";
+var VERSION = "3.88.1";
 
 /**
  * @static
@@ -3390,7 +3403,7 @@ module.exports = {
   VERSION: VERSION,
 };
 
-},{"../lib/analytics":55,"../lib/basic-component-verification":58,"../lib/braintree-error":59,"../lib/create-assets-url":62,"../lib/create-deferred-client":64,"../lib/promise":83,"./shared/errors":93,"./shared/supports-venmo":96,"./venmo":98,"@braintree/wrap-promise":38}],91:[function(_dereq_,module,exports){
+},{"../lib/analytics":55,"../lib/basic-component-verification":58,"../lib/braintree-error":59,"../lib/create-assets-url":62,"../lib/create-deferred-client":64,"../lib/promise":83,"./shared/errors":94,"./shared/supports-venmo":97,"./venmo":99,"@braintree/wrap-promise":38}],92:[function(_dereq_,module,exports){
 "use strict";
 
 var isAndroid = _dereq_("@braintree/browser-detection/is-android");
@@ -3452,7 +3465,7 @@ module.exports = {
   doesNotSupportWindowOpenInIos: doesNotSupportWindowOpenInIos,
 };
 
-},{"@braintree/browser-detection/is-android":20,"@braintree/browser-detection/is-chrome":21,"@braintree/browser-detection/is-ios":26,"@braintree/browser-detection/is-ios-safari":23,"@braintree/browser-detection/is-ios-webview":24,"@braintree/browser-detection/is-samsung":27}],92:[function(_dereq_,module,exports){
+},{"@braintree/browser-detection/is-android":20,"@braintree/browser-detection/is-chrome":21,"@braintree/browser-detection/is-ios":26,"@braintree/browser-detection/is-ios-safari":23,"@braintree/browser-detection/is-ios-webview":24,"@braintree/browser-detection/is-samsung":27}],93:[function(_dereq_,module,exports){
 "use strict";
 
 /**
@@ -3471,7 +3484,7 @@ module.exports = {
   VENMO_WEB_LOGIN_URL: "https://account.venmo.com/go/web",
 };
 
-},{}],93:[function(_dereq_,module,exports){
+},{}],94:[function(_dereq_,module,exports){
 "use strict";
 
 /**
@@ -3611,7 +3624,7 @@ module.exports = {
   },
 };
 
-},{"../../lib/braintree-error":59}],94:[function(_dereq_,module,exports){
+},{"../../lib/braintree-error":59}],95:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.VENMO_DESKTOP_UNKNOWN_ERROR =
@@ -3640,7 +3653,7 @@ exports.VENMO_DESKTOP_CLOSED_FROM_PARENT = "VENMO_DESKTOP_CLOSED_FROM_PARENT";
 exports.VENMO_DESKTOP_REQUEST_NEW_QR_CODE = "VENMO_DESKTOP_REQUEST_NEW_QR_CODE";
 exports.VENMO_DESKTOP_UNKNOWN_ERROR = "VENMO_DESKTOP_UNKNOWN_ERROR";
 
-},{}],95:[function(_dereq_,module,exports){
+},{}],96:[function(_dereq_,module,exports){
 "use strict";
 var venmoConstants = _dereq_("./constants");
 
@@ -3656,7 +3669,7 @@ function getVenmoUrl(options) {
 
 module.exports = getVenmoUrl;
 
-},{"./constants":92}],96:[function(_dereq_,module,exports){
+},{"./constants":93}],97:[function(_dereq_,module,exports){
 "use strict";
 
 var browserDetection = _dereq_("./browser-detection");
@@ -3719,14 +3732,14 @@ module.exports = {
   isBrowserSupported: isBrowserSupported,
 };
 
-},{"./browser-detection":91}],97:[function(_dereq_,module,exports){
+},{"./browser-detection":92}],98:[function(_dereq_,module,exports){
 "use strict";
 
 var frameService = _dereq_("../../lib/frame-service/external");
 var useMin = _dereq_("../../lib/use-min");
 var Promise = _dereq_("../../lib/promise");
 
-var VERSION = "3.88.0";
+var VERSION = "3.88.1";
 var VENMO_LOGO_SVG =
   '<svg width="198" height="58" viewBox="0 0 198 58" fill="none" xmlns="http://www.w3.org/2000/svg">\n  <path fill-rule="evenodd" clip-rule="evenodd" d="M43.0702 13.6572C44.1935 15.4585 44.6999 17.3139 44.6999 19.6576C44.6999 27.1328 38.1277 36.8436 32.7935 43.6625H20.6099L15.7236 15.2939L26.3917 14.3105L28.9751 34.4966C31.389 30.6783 34.3678 24.6779 34.3678 20.587C34.3678 18.3477 33.9727 16.8225 33.3553 15.5666L43.0702 13.6572Z" fill="white"/>\n  <path fill-rule="evenodd" clip-rule="evenodd" d="M56.8965 26.1491C58.8596 26.1491 63.8018 25.2772 63.8018 22.5499C63.8018 21.2402 62.8481 20.587 61.7242 20.587C59.7579 20.587 57.1776 22.8763 56.8965 26.1491ZM56.6715 31.5506C56.6715 34.8807 58.5787 36.1873 61.107 36.1873C63.8603 36.1873 66.4966 35.534 69.923 33.8433L68.6324 42.3523C66.2183 43.4976 62.4559 44.2617 58.8039 44.2617C49.5403 44.2617 46.2249 38.8071 46.2249 31.9879C46.2249 23.1496 51.6179 13.765 62.7365 13.765C68.858 13.765 72.2809 17.0949 72.2809 21.7317C72.2815 29.2066 62.4005 31.4965 56.6715 31.5506Z" fill="white"/>\n  <path fill-rule="evenodd" clip-rule="evenodd" d="M103.067 20.3142C103.067 21.4052 102.897 22.9875 102.727 24.0216L99.5262 43.6622H89.1385L92.0585 25.658C92.1139 25.1696 92.284 24.1865 92.284 23.6411C92.284 22.3314 91.4414 22.0047 90.4282 22.0047C89.0826 22.0047 87.7337 22.6042 86.8354 23.0418L83.5234 43.6625H73.0772L77.8495 14.257H86.8908L87.0052 16.6041C89.1382 15.2404 91.9469 13.7656 95.932 13.7656C101.212 13.765 103.067 16.3845 103.067 20.3142Z" fill="white"/>\n  <path fill-rule="evenodd" clip-rule="evenodd" d="M133.906 16.9841C136.881 14.9131 139.69 13.765 143.563 13.765C148.897 13.765 150.753 16.3845 150.753 20.3142C150.753 21.4052 150.583 22.9875 150.413 24.0216L147.216 43.6622H136.825L139.801 25.2774C139.855 24.786 139.971 24.1865 139.971 23.8063C139.971 22.3317 139.128 22.0047 138.115 22.0047C136.824 22.0047 135.535 22.5501 134.577 23.0418L131.266 43.6625H120.878L123.854 25.2777C123.908 24.7863 124.02 24.1868 124.02 23.8065C124.02 22.332 123.177 22.0049 122.167 22.0049C120.819 22.0049 119.473 22.6045 118.574 23.0421L115.26 43.6628H104.817L109.589 14.2573H118.52L118.8 16.7122C120.878 15.241 123.684 13.7662 127.446 13.7662C130.704 13.765 132.837 15.129 133.906 16.9841Z" fill="white"/>\n  <path fill-rule="evenodd" clip-rule="evenodd" d="M171.426 25.5502C171.426 23.1496 170.808 21.513 168.956 21.513C164.857 21.513 164.015 28.55 164.015 32.1498C164.015 34.8807 164.802 36.5709 166.653 36.5709C170.528 36.5709 171.426 29.1497 171.426 25.5502ZM153.458 31.7152C153.458 22.442 158.511 13.765 170.136 13.765C178.896 13.765 182.098 18.7854 182.098 25.7148C182.098 34.8805 177.099 44.3723 165.194 44.3723C156.378 44.3723 153.458 38.7525 153.458 31.7152Z" fill="white"/>\n</svg>';
 var CONTINUE_OR_CANCEL_INSTRUCTIONS =
@@ -3995,7 +4008,7 @@ module.exports = {
   POPUP_HEIGHT: POPUP_HEIGHT,
 };
 
-},{"../../lib/frame-service/external":68,"../../lib/promise":83,"../../lib/use-min":85}],98:[function(_dereq_,module,exports){
+},{"../../lib/frame-service/external":68,"../../lib/promise":83,"../../lib/use-min":86}],99:[function(_dereq_,module,exports){
 "use strict";
 
 var analytics = _dereq_("../lib/analytics");
@@ -4014,6 +4027,7 @@ var Promise = _dereq_("../lib/promise");
 var ExtendedPromise = _dereq_("@braintree/extended-promise");
 var getVenmoUrl = _dereq_("./shared/get-venmo-url");
 var runWebLogin = _dereq_("./shared/web-login-backdrop").runWebLogin;
+var snakeCaseToCamelCase = _dereq_("../lib/snake-case-to-camel-case");
 
 // NEXT_MAJOR_VERSION the source code for this is actually in a
 // typescript repo called venmo-desktop, once the SDK is migrated
@@ -4022,7 +4036,7 @@ var runWebLogin = _dereq_("./shared/web-login-backdrop").runWebLogin;
 var createVenmoDesktop = _dereq_("./external/");
 var graphqlQueries = _dereq_("./external/queries");
 
-var VERSION = "3.88.0";
+var VERSION = "3.88.1";
 var DEFAULT_MOBILE_POLLING_INTERVAL = 250; // 1/4 second
 var DEFAULT_MOBILE_EXPIRING_THRESHOLD = 300000; // 5 minutes
 
@@ -4865,7 +4879,7 @@ Venmo.prototype._tokenizeForMobileWithHashChangeListeners = function (options) {
   var resultProcessingInProgress, visibilityChangeListenerTimeout;
 
   if (this.hasTokenizationResult()) {
-    return this.processResultsFromHash();
+    return this.processHashChangeFlowResults();
   }
 
   analytics.sendEvent(this._createPromise, "venmo.tokenize.mobile.start");
@@ -4877,7 +4891,7 @@ Venmo.prototype._tokenizeForMobileWithHashChangeListeners = function (options) {
     var error;
 
     self
-      .processResultsFromHash(hash)
+      .processHashChangeFlowResults(hash)
       .catch(function (err) {
         error = err;
       })
@@ -5081,48 +5095,64 @@ Venmo.prototype._removeVisibilityEventListener = function () {
   delete this._onHashChangeListener;
 };
 
-Venmo.prototype.processResultsFromHash = function (hash) {
+/**
+ * The hash parameter in this function is optional. If no hash parameter is passed, the `getFragmentParameters` function will default to the hash present in the website's URL instead.
+ *
+ * There are two scenarios where this method is called:
+ *
+ * 1. When called within a browser that is capable of returning to the same tab that started the Venmo flow, we set up a listener to detect hash changes in the url. Part of the return to the merchant's website from the Venmo app includes encoding the details of the purchase in the hash of the url. The callback is invoked and the hash is pulled off from the event payload. The reason we pull the hash off of the event payload instead of pulling it directly from the URL is because sometimes a single page app will use the hash parameter for it's routing system, and it's possible to hit a race condition where the routing code has already removed the Venmo specific attributes from the hash before we are able to pull it off the url. Grabbing the hash from the event handler instead ensures we get the Venmo details, no matter what the url is converted to.
+ * 2. The other scenario is for browsers that cannot return to the same tab, and instead the Venmo app must open a new tab. Since there is no hash listener to pull the hash from, we pull the hash details directly from the url using the `getFragmentParameters` method.
+ *
+ * @ignore
+ * @param {string} [hash] Optionally provided browser url hash.
+ * @returns {Promise} Returns a promise
+ */
+Venmo.prototype.processHashChangeFlowResults = function (hash) {
   var self = this;
   var params = getFragmentParameters(hash);
 
+  // NEXT_MAJOR_VERSION only rely on payment context status call and stop relying on the
+  // content of the hash
+
   return new Promise(function (resolve, reject) {
-    if (params.venmoSuccess) {
+    if (!self._shouldUseLegacyFlow) {
+      self
+        ._pollForStatusChange()
+        .then(function (payload) {
+          analytics.sendEvent(
+            self._createPromise,
+            "venmo.appswitch.handle.payment-context-status-query.success"
+          );
+
+          return resolve({
+            paymentMethodNonce: payload.paymentMethodId,
+            username: payload.userName,
+            payerInfo: payload.payerInfo,
+            id: self._venmoPaymentContextId,
+          });
+        })
+        .catch(function (err) {
+          if (
+            err.type === errors.VENMO_MOBILE_POLLING_TOKENIZATION_CANCELED.type
+          ) {
+            // We want to reject in this case because if it the process was canceled, we don't want to take the happy path
+            reject(err);
+          }
+
+          analytics.sendEvent(
+            self._createPromise,
+            "venmo.process-results.payment-context-status-query-failed"
+          );
+          // If the polling request fails, but not because of cancelization, we will rely on the params provided from the hash
+          resolve(params);
+        });
+    } else if (params.venmoSuccess) {
       analytics.sendEvent(
         self._createPromise,
         "venmo.appswitch.handle.success"
       );
 
-      if (params.resource_id && !self._shouldUseLegacyFlow) {
-        self
-          ._queryPaymentContextStatus(params.resource_id)
-          .then(function (result) {
-            if (result.status !== "APPROVED") {
-              analytics.sendEvent(
-                self._createPromise,
-                "venmo.process-results.unexpected-payment-context-status." +
-                  result.status.toLowerCase()
-              );
-              resolve(params);
-
-              return;
-            }
-            resolve({
-              paymentMethodNonce: result.paymentMethodId,
-              username: result.userName,
-              payerInfo: result.payerInfo,
-              id: params.resource_id,
-            });
-          })
-          .catch(function () {
-            analytics.sendEvent(
-              self._createPromise,
-              "venmo.process-results.payment-context-status-query-failed"
-            );
-            resolve(params);
-          });
-      } else {
-        resolve(params);
-      }
+      resolve(params);
     } else if (params.venmoError) {
       analytics.sendEvent(self._createPromise, "venmo.appswitch.handle.error");
       reject(
@@ -5174,19 +5204,26 @@ Venmo.prototype._clearFragmentParameters = function () {
 function getFragmentParameters(hash) {
   var keyValuesArray = (hash || window.location.hash.substring(1)).split("&");
 
-  return keyValuesArray.reduce(function (toReturn, keyValue) {
+  var parsedParams = keyValuesArray.reduce(function (toReturn, keyValue) {
     var parts = keyValue.split("=");
     // some Single Page Apps may pre-pend a / to the first value
     // in the hash, assuming it's a route in their app
     // instead of information from Venmo, this removes all
     // non-alphanumeric characters from the keys in the params
-    var key = decodeURIComponent(parts[0]).replace(/\W/g, "");
+    var decodedKey = decodeURIComponent(parts[0]).replace(/\W/g, "");
+    var key = snakeCaseToCamelCase(decodedKey);
     var value = decodeURIComponent(parts[1]);
 
     toReturn[key] = value;
 
     return toReturn;
   }, {});
+
+  if (parsedParams.resourceId) {
+    parsedParams.id = parsedParams.resourceId;
+  }
+
+  return parsedParams;
 }
 
 function formatUserName(username) {
@@ -5245,5 +5282,5 @@ function isIosWebviewInDeepLinkReturnUrlFlow() {
 
 module.exports = wrapPromise.wrapPrototype(Venmo);
 
-},{"../lib/analytics":55,"../lib/braintree-error":59,"../lib/convert-methods-to-error":61,"../lib/in-iframe":78,"../lib/is-verified-domain":80,"../lib/methods":82,"../lib/promise":83,"../lib/querystring":84,"./external/":87,"./external/queries":88,"./shared/browser-detection":91,"./shared/constants":92,"./shared/errors":93,"./shared/get-venmo-url":95,"./shared/supports-venmo":96,"./shared/web-login-backdrop":97,"@braintree/extended-promise":29,"@braintree/wrap-promise":38}]},{},[90])(90)
+},{"../lib/analytics":55,"../lib/braintree-error":59,"../lib/convert-methods-to-error":61,"../lib/in-iframe":78,"../lib/is-verified-domain":80,"../lib/methods":82,"../lib/promise":83,"../lib/querystring":84,"../lib/snake-case-to-camel-case":85,"./external/":88,"./external/queries":89,"./shared/browser-detection":92,"./shared/constants":93,"./shared/errors":94,"./shared/get-venmo-url":96,"./shared/supports-venmo":97,"./shared/web-login-backdrop":98,"@braintree/extended-promise":29,"@braintree/wrap-promise":38}]},{},[91])(91)
 });

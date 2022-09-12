@@ -1399,7 +1399,7 @@ module.exports = {
 
 var BraintreeError = _dereq_("../lib/braintree-error");
 var Client = _dereq_("./client");
-var VERSION = "3.88.0";
+var VERSION = "3.88.1";
 var Promise = _dereq_("../lib/promise");
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 var sharedErrors = _dereq_("../lib/errors");
@@ -2403,6 +2403,7 @@ module.exports = GraphQL;
 var BRAINTREE_VERSION = _dereq_("../../constants").BRAINTREE_VERSION;
 
 var assign = _dereq_("../../../lib/assign").assign;
+var snakeCaseToCamelCase = _dereq_("../../../lib/snake-case-to-camel-case");
 
 var creditCardTokenizationBodyGenerator = _dereq_("./generators/credit-card-tokenization");
 var creditCardTokenizationResponseAdapter = _dereq_("./adapters/credit-card-tokenization");
@@ -2523,16 +2524,6 @@ function isGraphQLError(errorClass, parsedResponse) {
   return !errorClass && parsedResponse.errors[0].message;
 }
 
-function snakeCaseToCamelCase(snakeString) {
-  if (snakeString.indexOf("_") === -1) {
-    return snakeString;
-  }
-
-  return snakeString.toLowerCase().replace(/(\_\w)/g, function (match) {
-    return match[1].toUpperCase();
-  });
-}
-
 function formatBodyKeys(originalBody) {
   var body = {};
 
@@ -2553,7 +2544,7 @@ function formatBodyKeys(originalBody) {
 
 module.exports = GraphQLRequest;
 
-},{"../../../lib/assign":41,"../../constants":18,"./adapters/configuration":25,"./adapters/credit-card-tokenization":26,"./generators/configuration":28,"./generators/credit-card-tokenization":29}],32:[function(_dereq_,module,exports){
+},{"../../../lib/assign":41,"../../../lib/snake-case-to-camel-case":57,"../../constants":18,"./adapters/configuration":25,"./adapters/credit-card-tokenization":26,"./generators/configuration":28,"./generators/credit-card-tokenization":29}],32:[function(_dereq_,module,exports){
 "use strict";
 
 var ajaxIsAvaliable;
@@ -2970,7 +2961,7 @@ module.exports = BraintreeError;
 },{"./enumerate":48}],43:[function(_dereq_,module,exports){
 "use strict";
 
-var VERSION = "3.88.0";
+var VERSION = "3.88.1";
 var PLATFORM = "web";
 
 var CLIENT_API_URLS = {
@@ -3099,7 +3090,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/constants":43,"../lib/vendor/polyfill":57}],47:[function(_dereq_,module,exports){
+},{"../lib/constants":43,"../lib/vendor/polyfill":58}],47:[function(_dereq_,module,exports){
 "use strict";
 
 module.exports = function (fn) {
@@ -3384,6 +3375,19 @@ module.exports = {
 };
 
 },{}],57:[function(_dereq_,module,exports){
+"use strict";
+
+module.exports = function (snakeString) {
+  if (snakeString.indexOf("_") === -1) {
+    return snakeString;
+  }
+
+  return snakeString.toLowerCase().replace(/(\_\w)/g, function (match) {
+    return match[1].toUpperCase();
+  });
+};
+
+},{}],58:[function(_dereq_,module,exports){
 "use strict";
 
 // NEXT_MAJOR_VERSION old versions of IE don't have atob, in the
