@@ -1481,7 +1481,7 @@ module.exports = {
 var BraintreeError = _dereq_("./braintree-error");
 var Promise = _dereq_("./promise");
 var sharedErrors = _dereq_("./errors");
-var VERSION = "3.88.1";
+var VERSION = "3.88.2";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1629,7 +1629,7 @@ module.exports = BraintreeError;
 },{"./enumerate":58}],54:[function(_dereq_,module,exports){
 "use strict";
 
-var VERSION = "3.88.1";
+var VERSION = "3.88.2";
 var PLATFORM = "web";
 
 var CLIENT_API_URLS = {
@@ -1743,7 +1743,7 @@ var Promise = _dereq_("./promise");
 var assets = _dereq_("./assets");
 var sharedErrors = _dereq_("./errors");
 
-var VERSION = "3.88.1";
+var VERSION = "3.88.2";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -2805,7 +2805,7 @@ var constants = _dereq_("../shared/constants");
 var mandates = _dereq_("./mandate");
 var hasMissingOption = _dereq_("../shared/has-missing-option");
 var analytics = _dereq_("../../lib/analytics");
-var VERSION = "3.88.1";
+var VERSION = "3.88.2";
 
 /**
  * @class
@@ -2836,9 +2836,7 @@ function SEPA(options) {
  */
 
 /**
- * @static
  * @public
- * @function tokenize
  * @param {object} options All options for intiating the SEPA payment flow.
  * @param {string} [options.accountHolderName] The account holder name.
  * @param {string} [options.customerId] The customer's id.
@@ -2866,7 +2864,6 @@ function SEPA(options) {
  *   })
  * })
  */
-
 SEPA.prototype.tokenize = function (options) {
   var self = this;
 
@@ -2942,7 +2939,7 @@ var createAssetsUrl = _dereq_("../lib/create-assets-url");
 var createDeferredClient = _dereq_("../lib/create-deferred-client");
 var basicComponentVerification = _dereq_("../lib/basic-component-verification");
 var wrapPromise = _dereq_("@braintree/wrap-promise");
-var VERSION = "3.88.1";
+var VERSION = "3.88.2";
 
 /**
  * @static
