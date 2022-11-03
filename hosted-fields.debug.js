@@ -11,7 +11,7 @@ var PromiseGlobal =
 typeof Promise !== "undefined" ? Promise : promise_polyfill_1.default;
 exports.PromiseGlobal = PromiseGlobal;
 
-},{"promise-polyfill":63}],2:[function(_dereq_,module,exports){
+},{"promise-polyfill":64}],2:[function(_dereq_,module,exports){
 "use strict";
 var promise_1 = _dereq_("./lib/promise");
 var scriptPromiseCache = {};
@@ -1082,6 +1082,7 @@ var is_not_string_1 = _dereq_("./lib/is-not-string");
 var subscription_args_invalid_1 = _dereq_("./lib/subscription-args-invalid");
 var broadcast_1 = _dereq_("./lib/broadcast");
 var package_payload_1 = _dereq_("./lib/package-payload");
+var send_message_1 = _dereq_("./lib/send-message");
 var constants_1 = _dereq_("./lib/constants");
 var DefaultPromise = (typeof window !== "undefined" &&
     window.Promise);
@@ -1091,14 +1092,30 @@ var Framebus = /** @class */ (function () {
         this.origin = options.origin || "*";
         this.channel = options.channel || "";
         this.verifyDomain = options.verifyDomain;
+        // if a targetFrames configuration is not passed in,
+        // the default behavior is to broadcast the payload
+        // to the top level window or to the frame itself.
+        // By default, the broadcast function will loop through
+        // all the known siblings and children of the window.
+        // If a targetFrames array is passed, it will instead
+        // only broadcast to those specified targetFrames
+        this.targetFrames = options.targetFrames || [];
+        this.limitBroadcastToFramesArray = Boolean(options.targetFrames);
         this.isDestroyed = false;
         this.listeners = [];
+        this.hasAdditionalChecksForOnListeners = Boolean(this.verifyDomain || this.limitBroadcastToFramesArray);
     }
     Framebus.setPromise = function (PromiseGlobal) {
         Framebus.Promise = PromiseGlobal;
     };
     Framebus.target = function (options) {
         return new Framebus(options);
+    };
+    Framebus.prototype.addTargetFrame = function (frame) {
+        if (!this.limitBroadcastToFramesArray) {
+            return;
+        }
+        this.targetFrames.push(frame);
     };
     Framebus.prototype.include = function (childWindow) {
         if (childWindow == null) {
@@ -1122,21 +1139,31 @@ var Framebus = /** @class */ (function () {
         }
         var origin = this.origin;
         eventName = this.namespaceEvent(eventName);
-        if (is_not_string_1.isntString(eventName)) {
+        if ((0, is_not_string_1.isntString)(eventName)) {
             return false;
         }
-        if (is_not_string_1.isntString(origin)) {
+        if ((0, is_not_string_1.isntString)(origin)) {
             return false;
         }
         if (typeof data === "function") {
             reply = data;
             data = undefined; // eslint-disable-line no-undefined
         }
-        var payload = package_payload_1.packagePayload(eventName, origin, data, reply);
+        var payload = (0, package_payload_1.packagePayload)(eventName, origin, data, reply);
         if (!payload) {
             return false;
         }
-        broadcast_1.broadcast(window.top || window.self, payload, origin);
+        if (this.limitBroadcastToFramesArray) {
+            this.targetFramesAsWindows().forEach(function (frame) {
+                (0, send_message_1.sendMessage)(frame, payload, origin);
+            });
+        }
+        else {
+            (0, broadcast_1.broadcast)(payload, {
+                origin: origin,
+                frame: window.top || window.self,
+            });
+        }
         return true;
     };
     Framebus.prototype.emitAsPromise = function (eventName, data) {
@@ -1146,7 +1173,7 @@ var Framebus = /** @class */ (function () {
                 resolve(payload);
             });
             if (!didAttachListener) {
-                reject(new Error("Listener not added for \"" + eventName + "\""));
+                reject(new Error("Listener not added for \"".concat(eventName, "\"")));
             }
         });
     };
@@ -1159,10 +1186,10 @@ var Framebus = /** @class */ (function () {
         var origin = this.origin;
         var handler = originalHandler;
         eventName = this.namespaceEvent(eventName);
-        if (subscription_args_invalid_1.subscriptionArgsInvalid(eventName, handler, origin)) {
+        if ((0, subscription_args_invalid_1.subscriptionArgsInvalid)(eventName, handler, origin)) {
             return false;
         }
-        if (this.verifyDomain) {
+        if (this.hasAdditionalChecksForOnListeners) {
             /* eslint-disable no-invalid-this, @typescript-eslint/ban-ts-comment */
             handler = function () {
                 var args = [];
@@ -1170,9 +1197,14 @@ var Framebus = /** @class */ (function () {
                     args[_i] = arguments[_i];
                 }
                 // @ts-ignore
-                if (self.checkOrigin(this && this.origin)) {
-                    originalHandler.apply(void 0, args);
+                if (!self.passesVerifyDomainCheck(this && this.origin)) {
+                    return;
                 }
+                // @ts-ignore
+                if (!self.hasMatchingTargetFrame(this && this.source)) {
+                    return;
+                }
+                originalHandler.apply(void 0, args);
             };
             /* eslint-enable no-invalid-this, @typescript-eslint/ban-ts-comment */
         }
@@ -1201,7 +1233,7 @@ var Framebus = /** @class */ (function () {
         }
         eventName = this.namespaceEvent(eventName);
         var origin = this.origin;
-        if (subscription_args_invalid_1.subscriptionArgsInvalid(eventName, handler, origin)) {
+        if ((0, subscription_args_invalid_1.subscriptionArgsInvalid)(eventName, handler, origin)) {
             return false;
         }
         var subscriberList = constants_1.subscribers[origin] && constants_1.subscribers[origin][eventName];
@@ -1226,6 +1258,47 @@ var Framebus = /** @class */ (function () {
             this.off(listener.eventName, listener.handler);
         }
         this.listeners.length = 0;
+    };
+    Framebus.prototype.passesVerifyDomainCheck = function (origin) {
+        if (!this.verifyDomain) {
+            // always pass this check if no verifyDomain option was set
+            return true;
+        }
+        return this.checkOrigin(origin);
+    };
+    Framebus.prototype.targetFramesAsWindows = function () {
+        if (!this.limitBroadcastToFramesArray) {
+            return [];
+        }
+        return this.targetFrames
+            .map(function (frame) {
+            // we can't pull off the contentWindow
+            // when the iframe is originally added
+            // to the array, because if it is not
+            // in the DOM at that time, it will have
+            // a contentWindow of `null`
+            if (frame instanceof HTMLIFrameElement) {
+                return frame.contentWindow;
+            }
+            return frame;
+        })
+            .filter(function (win) {
+            // just in case an iframe element
+            // was removed from the DOM
+            // and the contentWindow property
+            // is null
+            return win;
+        });
+    };
+    Framebus.prototype.hasMatchingTargetFrame = function (source) {
+        if (!this.limitBroadcastToFramesArray) {
+            // always pass this check if we aren't limiting to the target frames
+            return true;
+        }
+        var matchingFrame = this.targetFramesAsWindows().find(function (frame) {
+            return frame === source;
+        });
+        return Boolean(matchingFrame);
     };
     Framebus.prototype.checkOrigin = function (postMessageOrigin) {
         var merchantHost;
@@ -1253,18 +1326,18 @@ var Framebus = /** @class */ (function () {
         if (!this.channel) {
             return eventName;
         }
-        return this.channel + ":" + eventName;
+        return "".concat(this.channel, ":").concat(eventName);
     };
     Framebus.Promise = DefaultPromise;
     return Framebus;
 }());
 exports.Framebus = Framebus;
 
-},{"./lib/broadcast":53,"./lib/constants":54,"./lib/is-not-string":57,"./lib/package-payload":59,"./lib/subscription-args-invalid":61}],50:[function(_dereq_,module,exports){
+},{"./lib/broadcast":53,"./lib/constants":54,"./lib/is-not-string":57,"./lib/package-payload":59,"./lib/send-message":60,"./lib/subscription-args-invalid":62}],50:[function(_dereq_,module,exports){
 "use strict";
 var attach_1 = _dereq_("./lib/attach");
 var framebus_1 = _dereq_("./framebus");
-attach_1.attach();
+(0, attach_1.attach)();
 module.exports = framebus_1.Framebus;
 
 },{"./framebus":49,"./lib/attach":51}],51:[function(_dereq_,module,exports){
@@ -1302,7 +1375,10 @@ function broadcastToChildWindows(payload, origin, source) {
             constants_1.childWindows.splice(i, 1);
         }
         else if (source !== childWindow) {
-            broadcast_1.broadcast(childWindow.top, payload, origin);
+            (0, broadcast_1.broadcast)(payload, {
+                origin: origin,
+                frame: childWindow.top,
+            });
         }
     }
 }
@@ -1313,13 +1389,17 @@ exports.broadcastToChildWindows = broadcastToChildWindows;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.broadcast = void 0;
 var has_opener_1 = _dereq_("./has-opener");
-function broadcast(frame, payload, origin) {
+function broadcast(payload, options) {
     var i = 0;
     var frameToBroadcastTo;
+    var origin = options.origin, frame = options.frame;
     try {
         frame.postMessage(payload, origin);
-        if (has_opener_1.hasOpener(frame) && frame.opener.top !== window.top) {
-            broadcast(frame.opener.top, payload, origin);
+        if ((0, has_opener_1.hasOpener)(frame) && frame.opener.top !== window.top) {
+            broadcast(payload, {
+                origin: origin,
+                frame: frame.opener.top,
+            });
         }
         // previously, our max value was frame.frames.length
         // but frames.length inherits from window.length
@@ -1330,7 +1410,10 @@ function broadcast(frame, payload, origin) {
         // until there are no longer any frames
         // eslint-disable-next-line no-cond-assign
         while ((frameToBroadcastTo = frame.frames[i])) {
-            broadcast(frameToBroadcastTo, payload, origin);
+            broadcast(payload, {
+                origin: origin,
+                frame: frameToBroadcastTo,
+            });
             i++;
         }
     }
@@ -1412,22 +1495,22 @@ var unpack_payload_1 = _dereq_("./unpack-payload");
 var dispatch_1 = _dereq_("./dispatch");
 var broadcast_to_child_windows_1 = _dereq_("./broadcast-to-child-windows");
 function onmessage(e) {
-    if (is_not_string_1.isntString(e.data)) {
+    if ((0, is_not_string_1.isntString)(e.data)) {
         return;
     }
-    var payload = unpack_payload_1.unpackPayload(e);
+    var payload = (0, unpack_payload_1.unpackPayload)(e);
     if (!payload) {
         return;
     }
     var data = payload.eventData;
     var reply = payload.reply;
-    dispatch_1.dispatch("*", payload.event, data, reply, e);
-    dispatch_1.dispatch(e.origin, payload.event, data, reply, e);
-    broadcast_to_child_windows_1.broadcastToChildWindows(e.data, payload.origin, e.source);
+    (0, dispatch_1.dispatch)("*", payload.event, data, reply, e);
+    (0, dispatch_1.dispatch)(e.origin, payload.event, data, reply, e);
+    (0, broadcast_to_child_windows_1.broadcastToChildWindows)(e.data, payload.origin, e.source);
 }
 exports.onmessage = onmessage;
 
-},{"./broadcast-to-child-windows":52,"./dispatch":55,"./is-not-string":57,"./unpack-payload":62}],59:[function(_dereq_,module,exports){
+},{"./broadcast-to-child-windows":52,"./dispatch":55,"./is-not-string":57,"./unpack-payload":63}],59:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.packagePayload = void 0;
@@ -1440,20 +1523,37 @@ function packagePayload(event, origin, data, reply) {
         origin: origin,
     };
     if (typeof reply === "function") {
-        payload.reply = subscribe_replier_1.subscribeReplier(reply, origin);
+        payload.reply = (0, subscribe_replier_1.subscribeReplier)(reply, origin);
     }
     payload.eventData = data;
     try {
         packaged = constants_1.prefix + JSON.stringify(payload);
     }
     catch (e) {
-        throw new Error("Could not stringify event: " + e.message);
+        throw new Error("Could not stringify event: ".concat(e.message));
     }
     return packaged;
 }
 exports.packagePayload = packagePayload;
 
-},{"./constants":54,"./subscribe-replier":60}],60:[function(_dereq_,module,exports){
+},{"./constants":54,"./subscribe-replier":61}],60:[function(_dereq_,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.sendMessage = void 0;
+/**
+ * A basic function for wrapping the sending of postMessages to frames.
+ */
+function sendMessage(frame, payload, origin) {
+    try {
+        frame.postMessage(payload, origin);
+    }
+    catch (error) {
+        /* ignored */
+    }
+}
+exports.sendMessage = sendMessage;
+
+},{}],61:[function(_dereq_,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -1463,7 +1563,7 @@ exports.subscribeReplier = void 0;
 var framebus_1 = _dereq_("../framebus");
 var uuid_1 = __importDefault(_dereq_("@braintree/uuid"));
 function subscribeReplier(fn, origin) {
-    var uuid = uuid_1.default();
+    var uuid = (0, uuid_1.default)();
     function replier(data, replyOriginHandler) {
         fn(data, replyOriginHandler);
         framebus_1.Framebus.target({
@@ -1477,23 +1577,23 @@ function subscribeReplier(fn, origin) {
 }
 exports.subscribeReplier = subscribeReplier;
 
-},{"../framebus":49,"@braintree/uuid":37}],61:[function(_dereq_,module,exports){
+},{"../framebus":49,"@braintree/uuid":37}],62:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.subscriptionArgsInvalid = void 0;
 var is_not_string_1 = _dereq_("./is-not-string");
 function subscriptionArgsInvalid(event, fn, origin) {
-    if (is_not_string_1.isntString(event)) {
+    if ((0, is_not_string_1.isntString)(event)) {
         return true;
     }
     if (typeof fn !== "function") {
         return true;
     }
-    return is_not_string_1.isntString(origin);
+    return (0, is_not_string_1.isntString)(origin);
 }
 exports.subscriptionArgsInvalid = subscriptionArgsInvalid;
 
-},{"./is-not-string":57}],62:[function(_dereq_,module,exports){
+},{"./is-not-string":57}],63:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.unpackPayload = void 0;
@@ -1518,7 +1618,7 @@ function unpackPayload(e) {
             if (!replySource_1) {
                 return;
             }
-            var replyPayload = package_payload_1.packagePayload(replyEvent_1, replyOrigin_1, replyData);
+            var replyPayload = (0, package_payload_1.packagePayload)(replyEvent_1, replyOrigin_1, replyData);
             if (!replyPayload) {
                 return;
             }
@@ -1529,7 +1629,7 @@ function unpackPayload(e) {
 }
 exports.unpackPayload = unpackPayload;
 
-},{"./constants":54,"./package-payload":59}],63:[function(_dereq_,module,exports){
+},{"./constants":54,"./package-payload":59}],64:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -1855,7 +1955,7 @@ Promise._unhandledRejectionFn = function _unhandledRejectionFn(err) {
 
 module.exports = Promise;
 
-},{}],64:[function(_dereq_,module,exports){
+},{}],65:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.isIos = exports.isIE9 = exports.isSamsungBrowser = exports.isAndroidChrome = exports.isKitKatWebview = void 0;
@@ -1900,7 +2000,7 @@ function isSamsungBrowser(ua) {
 }
 exports.isSamsungBrowser = isSamsungBrowser;
 
-},{"@braintree/browser-detection/is-android":20,"@braintree/browser-detection/is-chrome":22,"@braintree/browser-detection/is-chrome-os":21,"@braintree/browser-detection/is-ie9":27,"@braintree/browser-detection/is-ios":29}],65:[function(_dereq_,module,exports){
+},{"@braintree/browser-detection/is-android":20,"@braintree/browser-detection/is-chrome":22,"@braintree/browser-detection/is-chrome-os":21,"@braintree/browser-detection/is-ie9":27,"@braintree/browser-detection/is-ios":29}],66:[function(_dereq_,module,exports){
 "use strict";
 var device_1 = _dereq_("./lib/device");
 module.exports = function supportsInputFormatting() {
@@ -1908,10 +2008,10 @@ module.exports = function supportsInputFormatting() {
     return !(0, device_1.isSamsungBrowser)();
 };
 
-},{"./lib/device":64}],66:[function(_dereq_,module,exports){
+},{"./lib/device":65}],67:[function(_dereq_,module,exports){
 module.exports = _dereq_("./dist/supports-input-formatting");
 
-},{"./dist/supports-input-formatting":65}],67:[function(_dereq_,module,exports){
+},{"./dist/supports-input-formatting":66}],68:[function(_dereq_,module,exports){
 "use strict";
 
 var BraintreeError = _dereq_("../../lib/braintree-error");
@@ -1956,7 +2056,7 @@ function _isValid(attribute, value) {
 
 module.exports = attributeValidationError;
 
-},{"../../lib/braintree-error":86,"../shared/constants":75,"../shared/errors":76}],68:[function(_dereq_,module,exports){
+},{"../../lib/braintree-error":87,"../shared/constants":76,"../shared/errors":77}],69:[function(_dereq_,module,exports){
 "use strict";
 
 var constants = _dereq_("../shared/constants");
@@ -1974,7 +2074,7 @@ module.exports = function composeUrl(assetsUrl, componentId, isDebug) {
   );
 };
 
-},{"../../lib/use-min":102,"../shared/constants":75}],69:[function(_dereq_,module,exports){
+},{"../../lib/use-min":103,"../shared/constants":76}],70:[function(_dereq_,module,exports){
 "use strict";
 
 var directions = _dereq_("../shared/constants").navigationDirections;
@@ -2108,7 +2208,7 @@ module.exports = {
   },
 };
 
-},{"../shared/browser-detection":74,"../shared/constants":75,"../shared/find-parent-tags":77,"../shared/focus-intercept":78}],70:[function(_dereq_,module,exports){
+},{"../shared/browser-detection":75,"../shared/constants":76,"../shared/find-parent-tags":78,"../shared/focus-intercept":79}],71:[function(_dereq_,module,exports){
 "use strict";
 
 var allowedStyles = _dereq_("../shared/constants").allowedStyles;
@@ -2144,7 +2244,7 @@ module.exports = function getStylesFromClass(cssClass) {
   return styles;
 };
 
-},{"../shared/constants":75}],71:[function(_dereq_,module,exports){
+},{"../shared/constants":76}],72:[function(_dereq_,module,exports){
 "use strict";
 
 var assign = _dereq_("../../lib/assign").assign;
@@ -2564,6 +2664,7 @@ function HostedFields(options) {
   this._bus = new Bus({
     channel: componentId,
     verifyDomain: isVerifiedDomain,
+    targetFrames: [],
   });
 
   this._destructor.registerFunctionForTeardown(function () {
@@ -2669,6 +2770,7 @@ function HostedFields(options) {
           field.iframeTitle ||
           "Secure Credit Card Frame - " + constants.allowedFields[key].label,
       });
+      this._bus.addTargetFrame(frame);
 
       this._injectedNodes.push.apply(
         this._injectedNodes,
@@ -3670,7 +3772,7 @@ function formatMerchantConfigurationForIframes(config) {
 
 module.exports = wrapPromise.wrapPrototype(HostedFields);
 
-},{"../../lib/analytics":81,"../../lib/assign":83,"../../lib/braintree-error":86,"../../lib/constants":87,"../../lib/convert-methods-to-error":88,"../../lib/create-assets-url":89,"../../lib/create-deferred-client":91,"../../lib/destructor":92,"../../lib/errors":94,"../../lib/find-root-node":95,"../../lib/is-verified-domain":96,"../../lib/methods":98,"../../lib/promise":100,"../../lib/shadow":101,"../shared/browser-detection":74,"../shared/constants":75,"../shared/errors":76,"../shared/find-parent-tags":77,"../shared/focus-intercept":78,"../shared/get-card-types":79,"./attribute-validation-error":67,"./compose-url":68,"./focus-change":69,"./get-styles-from-class":70,"./inject-frame":72,"@braintree/class-list":30,"@braintree/event-emitter":31,"@braintree/iframer":33,"@braintree/uuid":37,"@braintree/wrap-promise":41,"framebus":50}],72:[function(_dereq_,module,exports){
+},{"../../lib/analytics":82,"../../lib/assign":84,"../../lib/braintree-error":87,"../../lib/constants":88,"../../lib/convert-methods-to-error":89,"../../lib/create-assets-url":90,"../../lib/create-deferred-client":92,"../../lib/destructor":93,"../../lib/errors":95,"../../lib/find-root-node":96,"../../lib/is-verified-domain":97,"../../lib/methods":99,"../../lib/promise":101,"../../lib/shadow":102,"../shared/browser-detection":75,"../shared/constants":76,"../shared/errors":77,"../shared/find-parent-tags":78,"../shared/focus-intercept":79,"../shared/get-card-types":80,"./attribute-validation-error":68,"./compose-url":69,"./focus-change":70,"./get-styles-from-class":71,"./inject-frame":73,"@braintree/class-list":30,"@braintree/event-emitter":31,"@braintree/iframer":33,"@braintree/uuid":37,"@braintree/wrap-promise":41,"framebus":50}],73:[function(_dereq_,module,exports){
 "use strict";
 
 var focusIntercept = _dereq_("../shared/focus-intercept");
@@ -3705,7 +3807,7 @@ module.exports = function injectFrame(id, frame, container, focusHandler) {
   return [frame, clearboth];
 };
 
-},{"../shared/constants":75,"../shared/focus-intercept":78}],73:[function(_dereq_,module,exports){
+},{"../shared/constants":76,"../shared/focus-intercept":79}],74:[function(_dereq_,module,exports){
 "use strict";
 /** @module braintree-web/hosted-fields */
 
@@ -3716,7 +3818,7 @@ var supportsInputFormatting = _dereq_("restricted-input/supports-input-formattin
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 var BraintreeError = _dereq_("../lib/braintree-error");
 var Promise = _dereq_("../lib/promise");
-var VERSION = "3.88.2";
+var VERSION = "3.88.3";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -4071,7 +4173,7 @@ module.exports = {
   VERSION: VERSION,
 };
 
-},{"../lib/basic-component-verification":84,"../lib/braintree-error":86,"../lib/promise":100,"./external/hosted-fields":71,"./shared/errors":76,"@braintree/wrap-promise":41,"restricted-input/supports-input-formatting":66}],74:[function(_dereq_,module,exports){
+},{"../lib/basic-component-verification":85,"../lib/braintree-error":87,"../lib/promise":101,"./external/hosted-fields":72,"./shared/errors":77,"@braintree/wrap-promise":41,"restricted-input/supports-input-formatting":67}],75:[function(_dereq_,module,exports){
 "use strict";
 
 var isAndroid = _dereq_("@braintree/browser-detection/is-android");
@@ -4101,12 +4203,12 @@ module.exports = {
   hasSoftwareKeyboard: hasSoftwareKeyboard,
 };
 
-},{"@braintree/browser-detection/is-android":20,"@braintree/browser-detection/is-chrome":22,"@braintree/browser-detection/is-chrome-os":21,"@braintree/browser-detection/is-edge":23,"@braintree/browser-detection/is-firefox":24,"@braintree/browser-detection/is-ie":25,"@braintree/browser-detection/is-ie10":26,"@braintree/browser-detection/is-ie9":27,"@braintree/browser-detection/is-ios":29,"@braintree/browser-detection/is-ios-webview":28}],75:[function(_dereq_,module,exports){
+},{"@braintree/browser-detection/is-android":20,"@braintree/browser-detection/is-chrome":22,"@braintree/browser-detection/is-chrome-os":21,"@braintree/browser-detection/is-edge":23,"@braintree/browser-detection/is-firefox":24,"@braintree/browser-detection/is-ie":25,"@braintree/browser-detection/is-ie10":26,"@braintree/browser-detection/is-ie9":27,"@braintree/browser-detection/is-ios":29,"@braintree/browser-detection/is-ios-webview":28}],76:[function(_dereq_,module,exports){
 "use strict";
 
 var enumerate = _dereq_("../../lib/enumerate");
 var errors = _dereq_("./errors");
-var VERSION = "3.88.2";
+var VERSION = "3.88.3";
 
 var constants = {
   VERSION: VERSION,
@@ -4269,7 +4371,7 @@ constants.events = enumerate(
 
 module.exports = constants;
 
-},{"../../lib/enumerate":93,"./errors":76}],76:[function(_dereq_,module,exports){
+},{"../../lib/enumerate":94,"./errors":77}],77:[function(_dereq_,module,exports){
 "use strict";
 
 /**
@@ -4383,7 +4485,7 @@ module.exports = {
   },
 };
 
-},{"../../lib/braintree-error":86}],77:[function(_dereq_,module,exports){
+},{"../../lib/braintree-error":87}],78:[function(_dereq_,module,exports){
 "use strict";
 
 function findParentTags(element, tag) {
@@ -4403,7 +4505,7 @@ function findParentTags(element, tag) {
 
 module.exports = findParentTags;
 
-},{}],78:[function(_dereq_,module,exports){
+},{}],79:[function(_dereq_,module,exports){
 "use strict";
 
 var browserDetection = _dereq_("./browser-detection");
@@ -4515,7 +4617,7 @@ var focusIntercept = {
 
 module.exports = focusIntercept;
 
-},{"./browser-detection":74,"./constants":75,"@braintree/class-list":30}],79:[function(_dereq_,module,exports){
+},{"./browser-detection":75,"./constants":76,"@braintree/class-list":30}],80:[function(_dereq_,module,exports){
 "use strict";
 
 var creditCardType = _dereq_("credit-card-type");
@@ -4536,7 +4638,7 @@ module.exports = function (number) {
   return results;
 };
 
-},{"credit-card-type":42}],80:[function(_dereq_,module,exports){
+},{"credit-card-type":42}],81:[function(_dereq_,module,exports){
 "use strict";
 
 var createAuthorizationData = _dereq_("./create-authorization-data");
@@ -4570,7 +4672,7 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":87,"./create-authorization-data":90,"./json-clone":97}],81:[function(_dereq_,module,exports){
+},{"./constants":88,"./create-authorization-data":91,"./json-clone":98}],82:[function(_dereq_,module,exports){
 "use strict";
 
 var Promise = _dereq_("./promise");
@@ -4625,7 +4727,7 @@ module.exports = {
   sendEvent: sendAnalyticsEvent,
 };
 
-},{"./add-metadata":80,"./constants":87,"./promise":100}],82:[function(_dereq_,module,exports){
+},{"./add-metadata":81,"./constants":88,"./promise":101}],83:[function(_dereq_,module,exports){
 "use strict";
 
 var loadScript = _dereq_("@braintree/asset-loader/load-script");
@@ -4634,7 +4736,7 @@ module.exports = {
   loadScript: loadScript,
 };
 
-},{"@braintree/asset-loader/load-script":3}],83:[function(_dereq_,module,exports){
+},{"@braintree/asset-loader/load-script":3}],84:[function(_dereq_,module,exports){
 "use strict";
 
 var assignNormalized =
@@ -4660,13 +4762,13 @@ module.exports = {
   _assign: assignPolyfill,
 };
 
-},{}],84:[function(_dereq_,module,exports){
+},{}],85:[function(_dereq_,module,exports){
 "use strict";
 
 var BraintreeError = _dereq_("./braintree-error");
 var Promise = _dereq_("./promise");
 var sharedErrors = _dereq_("./errors");
-var VERSION = "3.88.2";
+var VERSION = "3.88.3";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -4722,7 +4824,7 @@ module.exports = {
   verify: basicComponentVerification,
 };
 
-},{"./braintree-error":86,"./errors":94,"./promise":100}],85:[function(_dereq_,module,exports){
+},{"./braintree-error":87,"./errors":95,"./promise":101}],86:[function(_dereq_,module,exports){
 "use strict";
 
 var once = _dereq_("./once");
@@ -4768,7 +4870,7 @@ module.exports = function (functions, cb) {
   }
 };
 
-},{"./once":99}],86:[function(_dereq_,module,exports){
+},{"./once":100}],87:[function(_dereq_,module,exports){
 "use strict";
 
 var enumerate = _dereq_("./enumerate");
@@ -4857,10 +4959,10 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":93}],87:[function(_dereq_,module,exports){
+},{"./enumerate":94}],88:[function(_dereq_,module,exports){
 "use strict";
 
-var VERSION = "3.88.2";
+var VERSION = "3.88.3";
 var PLATFORM = "web";
 
 var CLIENT_API_URLS = {
@@ -4898,7 +5000,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: "braintree/" + PLATFORM + "/" + VERSION,
 };
 
-},{}],88:[function(_dereq_,module,exports){
+},{}],89:[function(_dereq_,module,exports){
 "use strict";
 
 var BraintreeError = _dereq_("./braintree-error");
@@ -4916,7 +5018,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"./braintree-error":86,"./errors":94}],89:[function(_dereq_,module,exports){
+},{"./braintree-error":87,"./errors":95}],90:[function(_dereq_,module,exports){
 "use strict";
 
 // endRemoveIf(production)
@@ -4933,7 +5035,7 @@ module.exports = {
   create: createAssetsUrl,
 };
 
-},{"./constants":87}],90:[function(_dereq_,module,exports){
+},{"./constants":88}],91:[function(_dereq_,module,exports){
 "use strict";
 
 var atob = _dereq_("../lib/vendor/polyfill").atob;
@@ -4984,7 +5086,7 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/constants":87,"../lib/vendor/polyfill":103}],91:[function(_dereq_,module,exports){
+},{"../lib/constants":88,"../lib/vendor/polyfill":104}],92:[function(_dereq_,module,exports){
 "use strict";
 
 var BraintreeError = _dereq_("./braintree-error");
@@ -4992,7 +5094,7 @@ var Promise = _dereq_("./promise");
 var assets = _dereq_("./assets");
 var sharedErrors = _dereq_("./errors");
 
-var VERSION = "3.88.2";
+var VERSION = "3.88.3";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -5049,7 +5151,7 @@ module.exports = {
   create: createDeferredClient,
 };
 
-},{"./assets":82,"./braintree-error":86,"./errors":94,"./promise":100}],92:[function(_dereq_,module,exports){
+},{"./assets":83,"./braintree-error":87,"./errors":95,"./promise":101}],93:[function(_dereq_,module,exports){
 "use strict";
 
 var batchExecuteFunctions = _dereq_("./batch-execute-functions");
@@ -5090,7 +5192,7 @@ Destructor.prototype.teardown = function (callback) {
 
 module.exports = Destructor;
 
-},{"./batch-execute-functions":85}],93:[function(_dereq_,module,exports){
+},{"./batch-execute-functions":86}],94:[function(_dereq_,module,exports){
 "use strict";
 
 function enumerate(values, prefix) {
@@ -5105,7 +5207,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],94:[function(_dereq_,module,exports){
+},{}],95:[function(_dereq_,module,exports){
 "use strict";
 
 /**
@@ -5155,7 +5257,7 @@ module.exports = {
   },
 };
 
-},{"./braintree-error":86}],95:[function(_dereq_,module,exports){
+},{"./braintree-error":87}],96:[function(_dereq_,module,exports){
 "use strict";
 
 module.exports = function findRootNode(element) {
@@ -5166,7 +5268,7 @@ module.exports = function findRootNode(element) {
   return element;
 };
 
-},{}],96:[function(_dereq_,module,exports){
+},{}],97:[function(_dereq_,module,exports){
 "use strict";
 
 var parser;
@@ -5201,14 +5303,14 @@ function isVerifiedDomain(url) {
 
 module.exports = isVerifiedDomain;
 
-},{}],97:[function(_dereq_,module,exports){
+},{}],98:[function(_dereq_,module,exports){
 "use strict";
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],98:[function(_dereq_,module,exports){
+},{}],99:[function(_dereq_,module,exports){
 "use strict";
 
 module.exports = function (obj) {
@@ -5217,7 +5319,7 @@ module.exports = function (obj) {
   });
 };
 
-},{}],99:[function(_dereq_,module,exports){
+},{}],100:[function(_dereq_,module,exports){
 "use strict";
 
 function once(fn) {
@@ -5233,7 +5335,7 @@ function once(fn) {
 
 module.exports = once;
 
-},{}],100:[function(_dereq_,module,exports){
+},{}],101:[function(_dereq_,module,exports){
 "use strict";
 
 var PromisePolyfill = _dereq_("promise-polyfill");
@@ -5247,7 +5349,7 @@ ExtendedPromise.setPromise(PromiseGlobal);
 
 module.exports = PromiseGlobal;
 
-},{"@braintree/extended-promise":32,"promise-polyfill":63}],101:[function(_dereq_,module,exports){
+},{"@braintree/extended-promise":32,"promise-polyfill":64}],102:[function(_dereq_,module,exports){
 "use strict";
 
 var uuid = _dereq_("@braintree/uuid");
@@ -5309,7 +5411,7 @@ module.exports = {
   transformToSlot: transformToSlot,
 };
 
-},{"./find-root-node":95,"@braintree/uuid":37}],102:[function(_dereq_,module,exports){
+},{"./find-root-node":96,"@braintree/uuid":37}],103:[function(_dereq_,module,exports){
 "use strict";
 
 function useMin(isDebug) {
@@ -5318,7 +5420,7 @@ function useMin(isDebug) {
 
 module.exports = useMin;
 
-},{}],103:[function(_dereq_,module,exports){
+},{}],104:[function(_dereq_,module,exports){
 "use strict";
 
 // NEXT_MAJOR_VERSION old versions of IE don't have atob, in the
@@ -5366,5 +5468,5 @@ module.exports = {
   _atob: atobPolyfill,
 };
 
-},{}]},{},[73])(73)
+},{}]},{},[74])(74)
 });
