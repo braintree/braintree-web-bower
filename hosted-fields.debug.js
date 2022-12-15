@@ -3818,7 +3818,7 @@ var supportsInputFormatting = _dereq_("restricted-input/supports-input-formattin
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 var BraintreeError = _dereq_("../lib/braintree-error");
 var Promise = _dereq_("../lib/promise");
-var VERSION = "3.88.5";
+var VERSION = "3.88.6";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -4208,7 +4208,7 @@ module.exports = {
 
 var enumerate = _dereq_("../../lib/enumerate");
 var errors = _dereq_("./errors");
-var VERSION = "3.88.5";
+var VERSION = "3.88.6";
 
 var constants = {
   VERSION: VERSION,
@@ -4768,7 +4768,7 @@ module.exports = {
 var BraintreeError = _dereq_("./braintree-error");
 var Promise = _dereq_("./promise");
 var sharedErrors = _dereq_("./errors");
-var VERSION = "3.88.5";
+var VERSION = "3.88.6";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -4962,7 +4962,7 @@ module.exports = BraintreeError;
 },{"./enumerate":94}],88:[function(_dereq_,module,exports){
 "use strict";
 
-var VERSION = "3.88.5";
+var VERSION = "3.88.6";
 var PLATFORM = "web";
 
 var CLIENT_API_URLS = {
@@ -5094,7 +5094,7 @@ var Promise = _dereq_("./promise");
 var assets = _dereq_("./assets");
 var sharedErrors = _dereq_("./errors");
 
-var VERSION = "3.88.5";
+var VERSION = "3.88.6";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
