@@ -1448,7 +1448,7 @@ module.exports = {
 var BraintreeError = _dereq_("./braintree-error");
 var Promise = _dereq_("./promise");
 var sharedErrors = _dereq_("./errors");
-var VERSION = "3.90.0";
+var VERSION = "3.91.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1596,7 +1596,7 @@ module.exports = BraintreeError;
 },{"./enumerate":44}],37:[function(_dereq_,module,exports){
 "use strict";
 
-var VERSION = "3.90.0";
+var VERSION = "3.91.0";
 var PLATFORM = "web";
 
 var CLIENT_API_URLS = {
@@ -1750,7 +1750,7 @@ var Promise = _dereq_("./promise");
 var assets = _dereq_("./assets");
 var sharedErrors = _dereq_("./errors");
 
-var VERSION = "3.90.0";
+var VERSION = "3.91.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -2041,7 +2041,7 @@ var useMin = _dereq_("../../../lib/use-min");
 var BUS_CONFIGURATION_REQUEST_EVENT =
   _dereq_("../../../lib/constants").BUS_CONFIGURATION_REQUEST_EVENT;
 
-var VERSION = "3.90.0";
+var VERSION = "3.91.0";
 var IFRAME_HEIGHT = 400;
 var IFRAME_WIDTH = 400;
 
@@ -2895,7 +2895,7 @@ var ExtendedPromise = _dereq_("@braintree/extended-promise");
 var INTEGRATION_TIMEOUT_MS =
   _dereq_("../../../lib/constants").INTEGRATION_TIMEOUT_MS;
 var PLATFORM = _dereq_("../../../lib/constants").PLATFORM;
-var VERSION = "3.90.0";
+var VERSION = "3.91.0";
 var CUSTOMER_CANCELED_SONGBIRD_MODAL = "01";
 var SONGBIRD_UI_EVENTS = [
   "ui.close",
@@ -2908,6 +2908,8 @@ var SONGBIRD_UI_EVENTS = [
   "ui.loading.close",
   "ui.loading.render",
 ];
+
+var SCA_EXEMPTION_TYPES = ["low_value", "transaction_risk_analysis"];
 
 function SongbirdFramework(options) {
   BaseFramework.call(this, options);
@@ -3022,11 +3024,6 @@ SongbirdFramework.prototype.initiateV1Fallback = function (errorType) {
 SongbirdFramework.prototype._triggerCardinalBinProcess = function (bin) {
   var self = this;
   var issuerStartTime = Date.now();
-
-  if (!bin) {
-    // skip bin lookup because bin wasn't passed in
-    return Promise.resolve();
-  }
 
   return window.Cardinal.trigger("bin.process", bin).then(function (
     binResults
@@ -3547,6 +3544,14 @@ SongbirdFramework.prototype._checkForVerifyCardError = function (
   options,
   privateOptions
 ) {
+  if (!options.bin) {
+    return new BraintreeError({
+      type: errors.THREEDS_MISSING_VERIFY_CARD_OPTION.type,
+      code: errors.THREEDS_MISSING_VERIFY_CARD_OPTION.code,
+      message: "verifyCard options must include a BIN.",
+    });
+  }
+
   return BaseFramework.prototype._checkForVerifyCardError.call(
     this,
     options,
@@ -3664,6 +3669,21 @@ SongbirdFramework.prototype._formatLookupData = function (options) {
       }
       if (options.challengeRequested) {
         data.challengeRequested = options.challengeRequested;
+      }
+      if (options.requestedExemptionType) {
+        if (!SCA_EXEMPTION_TYPES.includes(options.requestedExemptionType)) {
+          throw new BraintreeError({
+            code: errors.THREEDS_REQUESTED_EXEMPTION_TYPE_INVALID.code,
+            type: errors.THREEDS_REQUESTED_EXEMPTION_TYPE_INVALID.type,
+            message:
+              "requestedExemptionType `" +
+              options.requestedExemptionType +
+              "` is not a valid exemption. The accepted values are: `" +
+              SCA_EXEMPTION_TYPES.join("`, `") +
+              "`",
+          });
+        }
+        data.requestedExemptionType = options.requestedExemptionType;
       }
       if (options.dataOnlyRequested) {
         data.dataOnlyRequested = options.dataOnlyRequested;
@@ -4128,7 +4148,7 @@ function ThreeDSecure(options) {
 }
 
 EventEmitter.createChild(ThreeDSecure);
-
+// NEXT_MAJOR_VERSION remove exemptionRequested entirely in favor of `requestedExemptionType`
 /**
  * Launch the 3D Secure login flow, returning a nonce payload.
  *
@@ -4141,8 +4161,9 @@ EventEmitter.createChild(ThreeDSecure);
  * @param {boolean} [options.cardAddChallengeRequested] If set to `true`, a card-add challenge will be requested from the issuer. If set to `false`, a card-add challenge will not be requested. If the param is missing, a card-add challenge will only be requested for $0 amount. An authentication created using this flag should only be used for vaulting operations (creation of customers' credit cards or payment methods) and not for creating transactions.
  * @param {boolean} [options.cardAdd] *Deprecated:* Use `cardAddChallengeRequested` instead.
  * @param {boolean} [options.challengeRequested] If set to true, an authentication challenge will be forced if possible.
- * @param {boolean} [options.exemptionRequested] If set to true, an exemption to the authentication challenge will be requested.
  * @param {boolean} [options.dataOnlyRequested] Indicates whether to use the data only flow. In this flow, frictionless 3DS is ensured for Mastercard cardholders as the card scheme provides a risk score for the issuer to determine whether to approve. If data only is not supported by the processor, a validation error will be raised. Non-Mastercard cardholders will fallback to a normal 3DS flow.
+ * @param {boolean} [options.exemptionRequested] *Deprecated:* Use `requestedExemptionType` instead.
+ * @param {string} [options.requestedExemptionType] If an exemption is requested and the exemption's conditions are satisfied, then it will be applied. The following supported exemptions are defined as per PSD2 regulation: `low_value`, `transaction_risk_analysis`
  * @param {function} [options.onLookupComplete] *Deprecated:* Use {@link ThreeDSecure#event:lookup-complete|`threeDSecureInstance.on('lookup-complete')`} instead. Function to execute when lookup completes. The first argument, `data`, is a {@link ThreeDSecure~verificationData|verificationData} object, and the second argument, `next`, is a callback. `next` must be called to continue.
  * @param {string} [options.email] The email used for verification. (maximum length 255)
  * @param {string} [options.mobilePhoneNumber] The mobile phone number used for verification. Only numbers; remove dashes, parenthesis and other characters. (maximum length 25)
@@ -4395,7 +4416,7 @@ ThreeDSecure.prototype.initializeChallengeWithLookupResponse = function (
  * @public
  * @param {object} options Options for 3D Secure lookup.
  * @param {string} options.nonce The nonce representing the card from a tokenization payload. For example, this can be a {@link HostedFields~tokenizePayload|tokenizePayload} returned by Hosted Fields under `payload.nonce`.
- * @param {string} [options.bin] The numeric Bank Identification Number (bin) of the card from a tokenization payload. For example, this can be a {@link HostedFields~tokenizePayload|tokenizePayload} returned by Hosted Fields under `payload.details.bin`. Though not required to start the verification, it is required to receive a 3DS 2.0 lookup response.
+ * @param {string} options.bin The numeric Bank Identification Number (bin) of the card from a tokenization payload. For example, this can be a {@link HostedFields~tokenizePayload|tokenizePayload} returned by Hosted Fields under `payload.details.bin`.
  * @param {callback} [callback] The second argument, <code>data</code>, is a {@link ThreeDSecure~prepareLookupPayload|prepareLookupPayload}. If no callback is provided, it will return a promise that resolves {@link ThreeDSecure~prepareLookupPayload|prepareLookupPayload}.
 
  * @returns {(Promise|void)} Returns a promise if no callback is provided.
@@ -4540,7 +4561,7 @@ var createAssetsUrl = _dereq_("../lib/create-assets-url");
 var BraintreeError = _dereq_("../lib/braintree-error");
 var analytics = _dereq_("../lib/analytics");
 var errors = _dereq_("./shared/errors");
-var VERSION = "3.90.0";
+var VERSION = "3.91.0";
 var Promise = _dereq_("../lib/promise");
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 
@@ -4647,6 +4668,7 @@ var wrapPromise = _dereq_("@braintree/wrap-promise");
  */
 function create(options) {
   var name = "3D Secure";
+  var framework = getFramework(options);
 
   return basicComponentVerification
     .verify({
@@ -4656,7 +4678,6 @@ function create(options) {
     })
     .then(function () {
       var assetsUrl = createAssetsUrl.create(options.authorization);
-      var framework = getFramework(options);
       var createPromise = createDeferredClient
         .create({
           authorization: options.authorization,
@@ -4731,7 +4752,11 @@ function getFramework(options) {
   var version = String(options.version || "");
 
   if (!version || version === "1") {
-    return "legacy";
+    throw new BraintreeError({
+      code: errors.THREEDS_UNSUPPORTED_VERSION.code,
+      type: errors.THREEDS_UNSUPPORTED_VERSION.type,
+      message: errors.THREEDS_UNSUPPORTED_VERSION.message,
+    });
   }
 
   switch (version) {
@@ -4793,6 +4818,7 @@ module.exports = {
  * @property {MERCHANT} THREEDS_CARDINAL_SDK_BAD_JWT Occurs when a malformed config causes a either a missing response JWT or a malformed Cardinal response.
  * @property {UNKNOWN} THREEDS_CARDINAL_SDK_ERROR Occurs when a "general error" or a Cardinal hosted fields error happens. Description contains more details.
  * @property {CUSTOMER} THREEDS_CARDINAL_SDK_CANCELED Occurs when customer cancels the transaction mid-flow, usually with alt-pays that have their own cancel buttons.
+ * @property {MERCHANT} THREEDS_UNSUPPORTED_VERSION Occurs when 3D Secure component is created with version 1 (or default version) parameter.
  */
 
 /**
@@ -4806,6 +4832,7 @@ module.exports = {
  * @property {UNKNOWN} THREEDS_LOOKUP_ERROR An unknown error occurred while attempting the 3D Secure lookup.
  * @property {MERCHANT} THREEDS_VERIFY_CARD_CANCELED_BY_MERCHANT Occurs when the 3D Secure flow is canceled by the merchant using `cancelVerifyCard` (3D Secure v2 flows only).
  * @property {UNKNOWN} THREEDS_INLINE_IFRAME_DETAILS_INCORRECT An unknown error occurred while attempting to use the inline iframe framework.
+ * @property {MERCHANT} THREEDS_REQUESTED_EXEMPTION_TYPE_INVALID Occurs when unrecognized exemption enum value is passed into verifyCard.
  */
 
 /**
@@ -4950,6 +4977,17 @@ module.exports = {
     type: BraintreeError.types.INTERNAL,
     code: "THREEDS_FRAMEWORK_METHOD_NOT_IMPLEMENTED",
     message: "Method not implemented for this framework.",
+  },
+  THREEDS_REQUESTED_EXEMPTION_TYPE_INVALID: {
+    type: BraintreeError.types.MERCHANT,
+    code: "THREEDS_REQUESTED_EXEMPTION_TYPE_INVALID",
+    message: "Requested Exemption Type is invalid.",
+  },
+  THREEDS_UNSUPPORTED_VERSION: {
+    type: BraintreeError.types.MERCHANT,
+    code: "THREEDS_UNSUPPORTED_VERSION",
+    message:
+      "3D Secure `1` is deprecated and no longer supported. See available versions at https://braintree.github.io/braintree-web/current/module-braintree-web_three-d-secure.html#.create",
   },
 };
 
