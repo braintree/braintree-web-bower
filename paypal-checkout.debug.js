@@ -1581,7 +1581,7 @@ module.exports = {
 var BraintreeError = _dereq_("./braintree-error");
 var Promise = _dereq_("./promise");
 var sharedErrors = _dereq_("./errors");
-var VERSION = "3.91.0";
+var VERSION = "3.92.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1729,7 +1729,7 @@ module.exports = BraintreeError;
 },{"./enumerate":61}],55:[function(_dereq_,module,exports){
 "use strict";
 
-var VERSION = "3.91.0";
+var VERSION = "3.92.0";
 var PLATFORM = "web";
 
 var CLIENT_API_URLS = {
@@ -1883,7 +1883,7 @@ var Promise = _dereq_("./promise");
 var assets = _dereq_("./assets");
 var sharedErrors = _dereq_("./errors");
 
-var VERSION = "3.91.0";
+var VERSION = "3.92.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -2129,6 +2129,9 @@ FrameService.prototype.open = function (options, callback) {
   this._frame.initialize(callback);
 
   if (this._frame instanceof PopupBridge) {
+    // Frameservice loads a spinner then redirects to the final destination url.
+    // For Popupbridge it doesn't have the same rules around popups since it's deferred to the mobile side
+    // therefore, skips the regular open path and instead uses `#redirect` to handle things
     return;
   }
 
@@ -2258,6 +2261,27 @@ module.exports = FrameService;
 
 var FrameService = _dereq_("./frame-service");
 
+/**
+ * @ignore
+ * @function create
+ * Initializing FrameService should be done at the point when the component is created, so it is ready whenever a component needs to open a popup window.
+ * Browsers have varying rules around what constitutes and async action worth blocking a popup for, but the likes of Safari
+ * will block the popup if `frameService#create` is invoked during any asynchronous process (such as an API request to tokenize payment details).
+ *
+ * The process of setting up the dispatch frame and subsequent framebus communications via event listeners are considered async by Safari's standards.
+ *
+ * @param {object} options The options provided to frameservice
+ * @param {string} options.name The name to use for identifying the various pieces associated with frameservice.
+ * @param {string} options.dispatchFrameUrl The static asset to load for use as the dispatch frame. This allows for secure communication between the iframe and the popup, since they are on the same asset domain (usually checkout.paypal.com or assets.braintreegateway.com)
+ * @param {string} options.openFrameUrl The url to load in the popup. Sometimes it is the case that you'll need info that comes _after_ the popup loads in which case we load the `landing-frame` that's a loading spinner then redirect to the proper/final destination. See the PayPal component for an example.
+ * Otherwise if all the info needed is ready up-front, then you can forego a landing frame and go straight to the final destination.
+ * @param {string} [options.height] The desired popup height.
+ * @param {string} [options.width] The desired popup width.
+ * @param {string} [options.top] The desired top value of the popup for positioning.
+ * @param {string} [options.left] The desired left value of the popup for positioning.
+ * @param {object} [options.state] Seems to be dead code, but allows for injecting data in to popup. NEXT_MAJOR_VERSION remove this param if no usage exists.
+ * @param {function} callback The function to invoke once the frameservice is created and ready to use. FrameService instance is returned.
+ */
 module.exports = {
   create: function createFrameService(options, callback) {
     var frameService = new FrameService(options);
@@ -2289,6 +2313,12 @@ var ELEMENT_STYLES = {
 };
 
 function noop() {}
+
+/**
+ *
+ * We should not ever really use the Modal. Modals are _like_  popups, but the key difference is that the customer can't actually verify it's app domain and thus secure/valid. Old PP sdk (./src/paypal) uses this
+ * to get info from webviews (e.g. facebook).
+ */
 
 function Modal(options) {
   this._closed = null;
@@ -2479,8 +2509,6 @@ function noop() {}
 function Popup(options) {
   this._frame = null;
   this._options = options || {};
-
-  this.open();
 }
 
 Popup.prototype.initialize = noop;
@@ -2932,7 +2960,7 @@ module.exports = {
 var basicComponentVerification = _dereq_("../lib/basic-component-verification");
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 var PayPalCheckout = _dereq_("./paypal-checkout");
-var VERSION = "3.91.0";
+var VERSION = "3.92.0";
 
 /**
  * @static
@@ -3016,7 +3044,7 @@ var methods = _dereq_("../lib/methods");
 var useMin = _dereq_("../lib/use-min");
 var convertMethodsToError = _dereq_("../lib/convert-methods-to-error");
 var querystring = _dereq_("../lib/querystring");
-var VERSION = "3.91.0";
+var VERSION = "3.92.0";
 var INTEGRATION_TIMEOUT_MS = _dereq_("../lib/constants").INTEGRATION_TIMEOUT_MS;
 
 var REQUIRED_PARAMS_FOR_START_VAULT_INITIATED_CHECKOUT = [
@@ -3374,6 +3402,7 @@ PayPalCheckout.prototype._setupFrameService = function (client) {
  * * `capture` - Payment will be immediately submitted for settlement upon creating a transaction. `sale` can be used as an alias for this value.
  * @param {boolean} [options.offerCredit=false] Offers PayPal Credit as the default funding instrument for the transaction. If the customer isn't pre-approved for PayPal Credit, they will be prompted to apply for it.
  * @param {(string|number)} [options.amount] The amount of the transaction. Required when using the Checkout flow. Should not include shipping cost.
+ * * Supports up to 2 digits after the decimal point
  * @param {string} [options.currency] The currency code of the amount, such as 'USD'. Required when using the Checkout flow.
  * @param {string} [options.displayName] The merchant name displayed inside of the PayPal lightbox; defaults to the company name on your Braintree account
  * @param {boolean} [options.requestBillingAgreement] If `true` and `flow = checkout`, the customer will be prompted to consent to a billing agreement during the checkout flow. This value is ignored when `flow = vault`.
@@ -3567,6 +3596,7 @@ PayPalCheckout.prototype._createPaymentResource = function (options, config) {
  * @param {object} options All options for the PayPalCheckout component.
  * @param {string} options.paymentId This should be PayPal `paymentId`.
  * @param {(string|number)} [options.amount] The amount of the transaction, including the amount of the selected shipping option.
+ * * Supports up to 2 decimal digits.
  * @param {string} options.currency The currency code of the amount, such as 'USD'. Required when using the Checkout flow.
  * @param {shippingOption[]} [options.shippingOptions] List of {@link PayPalCheckout~shippingOption|shipping options} offered by the payee or merchant to the payer to ship or pick up their items.
  * @param {lineItem[]} [options.lineItems] The {@link PayPalCheckout~lineItem|line items} for this transaction. It can include up to 249 line items.
@@ -4442,44 +4472,6 @@ PayPalCheckout.prototype._hasMissingOption = function (options, required) {
   return false;
 };
 
-/**
- * @ignore
- * @static
- * @function _calculateAmount
- * @param {array} lineItems The {@link PayPalCheckout~lineItem|line items} for this transaction. It can include up to 249 line items.
- * @param {array} [shippingOptions] List of shipping options offered by the payee or merchant to the payer to ship or pick up their items.
- * @returns {number} Returns the amount of the transaction.
- */
-PayPalCheckout.prototype._calculateAmount = function (
-  lineItems,
-  shippingOptions
-) {
-  var amount = 0;
-
-  if (Array.isArray(lineItems)) {
-    amount += lineItems.reduce(function (total, item) {
-      return (
-        total +
-        ((parseFloat(item.unitAmount) || 0) +
-          (parseFloat(item.unitTaxAmount) || 0)) *
-          (parseInt(item.quantity, 10) || 0)
-      );
-    }, 0);
-  }
-
-  if (shippingOptions && Array.isArray(shippingOptions)) {
-    amount += shippingOptions.reduce(function (total, option) {
-      if (option.selected && option.amount) {
-        return total + parseFloat(option.amount.value) || 0;
-      }
-
-      return total;
-    }, 0);
-  }
-
-  return amount;
-};
-
 PayPalCheckout.prototype._formatUpdatePaymentData = function (options) {
   var self = this;
   var paymentResource = {
@@ -4494,13 +4486,6 @@ PayPalCheckout.prototype._formatUpdatePaymentData = function (options) {
 
   if (options.hasOwnProperty("lineItems")) {
     paymentResource.lineItems = options.lineItems;
-
-    if (!options.hasOwnProperty("amount")) {
-      paymentResource.amount = this._calculateAmount(
-        options.lineItems,
-        options.shippingOptions
-      );
-    }
   }
 
   if (options.hasOwnProperty("shippingOptions")) {

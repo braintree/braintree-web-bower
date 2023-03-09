@@ -1,5 +1,14 @@
 # CHANGELOG
 
+# 3.92.0 
+
+- Venmo
+  - Fix issue resulting in blocked popups in desktop web login flow
+- PayPal
+  - Remove `amount` calculation in `updatePayment`; now `amount` param is required. 
+- 3D Secure
+  - Clarify format of IP Address in `AdditionalInformation` object
+
 # 3.91.0
 
 - 3D Secure
