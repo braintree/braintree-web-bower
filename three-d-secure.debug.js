@@ -1448,7 +1448,7 @@ module.exports = {
 var BraintreeError = _dereq_("./braintree-error");
 var Promise = _dereq_("./promise");
 var sharedErrors = _dereq_("./errors");
-var VERSION = "3.92.0";
+var VERSION = "3.92.1";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1596,7 +1596,7 @@ module.exports = BraintreeError;
 },{"./enumerate":44}],37:[function(_dereq_,module,exports){
 "use strict";
 
-var VERSION = "3.92.0";
+var VERSION = "3.92.1";
 var PLATFORM = "web";
 
 var CLIENT_API_URLS = {
@@ -1750,7 +1750,7 @@ var Promise = _dereq_("./promise");
 var assets = _dereq_("./assets");
 var sharedErrors = _dereq_("./errors");
 
-var VERSION = "3.92.0";
+var VERSION = "3.92.1";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -2041,7 +2041,7 @@ var useMin = _dereq_("../../../lib/use-min");
 var BUS_CONFIGURATION_REQUEST_EVENT =
   _dereq_("../../../lib/constants").BUS_CONFIGURATION_REQUEST_EVENT;
 
-var VERSION = "3.92.0";
+var VERSION = "3.92.1";
 var IFRAME_HEIGHT = 400;
 var IFRAME_WIDTH = 400;
 
@@ -2895,7 +2895,7 @@ var ExtendedPromise = _dereq_("@braintree/extended-promise");
 var INTEGRATION_TIMEOUT_MS =
   _dereq_("../../../lib/constants").INTEGRATION_TIMEOUT_MS;
 var PLATFORM = _dereq_("../../../lib/constants").PLATFORM;
-var VERSION = "3.92.0";
+var VERSION = "3.92.1";
 var CUSTOMER_CANCELED_SONGBIRD_MODAL = "01";
 var SONGBIRD_UI_EVENTS = [
   "ui.close",
@@ -3859,8 +3859,8 @@ var FRAMEWORKS = _dereq_("./frameworks");
 
 /**
  * @typedef {object} ThreeDSecure~billingAddress
- * @property {string} [givenName] The first name associated with the billing address. (maximum length 50)
- * @property {string} [surname] The last name associated with the billing address. (maximum length 50)
+ * @property {string} [givenName] The first name associated with the billing address. (maximum length 50, ASCII characters)
+ * @property {string} [surname] The last name associated with the billing address. (maximum length 50, ASCII characters)
  * @property {string} [phoneNumber] The phone number associated with the billing address. Only numbers; remove dashes, parenthesis and other characters.
  * @property {string} [streetAddress] Line 1 of the billing address (eg. number, street, etc). (maximum length 50)
  * @property {string} [extendedAddress] Line 2 of the billing address (eg. suite, apt #, etc.). (maximum length 50)
@@ -3874,8 +3874,8 @@ var FRAMEWORKS = _dereq_("./frameworks");
 /**
  * @typedef {object} ThreeDSecure~additionalInformation
  * @property {string} [workPhoneNumber] The work phone number used for verification. Only numbers; remove dashes, parenthesis and other characters. (maximum length 25)
- * @property {string} [shippingGivenName] The first name associated with the shipping address. (maximum length 50)
- * @property {string} [shippingSurname] The last name associated with the shipping address. (maximum length 50)
+ * @property {string} [shippingGivenName] The first name associated with the shipping address. (maximum length 50, ASCII characters)
+ * @property {string} [shippingSurname] The last name associated with the shipping address. (maximum length 50, ASCII characters)
  * @property {object} [shippingAddress]
  * @property {string} [shippingAddress.streetAddress] Line 1 of the shipping address (eg. number, street, etc). (maximum length 50)
  * @property {string} [shippingAddress.extendedAddress] Line 2 of the shipping address (eg. suite, apt #, etc.). (maximum length 50)
@@ -4563,7 +4563,7 @@ var createAssetsUrl = _dereq_("../lib/create-assets-url");
 var BraintreeError = _dereq_("../lib/braintree-error");
 var analytics = _dereq_("../lib/analytics");
 var errors = _dereq_("./shared/errors");
-var VERSION = "3.92.0";
+var VERSION = "3.92.1";
 var Promise = _dereq_("../lib/promise");
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 

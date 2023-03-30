@@ -727,7 +727,7 @@ module.exports = {
 var BraintreeError = _dereq_("./braintree-error");
 var Promise = _dereq_("./promise");
 var sharedErrors = _dereq_("./errors");
-var VERSION = "3.92.0";
+var VERSION = "3.92.1";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -875,7 +875,7 @@ module.exports = BraintreeError;
 },{"./enumerate":20}],15:[function(_dereq_,module,exports){
 "use strict";
 
-var VERSION = "3.92.0";
+var VERSION = "3.92.1";
 var PLATFORM = "web";
 
 var CLIENT_API_URLS = {
@@ -1007,7 +1007,7 @@ var Promise = _dereq_("./promise");
 var assets = _dereq_("./assets");
 var sharedErrors = _dereq_("./errors");
 
-var VERSION = "3.92.0";
+var VERSION = "3.92.1";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1248,7 +1248,7 @@ var basicComponentVerification = _dereq_("../lib/basic-component-verification");
 var createDeferredClient = _dereq_("../lib/create-deferred-client");
 var createAssetsUrl = _dereq_("../lib/create-assets-url");
 var VaultManager = _dereq_("./vault-manager");
-var VERSION = "3.92.0";
+var VERSION = "3.92.1";
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 
 /**
@@ -1379,11 +1379,9 @@ VaultManager.prototype.fetchPaymentMethods = function (options) {
     );
 };
 
-// TODO hide from jsdoc for now until the GraphQL API is on for all merchants by default
 /**
  * Deletes a payment method owned by the customer whose id was used to generate the client token used to create the {@link module:braintree-web/client|client}.
  * @public
- * @ignore
  * @param {string} paymentMethodNonce The payment method nonce that references a vaulted payment method.
  * @param {callback} [callback] No data is returned if the operation is successful.
  * @returns {(Promise|void)} Returns a promise if no callback is provided.
