@@ -11,7 +11,7 @@ var PromiseGlobal =
 typeof Promise !== "undefined" ? Promise : promise_polyfill_1.default;
 exports.PromiseGlobal = PromiseGlobal;
 
-},{"promise-polyfill":9}],2:[function(_dereq_,module,exports){
+},{"promise-polyfill":8}],2:[function(_dereq_,module,exports){
 "use strict";
 var promise_1 = _dereq_("./lib/promise");
 var scriptPromiseCache = {};
@@ -61,140 +61,6 @@ module.exports = _dereq_("./dist/load-script");
 
 },{"./dist/load-script":2}],4:[function(_dereq_,module,exports){
 "use strict";
-var GlobalPromise = (typeof Promise !== "undefined"
-    ? Promise // eslint-disable-line no-undef
-    : null);
-var ExtendedPromise = /** @class */ (function () {
-    function ExtendedPromise(options) {
-        var _this = this;
-        if (typeof options === "function") {
-            this._promise = new ExtendedPromise.Promise(options);
-            return;
-        }
-        this._promise = new ExtendedPromise.Promise(function (resolve, reject) {
-            _this._resolveFunction = resolve;
-            _this._rejectFunction = reject;
-        });
-        options = options || {};
-        this._onResolve = options.onResolve || ExtendedPromise.defaultOnResolve;
-        this._onReject = options.onReject || ExtendedPromise.defaultOnReject;
-        if (ExtendedPromise.shouldCatchExceptions(options)) {
-            this._promise.catch(function () {
-                // prevents unhandled promise rejection warning
-                // in the console for extended promises that
-                // that catch the error in an asynchronous manner
-            });
-        }
-        this._resetState();
-    }
-    ExtendedPromise.defaultOnResolve = function (result) {
-        return ExtendedPromise.Promise.resolve(result);
-    };
-    ExtendedPromise.defaultOnReject = function (err) {
-        return ExtendedPromise.Promise.reject(err);
-    };
-    ExtendedPromise.setPromise = function (PromiseClass) {
-        ExtendedPromise.Promise = PromiseClass;
-    };
-    ExtendedPromise.shouldCatchExceptions = function (options) {
-        if (options.hasOwnProperty("suppressUnhandledPromiseMessage")) {
-            return Boolean(options.suppressUnhandledPromiseMessage);
-        }
-        return Boolean(ExtendedPromise.suppressUnhandledPromiseMessage);
-    };
-    // start Promise methods documented in:
-    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise#Methods
-    ExtendedPromise.all = function (args) {
-        return ExtendedPromise.Promise.all(args);
-    };
-    ExtendedPromise.allSettled = function (args) {
-        return ExtendedPromise.Promise.allSettled(args);
-    };
-    ExtendedPromise.race = function (args) {
-        return ExtendedPromise.Promise.race(args);
-    };
-    ExtendedPromise.reject = function (arg) {
-        return ExtendedPromise.Promise.reject(arg);
-    };
-    ExtendedPromise.resolve = function (arg) {
-        return ExtendedPromise.Promise.resolve(arg);
-    };
-    ExtendedPromise.prototype.then = function () {
-        var _a;
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
-        return (_a = this._promise).then.apply(_a, args);
-    };
-    ExtendedPromise.prototype.catch = function () {
-        var _a;
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
-        return (_a = this._promise).catch.apply(_a, args);
-    };
-    ExtendedPromise.prototype.resolve = function (arg) {
-        var _this = this;
-        if (this.isFulfilled) {
-            return this;
-        }
-        this._setResolved();
-        ExtendedPromise.Promise.resolve()
-            .then(function () {
-            return _this._onResolve(arg);
-        })
-            .then(function (argForResolveFunction) {
-            _this._resolveFunction(argForResolveFunction);
-        })
-            .catch(function (err) {
-            _this._resetState();
-            _this.reject(err);
-        });
-        return this;
-    };
-    ExtendedPromise.prototype.reject = function (arg) {
-        var _this = this;
-        if (this.isFulfilled) {
-            return this;
-        }
-        this._setRejected();
-        ExtendedPromise.Promise.resolve()
-            .then(function () {
-            return _this._onReject(arg);
-        })
-            .then(function (result) {
-            _this._setResolved();
-            _this._resolveFunction(result);
-        })
-            .catch(function (err) {
-            return _this._rejectFunction(err);
-        });
-        return this;
-    };
-    ExtendedPromise.prototype._resetState = function () {
-        this.isFulfilled = false;
-        this.isResolved = false;
-        this.isRejected = false;
-    };
-    ExtendedPromise.prototype._setResolved = function () {
-        this.isFulfilled = true;
-        this.isResolved = true;
-        this.isRejected = false;
-    };
-    ExtendedPromise.prototype._setRejected = function () {
-        this.isFulfilled = true;
-        this.isResolved = false;
-        this.isRejected = true;
-    };
-    ExtendedPromise.Promise = GlobalPromise;
-    return ExtendedPromise;
-}());
-module.exports = ExtendedPromise;
-
-},{}],5:[function(_dereq_,module,exports){
-"use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 function deferred(fn) {
     return function () {
@@ -217,7 +83,7 @@ function deferred(fn) {
 }
 exports.deferred = deferred;
 
-},{}],6:[function(_dereq_,module,exports){
+},{}],5:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 function once(fn) {
@@ -235,7 +101,7 @@ function once(fn) {
 }
 exports.once = once;
 
-},{}],7:[function(_dereq_,module,exports){
+},{}],6:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 /* eslint-disable consistent-return */
@@ -247,7 +113,7 @@ function promiseOrCallback(promise, callback) {
 }
 exports.promiseOrCallback = promiseOrCallback;
 
-},{}],8:[function(_dereq_,module,exports){
+},{}],7:[function(_dereq_,module,exports){
 "use strict";
 var deferred_1 = _dereq_("./lib/deferred");
 var once_1 = _dereq_("./lib/once");
@@ -297,7 +163,7 @@ wrapPromise.wrapPrototype = function (target, options) {
 };
 module.exports = wrapPromise;
 
-},{"./lib/deferred":5,"./lib/once":6,"./lib/promise-or-callback":7}],9:[function(_dereq_,module,exports){
+},{"./lib/deferred":4,"./lib/once":5,"./lib/promise-or-callback":6}],8:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -623,13 +489,12 @@ Promise._unhandledRejectionFn = function _unhandledRejectionFn(err) {
 
 module.exports = Promise;
 
-},{}],10:[function(_dereq_,module,exports){
+},{}],9:[function(_dereq_,module,exports){
 "use strict";
 
 var BraintreeError = _dereq_("../lib/braintree-error");
 var errors = _dereq_("./errors");
 var assign = _dereq_("../lib/assign").assign;
-var Promise = _dereq_("../lib/promise");
 var methods = _dereq_("../lib/methods");
 var convertMethodsToError = _dereq_("../lib/convert-methods-to-error");
 var wrapPromise = _dereq_("@braintree/wrap-promise");
@@ -788,7 +653,7 @@ AmericanExpress.prototype.teardown = function () {
 
 module.exports = wrapPromise.wrapPrototype(AmericanExpress);
 
-},{"../lib/assign":14,"../lib/braintree-error":16,"../lib/convert-methods-to-error":18,"../lib/methods":23,"../lib/promise":24,"./errors":11,"@braintree/wrap-promise":8}],11:[function(_dereq_,module,exports){
+},{"../lib/assign":13,"../lib/braintree-error":15,"../lib/convert-methods-to-error":17,"../lib/methods":22,"./errors":10,"@braintree/wrap-promise":7}],10:[function(_dereq_,module,exports){
 "use strict";
 
 /**
@@ -818,7 +683,7 @@ module.exports = {
   },
 };
 
-},{"../lib/braintree-error":16}],12:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":15}],11:[function(_dereq_,module,exports){
 "use strict";
 /**
  * @module braintree-web/american-express
@@ -829,7 +694,7 @@ var AmericanExpress = _dereq_("./american-express");
 var basicComponentVerification = _dereq_("../lib/basic-component-verification");
 var createDeferredClient = _dereq_("../lib/create-deferred-client");
 var createAssetsUrl = _dereq_("../lib/create-assets-url");
-var VERSION = "3.92.1";
+var VERSION = "3.92.2";
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 
 /**
@@ -875,7 +740,7 @@ module.exports = {
   VERSION: VERSION,
 };
 
-},{"../lib/basic-component-verification":15,"../lib/create-assets-url":19,"../lib/create-deferred-client":20,"./american-express":10,"@braintree/wrap-promise":8}],13:[function(_dereq_,module,exports){
+},{"../lib/basic-component-verification":14,"../lib/create-assets-url":18,"../lib/create-deferred-client":19,"./american-express":9,"@braintree/wrap-promise":7}],12:[function(_dereq_,module,exports){
 "use strict";
 
 var loadScript = _dereq_("@braintree/asset-loader/load-script");
@@ -884,7 +749,7 @@ module.exports = {
   loadScript: loadScript,
 };
 
-},{"@braintree/asset-loader/load-script":3}],14:[function(_dereq_,module,exports){
+},{"@braintree/asset-loader/load-script":3}],13:[function(_dereq_,module,exports){
 "use strict";
 
 var assignNormalized =
@@ -910,13 +775,12 @@ module.exports = {
   _assign: assignPolyfill,
 };
 
-},{}],15:[function(_dereq_,module,exports){
+},{}],14:[function(_dereq_,module,exports){
 "use strict";
 
 var BraintreeError = _dereq_("./braintree-error");
-var Promise = _dereq_("./promise");
 var sharedErrors = _dereq_("./errors");
-var VERSION = "3.92.1";
+var VERSION = "3.92.2";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -972,7 +836,7 @@ module.exports = {
   verify: basicComponentVerification,
 };
 
-},{"./braintree-error":16,"./errors":22,"./promise":24}],16:[function(_dereq_,module,exports){
+},{"./braintree-error":15,"./errors":21}],15:[function(_dereq_,module,exports){
 "use strict";
 
 var enumerate = _dereq_("./enumerate");
@@ -1061,10 +925,10 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":21}],17:[function(_dereq_,module,exports){
+},{"./enumerate":20}],16:[function(_dereq_,module,exports){
 "use strict";
 
-var VERSION = "3.92.1";
+var VERSION = "3.92.2";
 var PLATFORM = "web";
 
 var CLIENT_API_URLS = {
@@ -1102,7 +966,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: "braintree/" + PLATFORM + "/" + VERSION,
 };
 
-},{}],18:[function(_dereq_,module,exports){
+},{}],17:[function(_dereq_,module,exports){
 "use strict";
 
 var BraintreeError = _dereq_("./braintree-error");
@@ -1120,7 +984,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"./braintree-error":16,"./errors":22}],19:[function(_dereq_,module,exports){
+},{"./braintree-error":15,"./errors":21}],18:[function(_dereq_,module,exports){
 "use strict";
 
 // endRemoveIf(production)
@@ -1137,15 +1001,14 @@ module.exports = {
   create: createAssetsUrl,
 };
 
-},{"./constants":17}],20:[function(_dereq_,module,exports){
+},{"./constants":16}],19:[function(_dereq_,module,exports){
 "use strict";
 
 var BraintreeError = _dereq_("./braintree-error");
-var Promise = _dereq_("./promise");
 var assets = _dereq_("./assets");
 var sharedErrors = _dereq_("./errors");
 
-var VERSION = "3.92.1";
+var VERSION = "3.92.2";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1202,7 +1065,7 @@ module.exports = {
   create: createDeferredClient,
 };
 
-},{"./assets":13,"./braintree-error":16,"./errors":22,"./promise":24}],21:[function(_dereq_,module,exports){
+},{"./assets":12,"./braintree-error":15,"./errors":21}],20:[function(_dereq_,module,exports){
 "use strict";
 
 function enumerate(values, prefix) {
@@ -1217,7 +1080,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],22:[function(_dereq_,module,exports){
+},{}],21:[function(_dereq_,module,exports){
 "use strict";
 
 /**
@@ -1267,7 +1130,7 @@ module.exports = {
   },
 };
 
-},{"./braintree-error":16}],23:[function(_dereq_,module,exports){
+},{"./braintree-error":15}],22:[function(_dereq_,module,exports){
 "use strict";
 
 module.exports = function (obj) {
@@ -1276,19 +1139,5 @@ module.exports = function (obj) {
   });
 };
 
-},{}],24:[function(_dereq_,module,exports){
-"use strict";
-
-var PromisePolyfill = _dereq_("promise-polyfill");
-var ExtendedPromise = _dereq_("@braintree/extended-promise");
-
-// eslint-disable-next-line no-undef
-var PromiseGlobal = typeof Promise !== "undefined" ? Promise : PromisePolyfill;
-
-ExtendedPromise.suppressUnhandledPromiseMessage = true;
-ExtendedPromise.setPromise(PromiseGlobal);
-
-module.exports = PromiseGlobal;
-
-},{"@braintree/extended-promise":4,"promise-polyfill":9}]},{},[12])(12)
+},{}]},{},[11])(11)
 });

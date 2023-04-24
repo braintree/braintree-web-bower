@@ -11,7 +11,7 @@ var PromiseGlobal =
 typeof Promise !== "undefined" ? Promise : promise_polyfill_1.default;
 exports.PromiseGlobal = PromiseGlobal;
 
-},{"promise-polyfill":9}],2:[function(_dereq_,module,exports){
+},{"promise-polyfill":8}],2:[function(_dereq_,module,exports){
 "use strict";
 var promise_1 = _dereq_("./lib/promise");
 var scriptPromiseCache = {};
@@ -61,140 +61,6 @@ module.exports = _dereq_("./dist/load-script");
 
 },{"./dist/load-script":2}],4:[function(_dereq_,module,exports){
 "use strict";
-var GlobalPromise = (typeof Promise !== "undefined"
-    ? Promise // eslint-disable-line no-undef
-    : null);
-var ExtendedPromise = /** @class */ (function () {
-    function ExtendedPromise(options) {
-        var _this = this;
-        if (typeof options === "function") {
-            this._promise = new ExtendedPromise.Promise(options);
-            return;
-        }
-        this._promise = new ExtendedPromise.Promise(function (resolve, reject) {
-            _this._resolveFunction = resolve;
-            _this._rejectFunction = reject;
-        });
-        options = options || {};
-        this._onResolve = options.onResolve || ExtendedPromise.defaultOnResolve;
-        this._onReject = options.onReject || ExtendedPromise.defaultOnReject;
-        if (ExtendedPromise.shouldCatchExceptions(options)) {
-            this._promise.catch(function () {
-                // prevents unhandled promise rejection warning
-                // in the console for extended promises that
-                // that catch the error in an asynchronous manner
-            });
-        }
-        this._resetState();
-    }
-    ExtendedPromise.defaultOnResolve = function (result) {
-        return ExtendedPromise.Promise.resolve(result);
-    };
-    ExtendedPromise.defaultOnReject = function (err) {
-        return ExtendedPromise.Promise.reject(err);
-    };
-    ExtendedPromise.setPromise = function (PromiseClass) {
-        ExtendedPromise.Promise = PromiseClass;
-    };
-    ExtendedPromise.shouldCatchExceptions = function (options) {
-        if (options.hasOwnProperty("suppressUnhandledPromiseMessage")) {
-            return Boolean(options.suppressUnhandledPromiseMessage);
-        }
-        return Boolean(ExtendedPromise.suppressUnhandledPromiseMessage);
-    };
-    // start Promise methods documented in:
-    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise#Methods
-    ExtendedPromise.all = function (args) {
-        return ExtendedPromise.Promise.all(args);
-    };
-    ExtendedPromise.allSettled = function (args) {
-        return ExtendedPromise.Promise.allSettled(args);
-    };
-    ExtendedPromise.race = function (args) {
-        return ExtendedPromise.Promise.race(args);
-    };
-    ExtendedPromise.reject = function (arg) {
-        return ExtendedPromise.Promise.reject(arg);
-    };
-    ExtendedPromise.resolve = function (arg) {
-        return ExtendedPromise.Promise.resolve(arg);
-    };
-    ExtendedPromise.prototype.then = function () {
-        var _a;
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
-        return (_a = this._promise).then.apply(_a, args);
-    };
-    ExtendedPromise.prototype.catch = function () {
-        var _a;
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
-        return (_a = this._promise).catch.apply(_a, args);
-    };
-    ExtendedPromise.prototype.resolve = function (arg) {
-        var _this = this;
-        if (this.isFulfilled) {
-            return this;
-        }
-        this._setResolved();
-        ExtendedPromise.Promise.resolve()
-            .then(function () {
-            return _this._onResolve(arg);
-        })
-            .then(function (argForResolveFunction) {
-            _this._resolveFunction(argForResolveFunction);
-        })
-            .catch(function (err) {
-            _this._resetState();
-            _this.reject(err);
-        });
-        return this;
-    };
-    ExtendedPromise.prototype.reject = function (arg) {
-        var _this = this;
-        if (this.isFulfilled) {
-            return this;
-        }
-        this._setRejected();
-        ExtendedPromise.Promise.resolve()
-            .then(function () {
-            return _this._onReject(arg);
-        })
-            .then(function (result) {
-            _this._setResolved();
-            _this._resolveFunction(result);
-        })
-            .catch(function (err) {
-            return _this._rejectFunction(err);
-        });
-        return this;
-    };
-    ExtendedPromise.prototype._resetState = function () {
-        this.isFulfilled = false;
-        this.isResolved = false;
-        this.isRejected = false;
-    };
-    ExtendedPromise.prototype._setResolved = function () {
-        this.isFulfilled = true;
-        this.isResolved = true;
-        this.isRejected = false;
-    };
-    ExtendedPromise.prototype._setRejected = function () {
-        this.isFulfilled = true;
-        this.isResolved = false;
-        this.isRejected = true;
-    };
-    ExtendedPromise.Promise = GlobalPromise;
-    return ExtendedPromise;
-}());
-module.exports = ExtendedPromise;
-
-},{}],5:[function(_dereq_,module,exports){
-"use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 function deferred(fn) {
     return function () {
@@ -217,7 +83,7 @@ function deferred(fn) {
 }
 exports.deferred = deferred;
 
-},{}],6:[function(_dereq_,module,exports){
+},{}],5:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 function once(fn) {
@@ -235,7 +101,7 @@ function once(fn) {
 }
 exports.once = once;
 
-},{}],7:[function(_dereq_,module,exports){
+},{}],6:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 /* eslint-disable consistent-return */
@@ -247,7 +113,7 @@ function promiseOrCallback(promise, callback) {
 }
 exports.promiseOrCallback = promiseOrCallback;
 
-},{}],8:[function(_dereq_,module,exports){
+},{}],7:[function(_dereq_,module,exports){
 "use strict";
 var deferred_1 = _dereq_("./lib/deferred");
 var once_1 = _dereq_("./lib/once");
@@ -297,7 +163,7 @@ wrapPromise.wrapPrototype = function (target, options) {
 };
 module.exports = wrapPromise;
 
-},{"./lib/deferred":5,"./lib/once":6,"./lib/promise-or-callback":7}],9:[function(_dereq_,module,exports){
+},{"./lib/deferred":4,"./lib/once":5,"./lib/promise-or-callback":6}],8:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -623,7 +489,7 @@ Promise._unhandledRejectionFn = function _unhandledRejectionFn(err) {
 
 module.exports = Promise;
 
-},{}],10:[function(_dereq_,module,exports){
+},{}],9:[function(_dereq_,module,exports){
 "use strict";
 
 var createAuthorizationData = _dereq_("./create-authorization-data");
@@ -657,10 +523,9 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":15,"./create-authorization-data":17,"./json-clone":21}],11:[function(_dereq_,module,exports){
+},{"./constants":14,"./create-authorization-data":16,"./json-clone":20}],10:[function(_dereq_,module,exports){
 "use strict";
 
-var Promise = _dereq_("./promise");
 var constants = _dereq_("./constants");
 var addMetadata = _dereq_("./add-metadata");
 
@@ -712,7 +577,7 @@ module.exports = {
   sendEvent: sendAnalyticsEvent,
 };
 
-},{"./add-metadata":10,"./constants":15,"./promise":22}],12:[function(_dereq_,module,exports){
+},{"./add-metadata":9,"./constants":14}],11:[function(_dereq_,module,exports){
 "use strict";
 
 var loadScript = _dereq_("@braintree/asset-loader/load-script");
@@ -721,13 +586,12 @@ module.exports = {
   loadScript: loadScript,
 };
 
-},{"@braintree/asset-loader/load-script":3}],13:[function(_dereq_,module,exports){
+},{"@braintree/asset-loader/load-script":3}],12:[function(_dereq_,module,exports){
 "use strict";
 
 var BraintreeError = _dereq_("./braintree-error");
-var Promise = _dereq_("./promise");
 var sharedErrors = _dereq_("./errors");
-var VERSION = "3.92.1";
+var VERSION = "3.92.2";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -783,7 +647,7 @@ module.exports = {
   verify: basicComponentVerification,
 };
 
-},{"./braintree-error":14,"./errors":20,"./promise":22}],14:[function(_dereq_,module,exports){
+},{"./braintree-error":13,"./errors":19}],13:[function(_dereq_,module,exports){
 "use strict";
 
 var enumerate = _dereq_("./enumerate");
@@ -872,10 +736,10 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":19}],15:[function(_dereq_,module,exports){
+},{"./enumerate":18}],14:[function(_dereq_,module,exports){
 "use strict";
 
-var VERSION = "3.92.1";
+var VERSION = "3.92.2";
 var PLATFORM = "web";
 
 var CLIENT_API_URLS = {
@@ -913,7 +777,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: "braintree/" + PLATFORM + "/" + VERSION,
 };
 
-},{}],16:[function(_dereq_,module,exports){
+},{}],15:[function(_dereq_,module,exports){
 "use strict";
 
 // endRemoveIf(production)
@@ -930,7 +794,7 @@ module.exports = {
   create: createAssetsUrl,
 };
 
-},{"./constants":15}],17:[function(_dereq_,module,exports){
+},{"./constants":14}],16:[function(_dereq_,module,exports){
 "use strict";
 
 var atob = _dereq_("../lib/vendor/polyfill").atob;
@@ -981,15 +845,14 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/constants":15,"../lib/vendor/polyfill":23}],18:[function(_dereq_,module,exports){
+},{"../lib/constants":14,"../lib/vendor/polyfill":21}],17:[function(_dereq_,module,exports){
 "use strict";
 
 var BraintreeError = _dereq_("./braintree-error");
-var Promise = _dereq_("./promise");
 var assets = _dereq_("./assets");
 var sharedErrors = _dereq_("./errors");
 
-var VERSION = "3.92.1";
+var VERSION = "3.92.2";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1046,7 +909,7 @@ module.exports = {
   create: createDeferredClient,
 };
 
-},{"./assets":12,"./braintree-error":14,"./errors":20,"./promise":22}],19:[function(_dereq_,module,exports){
+},{"./assets":11,"./braintree-error":13,"./errors":19}],18:[function(_dereq_,module,exports){
 "use strict";
 
 function enumerate(values, prefix) {
@@ -1061,7 +924,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],20:[function(_dereq_,module,exports){
+},{}],19:[function(_dereq_,module,exports){
 "use strict";
 
 /**
@@ -1111,28 +974,14 @@ module.exports = {
   },
 };
 
-},{"./braintree-error":14}],21:[function(_dereq_,module,exports){
+},{"./braintree-error":13}],20:[function(_dereq_,module,exports){
 "use strict";
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],22:[function(_dereq_,module,exports){
-"use strict";
-
-var PromisePolyfill = _dereq_("promise-polyfill");
-var ExtendedPromise = _dereq_("@braintree/extended-promise");
-
-// eslint-disable-next-line no-undef
-var PromiseGlobal = typeof Promise !== "undefined" ? Promise : PromisePolyfill;
-
-ExtendedPromise.suppressUnhandledPromiseMessage = true;
-ExtendedPromise.setPromise(PromiseGlobal);
-
-module.exports = PromiseGlobal;
-
-},{"@braintree/extended-promise":4,"promise-polyfill":9}],23:[function(_dereq_,module,exports){
+},{}],21:[function(_dereq_,module,exports){
 "use strict";
 
 // NEXT_MAJOR_VERSION old versions of IE don't have atob, in the
@@ -1180,14 +1029,14 @@ module.exports = {
   _atob: atobPolyfill,
 };
 
-},{}],24:[function(_dereq_,module,exports){
+},{}],22:[function(_dereq_,module,exports){
 "use strict";
 /** @module braintree-web/preferred-payment-methods */
 
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 var basicComponentVerification = _dereq_("../lib/basic-component-verification");
 var PreferredPaymentMethods = _dereq_("./preferred-payment-methods");
-var VERSION = "3.92.1";
+var VERSION = "3.92.2";
 
 // NEXT_MAJOR_VERSION
 // Remove this integration entirely. It doesn't work, isn't documented, and otherwise isn't going to be pursued further beyond the non-operational beta it is in.
@@ -1233,14 +1082,13 @@ module.exports = {
   VERSION: VERSION,
 };
 
-},{"../lib/basic-component-verification":13,"./preferred-payment-methods":25,"@braintree/wrap-promise":8}],25:[function(_dereq_,module,exports){
+},{"../lib/basic-component-verification":12,"./preferred-payment-methods":23,"@braintree/wrap-promise":7}],23:[function(_dereq_,module,exports){
 "use strict";
 
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 var analytics = _dereq_("../lib/analytics");
 var createAssetsUrl = _dereq_("../lib/create-assets-url");
 var createDeferredClient = _dereq_("../lib/create-deferred-client");
-var Promise = _dereq_("../lib/promise");
 
 /**
  * @class
@@ -1352,5 +1200,5 @@ PreferredPaymentMethods.prototype.fetchPreferredPaymentMethods = function () {
 
 module.exports = wrapPromise.wrapPrototype(PreferredPaymentMethods);
 
-},{"../lib/analytics":11,"../lib/create-assets-url":16,"../lib/create-deferred-client":18,"../lib/promise":22,"@braintree/wrap-promise":8}]},{},[24])(24)
+},{"../lib/analytics":10,"../lib/create-assets-url":15,"../lib/create-deferred-client":17,"@braintree/wrap-promise":7}]},{},[22])(22)
 });

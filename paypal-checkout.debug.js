@@ -11,7 +11,7 @@ var PromiseGlobal =
 typeof Promise !== "undefined" ? Promise : promise_polyfill_1.default;
 exports.PromiseGlobal = PromiseGlobal;
 
-},{"promise-polyfill":48}],2:[function(_dereq_,module,exports){
+},{"promise-polyfill":45}],2:[function(_dereq_,module,exports){
 "use strict";
 var promise_1 = _dereq_("./lib/promise");
 var scriptPromiseCache = {};
@@ -83,7 +83,7 @@ module.exports = function isChrome(ua) {
         !isSilk(ua));
 };
 
-},{"./is-duckduckgo":6,"./is-edge":7,"./is-opera":15,"./is-samsung":16,"./is-silk":17}],6:[function(_dereq_,module,exports){
+},{"./is-duckduckgo":6,"./is-edge":7,"./is-opera":13,"./is-samsung":14,"./is-silk":15}],6:[function(_dereq_,module,exports){
 "use strict";
 module.exports = function isDuckDuckGo(ua) {
     ua = ua || window.navigator.userAgent;
@@ -99,27 +99,12 @@ module.exports = function isEdge(ua) {
 
 },{}],8:[function(_dereq_,module,exports){
 "use strict";
-var isIE11 = _dereq_("./is-ie11");
-module.exports = function isIE(ua) {
-    ua = ua || window.navigator.userAgent;
-    return ua.indexOf("MSIE") !== -1 || isIE11(ua);
-};
-
-},{"./is-ie11":9}],9:[function(_dereq_,module,exports){
-"use strict";
-module.exports = function isIe11(ua) {
-    ua = ua || window.navigator.userAgent;
-    return ua.indexOf("Trident/7") !== -1;
-};
-
-},{}],10:[function(_dereq_,module,exports){
-"use strict";
 module.exports = function isIosFirefox(ua) {
     ua = ua || window.navigator.userAgent;
     return /FxiOS/i.test(ua);
 };
 
-},{}],11:[function(_dereq_,module,exports){
+},{}],9:[function(_dereq_,module,exports){
 "use strict";
 var isIos = _dereq_("./is-ios");
 function isGoogleSearchApp(ua) {
@@ -130,7 +115,7 @@ module.exports = function isIosGoogleSearchApp(ua) {
     return isIos(ua) && isGoogleSearchApp(ua);
 };
 
-},{"./is-ios":14}],12:[function(_dereq_,module,exports){
+},{"./is-ios":12}],10:[function(_dereq_,module,exports){
 "use strict";
 var isIos = _dereq_("./is-ios");
 var isIosGoogleSearchApp = _dereq_("./is-ios-google-search-app");
@@ -147,7 +132,7 @@ module.exports = function isIosWebview(ua) {
     return false;
 };
 
-},{"./is-ios":14,"./is-ios-google-search-app":11}],13:[function(_dereq_,module,exports){
+},{"./is-ios":12,"./is-ios-google-search-app":9}],11:[function(_dereq_,module,exports){
 "use strict";
 var isIosWebview = _dereq_("./is-ios-webview");
 module.exports = function isIosWKWebview(ua, statusBarVisible) {
@@ -158,14 +143,14 @@ module.exports = function isIosWKWebview(ua, statusBarVisible) {
     return isIosWebview(ua) && statusBarVisible;
 };
 
-},{"./is-ios-webview":12}],14:[function(_dereq_,module,exports){
+},{"./is-ios-webview":10}],12:[function(_dereq_,module,exports){
 "use strict";
 module.exports = function isIos(ua) {
     ua = ua || window.navigator.userAgent;
     return /iPhone|iPod|iPad/i.test(ua);
 };
 
-},{}],15:[function(_dereq_,module,exports){
+},{}],13:[function(_dereq_,module,exports){
 "use strict";
 module.exports = function isOpera(ua) {
     ua = ua || window.navigator.userAgent;
@@ -174,21 +159,21 @@ module.exports = function isOpera(ua) {
         ua.indexOf("OPT/") !== -1);
 };
 
-},{}],16:[function(_dereq_,module,exports){
+},{}],14:[function(_dereq_,module,exports){
 "use strict";
 module.exports = function isSamsungBrowser(ua) {
     ua = ua || window.navigator.userAgent;
     return /SamsungBrowser/i.test(ua);
 };
 
-},{}],17:[function(_dereq_,module,exports){
+},{}],15:[function(_dereq_,module,exports){
 "use strict";
 module.exports = function isSilk(ua) {
     ua = ua || window.navigator.userAgent;
     return ua.indexOf("Silk/") !== -1;
 };
 
-},{}],18:[function(_dereq_,module,exports){
+},{}],16:[function(_dereq_,module,exports){
 "use strict";
 var MINIMUM_SUPPORTED_CHROME_IOS_VERSION = 48;
 var isAndroid = _dereq_("./is-android");
@@ -231,19 +216,16 @@ module.exports = function supportsPopups(ua) {
         isOldSamsungBrowserOrSamsungWebview(ua));
 };
 
-},{"./is-android":4,"./is-chrome":5,"./is-duckduckgo":6,"./is-ios-firefox":10,"./is-ios-webview":12,"./is-samsung":16}],19:[function(_dereq_,module,exports){
-module.exports = _dereq_("./dist/is-ie");
-
-},{"./dist/is-ie":8}],20:[function(_dereq_,module,exports){
+},{"./is-android":4,"./is-chrome":5,"./is-duckduckgo":6,"./is-ios-firefox":8,"./is-ios-webview":10,"./is-samsung":14}],17:[function(_dereq_,module,exports){
 module.exports = _dereq_("./dist/is-ios-wkwebview");
 
-},{"./dist/is-ios-wkwebview":13}],21:[function(_dereq_,module,exports){
+},{"./dist/is-ios-wkwebview":11}],18:[function(_dereq_,module,exports){
 module.exports = _dereq_("./dist/is-ios");
 
-},{"./dist/is-ios":14}],22:[function(_dereq_,module,exports){
+},{"./dist/is-ios":12}],19:[function(_dereq_,module,exports){
 module.exports = _dereq_("./dist/supports-popups");
 
-},{"./dist/supports-popups":18}],23:[function(_dereq_,module,exports){
+},{"./dist/supports-popups":16}],20:[function(_dereq_,module,exports){
 "use strict";
 var GlobalPromise = (typeof Promise !== "undefined"
     ? Promise // eslint-disable-line no-undef
@@ -377,7 +359,7 @@ var ExtendedPromise = /** @class */ (function () {
 }());
 module.exports = ExtendedPromise;
 
-},{}],24:[function(_dereq_,module,exports){
+},{}],21:[function(_dereq_,module,exports){
 "use strict";
 var set_attributes_1 = _dereq_("./lib/set-attributes");
 var default_attributes_1 = _dereq_("./lib/default-attributes");
@@ -397,7 +379,7 @@ module.exports = function createFrame(options) {
     return iframe;
 };
 
-},{"./lib/assign":25,"./lib/default-attributes":26,"./lib/set-attributes":27}],25:[function(_dereq_,module,exports){
+},{"./lib/assign":22,"./lib/default-attributes":23,"./lib/set-attributes":24}],22:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.assign = void 0;
@@ -420,7 +402,7 @@ target) {
 }
 exports.assign = assign;
 
-},{}],26:[function(_dereq_,module,exports){
+},{}],23:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.defaultAttributes = void 0;
@@ -431,7 +413,7 @@ exports.defaultAttributes = {
     scrolling: "no",
 };
 
-},{}],27:[function(_dereq_,module,exports){
+},{}],24:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.setAttributes = void 0;
@@ -452,7 +434,7 @@ attributes) {
 }
 exports.setAttributes = setAttributes;
 
-},{}],28:[function(_dereq_,module,exports){
+},{}],25:[function(_dereq_,module,exports){
 'use strict';
 
 function uuid() {
@@ -466,7 +448,7 @@ function uuid() {
 
 module.exports = uuid;
 
-},{}],29:[function(_dereq_,module,exports){
+},{}],26:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 function deferred(fn) {
@@ -490,7 +472,7 @@ function deferred(fn) {
 }
 exports.deferred = deferred;
 
-},{}],30:[function(_dereq_,module,exports){
+},{}],27:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 function once(fn) {
@@ -508,7 +490,7 @@ function once(fn) {
 }
 exports.once = once;
 
-},{}],31:[function(_dereq_,module,exports){
+},{}],28:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 /* eslint-disable consistent-return */
@@ -520,7 +502,7 @@ function promiseOrCallback(promise, callback) {
 }
 exports.promiseOrCallback = promiseOrCallback;
 
-},{}],32:[function(_dereq_,module,exports){
+},{}],29:[function(_dereq_,module,exports){
 "use strict";
 var deferred_1 = _dereq_("./lib/deferred");
 var once_1 = _dereq_("./lib/once");
@@ -570,7 +552,7 @@ wrapPromise.wrapPrototype = function (target, options) {
 };
 module.exports = wrapPromise;
 
-},{"./lib/deferred":29,"./lib/once":30,"./lib/promise-or-callback":31}],33:[function(_dereq_,module,exports){
+},{"./lib/deferred":26,"./lib/once":27,"./lib/promise-or-callback":28}],30:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Framebus = void 0;
@@ -829,14 +811,14 @@ var Framebus = /** @class */ (function () {
 }());
 exports.Framebus = Framebus;
 
-},{"./lib/broadcast":37,"./lib/constants":38,"./lib/is-not-string":41,"./lib/package-payload":43,"./lib/send-message":44,"./lib/subscription-args-invalid":46}],34:[function(_dereq_,module,exports){
+},{"./lib/broadcast":34,"./lib/constants":35,"./lib/is-not-string":38,"./lib/package-payload":40,"./lib/send-message":41,"./lib/subscription-args-invalid":43}],31:[function(_dereq_,module,exports){
 "use strict";
 var attach_1 = _dereq_("./lib/attach");
 var framebus_1 = _dereq_("./framebus");
 (0, attach_1.attach)();
 module.exports = framebus_1.Framebus;
 
-},{"./framebus":33,"./lib/attach":35}],35:[function(_dereq_,module,exports){
+},{"./framebus":30,"./lib/attach":32}],32:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.detach = exports.attach = void 0;
@@ -858,7 +840,7 @@ function detach() {
 exports.detach = detach;
 // endRemoveIf(production)
 
-},{"./message":42}],36:[function(_dereq_,module,exports){
+},{"./message":39}],33:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.broadcastToChildWindows = void 0;
@@ -880,7 +862,7 @@ function broadcastToChildWindows(payload, origin, source) {
 }
 exports.broadcastToChildWindows = broadcastToChildWindows;
 
-},{"./broadcast":37,"./constants":38}],37:[function(_dereq_,module,exports){
+},{"./broadcast":34,"./constants":35}],34:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.broadcast = void 0;
@@ -919,7 +901,7 @@ function broadcast(payload, options) {
 }
 exports.broadcast = broadcast;
 
-},{"./has-opener":40}],38:[function(_dereq_,module,exports){
+},{"./has-opener":37}],35:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.subscribers = exports.childWindows = exports.prefix = void 0;
@@ -927,7 +909,7 @@ exports.prefix = "/*framebus*/";
 exports.childWindows = [];
 exports.subscribers = {};
 
-},{}],39:[function(_dereq_,module,exports){
+},{}],36:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.dispatch = void 0;
@@ -952,7 +934,7 @@ function dispatch(origin, event, data, reply, e) {
 }
 exports.dispatch = dispatch;
 
-},{"./constants":38}],40:[function(_dereq_,module,exports){
+},{"./constants":35}],37:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.hasOpener = void 0;
@@ -973,7 +955,7 @@ function hasOpener(frame) {
 }
 exports.hasOpener = hasOpener;
 
-},{}],41:[function(_dereq_,module,exports){
+},{}],38:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.isntString = void 0;
@@ -982,7 +964,7 @@ function isntString(str) {
 }
 exports.isntString = isntString;
 
-},{}],42:[function(_dereq_,module,exports){
+},{}],39:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.onmessage = void 0;
@@ -1006,7 +988,7 @@ function onmessage(e) {
 }
 exports.onmessage = onmessage;
 
-},{"./broadcast-to-child-windows":36,"./dispatch":39,"./is-not-string":41,"./unpack-payload":47}],43:[function(_dereq_,module,exports){
+},{"./broadcast-to-child-windows":33,"./dispatch":36,"./is-not-string":38,"./unpack-payload":44}],40:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.packagePayload = void 0;
@@ -1032,7 +1014,7 @@ function packagePayload(event, origin, data, reply) {
 }
 exports.packagePayload = packagePayload;
 
-},{"./constants":38,"./subscribe-replier":45}],44:[function(_dereq_,module,exports){
+},{"./constants":35,"./subscribe-replier":42}],41:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendMessage = void 0;
@@ -1049,7 +1031,7 @@ function sendMessage(frame, payload, origin) {
 }
 exports.sendMessage = sendMessage;
 
-},{}],45:[function(_dereq_,module,exports){
+},{}],42:[function(_dereq_,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -1073,7 +1055,7 @@ function subscribeReplier(fn, origin) {
 }
 exports.subscribeReplier = subscribeReplier;
 
-},{"../framebus":33,"@braintree/uuid":28}],46:[function(_dereq_,module,exports){
+},{"../framebus":30,"@braintree/uuid":25}],43:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.subscriptionArgsInvalid = void 0;
@@ -1089,7 +1071,7 @@ function subscriptionArgsInvalid(event, fn, origin) {
 }
 exports.subscriptionArgsInvalid = subscriptionArgsInvalid;
 
-},{"./is-not-string":41}],47:[function(_dereq_,module,exports){
+},{"./is-not-string":38}],44:[function(_dereq_,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.unpackPayload = void 0;
@@ -1125,7 +1107,7 @@ function unpackPayload(e) {
 }
 exports.unpackPayload = unpackPayload;
 
-},{"./constants":38,"./package-payload":43}],48:[function(_dereq_,module,exports){
+},{"./constants":35,"./package-payload":40}],45:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -1451,7 +1433,7 @@ Promise._unhandledRejectionFn = function _unhandledRejectionFn(err) {
 
 module.exports = Promise;
 
-},{}],49:[function(_dereq_,module,exports){
+},{}],46:[function(_dereq_,module,exports){
 "use strict";
 
 var createAuthorizationData = _dereq_("./create-authorization-data");
@@ -1485,10 +1467,9 @@ function addMetadata(configuration, data) {
 
 module.exports = addMetadata;
 
-},{"./constants":55,"./create-authorization-data":59,"./json-clone":75}],50:[function(_dereq_,module,exports){
+},{"./constants":52,"./create-authorization-data":56,"./json-clone":71}],47:[function(_dereq_,module,exports){
 "use strict";
 
-var Promise = _dereq_("./promise");
 var constants = _dereq_("./constants");
 var addMetadata = _dereq_("./add-metadata");
 
@@ -1540,7 +1521,7 @@ module.exports = {
   sendEvent: sendAnalyticsEvent,
 };
 
-},{"./add-metadata":49,"./constants":55,"./promise":77}],51:[function(_dereq_,module,exports){
+},{"./add-metadata":46,"./constants":52}],48:[function(_dereq_,module,exports){
 "use strict";
 
 var loadScript = _dereq_("@braintree/asset-loader/load-script");
@@ -1549,7 +1530,7 @@ module.exports = {
   loadScript: loadScript,
 };
 
-},{"@braintree/asset-loader/load-script":3}],52:[function(_dereq_,module,exports){
+},{"@braintree/asset-loader/load-script":3}],49:[function(_dereq_,module,exports){
 "use strict";
 
 var assignNormalized =
@@ -1575,13 +1556,12 @@ module.exports = {
   _assign: assignPolyfill,
 };
 
-},{}],53:[function(_dereq_,module,exports){
+},{}],50:[function(_dereq_,module,exports){
 "use strict";
 
 var BraintreeError = _dereq_("./braintree-error");
-var Promise = _dereq_("./promise");
 var sharedErrors = _dereq_("./errors");
-var VERSION = "3.92.1";
+var VERSION = "3.92.2";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1637,7 +1617,7 @@ module.exports = {
   verify: basicComponentVerification,
 };
 
-},{"./braintree-error":54,"./errors":62,"./promise":77}],54:[function(_dereq_,module,exports){
+},{"./braintree-error":51,"./errors":59}],51:[function(_dereq_,module,exports){
 "use strict";
 
 var enumerate = _dereq_("./enumerate");
@@ -1726,10 +1706,10 @@ BraintreeError.findRootError = function (err) {
 
 module.exports = BraintreeError;
 
-},{"./enumerate":61}],55:[function(_dereq_,module,exports){
+},{"./enumerate":58}],52:[function(_dereq_,module,exports){
 "use strict";
 
-var VERSION = "3.92.1";
+var VERSION = "3.92.2";
 var PLATFORM = "web";
 
 var CLIENT_API_URLS = {
@@ -1767,7 +1747,7 @@ module.exports = {
   BRAINTREE_LIBRARY_VERSION: "braintree/" + PLATFORM + "/" + VERSION,
 };
 
-},{}],56:[function(_dereq_,module,exports){
+},{}],53:[function(_dereq_,module,exports){
 "use strict";
 
 var BraintreeError = _dereq_("./braintree-error");
@@ -1785,7 +1765,7 @@ module.exports = function (instance, methodNames) {
   });
 };
 
-},{"./braintree-error":54,"./errors":62}],57:[function(_dereq_,module,exports){
+},{"./braintree-error":51,"./errors":59}],54:[function(_dereq_,module,exports){
 "use strict";
 
 var BraintreeError = _dereq_("./braintree-error");
@@ -1807,7 +1787,7 @@ function convertToBraintreeError(originalErr, btErrorObject) {
 
 module.exports = convertToBraintreeError;
 
-},{"./braintree-error":54}],58:[function(_dereq_,module,exports){
+},{"./braintree-error":51}],55:[function(_dereq_,module,exports){
 "use strict";
 
 // endRemoveIf(production)
@@ -1824,7 +1804,7 @@ module.exports = {
   create: createAssetsUrl,
 };
 
-},{"./constants":55}],59:[function(_dereq_,module,exports){
+},{"./constants":52}],56:[function(_dereq_,module,exports){
 "use strict";
 
 var atob = _dereq_("../lib/vendor/polyfill").atob;
@@ -1875,15 +1855,14 @@ function createAuthorizationData(authorization) {
 
 module.exports = createAuthorizationData;
 
-},{"../lib/constants":55,"../lib/vendor/polyfill":80}],60:[function(_dereq_,module,exports){
+},{"../lib/constants":52,"../lib/vendor/polyfill":75}],57:[function(_dereq_,module,exports){
 "use strict";
 
 var BraintreeError = _dereq_("./braintree-error");
-var Promise = _dereq_("./promise");
 var assets = _dereq_("./assets");
 var sharedErrors = _dereq_("./errors");
 
-var VERSION = "3.92.1";
+var VERSION = "3.92.2";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -1940,7 +1919,7 @@ module.exports = {
   create: createDeferredClient,
 };
 
-},{"./assets":51,"./braintree-error":54,"./errors":62,"./promise":77}],61:[function(_dereq_,module,exports){
+},{"./assets":48,"./braintree-error":51,"./errors":59}],58:[function(_dereq_,module,exports){
 "use strict";
 
 function enumerate(values, prefix) {
@@ -1955,7 +1934,7 @@ function enumerate(values, prefix) {
 
 module.exports = enumerate;
 
-},{}],62:[function(_dereq_,module,exports){
+},{}],59:[function(_dereq_,module,exports){
 "use strict";
 
 /**
@@ -2005,7 +1984,7 @@ module.exports = {
   },
 };
 
-},{"./braintree-error":54}],63:[function(_dereq_,module,exports){
+},{"./braintree-error":51}],60:[function(_dereq_,module,exports){
 "use strict";
 
 var Popup = _dereq_("./strategies/popup");
@@ -2019,7 +1998,6 @@ var uuid = _dereq_("@braintree/uuid");
 var iFramer = _dereq_("@braintree/iframer");
 var BraintreeError = _dereq_("../../braintree-error");
 var browserDetection = _dereq_("../shared/browser-detection");
-var isHTTPS = _dereq_("../../is-https");
 var assign = _dereq_("./../../assign").assign;
 var BUS_CONFIGURATION_REQUEST_EVENT =
   _dereq_("../../constants").BUS_CONFIGURATION_REQUEST_EVENT;
@@ -2121,8 +2099,6 @@ FrameService.prototype._setBusEvents = function () {
 };
 
 FrameService.prototype.open = function (options, callback) {
-  var error;
-
   options = options || {};
   this._frame = this._getFrameForEnvironment(options);
 
@@ -2142,15 +2118,9 @@ FrameService.prototype.open = function (options, callback) {
 
   if (this.isFrameClosed()) {
     this._cleanupFrame();
+
     if (callback) {
-      if (browserDetection.isIE() && !isHTTPS.isHTTPS()) {
-        error = new BraintreeError(
-          errors.FRAME_SERVICE_FRAME_OPEN_FAILED_IE_BUG
-        );
-      } else {
-        error = new BraintreeError(errors.FRAME_SERVICE_FRAME_OPEN_FAILED);
-      }
-      callback(error);
+      callback(new BraintreeError(errors.FRAME_SERVICE_FRAME_OPEN_FAILED));
     }
 
     return;
@@ -2256,7 +2226,7 @@ FrameService.prototype._getFrameForEnvironment = function (options) {
 
 module.exports = FrameService;
 
-},{"../../braintree-error":54,"../../constants":55,"../../is-https":74,"../shared/browser-detection":70,"../shared/constants":71,"../shared/errors":72,"../shared/events":73,"./../../assign":52,"./strategies/modal":65,"./strategies/popup":68,"./strategies/popup-bridge":66,"@braintree/iframer":24,"@braintree/uuid":28,"framebus":34}],64:[function(_dereq_,module,exports){
+},{"../../braintree-error":51,"../../constants":52,"../shared/browser-detection":67,"../shared/constants":68,"../shared/errors":69,"../shared/events":70,"./../../assign":49,"./strategies/modal":62,"./strategies/popup":65,"./strategies/popup-bridge":63,"@braintree/iframer":21,"@braintree/uuid":25,"framebus":31}],61:[function(_dereq_,module,exports){
 "use strict";
 
 var FrameService = _dereq_("./frame-service");
@@ -2292,7 +2262,7 @@ module.exports = {
   },
 };
 
-},{"./frame-service":63}],65:[function(_dereq_,module,exports){
+},{"./frame-service":60}],62:[function(_dereq_,module,exports){
 "use strict";
 
 var iFramer = _dereq_("@braintree/iframer");
@@ -2414,7 +2384,7 @@ Modal.prototype._lockScrolling = function () {
 
 module.exports = Modal;
 
-},{"../../../assign":52,"../../shared/browser-detection":70,"@braintree/iframer":24}],66:[function(_dereq_,module,exports){
+},{"../../../assign":49,"../../shared/browser-detection":67,"@braintree/iframer":21}],63:[function(_dereq_,module,exports){
 "use strict";
 
 var BraintreeError = _dereq_("../../../braintree-error");
@@ -2470,7 +2440,7 @@ PopupBridge.prototype.redirect = function (redirectUrl) {
 
 module.exports = PopupBridge;
 
-},{"../../../braintree-error":54,"../../shared/errors":72}],67:[function(_dereq_,module,exports){
+},{"../../../braintree-error":51,"../../shared/errors":69}],64:[function(_dereq_,module,exports){
 "use strict";
 
 var constants = _dereq_("../../../shared/constants");
@@ -2499,7 +2469,7 @@ module.exports = function composePopupOptions(options) {
   ].join(",");
 };
 
-},{"../../../shared/constants":71,"./position":69}],68:[function(_dereq_,module,exports){
+},{"../../../shared/constants":68,"./position":66}],65:[function(_dereq_,module,exports){
 "use strict";
 
 var composeOptions = _dereq_("./compose-options");
@@ -2542,7 +2512,7 @@ Popup.prototype.redirect = function (redirectUrl) {
 
 module.exports = Popup;
 
-},{"./compose-options":67}],69:[function(_dereq_,module,exports){
+},{"./compose-options":64}],66:[function(_dereq_,module,exports){
 "use strict";
 
 function top(height) {
@@ -2570,17 +2540,16 @@ module.exports = {
   center: center,
 };
 
-},{}],70:[function(_dereq_,module,exports){
+},{}],67:[function(_dereq_,module,exports){
 "use strict";
 
 module.exports = {
   isIos: _dereq_("@braintree/browser-detection/is-ios"),
   isIosWKWebview: _dereq_("@braintree/browser-detection/is-ios-wkwebview"),
-  isIE: _dereq_("@braintree/browser-detection/is-ie"),
   supportsPopups: _dereq_("@braintree/browser-detection/supports-popups"),
 };
 
-},{"@braintree/browser-detection/is-ie":19,"@braintree/browser-detection/is-ios":21,"@braintree/browser-detection/is-ios-wkwebview":20,"@braintree/browser-detection/supports-popups":22}],71:[function(_dereq_,module,exports){
+},{"@braintree/browser-detection/is-ios":18,"@braintree/browser-detection/is-ios-wkwebview":17,"@braintree/browser-detection/supports-popups":19}],68:[function(_dereq_,module,exports){
 "use strict";
 
 module.exports = {
@@ -2593,7 +2562,7 @@ module.exports = {
   POPUP_CLOSE_TIMEOUT: 100,
 };
 
-},{}],72:[function(_dereq_,module,exports){
+},{}],69:[function(_dereq_,module,exports){
 "use strict";
 
 /**
@@ -2602,7 +2571,6 @@ module.exports = {
  * @description Errors that occur when using a component that opens a popup window.
  * @property {INTERNAL} FRAME_SERVICE_FRAME_CLOSED - Occurs when the frame is closed before tokenization can occur.
  * @property {INTERNAL} FRAME_SERVICE_FRAME_OPEN_FAILED - Occurs when the popup could not be opened.
- * @property {INTERNAL} FRAME_SERVICE_FRAME_OPEN_FAILED_IE_BUG - Occurs when the frame could not be opened because of a specific bug in Internet Explorer - https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/11324352/.
  */
 
 var BraintreeError = _dereq_("../../braintree-error");
@@ -2618,15 +2586,9 @@ module.exports = {
     code: "FRAME_SERVICE_FRAME_OPEN_FAILED",
     message: "Frame failed to open.",
   },
-  FRAME_SERVICE_FRAME_OPEN_FAILED_IE_BUG: {
-    type: BraintreeError.types.INTERNAL,
-    code: "FRAME_SERVICE_FRAME_OPEN_FAILED_IE_BUG",
-    message:
-      "Could not open frame. This may be due to a bug in IE browsers when attempting to open an HTTPS page from a HTTP page. https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/11324352/",
-  },
 };
 
-},{"../../braintree-error":54}],73:[function(_dereq_,module,exports){
+},{"../../braintree-error":51}],70:[function(_dereq_,module,exports){
 "use strict";
 
 var enumerate = _dereq_("../../enumerate");
@@ -2636,27 +2598,14 @@ module.exports = enumerate(
   "frameService:"
 );
 
-},{"../../enumerate":61}],74:[function(_dereq_,module,exports){
-"use strict";
-
-function isHTTPS(protocol) {
-  protocol = protocol || window.location.protocol;
-
-  return protocol === "https:";
-}
-
-module.exports = {
-  isHTTPS: isHTTPS,
-};
-
-},{}],75:[function(_dereq_,module,exports){
+},{"../../enumerate":58}],71:[function(_dereq_,module,exports){
 "use strict";
 
 module.exports = function (value) {
   return JSON.parse(JSON.stringify(value));
 };
 
-},{}],76:[function(_dereq_,module,exports){
+},{}],72:[function(_dereq_,module,exports){
 "use strict";
 
 module.exports = function (obj) {
@@ -2665,21 +2614,7 @@ module.exports = function (obj) {
   });
 };
 
-},{}],77:[function(_dereq_,module,exports){
-"use strict";
-
-var PromisePolyfill = _dereq_("promise-polyfill");
-var ExtendedPromise = _dereq_("@braintree/extended-promise");
-
-// eslint-disable-next-line no-undef
-var PromiseGlobal = typeof Promise !== "undefined" ? Promise : PromisePolyfill;
-
-ExtendedPromise.suppressUnhandledPromiseMessage = true;
-ExtendedPromise.setPromise(PromiseGlobal);
-
-module.exports = PromiseGlobal;
-
-},{"@braintree/extended-promise":23,"promise-polyfill":48}],78:[function(_dereq_,module,exports){
+},{}],73:[function(_dereq_,module,exports){
 "use strict";
 
 function _notEmpty(obj) {
@@ -2786,7 +2721,7 @@ module.exports = {
   hasQueryParams: hasQueryParams,
 };
 
-},{}],79:[function(_dereq_,module,exports){
+},{}],74:[function(_dereq_,module,exports){
 "use strict";
 
 function useMin(isDebug) {
@@ -2795,7 +2730,7 @@ function useMin(isDebug) {
 
 module.exports = useMin;
 
-},{}],80:[function(_dereq_,module,exports){
+},{}],75:[function(_dereq_,module,exports){
 "use strict";
 
 // NEXT_MAJOR_VERSION old versions of IE don't have atob, in the
@@ -2843,7 +2778,7 @@ module.exports = {
   _atob: atobPolyfill,
 };
 
-},{}],81:[function(_dereq_,module,exports){
+},{}],76:[function(_dereq_,module,exports){
 "use strict";
 
 /**
@@ -2950,7 +2885,7 @@ module.exports = {
   },
 };
 
-},{"../lib/braintree-error":54}],82:[function(_dereq_,module,exports){
+},{"../lib/braintree-error":51}],77:[function(_dereq_,module,exports){
 "use strict";
 /**
  * @module braintree-web/paypal-checkout
@@ -2960,7 +2895,7 @@ module.exports = {
 var basicComponentVerification = _dereq_("../lib/basic-component-verification");
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 var PayPalCheckout = _dereq_("./paypal-checkout");
-var VERSION = "3.92.1";
+var VERSION = "3.92.2";
 
 /**
  * @static
@@ -3024,14 +2959,13 @@ module.exports = {
   VERSION: VERSION,
 };
 
-},{"../lib/basic-component-verification":53,"./paypal-checkout":83,"@braintree/wrap-promise":32}],83:[function(_dereq_,module,exports){
+},{"../lib/basic-component-verification":50,"./paypal-checkout":78,"@braintree/wrap-promise":29}],78:[function(_dereq_,module,exports){
 "use strict";
 
 var analytics = _dereq_("../lib/analytics");
 var assign = _dereq_("../lib/assign").assign;
 var createDeferredClient = _dereq_("../lib/create-deferred-client");
 var createAssetsUrl = _dereq_("../lib/create-assets-url");
-var Promise = _dereq_("../lib/promise");
 var ExtendedPromise = _dereq_("@braintree/extended-promise");
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 var BraintreeError = _dereq_("../lib/braintree-error");
@@ -3044,7 +2978,7 @@ var methods = _dereq_("../lib/methods");
 var useMin = _dereq_("../lib/use-min");
 var convertMethodsToError = _dereq_("../lib/convert-methods-to-error");
 var querystring = _dereq_("../lib/querystring");
-var VERSION = "3.92.1";
+var VERSION = "3.92.2";
 var INTEGRATION_TIMEOUT_MS = _dereq_("../lib/constants").INTEGRATION_TIMEOUT_MS;
 
 var REQUIRED_PARAMS_FOR_START_VAULT_INITIATED_CHECKOUT = [
@@ -3055,6 +2989,8 @@ var REQUIRED_PARAMS_FOR_START_VAULT_INITIATED_CHECKOUT = [
 
 var PAYPAL_SDK_PRELOAD_URL =
   "https://www.{ENV}paypal.com/smart/buttons/preload";
+
+ExtendedPromise.suppressUnhandledPromiseMessage = true;
 
 /**
  * PayPal Checkout tokenized payload. Returned in {@link PayPalCheckout#tokenizePayment}'s callback as the second argument, `data`.
@@ -4628,7 +4564,7 @@ PayPalCheckout.prototype.teardown = function () {
 
 module.exports = wrapPromise.wrapPrototype(PayPalCheckout);
 
-},{"../lib/analytics":50,"../lib/assign":52,"../lib/braintree-error":54,"../lib/constants":55,"../lib/convert-methods-to-error":56,"../lib/convert-to-braintree-error":57,"../lib/create-assets-url":58,"../lib/create-authorization-data":59,"../lib/create-deferred-client":60,"../lib/frame-service/external":64,"../lib/methods":76,"../lib/promise":77,"../lib/querystring":78,"../lib/use-min":79,"../paypal/shared/constants":84,"./errors":81,"@braintree/extended-promise":23,"@braintree/wrap-promise":32}],84:[function(_dereq_,module,exports){
+},{"../lib/analytics":47,"../lib/assign":49,"../lib/braintree-error":51,"../lib/constants":52,"../lib/convert-methods-to-error":53,"../lib/convert-to-braintree-error":54,"../lib/create-assets-url":55,"../lib/create-authorization-data":56,"../lib/create-deferred-client":57,"../lib/frame-service/external":61,"../lib/methods":72,"../lib/querystring":73,"../lib/use-min":74,"../paypal/shared/constants":79,"./errors":76,"@braintree/extended-promise":20,"@braintree/wrap-promise":29}],79:[function(_dereq_,module,exports){
 "use strict";
 
 module.exports = {
@@ -4640,5 +4576,5 @@ module.exports = {
   REQUIRED_OPTIONS: ["paymentId", "currency"],
 };
 
-},{}]},{},[82])(82)
+},{}]},{},[77])(77)
 });
