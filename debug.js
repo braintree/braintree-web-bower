@@ -2243,7 +2243,7 @@ var AmericanExpress = _dereq_("./american-express");
 var basicComponentVerification = _dereq_("../lib/basic-component-verification");
 var createDeferredClient = _dereq_("../lib/create-deferred-client");
 var createAssetsUrl = _dereq_("../lib/create-assets-url");
-var VERSION = "3.92.2";
+var VERSION = "3.93.0";
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 
 /**
@@ -2762,7 +2762,7 @@ var basicComponentVerification = _dereq_("../lib/basic-component-verification");
 var createAssetsUrl = _dereq_("../lib/create-assets-url");
 var createDeferredClient = _dereq_("../lib/create-deferred-client");
 var errors = _dereq_("./errors");
-var VERSION = "3.92.2";
+var VERSION = "3.93.0";
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 
 /**
@@ -3560,7 +3560,7 @@ module.exports = {
 
 var BraintreeError = _dereq_("../lib/braintree-error");
 var Client = _dereq_("./client");
-var VERSION = "3.92.2";
+var VERSION = "3.93.0";
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 var sharedErrors = _dereq_("../lib/errors");
 
@@ -4928,7 +4928,7 @@ var createDeferredClient = _dereq_("../lib/create-deferred-client");
 var createAssetsUrl = _dereq_("../lib/create-assets-url");
 var methods = _dereq_("../lib/methods");
 var convertMethodsToError = _dereq_("../lib/convert-methods-to-error");
-var VERSION = "3.92.2";
+var VERSION = "3.93.0";
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 var errors = _dereq_("./errors");
 
@@ -6450,7 +6450,7 @@ var createAssetsUrl = _dereq_("../lib/create-assets-url");
 var createDeferredClient = _dereq_("../lib/create-deferred-client");
 var basicComponentVerification = _dereq_("../lib/basic-component-verification");
 var wrapPromise = _dereq_("@braintree/wrap-promise");
-var VERSION = "3.92.2";
+var VERSION = "3.93.0";
 var errors = _dereq_("./errors");
 
 /**
@@ -8410,7 +8410,7 @@ var errors = _dereq_("./shared/errors");
 var supportsInputFormatting = _dereq_("restricted-input/supports-input-formatting");
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 var BraintreeError = _dereq_("../lib/braintree-error");
-var VERSION = "3.92.2";
+var VERSION = "3.93.0";
 
 /**
  * Fields used in {@link module:braintree-web/hosted-fields~fieldOptions fields options}
@@ -8796,7 +8796,7 @@ module.exports = {
 
 var enumerate = _dereq_("../../lib/enumerate");
 var errors = _dereq_("./errors");
-var VERSION = "3.92.2";
+var VERSION = "3.93.0";
 
 var constants = {
   VERSION: VERSION,
@@ -9281,7 +9281,7 @@ var vaultManager = _dereq_("./vault-manager");
 var venmo = _dereq_("./venmo");
 var visaCheckout = _dereq_("./visa-checkout");
 var preferredPaymentMethods = _dereq_("./preferred-payment-methods");
-var VERSION = "3.92.2";
+var VERSION = "3.93.0";
 
 module.exports = {
   /** @type {module:braintree-web/american-express} */
@@ -9457,7 +9457,7 @@ module.exports = {
 
 var BraintreeError = _dereq_("./braintree-error");
 var sharedErrors = _dereq_("./errors");
-var VERSION = "3.92.2";
+var VERSION = "3.93.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -9672,7 +9672,7 @@ module.exports = function (obj) {
 },{}],123:[function(_dereq_,module,exports){
 "use strict";
 
-var VERSION = "3.92.2";
+var VERSION = "3.93.0";
 var PLATFORM = "web";
 
 var CLIENT_API_URLS = {
@@ -9825,7 +9825,7 @@ var BraintreeError = _dereq_("./braintree-error");
 var assets = _dereq_("./assets");
 var sharedErrors = _dereq_("./errors");
 
-var VERSION = "3.92.2";
+var VERSION = "3.93.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -10645,7 +10645,7 @@ module.exports = enumerate(
 },{"../../enumerate":131}],146:[function(_dereq_,module,exports){
 "use strict";
 
-var VERSION = "3.92.2";
+var VERSION = "3.93.0";
 var assign = _dereq_("./assign").assign;
 
 function generateTokenizationParameters(configuration, overrides) {
@@ -11127,11 +11127,46 @@ module.exports = {
 
 module.exports = {
   REQUIRED_OPTIONS_FOR_START_PAYMENT: [
+    "givenName",
+    "surname",
+    "currencyCode",
     "onPaymentStart",
     "paymentType",
     "amount",
     "fallback",
   ],
+  REQUIRED_OPTIONS_FOR_DEFERRED_PAYMENT_TYPE: [
+    "givenName",
+    "surname",
+    "currencyCode",
+    "onPaymentStart",
+    "paymentType",
+    "amount",
+    "address",
+    "billingAddress",
+    "birthDate",
+    "email",
+    "locale",
+    "customerServiceInstructions",
+    "correlationId",
+    "phone",
+    "phoneCountryCode",
+    "lineItems",
+  ],
+  REQUIRED_OPTIONS_FOR_ADDRESS: [
+    "streetAddress",
+    "locality",
+    "postalCode",
+    "countryCode",
+  ],
+  REQUIRED_OPTIONS_FOR_LINE_ITEMS: [
+    "category",
+    "name",
+    "quantity",
+    "unitAmount",
+    "unitTaxAmount",
+  ],
+  DEFERRED_PAYMENT_TYPES: ["pay_upon_invoice"],
 };
 
 },{}],160:[function(_dereq_,module,exports){
@@ -11140,7 +11175,7 @@ module.exports = {
 var frameService = _dereq_("../../lib/frame-service/external");
 var BraintreeError = _dereq_("../../lib/braintree-error");
 var useMin = _dereq_("../../lib/use-min");
-var VERSION = "3.92.2";
+var VERSION = "3.93.0";
 var INTEGRATION_TIMEOUT_MS =
   _dereq_("../../lib/constants").INTEGRATION_TIMEOUT_MS;
 var analytics = _dereq_("../../lib/analytics");
@@ -11211,84 +11246,190 @@ LocalPayment.prototype._initialize = function () {
 };
 
 /**
+ * Options used for most local payment types.
+ * @typedef {object} LocalPayment~StartPaymentOptions
+ * @property {object} fallback Configuration for what to do when app switching back from a Bank app on a mobile device.
+ * @property {string} fallback.buttonText The text to display in a button to redirect back to the merchant page.
+ * @property {string} fallback.url The url to redirect to when the redirect button is pressed. Query params will be added to the url to process the data returned from the bank.
+ * @property {string} fallback.cancelButtonText The text to display in a button to redirect back to the merchant page when the customer cancels. If no `cancelButtonText` is provided, `buttonText` will be used.
+ * @property {string} fallback.cancelUrl The url to redirect to when the redirect button is pressed when the customer cancels. Query params will be added to the url to check the state of the payment. If no `cancelUrl` is provided, `url` will be used.
+ * @property {object} [windowOptions] The options for configuring the window that is opened when starting the payment.
+ * @property {number} [windowOptions.width=1282] The width in pixels of the window opened when starting the payment. The default width size is this large to allow various banking partner landing pages to display the QR Code to be scanned by the bank's mobile app. Many will not display the QR code when the window size is smaller than a standard desktop screen.
+ * @property {number} [windowOptions.height=720] The height in pixels of the window opened when starting the payment.
+ * @property {string} amount The amount to authorize for the transaction.
+ * @property {string} currencyCode The currency to process the payment.
+ * @property {string} [displayName] The merchant name displayed inside of the window that is opened when starting the payment.
+ * @property {string} paymentType The type of local payment.
+ * @property {string} paymentTypeCountryCode The country code of the local payment. This value must be one of the supported country codes for a given local payment type listed {@link https://developer.paypal.com/braintree/docs/guides/local-payment-methods/client-side-custom/javascript/v3#render-local-payment-method-buttons|here}. For local payments supported in multiple countries, this value may determine which banks are presented to the customer.
+ * @property {string} email Payer email of the customer.
+ * @property {string} givenName First name of the customer.
+ * @property {string} surname Last name of the customer.
+ * @property {string} phone Phone number of the customer.
+ * @property {string} bic Bank Identification Code of the customer (specific to iDEAL transactions).
+ * @property {boolean} shippingAddressRequired Indicates whether or not the payment needs to be shipped. For digital goods, this should be false. Defaults to false.
+ * @property {object} address The shipping address.
+ * @property {string} address.streetAddress Line 1 of the Address (eg. number, street, etc). An error will occur if this address is not valid.
+ * @property {string} address.extendedAddress Line 2 of the Address (eg. suite, apt #, etc.). An error will occur if this address is not valid.
+ * @property {string} address.locality Customer's city.
+ * @property {string} address.region Customer's region or state.
+ * @property {string} address.postalCode Customer's postal code.
+ * @property {string} address.countryCode Customer's country code.
+ * @property {function} onPaymentStart A function that will be called with two parameters: an object containing the  `paymentId` and a `continueCallback` that must be called to launch the flow. You can use method to do any preprocessing on your server before the flow begins..
+ */
+
+/**
+ * Options used for the Pay Upon Invoice local payment type.
+ * @typedef {object} LocalPayment~StartPaymentPayUponInvoiceOptions
+ * @property {string} amount The amount to authorize for the transaction.
+ * @property {string} currencyCode The currency to process the payment.
+ * @property {string} [displayName] The merchant name displayed inside of the window that is opened when starting the payment.
+ * @property {string} paymentType The type of local payment. Must be `pay_upon_invoice`.
+ * @property {string} [paymentTypeCountryCode] The country code of the local payment. This value must be one of the supported country codes for a given local payment type listed {@link https://developer.paypal.com/braintree/docs/guides/local-payment-methods/client-side-custom/javascript/v3#render-local-payment-method-buttons|here}. For local payments supported in multiple countries, this value may determine which banks are presented to the customer.
+ * @property {string} email Payer email of the customer.
+ * @property {string} givenName First name of the customer.
+ * @property {string} surname Last name of the customer.
+ * @property {string} phone Phone number of the customer.
+ * @property {string} phoneCountryCode The country calling code.
+ * @property {string} birthDate The birth date of the customer in `YYYY-MM-DD` format.
+ * @property {object} address The shipping address.
+ * @property {string} address.streetAddress Line 1 of the Address (eg. number, street, etc). An error will occur if this address is not valid.
+ * @property {string} [address.extendedAddress] Line 2 of the Address (eg. suite, apt #, etc.). An error will occur if this address is not valid.
+ * @property {string} address.locality Customer's city.
+ * @property {string} [address.region] Customer's region or state.
+ * @property {string} address.postalCode Customer's postal code.
+ * @property {string} address.countryCode Customer's country code.
+ * @property {string} [shippingAmount] The shipping fee for all items. This value can not be a negative number.
+ * @property {string} [discountAmount] The discount for all items. This value can not be a negative number.
+ * @property {object} billingAddress The billing address.
+ * @property {string} billingAddress.streetAddress Line 1 of the Address (eg. number, street, etc). An error will occur if this address is not valid.
+ * @property {string} [billingAddress.extendedAddress] Line 2 of the Address (eg. suite, apt #, etc.). An error will occur if this address is not valid.
+ * @property {string} billingAddress.locality Customer's city.
+ * @property {string} [billingAddress.region] Customer's region or state.
+ * @property {string} billingAddress.postalCode Customer's postal code.
+ * @property {string} billingAddress.countryCode Customer's country code.
+ * @property {object[]} lineItems List of line items.
+ * @property {string} lineItems.category The item category type: `'DIGITAL_GOODS'`, `'PHYSICAL_GOODS'`, or `'DONATION'`.
+ * @property {string} lineItems.name Item name. Maximum 127 characters.
+ * @property {string} lineItems.quantity Number of units of the item purchased. This value must be a whole number and can't be negative or zero.
+ * @property {string} lineItems.unitAmount Per-unit price of the item. Can include up to 2 decimal places. This value can't be negative or zero.
+ * @property {string} lineItems.unitTaxAmount Per-unit tax price of the item. Can include up to 2 decimal places. This value can't be negative.
+ * @property {string} locale The BCP 47-formatted locale. PayPal supports a five-character code. For example, `en-DE`, `da-DK`, `he-IL`, `id-ID`, `ja-JP`, `no-NO`, `pt-BR`, `ru-RU`, `sv-SE`, `th-TH`, `zh-CN`, `zh-HK`, or `zh-TW`.
+ * @property {string} customerServiceInstructions Instructions for how to contact the merchant's customer service. Maximum 4,000 characters.
+ * @property {string} correlationId Used to correlate user sessions with server transactions.
+ * @property {function} onPaymentStart A function that will be called with an object containing the `paymentId`. The `continueCallback` is not provided as it is not needed for this use case.
+ */
+
+/**
  * Launches the local payment flow and returns a nonce payload. Only one local payment flow should be active at a time. One way to achieve this is to disable your local payment button while the flow is open.
  * @public
  * @function
- * @param {object} options All options for initiating the local payment payment flow.
- * @param {object} options.fallback Configuration for what to do when app switching back from a Bank app on a mobile device.
- * @param {string} options.fallback.buttonText The text to display in a button to redirect back to the merchant page.
- * @param {string} options.fallback.url The url to redirect to when the redirect button is pressed. Query params will be added to the url to process the data returned from the bank.
- * @param {string} options.fallback.cancelButtonText The text to display in a button to redirect back to the merchant page when the customer cancels. If no `cancelButtonText` is provided, `buttonText` will be used.
- * @param {string} options.fallback.cancelUrl The url to redirect to when the redirect button is pressed when the customer cancels. Query params will be added to the url to check the state of the payment. If no `cancelUrl` is provided, `url` will be used.
- * @param {object} [options.windowOptions] The options for configuring the window that is opened when starting the payment.
- * @param {number} [options.windowOptions.width=1282] The width in pixels of the window opened when starting the payment. The default width size is this large to allow various banking partner landing pages to display the QR Code to be scanned by the bank's mobile app. Many will not display the QR code when the window size is smaller than a standard desktop screen.
- * @param {number} [options.windowOptions.height=720] The height in pixels of the window opened when starting the payment.
- * @param {string} options.amount The amount to authorize for the transaction.
- * @param {string} options.currencyCode The currency to process the payment.
- * @param {string} [options.displayName] The merchant name displayed inside of the window that is opened when starting the payment.
- * @param {string} options.paymentType The type of local payment.
- * @param {string} options.paymentTypeCountryCode The country code of the local payment. This value must be one of the supported country codes for a given local payment type listed {@link https://developer.paypal.com/braintree/docs/guides/local-payment-methods/client-side-custom/javascript/v3#render-local-payment-method-buttons|here}. For local payments supported in multiple countries, this value may determine which banks are presented to the customer.
- * @param {string} options.email Payer email of the customer.
- * @param {string} options.givenName First name of the customer.
- * @param {string} options.surname Last name of the customer.
- * @param {string} options.phone Phone number of the customer.
- * @param {string} options.bic Bank Identification Code of the customer (specific to iDEAL transactions).
- * @param {boolean} options.shippingAddressRequired Indicates whether or not the payment needs to be shipped. For digital goods, this should be false. Defaults to false.
- * @param {string} options.address.streetAddress Line 1 of the Address (eg. number, street, etc). An error will occur if this address is not valid.
- * @param {string} options.address.extendedAddress Line 2 of the Address (eg. suite, apt #, etc.). An error will occur if this address is not valid.
- * @param {string} options.address.locality Customer's city.
- * @param {string} options.address.region Customer's region or state.
- * @param {string} options.address.postalCode Customer's postal code.
- * @param {string} options.address.countryCode Customer's country code.
- * @param {function} options.onPaymentStart A function that will be called with two parameters: an object containing the  `paymentId` and a `continueCallback` that must be called to launch the flow. You can use method to do any preprocessing on your server before the flow begins..
- * @param {callback} [callback] The second argument, <code>data</code>, is a {@link LocalPayment~startPaymentPayload|startPaymentPayload}. If no callback is provided, the method will return a Promise that resolves with a {@link LocalPayment~startPaymentPayload|startPaymentPayload}.
- * @example
- * button.addEventListener('click', function () {
- *   // Disable the button when local payment is in progress
- *   button.setAttribute('disabled', 'disabled');
- *
- *   // Because startPayment opens a new window, this must be called
- *   // as a result of a user action, such as a button click.
- *   localPaymentInstance.startPayment({
- *     paymentType: 'ideal',
- *     paymentTypeCountryCode: 'NL',
- *     fallback: {
- *       buttonText: 'Return to Merchant',
- *       url: 'https://example.com/my-checkout-page'
- *     },
- *     amount: '10.00',
- *     currencyCode: 'EUR',
- *     onPaymentStart: function (data, continueCallback) {
- *       // Do any preprocessing before starting the flow
- *       // data.paymentId is the ID of the localPayment
- *       continueCallback();
- *     }
- *   }).then(function (payload) {
- *     button.removeAttribute('disabled');
- *     // Submit payload.nonce to your server
- *   }).catch(function (startPaymentError) {
- *     button.removeAttribute('disabled');
- *     // Handle flow errors or premature flow closure
- *     console.error('Error!', startPaymentError);
- *   });
- * });
+ * @param {LocalPayment~StartPaymentOptions|LocalPayment~StartPaymentPayUponInvoiceOptions} options Options for initiating the local payment payment flow.
+ * @param {callback} callback The second argument, <code>data</code>, is a {@link LocalPayment~startPaymentPayload|startPaymentPayload}. If no callback is provided, the method will return a Promise that resolves with a {@link LocalPayment~startPaymentPayload|startPaymentPayload}.
  * @returns {(Promise|void)} Returns a promise if no callback is provided.
+ * @example
+ * localPaymentInstance.startPayment({
+ *   paymentType: 'ideal',
+ *   paymentTypeCountryCode: 'NL',
+ *   fallback: {
+ *     buttonText: 'Return to Merchant',
+ *     url: 'https://example.com/my-checkout-page'
+ *   },
+ *   amount: '10.00',
+ *   currencyCode: 'EUR',
+ *   givenName: 'Joe',
+ *   surname: 'Doe',
+ *   address: {
+ *     countryCode: 'NL'
+ *   },
+ *   onPaymentStart: function (data, continueCallback) {
+ *     // Do any preprocessing before starting the flow
+ *     // data.paymentId is the ID of the localPayment
+ *     continueCallback();
+ *   }
+ * }).then(function (payload) {
+ *   // Submit payload.nonce to your server
+ * }).catch(function (startPaymentError) {
+ *   // Handle flow errors or premature flow closure
+ *   console.error('Error!', startPaymentError);
+ * });
+ * @example <caption>Pay Upon Invoice</caption>
+ * localPaymentInstance.startPayment({
+ *   paymentType: 'pay_upon_invoice',
+ *   amount: '100.00',
+ *   currencyCode: 'EUR',
+ *   givenName: 'Max',
+ *   surname: 'Mustermann',
+ *   address: { // This is used as the shipping address.
+ *     streetAddress: 'Taunusanlage 12',
+ *     locality: 'Frankfurt',
+ *     postalCode: '60325',
+ *     countryCode: 'DE',
+ *   },
+ *   billingAddress: {
+ *     streetAddress: 'Schönhauser Allee 84',
+ *     locality: 'Berlin',
+ *     postalCode: '10439',
+ *     countryCode: 'DE'
+ *   },
+ *   birthDate: '1990-01-01',
+ *   email: 'buyer@example.com',
+ *   locale: 'en-DE',
+ *   customerServiceInstructions: 'Customer service phone is +49 6912345678.',
+ *   lineItems: [{
+ *     category: 'PHYSICAL_GOODS',
+ *     name: 'Basketball Shoes',
+ *     quantity: '1',
+ *     unitAmount: '81.00',
+ *     unitTaxAmount: '19.00',
+ *   }],
+ *   phone: '6912345678',
+ *   phoneCountryCode: '49',
+ *   correlationId: correlationId,
+ *   onPaymentStart: function (data) {
+ *     // NOTE: It is critical here to store data.paymentId on your server
+ *     //       so it can be mapped to a webhook sent by Braintree once the
+ *     //       buyer completes their payment.
+ *     console.log('Payment ID:', data.paymentId);
+ *   },
+ * }).catch(function (err) {
+ *   // Handle any error calling startPayment.
+ *   console.error(err);
+ * });
  */
 LocalPayment.prototype.startPayment = function (options) {
-  var address, params, promise;
+  var missingOption,
+    missingError,
+    address,
+    fallback,
+    params,
+    promise,
+    billingAddress,
+    windowOptions;
   var self = this; // eslint-disable-line no-invalid-this
   var serviceId = this._frameService._serviceId; // eslint-disable-line no-invalid-this
-  var windowOptions = options.windowOptions || {};
 
-  if (hasMissingOption(options)) {
-    return Promise.reject(
-      new BraintreeError(
-        errors.LOCAL_PAYMENT_START_PAYMENT_MISSING_REQUIRED_OPTION
-      )
+  // In order to provide the merchant with appropriate error messaging,
+  // more robust validation is being done on the client-side, since some
+  // option names are mapped to legacy names for the sake of the API.
+  // For example, if `billingAddress.streetAddress` was missing, then
+  // the API error response would say that `billing_address.line1` was
+  // missing. This client-side validation will correctly tell the
+  // merchant that `billingAddress.streetAddress` was missing.
+  missingOption = hasMissingOption(options);
+  if (missingOption) {
+    missingError = new BraintreeError(
+      errors.LOCAL_PAYMENT_START_PAYMENT_MISSING_REQUIRED_OPTION
     );
-  }
+    if (typeof missingOption === "string") {
+      missingError.details = "Missing required '" + missingOption + "' option.";
+    }
 
+    return Promise.reject(missingError);
+  }
+  windowOptions = options.windowOptions || {};
   address = options.address || {};
+  fallback = options.fallback || {};
+  billingAddress = options.billingAddress || {};
   params = {
     intent: "sale",
     returnUrl: querystring.queryify(
@@ -11298,8 +11439,8 @@ LocalPayment.prototype.startPayment = function (options) {
         ".html",
       {
         channel: serviceId,
-        r: options.fallback.url,
-        t: options.fallback.buttonText,
+        r: fallback.url,
+        t: fallback.buttonText,
       }
     ),
     cancelUrl: querystring.queryify(
@@ -11309,14 +11450,16 @@ LocalPayment.prototype.startPayment = function (options) {
         ".html",
       {
         channel: serviceId,
-        r: options.fallback.cancelUrl || options.fallback.url,
-        t: options.fallback.cancelButtonText || options.fallback.buttonText,
+        r: fallback.cancelUrl || fallback.url,
+        t: fallback.cancelButtonText || fallback.buttonText,
         c: 1, // indicating we went through the cancel flow
       }
     ),
     experienceProfile: {
       brandName: options.displayName,
       noShipping: !options.shippingAddressRequired,
+      locale: options.locale,
+      customerServiceInstructions: options.customerServiceInstructions,
     },
     fundingSource: options.paymentType,
     paymentTypeCountryCode: options.paymentTypeCountryCode,
@@ -11334,6 +11477,20 @@ LocalPayment.prototype.startPayment = function (options) {
     countryCode: address.countryCode,
     merchantAccountId: self._merchantAccountId,
     bic: options.bic,
+    billingAddress: {
+      line1: billingAddress.streetAddress,
+      line2: billingAddress.extendedAddress,
+      city: billingAddress.locality,
+      state: billingAddress.region,
+      postalCode: billingAddress.postalCode,
+      countryCode: billingAddress.countryCode,
+    },
+    birthDate: options.birthDate,
+    correlationId: options.correlationId,
+    discountAmount: options.discountAmount,
+    phoneCountryCode: options.phoneCountryCode,
+    shippingAmount: options.shippingAmount,
+    lineItems: options.lineItems,
   };
 
   self._paymentType = options.paymentType.toLowerCase();
@@ -11352,21 +11509,26 @@ LocalPayment.prototype.startPayment = function (options) {
 
   promise = new ExtendedPromise();
 
-  self._startPaymentCallback = self._createStartPaymentCallback(
-    function (val) {
-      promise.resolve(val);
-    },
-    function (err) {
-      promise.reject(err);
-    }
-  );
-  self._frameService.open(
-    {
-      width: windowOptions.width || DEFAULT_WINDOW_WIDTH,
-      height: windowOptions.height || DEFAULT_WINDOW_HEIGHT,
-    },
-    self._startPaymentCallback
-  );
+  // For deferred payment types, the popup window should not be opened,
+  // since the actual payment will be done outside of this session.
+  if (!isDeferredPaymentType(options.paymentType)) {
+    self._startPaymentCallback = self._createStartPaymentCallback(
+      function (val) {
+        promise.resolve(val);
+      },
+      function (err) {
+        promise.reject(err);
+      }
+    );
+
+    self._frameService.open(
+      {
+        width: windowOptions.width || DEFAULT_WINDOW_WIDTH,
+        height: windowOptions.height || DEFAULT_WINDOW_HEIGHT,
+      },
+      self._startPaymentCallback
+    );
+  }
 
   self._client
     .request({
@@ -11380,12 +11542,20 @@ LocalPayment.prototype.startPayment = function (options) {
         self._paymentType + ".local-payment.start-payment.opened"
       );
       self._startPaymentOptions = options;
-      options.onPaymentStart(
-        { paymentId: response.paymentResource.paymentToken },
-        function () {
-          self._frameService.redirect(response.paymentResource.redirectUrl);
-        }
-      );
+      if (isDeferredPaymentType(options.paymentType)) {
+        options.onPaymentStart({
+          paymentId: response.paymentResource.paymentToken,
+        });
+        self._authorizationInProgress = false;
+        promise.resolve();
+      } else {
+        options.onPaymentStart(
+          { paymentId: response.paymentResource.paymentToken },
+          function () {
+            self._frameService.redirect(response.paymentResource.redirectUrl);
+          }
+        );
+      }
     })
     .catch(function (err) {
       var status = err.details && err.details.httpStatus;
@@ -11681,23 +11851,92 @@ LocalPayment.prototype._formatTokenizeData = function (params) {
   return data;
 };
 
-function hasMissingOption(options) {
+// Some payment types are deferred. Meaning, the actual payment will
+// occur at a later time outside of this session. For example, with
+// Pay Upon Invoice, the customer will later receive an email that will
+// be used to make the actual payment through RatePay. This function
+// will return `true` if the given `paymentType` is a deferred payment
+// type. Otherwise, it will return `false`.
+function isDeferredPaymentType(paymentType) {
+  return constants.DEFERRED_PAYMENT_TYPES.indexOf(paymentType) >= 0;
+}
+
+function hasMissingAddressOption(options) {
   var i, option;
+
+  for (i = 0; i < constants.REQUIRED_OPTIONS_FOR_ADDRESS.length; i++) {
+    option = constants.REQUIRED_OPTIONS_FOR_ADDRESS[i];
+    if (!options.hasOwnProperty(option)) {
+      return option;
+    }
+  }
+
+  return false;
+}
+
+function hasMissingLineItemsOption(items) {
+  var i, j, item, option;
+
+  for (j = 0; j < items.length; j++) {
+    item = items[j];
+    for (i = 0; i < constants.REQUIRED_OPTIONS_FOR_LINE_ITEMS.length; i++) {
+      option = constants.REQUIRED_OPTIONS_FOR_LINE_ITEMS[i];
+      if (!item.hasOwnProperty(option)) {
+        return option;
+      }
+    }
+  }
+
+  return false;
+}
+
+// This will return the name of the first missing required option that
+// is found or `true` if `options` itself is not defined. Otherwise, it
+// will return `false`.
+function hasMissingOption(options) {
+  var i, option, missingAddressOption, missingLineItemOption;
 
   if (!options) {
     return true;
   }
 
-  for (i = 0; i < constants.REQUIRED_OPTIONS_FOR_START_PAYMENT.length; i++) {
-    option = constants.REQUIRED_OPTIONS_FOR_START_PAYMENT[i];
-
-    if (!options.hasOwnProperty(option)) {
-      return true;
+  if (isDeferredPaymentType(options.paymentType)) {
+    for (
+      i = 0;
+      i < constants.REQUIRED_OPTIONS_FOR_DEFERRED_PAYMENT_TYPE.length;
+      i++
+    ) {
+      option = constants.REQUIRED_OPTIONS_FOR_DEFERRED_PAYMENT_TYPE[i];
+      if (!options.hasOwnProperty(option)) {
+        return option;
+      }
+      if (option === "address" || option === "billingAddress") {
+        missingAddressOption = hasMissingAddressOption(options[option]);
+        if (missingAddressOption) {
+          return option + "." + missingAddressOption;
+        }
+      } else if (option === "lineItems") {
+        missingLineItemOption = hasMissingLineItemsOption(options[option]);
+        if (missingLineItemOption) {
+          return option + "." + missingLineItemOption;
+        }
+      }
     }
-  }
+  } else {
+    for (i = 0; i < constants.REQUIRED_OPTIONS_FOR_START_PAYMENT.length; i++) {
+      option = constants.REQUIRED_OPTIONS_FOR_START_PAYMENT[i];
 
-  if (!(options.fallback.url && options.fallback.buttonText)) {
-    return true;
+      if (!options.hasOwnProperty(option)) {
+        return option;
+      }
+    }
+
+    if (!options.fallback.url) {
+      return "fallback.url";
+    }
+    if (!options.fallback.buttonText) {
+      return "fallback.buttonText";
+    }
   }
 
   return false;
@@ -11741,7 +11980,7 @@ var basicComponentVerification = _dereq_("../lib/basic-component-verification");
 var createDeferredClient = _dereq_("../lib/create-deferred-client");
 var createAssetsUrl = _dereq_("../lib/create-assets-url");
 var LocalPayment = _dereq_("./external/local-payment");
-var VERSION = "3.92.2";
+var VERSION = "3.93.0";
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 var BraintreeError = _dereq_("../lib/braintree-error");
 var errors = _dereq_("./shared/errors");
@@ -11941,7 +12180,7 @@ module.exports = {
 var frameService = _dereq_("../../lib/frame-service/external");
 var BraintreeError = _dereq_("../../lib/braintree-error");
 var errors = _dereq_("../shared/errors");
-var VERSION = "3.92.2";
+var VERSION = "3.93.0";
 var methods = _dereq_("../../lib/methods");
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 var analytics = _dereq_("../../lib/analytics");
@@ -12422,7 +12661,7 @@ var browserDetection = _dereq_("./shared/browser-detection");
 var Masterpass = _dereq_("./external/masterpass");
 var createDeferredClient = _dereq_("../lib/create-deferred-client");
 var createAssetsUrl = _dereq_("../lib/create-assets-url");
-var VERSION = "3.92.2";
+var VERSION = "3.93.0";
 var errors = _dereq_("./shared/errors");
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 
@@ -12631,7 +12870,7 @@ var useMin = _dereq_("../../lib/use-min");
 var methods = _dereq_("../../lib/methods");
 var EventEmitter = _dereq_("@braintree/event-emitter");
 var BraintreeError = _dereq_("../../lib/braintree-error");
-var VERSION = "3.92.2";
+var VERSION = "3.93.0";
 var constants = _dereq_("../shared/constants");
 var events = constants.events;
 var errors = constants.errors;
@@ -13382,7 +13621,7 @@ var basicComponentVerification = _dereq_("../lib/basic-component-verification");
 var createDeferredClient = _dereq_("../lib/create-deferred-client");
 var createAssetsUrl = _dereq_("../lib/create-assets-url");
 var wrapPromise = _dereq_("@braintree/wrap-promise");
-var VERSION = "3.92.2";
+var VERSION = "3.93.0";
 
 /**
  * @static
@@ -13708,7 +13947,7 @@ module.exports = {
 var basicComponentVerification = _dereq_("../lib/basic-component-verification");
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 var PayPalCheckout = _dereq_("./paypal-checkout");
-var VERSION = "3.92.2";
+var VERSION = "3.93.0";
 
 /**
  * @static
@@ -13791,7 +14030,7 @@ var methods = _dereq_("../lib/methods");
 var useMin = _dereq_("../lib/use-min");
 var convertMethodsToError = _dereq_("../lib/convert-methods-to-error");
 var querystring = _dereq_("../lib/querystring");
-var VERSION = "3.92.2";
+var VERSION = "3.93.0";
 var INTEGRATION_TIMEOUT_MS = _dereq_("../lib/constants").INTEGRATION_TIMEOUT_MS;
 
 var REQUIRED_PARAMS_FOR_START_VAULT_INITIATED_CHECKOUT = [
@@ -15385,7 +15624,7 @@ var BraintreeError = _dereq_("../../lib/braintree-error");
 var convertToBraintreeError = _dereq_("../../lib/convert-to-braintree-error");
 var useMin = _dereq_("../../lib/use-min");
 var once = _dereq_("../../lib/once");
-var VERSION = "3.92.2";
+var VERSION = "3.93.0";
 var constants = _dereq_("../shared/constants");
 var INTEGRATION_TIMEOUT_MS =
   _dereq_("../../lib/constants").INTEGRATION_TIMEOUT_MS;
@@ -16067,7 +16306,7 @@ var createAssetsUrl = _dereq_("../lib/create-assets-url");
 var BraintreeError = _dereq_("../lib/braintree-error");
 var errors = _dereq_("./shared/errors");
 var PayPal = _dereq_("./external/paypal");
-var VERSION = "3.92.2";
+var VERSION = "3.93.0";
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 
 /**
@@ -16274,7 +16513,7 @@ module.exports = {
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 var basicComponentVerification = _dereq_("../lib/basic-component-verification");
 var PreferredPaymentMethods = _dereq_("./preferred-payment-methods");
-var VERSION = "3.92.2";
+var VERSION = "3.93.0";
 
 // NEXT_MAJOR_VERSION
 // Remove this integration entirely. It doesn't work, isn't documented, and otherwise isn't going to be pursued further beyond the non-operational beta it is in.
@@ -16682,7 +16921,7 @@ var constants = _dereq_("../shared/constants");
 var mandates = _dereq_("./mandate");
 var hasMissingOption = _dereq_("../shared/has-missing-option");
 var analytics = _dereq_("../../lib/analytics");
-var VERSION = "3.92.2";
+var VERSION = "3.93.0";
 
 /**
  * @class
@@ -16816,7 +17055,7 @@ var createAssetsUrl = _dereq_("../lib/create-assets-url");
 var createDeferredClient = _dereq_("../lib/create-deferred-client");
 var basicComponentVerification = _dereq_("../lib/basic-component-verification");
 var wrapPromise = _dereq_("@braintree/wrap-promise");
-var VERSION = "3.92.2";
+var VERSION = "3.93.0";
 
 /**
  * @static
@@ -16998,7 +17237,7 @@ var useMin = _dereq_("../../../lib/use-min");
 var BUS_CONFIGURATION_REQUEST_EVENT =
   _dereq_("../../../lib/constants").BUS_CONFIGURATION_REQUEST_EVENT;
 
-var VERSION = "3.92.2";
+var VERSION = "3.93.0";
 var IFRAME_HEIGHT = 400;
 var IFRAME_WIDTH = 400;
 
@@ -17853,7 +18092,7 @@ var ExtendedPromise = _dereq_("@braintree/extended-promise");
 var INTEGRATION_TIMEOUT_MS =
   _dereq_("../../../lib/constants").INTEGRATION_TIMEOUT_MS;
 var PLATFORM = _dereq_("../../../lib/constants").PLATFORM;
-var VERSION = "3.92.2";
+var VERSION = "3.93.0";
 var CUSTOMER_CANCELED_SONGBIRD_MODAL = "01";
 var SONGBIRD_UI_EVENTS = [
   "ui.close",
@@ -19523,7 +19762,7 @@ var createAssetsUrl = _dereq_("../lib/create-assets-url");
 var BraintreeError = _dereq_("../lib/braintree-error");
 var analytics = _dereq_("../lib/analytics");
 var errors = _dereq_("./shared/errors");
-var VERSION = "3.92.2";
+var VERSION = "3.93.0";
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 
 /**
@@ -19973,7 +20212,7 @@ var createDeferredClient = _dereq_("../lib/create-deferred-client");
 var createAssetsUrl = _dereq_("../lib/create-assets-url");
 var analytics = _dereq_("../lib/analytics");
 var errors = _dereq_("./shared/errors");
-var VERSION = "3.92.2";
+var VERSION = "3.93.0";
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 
 /**
@@ -20177,7 +20416,7 @@ var errors = _dereq_("./errors");
 var events = constants.events;
 var iFramer = _dereq_("@braintree/iframer");
 var methods = _dereq_("../../lib/methods");
-var VERSION = "3.92.2";
+var VERSION = "3.93.0";
 var uuid = _dereq_("@braintree/uuid");
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 var BUS_CONFIGURATION_REQUEST_EVENT =
@@ -20707,7 +20946,7 @@ var createDeferredClient = _dereq_("../lib/create-deferred-client");
 var createAssetsUrl = _dereq_("../lib/create-assets-url");
 var errors = _dereq_("./errors");
 var USBankAccount = _dereq_("./us-bank-account");
-var VERSION = "3.92.2";
+var VERSION = "3.93.0";
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 
 /**
@@ -21340,7 +21579,7 @@ var basicComponentVerification = _dereq_("../lib/basic-component-verification");
 var createDeferredClient = _dereq_("../lib/create-deferred-client");
 var createAssetsUrl = _dereq_("../lib/create-assets-url");
 var VaultManager = _dereq_("./vault-manager");
-var VERSION = "3.92.2";
+var VERSION = "3.93.0";
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 
 /**
@@ -22058,7 +22297,7 @@ var wrapPromise = _dereq_("@braintree/wrap-promise");
 var BraintreeError = _dereq_("../lib/braintree-error");
 var Venmo = _dereq_("./venmo");
 var supportsVenmo = _dereq_("./shared/supports-venmo");
-var VERSION = "3.92.2";
+var VERSION = "3.93.0";
 
 /**
  * @static
@@ -22540,7 +22779,7 @@ var frameService = _dereq_("../../lib/frame-service/external");
 var useMin = _dereq_("../../lib/use-min");
 var ExtendedPromise = _dereq_("@braintree/extended-promise");
 
-var VERSION = "3.92.2";
+var VERSION = "3.93.0";
 var VENMO_LOGO_SVG =
   '<svg width="198" height="58" viewBox="0 0 198 58" fill="none" xmlns="http://www.w3.org/2000/svg">\n  <path fill-rule="evenodd" clip-rule="evenodd" d="M43.0702 13.6572C44.1935 15.4585 44.6999 17.3139 44.6999 19.6576C44.6999 27.1328 38.1277 36.8436 32.7935 43.6625H20.6099L15.7236 15.2939L26.3917 14.3105L28.9751 34.4966C31.389 30.6783 34.3678 24.6779 34.3678 20.587C34.3678 18.3477 33.9727 16.8225 33.3553 15.5666L43.0702 13.6572Z" fill="white"/>\n  <path fill-rule="evenodd" clip-rule="evenodd" d="M56.8965 26.1491C58.8596 26.1491 63.8018 25.2772 63.8018 22.5499C63.8018 21.2402 62.8481 20.587 61.7242 20.587C59.7579 20.587 57.1776 22.8763 56.8965 26.1491ZM56.6715 31.5506C56.6715 34.8807 58.5787 36.1873 61.107 36.1873C63.8603 36.1873 66.4966 35.534 69.923 33.8433L68.6324 42.3523C66.2183 43.4976 62.4559 44.2617 58.8039 44.2617C49.5403 44.2617 46.2249 38.8071 46.2249 31.9879C46.2249 23.1496 51.6179 13.765 62.7365 13.765C68.858 13.765 72.2809 17.0949 72.2809 21.7317C72.2815 29.2066 62.4005 31.4965 56.6715 31.5506Z" fill="white"/>\n  <path fill-rule="evenodd" clip-rule="evenodd" d="M103.067 20.3142C103.067 21.4052 102.897 22.9875 102.727 24.0216L99.5262 43.6622H89.1385L92.0585 25.658C92.1139 25.1696 92.284 24.1865 92.284 23.6411C92.284 22.3314 91.4414 22.0047 90.4282 22.0047C89.0826 22.0047 87.7337 22.6042 86.8354 23.0418L83.5234 43.6625H73.0772L77.8495 14.257H86.8908L87.0052 16.6041C89.1382 15.2404 91.9469 13.7656 95.932 13.7656C101.212 13.765 103.067 16.3845 103.067 20.3142Z" fill="white"/>\n  <path fill-rule="evenodd" clip-rule="evenodd" d="M133.906 16.9841C136.881 14.9131 139.69 13.765 143.563 13.765C148.897 13.765 150.753 16.3845 150.753 20.3142C150.753 21.4052 150.583 22.9875 150.413 24.0216L147.216 43.6622H136.825L139.801 25.2774C139.855 24.786 139.971 24.1865 139.971 23.8063C139.971 22.3317 139.128 22.0047 138.115 22.0047C136.824 22.0047 135.535 22.5501 134.577 23.0418L131.266 43.6625H120.878L123.854 25.2777C123.908 24.7863 124.02 24.1868 124.02 23.8065C124.02 22.332 123.177 22.0049 122.167 22.0049C120.819 22.0049 119.473 22.6045 118.574 23.0421L115.26 43.6628H104.817L109.589 14.2573H118.52L118.8 16.7122C120.878 15.241 123.684 13.7662 127.446 13.7662C130.704 13.765 132.837 15.129 133.906 16.9841Z" fill="white"/>\n  <path fill-rule="evenodd" clip-rule="evenodd" d="M171.426 25.5502C171.426 23.1496 170.808 21.513 168.956 21.513C164.857 21.513 164.015 28.55 164.015 32.1498C164.015 34.8807 164.802 36.5709 166.653 36.5709C170.528 36.5709 171.426 29.1497 171.426 25.5502ZM153.458 31.7152C153.458 22.442 158.511 13.765 170.136 13.765C178.896 13.765 182.098 18.7854 182.098 25.7148C182.098 34.8805 177.099 44.3723 165.194 44.3723C156.378 44.3723 153.458 38.7525 153.458 31.7152Z" fill="white"/>\n</svg>';
 var CONTINUE_OR_CANCEL_INSTRUCTIONS =
@@ -22867,7 +23106,7 @@ var snakeCaseToCamelCase = _dereq_("../lib/snake-case-to-camel-case");
 var createVenmoDesktop = _dereq_("./external/");
 var graphqlQueries = _dereq_("./external/queries");
 
-var VERSION = "3.92.2";
+var VERSION = "3.93.0";
 var DEFAULT_MOBILE_POLLING_INTERVAL = 250; // 1/4 second
 var DEFAULT_MOBILE_EXPIRING_THRESHOLD = 300000; // 5 minutes
 
@@ -23422,9 +23661,9 @@ Venmo.prototype.tokenize = function (options) {
     .catch(function (err) {
       return self._createPromise
         .then(function (client) {
-          // We create a new Payment Context because if the last one failed, then presumably we don't want to use it again. 
+          // We create a new Payment Context because if the last one failed, then presumably we don't want to use it again.
           // On the first pass, we create the payment context at initialization, and since we used that first one we now need to create a new one
-          // for the next time someone tries to tokenize. 
+          // for the next time someone tries to tokenize.
           return self._createVenmoPaymentContext(client);
         })
         .then(function () {
@@ -24206,7 +24445,7 @@ var createAssetsUrl = _dereq_("../lib/create-assets-url");
 var VisaCheckout = _dereq_("./visa-checkout");
 var analytics = _dereq_("../lib/analytics");
 var errors = _dereq_("./errors");
-var VERSION = "3.92.2";
+var VERSION = "3.93.0";
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 
 /**

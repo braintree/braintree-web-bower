@@ -1233,7 +1233,7 @@ module.exports = {
 
 var BraintreeError = _dereq_("../lib/braintree-error");
 var Client = _dereq_("./client");
-var VERSION = "3.92.2";
+var VERSION = "3.93.0";
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 var sharedErrors = _dereq_("../lib/errors");
 
@@ -2645,7 +2645,7 @@ module.exports = BraintreeError;
 },{"./enumerate":38}],33:[function(_dereq_,module,exports){
 "use strict";
 
-var VERSION = "3.92.2";
+var VERSION = "3.93.0";
 var PLATFORM = "web";
 
 var CLIENT_API_URLS = {
