@@ -1446,7 +1446,7 @@ module.exports = {
 
 var BraintreeError = _dereq_("./braintree-error");
 var sharedErrors = _dereq_("./errors");
-var VERSION = "3.93.0";
+var VERSION = "3.94.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1594,7 +1594,7 @@ module.exports = BraintreeError;
 },{"./enumerate":44}],37:[function(_dereq_,module,exports){
 "use strict";
 
-var VERSION = "3.93.0";
+var VERSION = "3.94.0";
 var PLATFORM = "web";
 
 var CLIENT_API_URLS = {
@@ -1747,7 +1747,7 @@ var BraintreeError = _dereq_("./braintree-error");
 var assets = _dereq_("./assets");
 var sharedErrors = _dereq_("./errors");
 
-var VERSION = "3.93.0";
+var VERSION = "3.94.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -2023,7 +2023,7 @@ var useMin = _dereq_("../../../lib/use-min");
 var BUS_CONFIGURATION_REQUEST_EVENT =
   _dereq_("../../../lib/constants").BUS_CONFIGURATION_REQUEST_EVENT;
 
-var VERSION = "3.93.0";
+var VERSION = "3.94.0";
 var IFRAME_HEIGHT = 400;
 var IFRAME_WIDTH = 400;
 
@@ -2314,6 +2314,17 @@ BaseFramework.prototype._formatLookupData = function (options) {
   var data = {
     amount: options.amount,
   };
+
+  if (options.collectDeviceData === true) {
+    data.browserColorDepth = window.screen.colorDepth;
+    data.browserJavaEnabled = window.navigator.javaEnabled();
+    data.browserJavascriptEnabled = true;
+    data.browserLanguage = window.navigator.language;
+    data.browserScreenHeight = window.screen.height;
+    data.browserScreenWidth = window.screen.width;
+    data.browserTimeZone = new Date().getTimezoneOffset();
+    data.deviceChannel = "Browser";
+  }
 
   return Promise.resolve(data);
 };
@@ -2878,7 +2889,7 @@ var ExtendedPromise = _dereq_("@braintree/extended-promise");
 var INTEGRATION_TIMEOUT_MS =
   _dereq_("../../../lib/constants").INTEGRATION_TIMEOUT_MS;
 var PLATFORM = _dereq_("../../../lib/constants").PLATFORM;
-var VERSION = "3.93.0";
+var VERSION = "3.94.0";
 var CUSTOMER_CANCELED_SONGBIRD_MODAL = "01";
 var SONGBIRD_UI_EVENTS = [
   "ui.close",
@@ -4156,6 +4167,7 @@ EventEmitter.createChild(ThreeDSecure);
  * @param {string} [options.mobilePhoneNumber] The mobile phone number used for verification. Only numbers; remove dashes, parenthesis and other characters. (maximum length 25)
  * @param {object} [options.billingAddress] An {@link ThreeDSecure~billingAddress|billingAddress} object for verification.
  * @param {object} [options.additionalInformation] An {@link ThreeDSecure~additionalInformation|additionalInformation} object for verification.
+ * @param {object} [options.collectDeviceData] If set to `true`, device data such as browser screen dimensions, language and time zone is submitted with lookup data.
  * @param {object} [options.customer] **Deprecated** Customer information for use in 3DS 1.0 verifications. Can contain any subset of a {@link ThreeDSecure~verifyCardCustomerObject|verifyCardCustomerObject}. Only to be used for 3DS 1.0 integrations.
  * @param {callback} options.addFrame **Deprecated** This {@link ThreeDSecure~addFrameCallback|addFrameCallback} will be called when the bank frame needs to be added to your page. Only to be used for 3DS 1.0 integrations.
  * @param {callback} options.removeFrame **Deprecated** For use in 3DS 1.0 Flows. This {@link ThreeDSecure~removeFrameCallback|removeFrameCallback} will be called when the bank frame needs to be removed from your page. Only to be used in 3DS 1.0 integrations.
@@ -4548,7 +4560,7 @@ var createAssetsUrl = _dereq_("../lib/create-assets-url");
 var BraintreeError = _dereq_("../lib/braintree-error");
 var analytics = _dereq_("../lib/analytics");
 var errors = _dereq_("./shared/errors");
-var VERSION = "3.93.0";
+var VERSION = "3.94.0";
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 
 /**
