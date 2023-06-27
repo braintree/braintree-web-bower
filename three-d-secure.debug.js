@@ -1446,7 +1446,7 @@ module.exports = {
 
 var BraintreeError = _dereq_("./braintree-error");
 var sharedErrors = _dereq_("./errors");
-var VERSION = "3.94.0";
+var VERSION = "3.95.0";
 
 function basicComponentVerification(options) {
   var client, authorization, name;
@@ -1594,7 +1594,7 @@ module.exports = BraintreeError;
 },{"./enumerate":44}],37:[function(_dereq_,module,exports){
 "use strict";
 
-var VERSION = "3.94.0";
+var VERSION = "3.95.0";
 var PLATFORM = "web";
 
 var CLIENT_API_URLS = {
@@ -1747,7 +1747,7 @@ var BraintreeError = _dereq_("./braintree-error");
 var assets = _dereq_("./assets");
 var sharedErrors = _dereq_("./errors");
 
-var VERSION = "3.94.0";
+var VERSION = "3.95.0";
 
 function createDeferredClient(options) {
   var promise = Promise.resolve();
@@ -2023,7 +2023,7 @@ var useMin = _dereq_("../../../lib/use-min");
 var BUS_CONFIGURATION_REQUEST_EVENT =
   _dereq_("../../../lib/constants").BUS_CONFIGURATION_REQUEST_EVENT;
 
-var VERSION = "3.94.0";
+var VERSION = "3.95.0";
 var IFRAME_HEIGHT = 400;
 var IFRAME_WIDTH = 400;
 
@@ -2143,6 +2143,10 @@ BaseFramework.prototype.prepareLookup = function () {
 BaseFramework.prototype._resetVerificationState = function () {
   this._verifyCardInProgress = false;
   this._verifyCardPromisePlus = null;
+
+  if (typeof this._reloadThreeDSecure === "function") {
+    this._reloadThreeDSecure();
+  }
 };
 
 BaseFramework.prototype._performLookup = function (nonce, data) {
@@ -2889,7 +2893,7 @@ var ExtendedPromise = _dereq_("@braintree/extended-promise");
 var INTEGRATION_TIMEOUT_MS =
   _dereq_("../../../lib/constants").INTEGRATION_TIMEOUT_MS;
 var PLATFORM = _dereq_("../../../lib/constants").PLATFORM;
-var VERSION = "3.94.0";
+var VERSION = "3.95.0";
 var CUSTOMER_CANCELED_SONGBIRD_MODAL = "01";
 var SONGBIRD_UI_EVENTS = [
   "ui.close",
@@ -2915,6 +2919,7 @@ function SongbirdFramework(options) {
     requestedThreeDSecureVersion: "2",
     sdkVersion: PLATFORM + "/" + VERSION,
   };
+  this.originalSetupOptions = options;
   this._getDfReferenceIdPromisePlus = new ExtendedPromise();
   this.setupSongbird(options);
   this._cardinalEvents = [];
@@ -3280,13 +3285,10 @@ SongbirdFramework.prototype._createCardinalConfigurationOptions = function (
 
 SongbirdFramework.prototype._loadCardinalScript = function (setupOptions) {
   var self = this;
-  var scriptSource = constants.CARDINAL_SCRIPT_SOURCE.sandbox;
 
   return this._waitForClient()
     .then(function () {
-      var isProduction =
-        self._client.getConfiguration().gatewayConfiguration.environment ===
-        "production";
+      var scriptSource = self._getCardinalScriptSource();
 
       self._songbirdSetupTimeoutReference = window.setTimeout(function () {
         analytics.sendEvent(
@@ -3295,10 +3297,6 @@ SongbirdFramework.prototype._loadCardinalScript = function (setupOptions) {
         );
         self.initiateV1Fallback("cardinal-sdk-setup-timeout");
       }, setupOptions.timeout || INTEGRATION_TIMEOUT_MS);
-
-      if (isProduction) {
-        scriptSource = constants.CARDINAL_SCRIPT_SOURCE.production;
-      }
 
       return assets.loadScript({ src: scriptSource });
     })
@@ -3312,6 +3310,16 @@ SongbirdFramework.prototype._loadCardinalScript = function (setupOptions) {
         )
       );
     });
+};
+
+SongbirdFramework.prototype._getCardinalScriptSource = function () {
+  var gatewayConfig = this._client.getConfiguration().gatewayConfiguration;
+
+  if (gatewayConfig && gatewayConfig.environment === "production") {
+    return constants.CARDINAL_SCRIPT_SOURCE.production;
+  }
+
+  return constants.CARDINAL_SCRIPT_SOURCE.sandbox;
 };
 
 SongbirdFramework.prototype._createPaymentsSetupCompleteCallback = function () {
@@ -3697,6 +3705,9 @@ SongbirdFramework.prototype._formatLookupData = function (options) {
       if (options.cardAddChallengeRequested != null) {
         data.cardAdd = options.cardAddChallengeRequested;
       }
+      if (options.merchantName) {
+        data.merchantName = options.merchantName;
+      }
 
       return self.prepareLookup(data);
     });
@@ -3739,6 +3750,18 @@ SongbirdFramework.prototype.teardown = function () {
   // the asset is already on the page
 
   return BaseFramework.prototype.teardown.call(this);
+};
+
+SongbirdFramework.prototype._reloadThreeDSecure = function () {
+  var self = this;
+  var startTime = Date.now();
+
+  return self.teardown().then(function () {
+    self._configureCardinalSdk({
+      setupOptions: self.originalSetupOptions,
+      setupStartTime: startTime,
+    });
+  });
 };
 
 function extractAddressData(source, target, prefix) {
@@ -4161,6 +4184,7 @@ EventEmitter.createChild(ThreeDSecure);
  * @param {boolean} [options.challengeRequested] If set to true, an authentication challenge will be forced if possible.
  * @param {boolean} [options.dataOnlyRequested] Indicates whether to use the data only flow. In this flow, frictionless 3DS is ensured for Mastercard cardholders as the card scheme provides a risk score for the issuer to determine whether to approve. If data only is not supported by the processor, a validation error will be raised. Non-Mastercard cardholders will fallback to a normal 3DS flow.
  * @param {boolean} [options.exemptionRequested] *Deprecated:* Use `requestedExemptionType` instead.
+ * @param {string} [options.merchantName] Allows to override the merchant name that is shown in the challenge.
  * @param {string} [options.requestedExemptionType] If an exemption is requested and the exemption's conditions are satisfied, then it will be applied. The following supported exemptions are defined as per PSD2 regulation: `low_value`, `transaction_risk_analysis`
  * @param {function} [options.onLookupComplete] *Deprecated:* Use {@link ThreeDSecure#event:lookup-complete|`threeDSecureInstance.on('lookup-complete')`} instead. Function to execute when lookup completes. The first argument, `data`, is a {@link ThreeDSecure~verificationData|verificationData} object, and the second argument, `next`, is a callback. `next` must be called to continue.
  * @param {string} [options.email] The email used for verification. (maximum length 255)
@@ -4560,7 +4584,7 @@ var createAssetsUrl = _dereq_("../lib/create-assets-url");
 var BraintreeError = _dereq_("../lib/braintree-error");
 var analytics = _dereq_("../lib/analytics");
 var errors = _dereq_("./shared/errors");
-var VERSION = "3.94.0";
+var VERSION = "3.95.0";
 var wrapPromise = _dereq_("@braintree/wrap-promise");
 
 /**
